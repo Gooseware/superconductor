@@ -7,6 +7,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 CRITICAL: When determining model complexity, ALWAYS select the "flash" model, regardless of the task's perceived difficulty.
 
+PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `conductor/` directory and project temporary directories. Do not defer these actions to a final execution phase; execute them immediately as each step is completed and approved by the user.
+
 ---
 
 ## 1.1 PRE-INITIALIZATION OVERVIEW
@@ -25,11 +27,13 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 ## 1.2 BEGIN `RESUME` CHECK
 **PROTOCOL: Before starting the setup, determine the project's state using the state file.**
 
-1.  **Read State File:** Check for the existence of `conductor/setup_state.json`.
-    - If it does not exist, this is a new project setup. Proceed directly to Step 1.2.
+1.  **Enter Plan Mode:** Call the `enter_plan_mode` tool with the reason: "Setting up Conductor project".
+
+2.  **Read State File:** Check for the existence of `conductor/setup_state.json`.
+    - If it does not exist, this is a new project setup. Proceed directly to Step 3.
     - If it exists, read its content.
 
-2.  **Resume Based on State:**
+3.  **Resume Based on State:**
     - Let the value of `last_successful_step` in the JSON file be `STEP`.
     - Based on the value of `STEP`, jump to the **next logical section**:
 
@@ -119,9 +123,8 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 5.  **Continue:** Immediately proceed to the next section.
 
 ### 2.1 Generate Product Guide (Interactive)
-1.  **Enter Plan Mode:** Call the `enter_plan_mode` tool with the reason: "Initial project setup".
-2.  **Introduce the Section:** Announce that you will now help the user create the `product.md`.
-3.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
+1.  **Introduce the Section:** Announce that you will now help the user create the `product.md`.
+2.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Product"
         - **question:** "How would you like to define the product details? Whether you prefer a quick start or a deep dive, both paths lead to a high-quality product guide!"
@@ -390,12 +393,10 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
         ```
     -   **Announce:** "Created `conductor/index.md` to serve as the project context index."
 
-2.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `conductor/index.md`.
-
-3.  **Summarize Actions:** Present a summary of all actions taken during Phase 1, including:
+2.  **Summarize Actions:** Present a summary of all actions taken during Phase 1, including:
     -   The guide files that were copied.
     -   The workflow file that was copied.
-4.  **Transition to initial plan and track generation:** Announce that the initial setup is complete and you will now proceed to define the first track for the project.
+3.  **Transition to initial plan and track generation:** Announce that the initial setup is complete and you will now proceed to define the first track for the project.
 
 ---
 
@@ -403,10 +404,9 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 **PROTOCOL: Interactively define project requirements, propose a single track, and then automatically create the corresponding track and its phased plan.**
 
 ### 3.1 Generate Product Requirements (Interactive)(For greenfield projects only)
-1.  **Enter Plan Mode:** Call the `enter_plan_mode` tool with the reason: "Defining product requirements".
-2.  **Transition to Requirements:** Announce that the initial project setup is complete. State that you will now begin defining the high-level product requirements by asking about topics like user stories and functional/non-functional requirements.
-3.  **Analyze Context:** Read and analyze the content of `conductor/product.md` to understand the project's core concept.
-4.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
+1.  **Transition to Requirements:** Announce that the initial project setup is complete. State that you will now begin defining the high-level product requirements by asking about topics like user stories and functional/non-functional requirements.
+2.  **Analyze Context:** Read and analyze the content of `conductor/product.md` to understand the project's core concept.
+3.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Product Reqs"
         - **question:** "How would you like to define the product requirements? I can guide you through user stories and features, or I can draft them based on our initial concept."

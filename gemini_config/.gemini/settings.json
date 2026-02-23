@@ -1,8 +1,6 @@
 {
   "experimental": {
-    "plan": {
-      "enabled": true
-    }
+    "plan": true
   },
   "general": {
     "devtools": true,

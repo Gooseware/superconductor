@@ -1,4 +1,4 @@
-# Allow writing metadata.json files in plan mode
+# Allow writing conductor files in plan mode
 [[rule]]
 toolName = ["write_file", "replace"]
 priority = 100
@@ -9,7 +9,7 @@ argsPattern = '"(?:file_path|path)":"conductor/[^"]*"'
 # Allow git status/diff/ls for context awareness
 [[rule]]
 toolName = "run_shell_command"
-commandPrefix = ["git status", "git diff", "ls", "mkdir", "cp", "git init"]
+commandPrefix = ["git status", "git diff", "ls", "mkdir", "cp", "git init", "git add", "git commit"]
 decision = "allow"
 priority = 100
 modes = ["plan"]
