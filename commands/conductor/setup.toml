@@ -433,13 +433,25 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 2.  **Generate Track Title:** Analyze the project context (`product.md`, `tech-stack.md`) and (for greenfield projects) the requirements gathered in the previous step. Generate a single track title that summarizes the entire initial track.
     - **Greenfield:** Focus on the MVP core (e.g., "Build core tip calculator functionality").
     - **Brownfield:** Focus on maintenance or targeted enhancements (e.g., "Implement user authentication flow").
-3.  **Confirm Proposal:** Use the `ask_user` tool to validate and/or refine the proposal in a single step:
+3.  **Confirm Proposal:** Use the `ask_user` tool to validate the proposal:
     - **questions:**
         - **header:** "Confirm Track"
-        - **type:** "text"
-        - **question:** "To get the project started, I suggest the following track: '<Track Title>'. If you approve, please type 'ok' (or leave blank). Otherwise, type your preferred track description."
-        - **placeholder:** "e.g., Setup CI/CD pipeline"
-4.  **Action:** Use the user's response as the source of truth. If the user types 'ok' or leaves it blank, use the suggested '<Track Title>'. If they provide a new description, use that instead. Proceed to **Section 3.3**.
+        - **type:** "choice"
+        - **multiSelect:** false
+        - **question:** "To get the project started, I suggest the following track: '<Track Title>'. Do you want to proceed with this track?"
+        - **options:**
+            - Label: "Yes", Description: "Proceed with '<Track Title>'."
+            - Label: "Suggest changes", Description: "I want to define a different track."
+4.  **Action:**
+    -   **If user chose "Yes":** Use the suggested '<Track Title>' as the track description.
+    -   **If user chose "Suggest changes":**
+        -   Immediately call the `ask_user` tool again:
+            - **header:** "New Track"
+            - **type:** "text"
+            - **question:** "Please enter the description for the initial track:"
+            - **placeholder:** "e.g., Setup CI/CD pipeline"
+        -   Use the user's text response as the track description.
+    -   Proceed to **Section 3.3** with the determined track description.
 
 ### 3.3 Convert the Initial Track into Artifacts (Automated)
 1.  **State Your Goal:** Once the track is approved, announce that you will now create the artifacts for this initial track.
