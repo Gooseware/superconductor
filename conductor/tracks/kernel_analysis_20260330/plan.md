@@ -1,11 +1,11 @@
 # Implementation Plan: design-os-kernel Analysis Step
 
-## Phase 1: Workflow Definition
-- [ ] Task: Update `conductor/workflow.md` with the kernel analysis step.
-    - [ ] Write tests for the updated workflow (to ensure the protocol is correctly placed and described).
-    - [ ] Integrate the analysis step into the "Phase Completion Verification and Checkpointing Protocol".
-    - [ ] Add the requirement to draft a kernel publication proposal for suitable candidates.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Workflow Definition' (Protocol in workflow.md)
+## Phase 1: Workflow Definition [checkpoint: 0ea7501]
+- [x] Task: Update `conductor/workflow.md` with the kernel analysis step. [40f253c]
+    - [x] Write tests for the updated workflow (to ensure the protocol is correctly placed and described).
+    - [x] Integrate the analysis step into the "Phase Completion Verification and Checkpointing Protocol".
+    - [x] Add the requirement to draft a kernel publication proposal for suitable candidates.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Workflow Definition' (Protocol in workflow.md) [0ea7501]
 
 ## Phase 2: Implementation Logic (Conductor Commands)
 - [ ] Task: Update the `implement.toml` (or relevant command logic) to automate the analysis.
