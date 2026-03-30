@@ -103,14 +103,29 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 ---
 
-## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION
-**PROTOCOL: Update project-level documentation based on the completed track.**
+## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
+**PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
 
 1.  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
 
-2.  **Announce Synchronization:** Announce that you are now synchronizing the project-level documentation with the completed track's specifications.
+2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for `design-os-kernel` inclusion.
 
-3.  **Load Track Specification:** Read the track's **Specification**.
+3.  **Kernel Inclusion Analysis:**
+    -   **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
+        -   **New Files Scan:** Check for new files in known component directories.
+        -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
+        -   **Theme Usage Scan:** Check for usage of `design-os` tokens and primitives.
+    -   **Draft Publication Proposals:** For any high-quality, reusable component identified:
+        -   Draft a publication proposal for the `design-os-kernel`.
+        -   Explain the rationale for why this component is a good candidate.
+        -   **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the kernel publication proposal.
+            - **questions:**
+                - **header:** "Kernel Proposal"
+                - **question:** "I've identified '<component_name>' as a potential candidate for the `design-os-kernel`. Would you like me to draft a publication proposal?"
+                - **type:** "yesno"
+        -   **Action:** If approved, use the `mcp_design-os-kernel_registry_propose_publish` tool to start the publishing process.
+
+4.  **Load Track Specification:** Read the track's **Specification**.
 
 4.  **Load Project Documents:**
     -   Resolve and read:
