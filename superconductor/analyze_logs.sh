@@ -1,40 +1,47 @@
 #!/bin/bash
-# Log Analyzer for Superconductor
-# Analyzes tool-call patterns and errors from a JSON log file.
+# Refined Log Analyzer for Superconductor (Guided Rails)
 
-LOG_FILE="$1"
+# 1. Automatic Log Detection
+LOG_DIR="/home/gooseware/.gemini/tmp/superconductor/chats"
+SESSION_FILE="$1"
 
-if [ ! -f "$LOG_FILE" ]; then
-    echo "Error: Log file not found."
+if [ -z "$SESSION_FILE" ]; then
+    SESSION_FILE=$(ls -t "$LOG_DIR"/session-*.json 2>/dev/null | head -n 1)
+fi
+
+if [ ! -f "$SESSION_FILE" ]; then
+    echo "Error: No session file found."
     exit 1
 fi
 
-# 1. Detect tool hallucinations (Tool not found errors)
-grep -B 4 '"error": "Tool not found"' "$LOG_FILE" | grep '"tool"' | sed 's/.*"tool": "\(.*\)".*/Tool hallucination: \1/'
+echo "--- Superconductor Analysis: $(basename "$SESSION_FILE") ---"
 
-# 2. Detect policy denials
-grep -B 4 '"error": "Policy denial"' "$LOG_FILE" | grep '"tool"' | sed 's/.*"tool": "\(.*\)".*/Policy denial: \1/'
+# 2. Known Good Tool List (Superconductor Core)
+SUPERCONDUCTOR_TOOLS=("setup" "newTrack" "implement" "status" "revert" "review")
+CORE_HARNESS_TOOLS=("list_directory" "read_file" "grep_search" "glob" "replace" "write_file" "ask_user" "run_shell_command")
 
-# 3. Detect redundant tool calls (Duplicate successful calls with same args)
-# Use awk to parse JSON-like structures robustly
-awk '
-{
-    if ($0 ~ /{/) { tool=""; args=""; }
-    if ($0 ~ /"tool":/) { t=$0; sub(/^[ \t]*"tool": "/, "", t); sub(/",?$/, "", t); tool=t; }
-    if ($0 ~ /"args":/) { a=$0; sub(/^[ \t]*"args": "/, "", a); sub(/",?$/, "", a); args=a; }
-    if ($0 ~ /}/ && tool != "" && args != "") {
-        key = tool "|||" args;
-        count[key]++;
-    }
-}
-END {
-    for (k in count) {
-        if (count[k] > 1) {
-            split(k, parts, "|||");
-            print "Redundant call: " parts[1];
-        }
-    }
-}
-' "$LOG_FILE" | sort -u
+# 3. Detect Faulty/Ineffective Tool Use
+echo "[Faulty Tool Use]"
+# Look for error responses in tool calls
+grep -B 15 '"status": "error"' "$SESSION_FILE" | grep -E '"name":' | sed 's/.*"name": "\(.*\)".*/  - Error in tool: \1/' | sort | uniq -c
 
+# 4. Detect Specific Hallucinations (Not in harness list)
+echo ""
+echo "[Tool Hallucinations]"
+grep '"name":' "$SESSION_FILE" | sed 's/.*"name": "\(.*\)".*/\1/' | sort -u | while read -r tool; do
+    is_valid=false
+    for t in "${CORE_HARNESS_TOOLS[@]}"; do
+        if [ "$tool" == "$t" ]; then is_valid=true; break; fi
+    done
+    if [ "$is_valid" == "false" ]; then
+        echo "  - Hallucinated/Unknown tool: $tool"
+    fi
+done
+
+# 5. Detect Redundant/Ineffective 'replace' attempts
+echo ""
+echo "[Ineffective Edits]"
+grep -A 5 '"name": "replace"' "$SESSION_FILE" | grep -E "0 occurrences found|Failed to edit" | wc -l | awk '{print "  - Failed replace attempts: " $1}'
+
+echo "--------------------------------------------------------"
 exit 0

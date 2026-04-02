@@ -10,6 +10,11 @@ Enable the Superconductor extension to continuously self-improve, self-heal, and
 - **Self-Directed Tracks**: The agent should be able to suggest and initiate new Superconductor tracks on its own.
 - **Internal YOLO Mode**: Support an unsupervised mode where the agent can work tirelessly on a series of improvements, guided by internal benchmarks.
 - **Safeguards & HITL**: Implement safeguards to prevent wasted effort on low-benefit tasks. Include a self-review process and optional Human-in-the-loop (HITL) checkpoints.
+- **Cross-Platform Dependency Management**: 
+    - The system must detect if external CLI tools (e.g., `ripgrep`) are installed.
+    - If a tool is missing, provide a cross-platform installation path or strategy.
+    - If a tool cannot be installed, flag it as "uninstallable" in the project metadata to prevent redundant user prompts.
+    - Provide a Node.js-native fallback for critical operations when CLI tools are unavailable.
 
 ## Non-Functional Requirements
 - **Strict TDD**: All self-initiated improvements must follow strict Test-Driven Development (TDD) principles.
