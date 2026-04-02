@@ -12,6 +12,10 @@ Establish the core mechanisms for the agent to analyze its own environment and t
 - [ ] Task: Implement a continuous analysis background process.
     - [ ] Create a service to scan logs and harness reports for errors.
     - [ ] Implement logic to identify patterns of inefficiency or recurring issues.
+- [ ] Task: Self-Reflect Session & Token Optimization.
+    - [ ] Integrate `grep_search` (ripgrep) to identify high-token-cost patterns in logs and codebase.
+    - [ ] Analyze past sessions to identify redundant tool calls and inefficient read/write patterns.
+    - [ ] Implement a "token-budget" awareness mechanism for planning and executing tracks.
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Foundation & Continuous Analysis' (Protocol in workflow.md)
 
 ## Phase 2: Error Identification & Healing
