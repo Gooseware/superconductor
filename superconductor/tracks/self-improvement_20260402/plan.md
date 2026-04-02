@@ -3,7 +3,7 @@
 ## Phase 1: Foundation & Continuous Analysis
 Establish the core mechanisms for the agent to analyze its own environment and the current application.
 
-- [ ] Task: Define internal performance and error metrics.
+- [x] Task: Define internal performance and error metrics. [18a98dc]
     - [ ] Identify key harness errors to monitor.
     - [ ] Define what "improvement" looks like for the extension and the current application.
 - [ ] Task: Implement a tool-call validation and path-verification protocol.
