@@ -22,6 +22,12 @@ Enable the Superconductor extension to continuously self-improve, self-heal, and
 - All changes are verified through TDD and a self-review process.
 - Safeguards successfully prevent the agent from pursuing tasks with negligible benefit.
 
+## Retrospective Findings (Session: 2026-04-02)
+- **Tool Hallucination**: I called `exit_plan_mode`, which does not exist in the current harness. This indicates a need for better tool discovery or an internal registry of available capabilities.
+- **Path Resolution Confusion**: Files intended for `superconductor/tracks/...` were initially written to `superconductor/` (root), overwriting critical project files like `index.md`.
+- **Inefficient `replace` Operations**: Multiple failed attempts with `replace` occurred due to incorrect assumptions about whitespace and exact string matches. This highlights a need for a more robust "read-before-edit" protocol.
+- **Git State Mismanagement**: Attempted to stage files that were not yet created or were in the wrong directory, leading to `git` command failures.
+
 ## Out of Scope
 - Direct modification of third-party dependencies outside the project's direct control.
 - Changes that violate the core Superconductor protocol or product guidelines.

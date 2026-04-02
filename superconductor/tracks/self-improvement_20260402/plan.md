@@ -6,6 +6,9 @@ Establish the core mechanisms for the agent to analyze its own environment and t
 - [ ] Task: Define internal performance and error metrics.
     - [ ] Identify key harness errors to monitor.
     - [ ] Define what "improvement" looks like for the extension and the current application.
+- [ ] Task: Implement a tool-call validation and path-verification protocol.
+    - [ ] Create a check to verify file destination before executing `write_file` or `replace`.
+    - [ ] Implement a "dry-run" mechanism for `git` commands to verify paths.
 - [ ] Task: Implement a continuous analysis background process.
     - [ ] Create a service to scan logs and harness reports for errors.
     - [ ] Implement logic to identify patterns of inefficiency or recurring issues.
