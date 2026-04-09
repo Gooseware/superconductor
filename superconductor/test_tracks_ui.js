@@ -36,7 +36,7 @@ try {
 
     // Test get_planned_tracks.js
     console.log('Testing get_planned_tracks.js...');
-    const output = execSync('node get_planned_tracks.js').toString();
+    const output = execSync(`node ${path.join(__dirname, 'get_planned_tracks.js')}`).toString();
     const tracks = JSON.parse(output);
     
     if (tracks.length !== 3) throw new Error(`Expected 3 tracks, got ${tracks.length}`);
@@ -46,7 +46,7 @@ try {
 
     // Test present_track_selection.js
     console.log('Testing present_track_selection.js...');
-    const optionsOutput = execSync(`node present_track_selection.js '${JSON.stringify(tracks)}'`).toString();
+    const optionsOutput = execSync(`node ${path.join(__dirname, 'present_track_selection.js')} '${JSON.stringify(tracks)}'`).toString();
     const options = JSON.parse(optionsOutput);
     
     if (options.length !== 2) throw new Error(`Expected 2 available tracks, got ${options.length}`);

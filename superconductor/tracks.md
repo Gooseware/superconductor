@@ -4,6 +4,15 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Track Selection and Initiation in `implement` Command**
-*Link: [./tracks/implement_select_20260409/](./tracks/implement_select_20260409/)*
+- [ ] **Track: Test Track 1**
+*Link: [./tracks/test_1/](./tracks/test_1/)*
 
+---
+
+- [~] **Track: Test Track 2**
+*Link: [./tracks/test_2/](./tracks/test_2/)*
+
+---
+
+- [x] **Track: Completed Track**
+*Link: [./tracks/completed/](./tracks/completed/)*

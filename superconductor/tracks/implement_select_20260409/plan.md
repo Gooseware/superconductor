@@ -5,10 +5,10 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Track Retrieval and Selection UI
-- [ ] Task: Implement `get_planned_tracks()` helper function to read from `superconductor/tracks.md`.
-- [ ] Task: Implement `present_track_selection()` helper function to use `ask_user` tool for track selection and new track input.
-- [ ] Task: Write tests for `get_planned_tracks()` and `present_track_selection()`.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Implement `get_planned_tracks()` helper function to read from `superconductor/tracks.md`. [02a4cbc]
+- [x] Task: Implement `present_track_selection()` helper function to use `ask_user` tool for track selection and new track input. [947b55b]
+- [x] Task: Write tests for `get_planned_tracks()` and `present_track_selection()`. [cdfc030]
+- [~] Task: Superconductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Logic for Track Selection and Initiation
 - [ ] Task: Update the `implement` command's core logic to handle the selected track or the new track description.
