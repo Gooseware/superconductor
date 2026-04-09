@@ -17,7 +17,7 @@ All tasks follow a strict lifecycle:
 
 1. **Select Task:** Choose the next available task from `plan.md` in sequential order
 
-2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`
+2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch.
 
 3. **Write Failing Tests (Red Phase):**
    - Create a new test file for the feature or bug fix.
@@ -134,6 +134,20 @@ All tasks follow a strict lifecycle:
     - **Action:** Commit this change with a descriptive message following the format `superconductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
 11. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+
+### Oracle Code Review Loop (Advanced Verification)
+
+**Trigger:** Prompted during the "Track Cleanup" phase of the implementation lifecycle.
+
+1.  **Selection:** Choose between "Pro" or "Flash" models for the audit.
+2.  **Audit Scope:**
+    -   **Spec Alignment:** Full fulfillment of `spec.md`.
+    -   **Plan Verification:** All `plan.md` tasks complete.
+    -   **Style & Tech Compliance:** Strict adherence to standards.
+    -   **Feature Gap Identification:** Identifying overlooked risks or edge cases.
+    -   **DRY & Reusability:** Detecting duplication and proposing reusable abstractions.
+3.  **Auto-Fix Loop:** Automatically apply suggested fixes using a Red-Green-Refactor cycle upon approval.
+4.  **Final Verdict:** Transition to cleanup once a "Ready" verdict is achieved.
 
 ### Quality Gates
 
@@ -311,7 +325,7 @@ A task is complete when:
 - [ ] Backup created
 
 ### Deployment Steps
-1. Merge feature branch to main
+1. Merge the track branch (`track/<track_id>`) into `main` (or `master`).
 2. Tag release with version
 3. Push to deployment service
 4. Run database migrations
