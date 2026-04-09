@@ -48,7 +48,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         2.  **Handle Response:**
             -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
             -   **If a new description is entered in the "Other" field:**
-                -   **Action:** Transition to the requirements gathering phase of a new track (as defined in `/superconductor:newTrack`).
+                -   **Action:** Transition to the requirements gathering phase of a new track.
+                -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.
             -   **If no tracks exist and no new description is provided:** Announce "No tracks available and no new track description provided." and HALT.
 
 5.  **Handle No Selection:** If no track is selected and no new track is initiated, inform the user and await further instructions.
