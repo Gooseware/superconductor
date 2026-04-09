@@ -31,7 +31,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
 1.  **Load Project Context:** Read and understand the content of the project documents (**Product Definition**, **Tech Stack**, etc.) resolved via the **Universal File Resolution Protocol**.
 2.  **Get Track Description & Enter Plan Mode:**
-    *   **If `{{args}}` is empty:**
+    *   **If a track description is NOT available ({{args}} is empty):**
         1. Call the `enter_plan_mode` tool with the reason: "Defining new track".
         2. Ask the user using the `ask_user` tool (do not repeat the question in the chat):
             - **questions:**
@@ -40,10 +40,11 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
                 - **question:** "Please provide a brief description of the track (feature, bug fix, chore, etc.) you wish to start."
                 - **placeholder:** "e.g., Implement user authentication"
             Await the user's response and use it as the track description.
-    *   **If `{{args}}` contains a description:**
-        1. Use the content of `{{args}}` as the track description.
+    *   **If a track description IS available (e.g., from {{args}} or a transition from another command):**
+        1. Use the provided description as the track description.
         2. Call the `enter_plan_mode` tool with the reason: "Defining new track".
 3.  **Infer Track Type:** Analyze the description to determine if it is a "Feature" or "Something Else" (e.g., Bug, Chore, Refactor). Do NOT ask the user to classify it.
+
 
 ### 2.2 Interactive Specification Generation (`spec.md`)
 
