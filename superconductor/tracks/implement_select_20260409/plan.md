@@ -1,8 +1,8 @@
 # Implementation Plan: Track Selection and Initiation in `implement` Command
 
 ## Phase 1: Update `implement` Command Architecture
-- [ ] Task: Modify `commands/superconductor/implement.toml` to support an interactive mode when no track ID is provided.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Modify `commands/superconductor/implement.toml` to support an interactive mode when no track ID is provided. [9bc6eea]
+- [~] Task: Superconductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Track Retrieval and Selection UI
 - [ ] Task: Implement `get_planned_tracks()` helper function to read from `superconductor/tracks.md`.

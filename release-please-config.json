@@ -2,7 +2,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "conductor",
+      "package-name": "superconductor",
       "extra-files": [
         "gemini-extension.json"
       ]

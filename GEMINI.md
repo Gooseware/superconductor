@@ -1,6 +1,6 @@
-# Conductor Context
+# Superconductor Context
 
-If a user mentions a "plan" or asks about the plan, and they have used the conductor extension in the current session, they are likely referring to the `conductor/tracks.md` file or one of the track plans (`conductor/tracks/<track_id>/plan.md`).
+If a user mentions a "plan" or asks about the plan, and they have used the superconductor extension in the current session, they are likely referring to the `superconductor/tracks.md` file or one of the track plans (`superconductor/tracks/<track_id>/plan.md`).
 
 ## Universal File Resolution Protocol
 
@@ -8,7 +8,7 @@ If a user mentions a "plan" or asks about the plan, and they have used the condu
 To find a file (e.g., "**Product Definition**") within a specific context (Project Root or a specific Track):
 
 1.  **Identify Index:** Determine the relevant index file:
-    -   **Project Context:** `conductor/index.md`
+    -   **Project Context:** `superconductor/index.md`
     -   **Track Context:**
         a. Resolve and read the **Tracks Registry** (via Project Context).
         b. Find the entry for the specific `<track_id>`.
@@ -20,22 +20,22 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 2.  **Check Index:** Read the index file and look for a link with a matching or semantically similar label.
 
 3.  **Resolve Path:** If a link is found, resolve its path **relative to the directory containing the `index.md` file**.
-    -   *Example:* If `conductor/index.md` links to `./workflow.md`, the full path is `conductor/workflow.md`.
+    -   *Example:* If `superconductor/index.md` links to `./workflow.md`, the full path is `superconductor/workflow.md`.
 
 4.  **Fallback:** If the index file is missing or the link is absent, use the **Default Path** keys below.
 
 5.  **Verify:** You MUST verify the resolved file actually exists on the disk.
 
 **Standard Default Paths (Project):**
-- **Product Definition**: `conductor/product.md`
-- **Tech Stack**: `conductor/tech-stack.md`
-- **Workflow**: `conductor/workflow.md`
-- **Product Guidelines**: `conductor/product-guidelines.md`
-- **Tracks Registry**: `conductor/tracks.md`
-- **Tracks Directory**: `conductor/tracks/`
+- **Product Definition**: `superconductor/product.md`
+- **Tech Stack**: `superconductor/tech-stack.md`
+- **Workflow**: `superconductor/workflow.md`
+- **Product Guidelines**: `superconductor/product-guidelines.md`
+- **Tracks Registry**: `superconductor/tracks.md`
+- **Tracks Directory**: `superconductor/tracks/`
 
 **Standard Default Paths (Track):**
-- **Specification**: `conductor/tracks/<track_id>/spec.md`
-- **Implementation Plan**: `conductor/tracks/<track_id>/plan.md`
-- **Metadata**: `conductor/tracks/<track_id>/metadata.json`
+- **Specification**: `superconductor/tracks/<track_id>/spec.md`
+- **Implementation Plan**: `superconductor/tracks/<track_id>/plan.md`
+- **Metadata**: `superconductor/tracks/<track_id>/metadata.json`
 

@@ -1,8 +1,0 @@
-{
-  "track_id": "kernel_analysis_20260330",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-30T00:00:00Z",
-  "updated_at": "2026-03-30T00:00:00Z",
-  "description": "Add a finalization step to analyze new componentry for design-os-kernel inclusion"
-}
