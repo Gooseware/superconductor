@@ -108,17 +108,22 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 1.  **State Your Goal:** Once `spec.md` is approved, announce:
     > "Now I will create an implementation plan (plan.md) based on the specification."
 
-2.  **Generate Plan:**
+2.  **Oracle Analysis (Proactive Planning):**
+    -   **Prompt:** Ask the user: "Would you like the Oracle (Pro model) to audit the requirements and suggest proactive architectural improvements (e.g., reusable components, DRY patterns)?" (type: "yesno")
+    -   **Action:** If yes, the agent (using the Pro model) analyzes the `spec.md` and project context to identify common patterns or opportunities for reusability. It generates a "Proactive Planning" section to be included in the plan.
+
+3.  **Generate Plan:**
     *   Read the confirmed `spec.md` content for this track.
     *   Resolve and read the **Workflow** file (via the **Universal File Resolution Protocol** using the project's index file).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the **Workflow** file (e.g., TDD tasks for "Write Tests" and "Implement").
+    *   **Inject Oracle Suggestions:** If the Oracle was engaged, include a new phase at the beginning of the plan: `Phase 0: Proactive Abstractions`. Add tasks for creating the reusable units suggested by the Oracle.
     *   Include status markers `[ ]` for **EVERY** task and sub-task. The format must be:
         - Parent Task: `- [ ] Task: ...`
         - Sub-task: `    - [ ] ...`
     *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`.
 
-3.  **User Confirmation:**
+4.  **User Confirmation:**
     -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
         - **questions:**
             - **header:** "Confirm Plan"
