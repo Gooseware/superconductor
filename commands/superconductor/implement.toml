@@ -242,4 +242,35 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 a. **Announce Cancellation:** Announce: "Deletion cancelled. The track has not been changed."
     *   **If user chooses "Skip":**
         *   Announce: "Okay, the completed track will remain in your tracks file for now."
+
+---
+
+## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
+**PROTOCOL: Perform a high-fidelity audit using the selected model.**
+
+1.  **Initialize Oracle:**
+    -   Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
+    -   Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."
+
+2.  **Audit Phase:**
+    -   The agent (using the user-selected model) executes the audit objectives:
+        -   Compare code against `spec.md`.
+        -   Verify all `plan.md` tasks are complete.
+        -   Check `tech-stack.md` and `code_styleguides/`.
+        -   Scan for feature gaps and DRY violations.
+    -   **Generate Report:** Output the `Oracle Audit Report` according to the template.
+
+3.  **Auto-Fix Loop:**
+    -   If the report contains "Auto-Fix Candidates":
+        -   **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
+        -   **Action:** If yes, for each candidate:
+            -   Create/Update tests to reproduce the issue or verify the improvement.
+            -   Apply the suggested diff.
+            -   Run tests.
+            -   Commit with message: `fix(superconductor/oracle): [Description of fix]`.
+    -   If "Needs Fixes" and not auto-fixable:
+        -   Ask the user for guidance or to perform manual fixes.
+
+4.  **Finalization:**
+    -   Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
 """
