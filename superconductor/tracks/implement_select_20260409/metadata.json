@@ -1,0 +1,8 @@
+{
+  "track_id": "implement_select_20260409",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-04-09T14:30:00Z",
+  "updated_at": "2026-04-09T14:30:00Z",
+  "description": "with the implement command, can you give the user a list of currently planned tracks from which they can select the one they wish to implement, also add a text field which will give them the chance to start defining a new track"
+}
