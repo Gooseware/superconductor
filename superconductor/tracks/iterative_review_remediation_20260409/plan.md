@@ -4,9 +4,9 @@
 - [x] Task: Implement ReviewTriggerDetector [9dc90a8]
     - [x] Sub-task: Write unit tests for trigger parsing (Git commit parser, CLI command parser, plan.md status reader).
     - [x] Sub-task: Implement `ReviewTriggerDetector` logic.
-- [ ] Task: Implement PhaseGenerator Utility
-    - [ ] Sub-task: Write unit tests for dynamically appending phases to a markdown file string.
-    - [ ] Sub-task: Implement `PhaseGenerator` to safely append "Review Remediation" phases to `plan.md`.
+- [x] Task: Implement PhaseGenerator Utility [cec55c0]
+    - [x] Sub-task: Write unit tests for dynamically appending phases to a markdown file string.
+    - [x] Sub-task: Implement `PhaseGenerator` to safely append "Review Remediation" phases to `plan.md`.
 - [ ] Task: Implement ReviewApprovalState Manager
     - [ ] Sub-task: Write unit tests for state transitions (Oracle Approval, User Approval, Rejected).
     - [ ] Sub-task: Implement `ReviewApprovalState` logic.
