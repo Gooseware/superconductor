@@ -13,12 +13,12 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 0: Proactive Abstractions' (Protocol in workflow.md) [e91f612]
 
 ## Phase 1: Iterative Review Loop Logic
-...
-    - [ ] Sub-task: Write tests for listening to trigger events in the track lifecycle.
-    - [ ] Sub-task: Integrate `ReviewTriggerDetector` into the main track lifecycle engine.
-- [ ] Task: Implement Remediation Phase Generation
-    - [ ] Sub-task: Write tests for generating a new remediation phase upon an Oracle rejection.
-    - [ ] Sub-task: Wire up `PhaseGenerator` to update the actual track's `plan.md` file when a review fails.
+- [x] Task: Integrate Trigger Detection [08062f6]
+    - [x] Sub-task: Write tests for listening to trigger events in the track lifecycle.
+    - [x] Sub-task: Integrate `ReviewTriggerDetector` into the main track lifecycle engine.
+- [x] Task: Implement Remediation Phase Generation [c4d8db7]
+    - [x] Sub-task: Write tests for generating a new remediation phase upon an Oracle rejection.
+    - [x] Sub-task: Wire up `PhaseGenerator` to update the actual track's `plan.md` file when a review fails.
 - [ ] Task: Implement Re-review Cycle
     - [ ] Sub-task: Write tests for looping the workflow back to the "Review" state from a "Remediation" state upon a trigger.
     - [ ] Sub-task: Implement the iterative loop transition logic.
