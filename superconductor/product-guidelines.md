@@ -17,6 +17,7 @@
 
 ## Git & Project Management Methodology
 - **Track-Based Isolation:** Each "track" must be a logically isolated unit of work.
+- **Iterative Refinement:** Embrace an iterative review-remediation cycle to ensure code quality and spec alignment before finalization.
 - **Flexible Reordering:** Design the git history and track structures to allow for reordering or editing tracks without breaking dependencies or requiring a full restart.
 - **Descriptive Commits:** Use clear, standardized commit messages that reflect the track, phase, and task context (e.g., `track(id): phase - description`).
 - **Single Source of Truth:** The `superconductor/` directory is the foundational authority for all project state and agent behavior.
