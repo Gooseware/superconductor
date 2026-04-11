@@ -85,8 +85,14 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 4.  **Execute Tasks and Update Track Plan:**
     a. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
-    b. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan** one by one.
-    c. **For Each Task, You MUST:**
+    b. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
+       - **Review Triggers:**
+         1. **Git Commit:** If the last commit message contains `ready-for-review` (case-insensitive).
+         2. **CLI Command:** If the user has just run `/superconductor:review`.
+         3. **Plan Update:** If a task in `plan.md` is marked as `(READY FOR REVIEW)`.
+       - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
+    c. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan** one by one.
+    d. **For Each Task, You MUST:**
         i. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
            - **CRITICAL:** Every human-in-the-loop interaction, confirmation, or request for feedback mentioned in the **Workflow** (e.g., manual verification plans or guidance on persistent failures) MUST be conducted using the `ask_user` tool.
 
