@@ -1,8 +1,0 @@
-{
-  "track_id": "oracle_code_review_loop_20260409",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-04-09T12:00:00Z",
-  "updated_at": "2026-04-09T12:00:00Z",
-  "description": "implement a final oracle code review loop at the end of a track which makes use of the pro model"
-}
