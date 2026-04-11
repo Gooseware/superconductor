@@ -25,9 +25,9 @@
 
 ## Phase 2: Two-Stage Approval Process
 ...
-- [ ] Task: Implement Oracle Automated Approval Gate
-    - [ ] Sub-task: Write tests for blocking the cleanup phase if the Oracle hasn't approved.
-    - [ ] Sub-task: Integrate the Oracle's static analysis/checks into the `ReviewApprovalState`.
+- [x] Task: Implement Oracle Automated Approval Gate [1be4532]
+    - [x] Sub-task: Write tests for blocking the cleanup phase if the Oracle hasn't approved.
+    - [x] Sub-task: Integrate the Oracle's static analysis/checks into the `ReviewApprovalState`.
 - [ ] Task: Implement User Manual Approval Gate
     - [ ] Sub-task: Write tests for prompting the user for final approval after Oracle approval.
     - [ ] Sub-task: Integrate the User approval step into the `ReviewApprovalState` to unblock the cleanup phase.
