@@ -19,9 +19,9 @@
 - [x] Task: Implement Remediation Phase Generation [c4d8db7]
     - [x] Sub-task: Write tests for generating a new remediation phase upon an Oracle rejection.
     - [x] Sub-task: Wire up `PhaseGenerator` to update the actual track's `plan.md` file when a review fails.
-- [ ] Task: Implement Re-review Cycle
-    - [ ] Sub-task: Write tests for looping the workflow back to the "Review" state from a "Remediation" state upon a trigger.
-    - [ ] Sub-task: Implement the iterative loop transition logic.
+- [x] Task: Implement Re-review Cycle [6099de2]
+    - [x] Sub-task: Write tests for looping the workflow back to the "Review" state from a "Remediation" state upon a trigger.
+    - [x] Sub-task: Implement the iterative loop transition logic.
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Iterative Review Loop Logic' (Protocol in workflow.md)
 
 ## Phase 2: Two-Stage Approval Process
