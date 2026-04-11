@@ -266,16 +266,23 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         -   Scan for feature gaps and DRY violations.
     -   **Generate Report:** Output the `Oracle Audit Report` according to the template.
 
-3.  **Auto-Fix Loop:**
-    -   If the report contains "Auto-Fix Candidates":
-        -   **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
-        -   **Action:** If yes, for each candidate:
-            -   Create/Update tests to reproduce the issue or verify the improvement.
-            -   Apply the suggested diff.
-            -   Run tests.
-            -   Commit with message: `fix(superconductor/oracle): [Description of fix]`.
-    -   If "Needs Fixes" and not auto-fixable:
-        -   Ask the user for guidance or to perform manual fixes.
+3.  **Auto-Fix Loop & Remediation:**
+    - If the report contains "Auto-Fix Candidates":
+        - **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
+        - **Action:** If yes, for each candidate:
+            - Create/Update tests to reproduce the issue or verify the improvement.
+            - Apply the suggested diff.
+            - Run tests.
+            - Commit with message: `fix(superconductor/oracle): [Description of fix]`.
+    - If "Needs Fixes" and not auto-fixable (or user prefers manual remediation):
+        - **Action:** Transition to **Remediation Phase Generation**.
+        - **Protocol:**
+            i.   **Extract Feedback:** Identify the specific issues or tasks from the Oracle report that require manual intervention.
+            ii.  **Identify Iteration:** Determine the next iteration number (e.g., check `plan.md` for existing `Review Remediation (Iteration X)` phases).
+            iii. **Generate Phase:** Use the **PhaseGenerator** utility to append a new `## Review Remediation (Iteration X)` phase to the track's `plan.md`.
+            iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
+    - If "Ready" verdict:
+        - Proceed to finalization.
 
 4.  **Finalization:**
     -   Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
