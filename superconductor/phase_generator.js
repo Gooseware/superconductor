@@ -12,7 +12,7 @@ export class PhaseGenerator {
   appendPhase(currentContent, phaseTitle, tasks) {
     let result = currentContent.trimEnd();
     
-    result += `\n\n## ${phaseTitle}\n`;
+    result += (result.length > 0 ? '\n\n' : '') + `## ${phaseTitle}\n`;
     for (const task of tasks) {
       result += `- [ ] Task: ${task}\n`;
     }

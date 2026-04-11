@@ -62,3 +62,17 @@ test('appends a new phase to plan.md content', () => {
 `;
   assertEquals(updatedContent.endsWith(expectedEnd), true, 'Should append the phase at the end of the content');
 });
+
+test('handles empty content gracefully', () => {
+  const generator = new PhaseGenerator();
+  const initialContent = '';
+  const phaseTitle = 'Initial Phase';
+  const tasks = ['Task 1'];
+  
+  const updatedContent = generator.appendPhase(initialContent, phaseTitle, tasks);
+  
+  const expected = `## Initial Phase
+- [ ] Task: Task 1
+`;
+  assertEquals(updatedContent, expected, 'Should not add leading newlines for empty content');
+});
