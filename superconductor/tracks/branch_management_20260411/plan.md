@@ -20,11 +20,11 @@
     - [x] Sub-task: Verify branch creation flow with a mock track.
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Automated Branching Logic' (Protocol in workflow.md) [78a5159]
 
-## Phase 2: Interactive Merging & Deployment [checkpoint: ]
-- [ ] Task: Implement Merge Target Selection
-    - [ ] Sub-task: Update `commands/superconductor/implement.toml` to prompt for merge target (`dev`, `main`, `release/v*`) upon completion.
-    - [ ] Sub-task: Integrate `GitWorkflowManager.mergeToTarget` for the selected branch.
-- [ ] Task: Implement Deployment Suggestion
-    - [ ] Sub-task: Use `ProjectConfigAnalyzer` to identify and suggest deployment commands post-merge.
-    - [ ] Sub-task: Prompt user for deployment execution.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Interactive Merging & Deployment' (Protocol in workflow.md)
+## Phase 2: Interactive Merging & Deployment [checkpoint: 05fe088]
+- [x] Task: Implement Merge Target Selection
+    - [x] Sub-task: Update `commands/superconductor/implement.toml` to prompt for merge target (`dev`, `main`, `release/v*`) upon completion.
+    - [x] Sub-task: Integrate `GitWorkflowManager.mergeToTarget` for the selected branch.
+- [x] Task: Implement Deployment Suggestion
+    - [x] Sub-task: Use `ProjectConfigAnalyzer` to identify and suggest deployment commands post-merge.
+    - [x] Sub-task: Prompt user for deployment execution.
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Interactive Merging & Deployment' (Protocol in workflow.md) [05fe088]
