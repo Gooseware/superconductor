@@ -212,14 +212,28 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         - **options:**
             - Label: "Oracle Review", Description: "Initiate Stage 1 approval (Automated audit & spec alignment)."
             - Label: "User Approval", Description: "Initiate Stage 2 approval (Manual sign-off after Oracle success)."
+            - Label: "Merge", Description: "Merge completed track into a target branch (Requires Stage 1 & 2 approval)."
             - Label: "Archive", Description: "Move to archive (Requires Stage 1 & 2 approval)."
             - Label: "Delete", Description: "Permanently delete (Requires Stage 1 & 2 approval)."
             - Label: "Skip", Description: "Do nothing and leave it in the tracks file."
 
-4.  **Handle User Response:**
-    *   **If user chooses "Oracle Review":**
-        - **Model Selection:** Use the `ask_user` tool to let the user select the model:
-            - **questions:**
+        4.  **Handle User Response:**
+        *   **If user chooses "Oracle Review":**
+        ...
+        *   **If user chooses "Merge":**
+        - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
+        - **Target Selection:** Use `ask_user` to select target: `dev`, `main`, `release/v*`.
+        - **Action:** `GitWorkflowManager.mergeToTarget(selected_target, track_branch)`.
+        - **Post-Merge:** Transition to **Deployment Suggestion**.
+
+    *   **Deployment Suggestion:**
+        - **Action:** Use the **ProjectConfigAnalyzer** to identify potential deployment commands for the `selected_target` branch.
+        - **Logic:** `ProjectConfigAnalyzer.analyze('superconductor/tech-stack.md', 'package.json')`.
+        - **Suggestion:** `ProjectConfigAnalyzer.suggestDeploymentCommand(selected_target)`.
+        - **User Prompt:** If a command is found, ask: "Deployment command discovered for '<selected_target>': '<command>'. Would you like to execute it now?" (type: "yesno").
+        - **Execution:** If 'yes', run the command and report status.
+        *   **If user chooses "Archive" or "Delete":**
+
                 - **header:** "Oracle Model"
                 - **question:** "Which model should the Oracle use for this deep audit?"
                 - **type:** "choice"
