@@ -1,8 +1,20 @@
+/**
+ * Utility to analyze project configuration for build and deployment scripts.
+ */
 export class ProjectConfigAnalyzer {
+  /**
+   * @param {object} fs - File system module.
+   */
   constructor(fs = null) {
     this.fs = fs;
+    this.config = {};
   }
 
+  /**
+   * Parses tech-stack.md and package.json for metadata.
+   * @param {string} techStackPath 
+   * @param {string} packageJsonPath 
+   */
   analyze(techStackPath, packageJsonPath) {
     this.config = {};
     if (this.fs.existsSync(packageJsonPath)) {
@@ -26,6 +38,11 @@ export class ProjectConfigAnalyzer {
     }
   }
 
+  /**
+   * Recommends a deployment command based on the target branch.
+   * @param {string} targetBranch 
+   * @return {string|null}
+   */
   suggestDeploymentCommand(targetBranch) {
     const scripts = this.config.scripts || {};
     if (targetBranch === 'main' || targetBranch === 'master') {

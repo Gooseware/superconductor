@@ -51,4 +51,5 @@ test('mergeToTarget performs merge and delete branch', () => {
   assertEquals(commands[2], 'git merge track/feat_abc', 'Should merge track branch');
   assertEquals(commands[3], 'git push origin dev', 'Should push merge results');
   assertEquals(commands[4], 'git branch -d track/feat_abc', 'Should delete track branch locally');
+  assertEquals(commands[5], 'git push origin --delete track/feat_abc', 'Should delete track branch remotely');
 });
