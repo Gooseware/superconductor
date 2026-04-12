@@ -19,6 +19,8 @@ Superconductor is a Gemini CLI extension that enables **Context-Driven Developme
 - **Scaffolding/Setup:** Commands (`/superconductor:setup`) to initialize and configure the project context (product, guidelines, tech stack, workflow).
 - **Track Management:** Automated generation of task-specific specifications and actionable plans (`/superconductor:newTrack`).
 - **Implement Workflow:** An agent-led implementation loop (`/superconductor:implement`) that follows defined workflows (e.g., TDD), incorporates an iterative code review and remediation loop, and provides manual verification checkpoints.
+- **Automated Git Workflow:** Seamless branch management from `main` and interactive merge target selection upon track completion.
+- **Dynamic Deployment Discovery:** Automatically identifies build and deployment commands from the project configuration to suggest post-merge deployment.
 - **Standardized Tech Stacks:** A library of pre-defined, high-quality technology stacks that users can choose from based on their specific requirements.
 - **Broader Ecosystem Integration:** Hooks and integrations for common external tools and a broader development ecosystem.
 
