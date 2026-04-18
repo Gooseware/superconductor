@@ -22,7 +22,7 @@ The philosophy behind Superconductor is simple: control your code. By treating c
 Install the Superconductor extension by running the following command from your terminal:
 
 ```bash
-gemini extensions install https://github.com/gemini-cli-extensions/superconductor --auto-update
+gemini extensions install https://github.com/gooseware/superconductor --auto-update
 ```
 
 The `--auto-update` is optional: if specified, it will update to new versions as they are released.
