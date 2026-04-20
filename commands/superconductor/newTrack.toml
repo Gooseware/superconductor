@@ -118,6 +118,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the **Workflow** file (e.g., TDD tasks for "Write Tests" and "Implement").
     *   **Inject Oracle Suggestions:** If the Oracle was engaged, include a new phase at the beginning of the plan: `Phase 0: Proactive Abstractions`. Add tasks for creating the reusable units suggested by the Oracle.
+    *   **Mandatory Integration Phase:** You MUST always append a final phase: `## Phase X: Integration & Finalization`. Add the following task: `- [ ] Task: Integrate track '<track_id>' into <target_branch> branch.` (Retrieve `<target_branch>` from the `Development Preferences` section in `tech-stack.md`).
     *   Include status markers `[ ]` for **EVERY** task and sub-task. The format must be:
         - Parent Task: `- [ ] Task: ...`
         - Sub-task: `    - [ ] ...`

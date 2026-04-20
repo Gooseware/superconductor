@@ -14,6 +14,9 @@ Gemini CLI Extension
     - `revert.toml`: Git-aware logic for undoing changes.
     - `review.toml`: Standards and guideline compliance checking.
 
+## Development Preferences
+- **Target Branch:** `main`
+
 ## Supporting Templates
 - **Location:** `templates/`.
 - **Workflow:** `templates/workflow.md` for defining the development lifecycle.

@@ -315,6 +315,15 @@ A task is complete when:
 4. Notify affected users (if any)
 5. Document and update security procedures
 
+### Track Integration & Finalization (Mandatory)
+
+**Every track MUST conclude with a final phase dedicated to merging the validated work into the project's preferred target branch (`dev` or `main`).**
+
+1.  **Selection of Target:** Refer to `tech-stack.md` for the project's `Target Branch` preference.
+2.  **Merge Command:** Use `GitWorkflowManager.mergeToTarget(target_branch, track_branch)`.
+3.  **Final Task:** Every `plan.md` MUST include this as its absolute last task:
+    - `- [ ] Task: Integrate track '<track_id>' into <target_branch> branch.`
+
 ## Deployment Workflow
 
 ### Pre-Deployment Checklist
