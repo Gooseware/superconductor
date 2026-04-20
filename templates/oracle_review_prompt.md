@@ -11,6 +11,7 @@ Your review MUST address the following areas with deep semantic reasoning:
 3.  **Style & Tech Compliance:** Does the code strictly adhere to the `tech-stack.md` and the selected `superconductor/code_styleguides/`? Look for architectural "drift."
 4.  **Feature Gap Identification:** Look beyond the written spec. Are there edge cases, security risks, or UX friction points that were overlooked in the original planning?
 5.  **DRY Methodology & Reusability:** Analyze the implementation for repeated code blocks or logic. Suggest specific refactors to create reusable abstractions.
+6.  **Kernel Synchronization & Centralized Publishing:** Proactively identify high-quality, reusable components or logic created during the track. If a candidate is found, suggest its publication to the centralized `design-os-kernel` and draft a `ComponentPayload` (files, metadata, and comments) for the publication proposal.
 
 ## Output Format
 Your report MUST be formatted as follows:

@@ -69,8 +69,10 @@ All tasks follow a strict lifecycle:
         -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
         -   **Theme Usage Scan:** Check for usage of `design-os` tokens and primitives.
     -   **Step 2.2: Draft Publication Proposals:** For any high-quality, reusable component identified:
-        -   Draft a publication proposal for the `design-os-kernel`.
+        -   Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
+        -   Draft a publication proposal for the centralized `design-os-kernel`.
         -   Explain the rationale for why this component is a good candidate.
+        -   **Action:** If approved, use the `mcp_design-os-kernel_publish_vetted_component` tool to publish the component to the centralized library.
         -   Await user approval before any further kernel actions.
 
 3.  **Ensure Test Coverage for Phase Changes:**
