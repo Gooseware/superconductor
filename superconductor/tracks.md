@@ -7,6 +7,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 ---
-
-- [ ] **Track: Implement Kernel Tool Synchronization in Oracle Fix Loop**
-*Link: [./kernel_sync_oracle_20260412/](./kernel_sync_oracle_20260412/)*
