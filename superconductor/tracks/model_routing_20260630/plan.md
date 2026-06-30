@@ -39,7 +39,7 @@
     - [x] Sub-task: Verify annotations don't break the existing `[x]` / `[~]` / `[ ]` status parsing
 - [x] Task: User Manual Verification 'Phase 2: Plan Annotation' (Protocol in workflow.md)
 
-## Phase 3: Routing-Aware Execution in implement.toml
+## Phase 3: Routing-Aware Execution in implement.toml [checkpoint: 168f451]
 
 - [x] Task: Update `implement.toml` task execution loop to read tier annotations [TIER-3]
     - [x] Sub-task: Before each task, extract and read the `[TIER-N]` annotation from the plan line
@@ -47,4 +47,4 @@
     - [x] Sub-task: For `[TIER-4]`: announce to user which Tier-4 model will be used (from agent-config); proceed with task
     - [x] Sub-task: For `[TIER-2]` and `[TIER-3]`: standard execution, no special announcement
     - [x] Sub-task: Add fallback: if no annotation found, default to TIER-3 behaviour
-- [~] Task: User Manual Verification 'Phase 3: Routing-Aware Execution' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 3: Routing-Aware Execution' (Protocol in workflow.md)
