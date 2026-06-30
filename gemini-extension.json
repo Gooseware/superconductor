@@ -1,8 +1,6 @@
 {
   "name": "superconductor",
+  "description": "Context-driven development for Gemini CLI. Generates specs, plans, and tracks feature work through a strict Context → Spec & Plan → Implement lifecycle.",
   "version": "0.4.1",
-  "contextFileName": "GEMINI.md",
-  "plan": {
-    "directory": "superconductor"
-  }
+  "contextFileName": "GEMINI.md"
 }
