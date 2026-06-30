@@ -30,12 +30,12 @@
     - [x] Sub-task: Confirm output: `Extension ... has been successfully validated.`
 - [x] Task: Reload extension to verify MCP server is surfaced [TIER-1] (4d83d5a)
     - [x] Sub-task: Run `gemini extensions list` and confirm `design-os-kernel` appears as an MCP server under superconductor
-- [~] Task: User Manual Verification 'Phase 1: MCP Server Wiring' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 1: MCP Server Wiring' (Protocol in workflow.md)
 
 ## Phase 2: Bundle Design OS Skills
 
-- [ ] Task: Copy Design OS core workflow skills into `skills/` [TIER-1]
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-orchestrator/` → `skills/design-os-orchestrator/`
+- [~] Task: Copy Design OS core workflow skills into `skills/` [TIER-1]
+    - [~] Sub-task: Copy `~/.gemini/config/skills/design-os-orchestrator/` → `skills/design-os-orchestrator/`
     - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-vision/` → `skills/design-os-vision/`
     - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-roadmap/` → `skills/design-os-roadmap/`
     - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-data-model/` → `skills/design-os-data-model/`
