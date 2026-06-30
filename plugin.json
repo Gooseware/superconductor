@@ -1,0 +1,13 @@
+{
+  "name": "superconductor",
+  "version": "0.4.1",
+  "description": "Context-driven development for Gemini/Antigravity CLI. Generates specs, plans, and tracks feature work through a strict Context → Spec & Plan → Implement lifecycle.",
+  "keywords": [
+    "superconductor",
+    "context",
+    "spec",
+    "plan",
+    "implement",
+    "design-os"
+  ]
+}
