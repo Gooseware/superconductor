@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Design Heuristics Skill
+## [x] Track: Design Heuristics Skill
 
 Create a new bundled `design-heuristics` skill with ~25 core visual rules (progressive: color/layout/motion reference docs load on demand for UI-heavy tracks). Auto-activated by `implement` when track spec contains UI keywords.
 
