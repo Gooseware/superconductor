@@ -92,7 +92,13 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
        - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
     c. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan** one by one.
     d. **For Each Task, You MUST:**
-        i. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
+        i. **Determine Task Tier:** Read the parent task line in `plan.md` to parse the `[TIER-N]` annotation at the end of the line. If no annotation is found, default to `[TIER-3]`.
+        ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
+        iii. **Tier-Aware Execution Rules:**
+            - **For `[TIER-1]` Tasks:** Execute any script, file existence checks, git operations, or test commands directly via `run_shell_command` (zero inference cost). Capture the exit status and stdout/stderr, and pass them back as structured input to the context. The agent will interpret the results (e.g. verifying a build or test run) deterministically.
+            - **For `[TIER-4]` Tasks:** Read the configured Tier 4 model name. Announce to the user: "This task requires deep reasoning (Tier 4). Using model: <Model Name>." Then proceed.
+            - **For `[TIER-2]` and `[TIER-3]` Tasks:** Execute standard tool calls and logic with no special announcements.
+        iv. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
            - **CRITICAL:** Every human-in-the-loop interaction, confirmation, or request for feedback mentioned in the **Workflow** (e.g., manual verification plans or guidance on persistent failures) MUST be conducted using the `ask_user` tool.
 
 5.  **Finalize Track:**
