@@ -34,3 +34,4 @@ Gemini CLI Extension
 - **Superpowers:** Integration with agent skills.
 - **Skill Management:** Support for **symlinked superpower skills**, allowing for centralized skill management across multiple projects.
 - **Git Context:** Direct utilization of Git metadata for track and history management.
+- **Model Routing:** A structured 4-tier model routing system (Deterministic, Triage, Standard, Frontier) configured via global `~/.gemini/agent-config.md` with project overrides in `superconductor/agent-config.md`.
