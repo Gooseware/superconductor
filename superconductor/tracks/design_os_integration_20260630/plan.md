@@ -2,13 +2,13 @@
 
 ## Phase 0: Submodule Setup & Local Kernel Build
 
-- [ ] Task: Add design-os-kernel as a git submodule [TIER-1]
-    - [ ] Sub-task: Run `git submodule add git@gitlab.com:socialhippos/design-os-kernel packages/design-os-kernel` in the superconductor repo root
-    - [ ] Sub-task: Verify `.gitmodules` file is created correctly
-    - [ ] Sub-task: Verify `packages/design-os-kernel/` directory is populated
-    - [ ] Sub-task: Commit `.gitmodules` and the submodule pointer with message `chore(packages): add design-os-kernel as git submodule`
-- [ ] Task: Build the kernel locally [TIER-1]
-    - [ ] Sub-task: Run `npm install` inside `packages/design-os-kernel/`
+- [x] Task: Add design-os-kernel as a git submodule [TIER-1] (e50e564)
+    - [x] Sub-task: Run `git submodule add git@gitlab.com:socialhippos/design-os-kernel packages/design-os-kernel` in the superconductor repo root
+    - [x] Sub-task: Verify `.gitmodules` file is created correctly
+    - [x] Sub-task: Verify `packages/design-os-kernel/` directory is populated
+    - [x] Sub-task: Commit `.gitmodules` and the submodule pointer with message `chore(packages): add design-os-kernel as git submodule`
+- [~] Task: Build the kernel locally [TIER-1]
+    - [~] Sub-task: Run `npm install` inside `packages/design-os-kernel/`
     - [ ] Sub-task: Run `npm run build` inside `packages/design-os-kernel/`
     - [ ] Sub-task: Verify `packages/design-os-kernel/dist/index.js` exists
     - [ ] Sub-task: Add `packages/design-os-kernel/dist/` and `packages/design-os-kernel/node_modules/` to `.gitignore`
