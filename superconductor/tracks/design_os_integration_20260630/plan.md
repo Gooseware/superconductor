@@ -7,17 +7,17 @@
     - [x] Sub-task: Verify `.gitmodules` file is created correctly
     - [x] Sub-task: Verify `packages/design-os-kernel/` directory is populated
     - [x] Sub-task: Commit `.gitmodules` and the submodule pointer with message `chore(packages): add design-os-kernel as git submodule`
-- [~] Task: Build the kernel locally [TIER-1]
-    - [~] Sub-task: Run `npm install` inside `packages/design-os-kernel/`
-    - [ ] Sub-task: Run `npm run build` inside `packages/design-os-kernel/`
-    - [ ] Sub-task: Verify `packages/design-os-kernel/dist/index.js` exists
-    - [ ] Sub-task: Add `packages/design-os-kernel/dist/` and `packages/design-os-kernel/node_modules/` to `.gitignore`
-- [ ] Task: Create `packages/README.md` [TIER-3]
-    - [ ] Sub-task: Document purpose of the `packages/` directory
-    - [ ] Sub-task: Document one-time submodule init command: `git submodule update --init --recursive`
-    - [ ] Sub-task: Document kernel build steps: `cd packages/design-os-kernel && npm install && npm run build`
-    - [ ] Sub-task: Document how to update the kernel: `git submodule update --remote packages/design-os-kernel`
-- [ ] Task: User Manual Verification 'Phase 0: Submodule Setup & Local Kernel Build' (Protocol in workflow.md)
+- [x] Task: Build the kernel locally [TIER-1] (566a474)
+    - [x] Sub-task: Run `npm install` inside `packages/design-os-kernel/`
+    - [x] Sub-task: Run `npm run build` inside `packages/design-os-kernel/`
+    - [x] Sub-task: Verify `packages/design-os-kernel/dist/index.js` exists
+    - [x] Sub-task: Add `packages/design-os-kernel/dist/` and `packages/design-os-kernel/node_modules/` to `.gitignore`
+- [x] Task: Create `packages/README.md` [TIER-3] (ed3017f)
+    - [x] Sub-task: Document purpose of the `packages/` directory
+    - [x] Sub-task: Document one-time submodule init command: `git submodule update --init --recursive`
+    - [x] Sub-task: Document kernel build steps: `cd packages/design-os-kernel && npm install && npm run build`
+    - [x] Sub-task: Document how to update the kernel: `git submodule update --remote packages/design-os-kernel`
+- [~] Task: User Manual Verification 'Phase 0: Submodule Setup & Local Kernel Build' (Protocol in workflow.md)
 
 ## Phase 1: MCP Server Wiring
 
