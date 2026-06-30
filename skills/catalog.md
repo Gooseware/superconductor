@@ -104,3 +104,104 @@ Skills focused on UI/UX aesthetics, layout, colors, accessibility, and visual gu
 - **Party**: 1p
 - **Detection Signals**:
     - **Keywords**: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`
+
+## Design OS Skills
+Agent skills that power the automated, structured planning and component generation workflow of Design OS.
+
+### design-os-orchestrator
+- **Description**: Central status check and step sequencer that guides the user through the structured planning flow.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-orchestrator/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `What's next`, `status check`, `Design OS`, `orchestrator`
+
+### design-os-vision
+- **Description**: Collaboratively define the product overview, goals, features, and target audience.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-vision/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `new project`, `product vision`, `what are we building`, `product overview`
+
+### design-os-roadmap
+- **Description**: Group features into logical, self-contained development sections.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-roadmap/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `roadmap`, `milestones`, `development sections`
+
+### design-os-data-model
+- **Description**: Define database schema, entities, and field relationships.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-data-model/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `data model`, `entities`, `relationships`, `schema`
+
+### design-os-design-system
+- **Description**: Propose and configure the visual language (typography, colors, semantic tokens).
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-design-system/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `colors`, `typography`, `tokens`, `design system`
+
+### design-os-kernel-setup
+- **Description**: Setup, build, and verify the Design OS Kernel MCP server.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-kernel-setup/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `MCP server`, `kernel setup`, `kernel not connected`
+
+### theme-manager-flow
+- **Description**: Dark mode implementation, theme creation, and color manager overrides.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/theme-manager-flow/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `dark mode`, `theme`, `brand colors`, `color override`
+
+### design-os-inspiration
+- **Description**: Analyze UI reference files to extract palette tokens and design layout paradigms.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-inspiration/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `inspiration`, `moodboard`, `visual reference`
+
+### design-os-enhance
+- **Description**: Refactor existing components to match styling guidelines and local themes.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-enhance/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `refactor UI`, `upgrade design`, `brownfield`
+
+### design-os-i18n
+- **Description**: Internationalization, locale detection, and currency strategy spec generation.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-i18n/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `i18n`, `internationalization`, `localization`, `multiple languages`, `currency`
+
+### design-os-app-shell
+- **Description**: persistent sidebar, navigation layout, and global responsive chrome layout.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-app-shell/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `navigation`, `sidebar`, `app layout`, `chrome`
+
+### design-os-spec-ingest
+- **Description**: Parse external specification documentation to extract requirements and milestones.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-spec-ingest/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `import spec`, `external document`, `PDF spec`
+
+### component-adapter
+- **Description**: Promotes third-party raw files to the local registry through automated theme adaptation and dogma checks.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/component-adapter/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `import component`, `third-party registry`, `adapt component`
+
+### design-os-extractor
+- **Description**: Extract visual sections or logic blocks to save as local registry Opinion Blocks.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-extractor/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `extract component`, `Opinion Block`, `reusable component`

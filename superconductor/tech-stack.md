@@ -27,8 +27,9 @@ Gemini CLI Extension
 - **Context Indexing:** `superconductor/index.md`.
 
 ## MCP Integrations
-- **Core Kernel:** `design-os-kernel` (for using vetted components).
+- **Core Kernel:** `design-os-kernel` (integrated as a Git submodule at `packages/design-os-kernel/`, compiled to `dist/index.js`).
 - **Theming:** Architecture designed for **Design-OS Theming**, ensuring all UI components support dynamic token-based re-theming.
+- **Bundled Skills Suite:** 14 bundled Design OS skills (orchestrator, vision, roadmap, data model, setup, theme manager, i18n, etc.) located in `skills/` for out-of-the-box workflow capabilities.
 
 ## Advanced Capabilities
 - **Superpowers:** Integration with agent skills.

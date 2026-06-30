@@ -40,3 +40,9 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - **Implementation Plan**: `superconductor/tracks/<track_id>/plan.md`
 - **Metadata**: `superconductor/tracks/<track_id>/metadata.json`
 
+## Design OS Integration & Agent Configuration
+
+- **MCP Server**: The `design-os-kernel` MCP server is configured in `mcp_config.json` at the extension root, and runs using node on the local compiled build (`packages/design-os-kernel/dist/index.js`).
+- **Skills**: When the superconductor plugin is installed, 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.) are automatically registered and available for discovery.
+
+

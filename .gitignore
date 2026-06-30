@@ -209,3 +209,7 @@ __marimo__/
 tmp/
 
 /.gemini/tmp/
+
+# Design OS Kernel
+packages/design-os-kernel/dist/
+packages/design-os-kernel/node_modules/

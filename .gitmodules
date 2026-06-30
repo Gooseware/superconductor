@@ -1,0 +1,3 @@
+[submodule "packages/design-os-kernel"]
+	path = packages/design-os-kernel
+	url = git@gitlab.com:socialhippos/design-os-kernel
