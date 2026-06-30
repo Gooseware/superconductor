@@ -17,12 +17,12 @@
     - [x] Sub-task: Document one-time submodule init command: `git submodule update --init --recursive`
     - [x] Sub-task: Document kernel build steps: `cd packages/design-os-kernel && npm install && npm run build`
     - [x] Sub-task: Document how to update the kernel: `git submodule update --remote packages/design-os-kernel`
-- [~] Task: User Manual Verification 'Phase 0: Submodule Setup & Local Kernel Build' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 0: Submodule Setup & Local Kernel Build' (Protocol in workflow.md)
 
 ## Phase 1: MCP Server Wiring
 
-- [ ] Task: Update `gemini-extension.json` to add mcpServers section [TIER-3]
-    - [ ] Sub-task: Add `mcpServers` key with `design-os-kernel` entry
+- [~] Task: Update `gemini-extension.json` to add mcpServers section [TIER-3]
+    - [~] Sub-task: Add `mcpServers` key with `design-os-kernel` entry
     - [ ] Sub-task: Set command to `node` and args to `["${extensionPath}/packages/design-os-kernel/dist/index.js"]`
     - [ ] Sub-task: Confirm the full updated JSON is valid
 - [ ] Task: Validate extension with updated manifest [TIER-1]
