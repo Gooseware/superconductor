@@ -90,4 +90,4 @@
 - [x] Task: Stage and commit all track changes [TIER-1] (46ed3e7)
     - [x] Sub-task: `git add -A && git commit -m "feat(design-os): bundle kernel submodule, MCP wiring, and Design OS skills suite"`
     - [x] Sub-task: `git push origin main`
-- [~] Task: User Manual Verification 'Phase 4: Commit & Push' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 4: Commit & Push' (Protocol in workflow.md)
