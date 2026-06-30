@@ -54,12 +54,12 @@
     - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-extractor/` → `skills/design-os-extractor/`
 - [x] Task: Verify all 14 skills exist under `skills/` [TIER-1] (39f1ce1)
     - [x] Sub-task: Run `ls skills/` and confirm all 14 new skill directories are present alongside the existing 2
-- [~] Task: User Manual Verification 'Phase 2: Bundle Design OS Skills' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 2: Bundle Design OS Skills' (Protocol in workflow.md)
 
 ## Phase 3: Catalog & Documentation Updates
 
-- [ ] Task: Update `skills/catalog.md` with Design OS skills section [TIER-3]
-    - [ ] Sub-task: Add `## Design OS Skills` section heading
+- [~] Task: Update `skills/catalog.md` with Design OS skills section [TIER-3]
+    - [~] Sub-task: Add `## Design OS Skills` section heading
     - [ ] Sub-task: Add entry for `design-os-orchestrator` (detection: `What's next, status check, Design OS`)
     - [ ] Sub-task: Add entry for `design-os-vision` (detection: `new project, product vision, what are we building`)
     - [ ] Sub-task: Add entry for `design-os-roadmap` (detection: `roadmap, milestones, development sections`)
