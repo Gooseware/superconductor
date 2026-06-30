@@ -32,12 +32,12 @@
 
 ## Phase 2: Plan Annotation — Tier Hints in newTrack
 
-- [ ] Task: Update `newTrack.toml` to append `[TIER-N]` annotations [TIER-3]
-    - [ ] Sub-task: Add tier annotation rules to the plan generation prompt in newTrack.toml
-    - [ ] Sub-task: Define the classification logic: git/file/shell ops → TIER-1, parsing/classification → TIER-2, code gen/tests → TIER-3, complex refactor → TIER-4
-    - [ ] Sub-task: Ensure annotations appear inline after task descriptions (e.g. `- [ ] Write auth handler [TIER-3]`)
-    - [ ] Sub-task: Verify annotations don't break the existing `[x]` / `[~]` / `[ ]` status parsing
-- [ ] Task: User Manual Verification 'Phase 2: Plan Annotation' (Protocol in workflow.md)
+- [x] Task: Update `newTrack.toml` to append `[TIER-N]` annotations [TIER-3]
+    - [x] Sub-task: Add tier annotation rules to the plan generation prompt in newTrack.toml
+    - [x] Sub-task: Define the classification logic: git/file/shell ops → TIER-1, parsing/classification → TIER-2, code gen/tests → TIER-3, complex refactor → TIER-4
+    - [x] Sub-task: Ensure annotations appear inline after task descriptions (e.g. `- [ ] Write auth handler [TIER-3]`)
+    - [x] Sub-task: Verify annotations don't break the existing `[x]` / `[~]` / `[ ]` status parsing
+- [~] Task: User Manual Verification 'Phase 2: Plan Annotation' (Protocol in workflow.md)
 
 ## Phase 3: Routing-Aware Execution in implement.toml
 

@@ -122,7 +122,12 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     *   Include status markers `[ ]` for **EVERY** task and sub-task. The format must be:
         - Parent Task: `- [ ] Task: ...`
         - Sub-task: `    - [ ] ...`
-    *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`.
+    *   **Model Routing Tier Hints:** You MUST append a routing tier hint `[TIER-N]` to the end of every parent task line (e.g. `- [ ] Task: Write failing tests [TIER-3]`). The sub-tasks do not need annotations. Use the following classification rules:
+        - `[TIER-1]`: Local script/shell/git operations, syntax/presence checks, test suite runners.
+        - `[TIER-2]`: Intent parsing, JSON classification, simple triage/status checks.
+        - `[TIER-3]`: Standard code generation, editing files, applying style guides, writing unit tests.
+        - `[TIER-4]`: Complex multi-file refactoring, cascading bug fixes.
+    *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`. This meta-task does not need a tier hint.
 
 4.  **User Confirmation:**
     -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
