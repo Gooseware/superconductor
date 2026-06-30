@@ -94,3 +94,13 @@ Skills for designing, building, and managing CI/CD pipelines and infrastructure 
 - **Detection Signals**:
     - **Dependencies**: `terraform`
     - **Keywords**: `Terraform`, `GCP`, `GCS Backend`, `Infrastructure as Code`, `IaC`
+
+## Design Skills
+Skills focused on UI/UX aesthetics, layout, colors, accessibility, and visual guidelines.
+
+### design-heuristics
+- **Description**: Codified mathematical and aesthetic visual rules for UI/UX generation. Activate this skill whenever a track involves building frontend views, dashboards, layout components, pages, interfaces, or web designs.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-heuristics/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`

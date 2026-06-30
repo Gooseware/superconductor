@@ -34,11 +34,11 @@
 
 ## Phase 2: Catalog & Auto-Activation
 
-- [ ] Task: Add `design-heuristics` entry to `skills/catalog.md` [TIER-3]
-    - [ ] Sub-task: Write entry with description, URL, party (1p), detection signals
-    - [ ] Sub-task: Verify detection signal keywords cover all major UI use cases
-- [ ] Task: Update `implement.toml` Section 3.0.e for UI keyword auto-detection [TIER-3]
-    - [ ] Sub-task: Add UI keyword list (UI, dashboard, component, frontend, page, interface, layout, design)
-    - [ ] Sub-task: Add conditional check: if any keyword found in spec/plan content, suggest design-heuristics activation
-    - [ ] Sub-task: Wire suggestion through `ask_user` tool before proceeding with implementation
-- [ ] Task: User Manual Verification 'Phase 2: Catalog & Auto-Activation' (Protocol in workflow.md)
+- [x] Task: Add `design-heuristics` entry to `skills/catalog.md` [TIER-3]
+    - [x] Sub-task: Write entry with description, URL, party (1p), detection signals
+    - [x] Sub-task: Verify detection signal keywords cover all major UI use cases
+- [x] Task: Update `implement.toml` Section 3.0.e for UI keyword auto-detection [TIER-3]
+    - [x] Sub-task: Add UI keyword list (UI, dashboard, component, frontend, page, interface, layout, design)
+    - [x] Sub-task: Add conditional check: if any keyword found in spec/plan content, suggest design-heuristics activation
+    - [x] Sub-task: Wire suggestion through `ask_user` tool before proceeding with implementation
+- [x] Task: User Manual Verification 'Phase 2: Catalog & Auto-Activation' (Protocol in workflow.md)
