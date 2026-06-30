@@ -21,16 +21,16 @@
 
 ## Phase 1: MCP Server Wiring
 
-- [~] Task: Update `gemini-extension.json` to add mcpServers section [TIER-3]
-    - [~] Sub-task: Add `mcpServers` key with `design-os-kernel` entry
-    - [ ] Sub-task: Set command to `node` and args to `["${extensionPath}/packages/design-os-kernel/dist/index.js"]`
-    - [ ] Sub-task: Confirm the full updated JSON is valid
-- [ ] Task: Validate extension with updated manifest [TIER-1]
-    - [ ] Sub-task: Run `gemini extensions validate /home/gooseware/repos/gemini/extensions/superconductor`
-    - [ ] Sub-task: Confirm output: `Extension ... has been successfully validated.`
-- [ ] Task: Reload extension to verify MCP server is surfaced [TIER-1]
-    - [ ] Sub-task: Run `gemini extensions list` and confirm `design-os-kernel` appears as an MCP server under superconductor
-- [ ] Task: User Manual Verification 'Phase 1: MCP Server Wiring' (Protocol in workflow.md)
+- [x] Task: Update `gemini-extension.json` to add mcpServers section [TIER-3] (4d83d5a)
+    - [x] Sub-task: Add `mcpServers` key with `design-os-kernel` entry
+    - [x] Sub-task: Set command to `node` and args to `["${extensionPath}/packages/design-os-kernel/dist/index.js"]`
+    - [x] Sub-task: Confirm the full updated JSON is valid
+- [x] Task: Validate extension with updated manifest [TIER-1] (4d83d5a)
+    - [x] Sub-task: Run `gemini extensions validate /home/gooseware/repos/gemini/extensions/superconductor`
+    - [x] Sub-task: Confirm output: `Extension ... has been successfully validated.`
+- [x] Task: Reload extension to verify MCP server is surfaced [TIER-1] (4d83d5a)
+    - [x] Sub-task: Run `gemini extensions list` and confirm `design-os-kernel` appears as an MCP server under superconductor
+- [~] Task: User Manual Verification 'Phase 1: MCP Server Wiring' (Protocol in workflow.md)
 
 ## Phase 2: Bundle Design OS Skills
 
