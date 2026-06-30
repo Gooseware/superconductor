@@ -242,6 +242,15 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
     -   **FOR BROWNFIELD PROJECTS:**
         -   **CRITICAL WARNING:** Your goal is to document the project's *existing* tech stack, not to propose changes.
         -   **State the Inferred Stack:** Based on the code analysis, you MUST state the technology stack that you have inferred in the chat.
+        -   **Target Branch Selection:** Add a question for selecting the preferred target branch for track integration.
+            - **header:** "Target Branch"
+            - **type:** "choice"
+            - **multiSelect:** false
+            - **options:**
+                - Label: "dev", Description: "Standard development branch."
+                - Label: "main", Description: "Primary production branch."
+                - Label: "master", Description: "Legacy primary branch."
+            - **placeholder:** "Enter a custom branch name..."
         -   **Request Confirmation:** After stating the detected stack, you MUST ask the user for confirmation using the `ask_user` tool:
             - **questions:**
                 - **header:** "Tech Stack"
@@ -252,6 +261,15 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 3.  **Gather Information (Greenfield Interactive Only):**
     -   **If user chose "Interactive":** Use a single `ask_user` tool call to gather detailed preferences.
         -   **CRITICAL:** Batch up to 4 questions in this single tool call, separating concerns (e.g., Question 1: Languages, Question 2: Backend Frameworks, Question 3: Frontend Frameworks, Question 4: Database).
+        -   **Target Branch Selection:** Add a question for selecting the preferred target branch for track integration.
+            - **header:** "Target Branch"
+            - **type:** "choice"
+            - **multiSelect:** false
+            - **options:**
+                - Label: "dev", Description: "Standard development branch."
+                - Label: "main", Description: "Primary production branch."
+                - Label: "master", Description: "Legacy primary branch."
+            - **placeholder:** "Enter a custom branch name..."
         -   **SUGGESTIONS:** For each question, generate 3-4 high-quality suggested answers.
         -   **Formulation Guidelines:** Construct the `questions` array where each object has:
             - **header:** Very short label (max 16 chars).
@@ -281,6 +299,64 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
                 - Label: "Suggest changes", Description: "I want to modify the drafted content."
 6.  **Write File:** Once approved, write the generated content to the `superconductor/tech-stack.md` file.
 7.  **Continue:** Immediately proceed to the next section.
+
+### 2.3.1 Agent Model Configuration (Interactive)
+1.  **Introduce the Section:** Announce that you will now help configure the agent models.
+2.  **Determine Mode:** Use the `ask_user` tool to let the user choose whether to configure custom model mappings or use defaults.
+    - **questions:**
+        - **header:** "Model Config"
+        - **question:** "Would you like to configure custom model mappings for the routing tiers (Standard and Frontier)?"
+        - **type:** "choice"
+        - **multiSelect:** false
+        - **options:**
+            - Label: "Configure", Description: "Define custom models and optional proxy settings."
+            - Label: "Default", Description: "Use default Gemini models (gemini-2.0-flash-lite, gemini-2.5-pro)."
+3.  **Gather Information (Conditional):**
+    -   **If user chose "Default":** Write defaults to `~/.gemini/agent-config.md` if not already present.
+    -   **If user chose "Configure":** Use a single `ask_user` tool call to gather detailed preferences:
+        - **questions:**
+            - **header:** "Tier 3 Model"
+            - **question:** "Select your preferred Tier 3 model (Standard Inference for code generation):"
+            - **type:** "choice"
+            - **multiSelect:** false
+            - **options:**
+                - Label: "gemini-2.5-pro", Description: "Recommended standard model."
+                - Label: "claude-3-5-sonnet", Description: "Highly capable programming assistant."
+                - Label: "gemini-2.0-flash", Description: "Low latency, cost-effective standard model."
+            - **header:** "Tier 4 Model"
+            - **question:** "Select your preferred Tier 4 model (Frontier Reasoning for complex refactoring):"
+            - **type:** "choice"
+            - **multiSelect:** false
+            - **options:**
+                - Label: "gemini-2.5-pro (thinking)", Description: "Recommended thinking model."
+                - Label: "claude-3-5-opus", Description: "Flagship reasoning model."
+                - Label: "deepseek-r1", Description: "High-intelligence open reasoning model."
+            - **header:** "Proxy Endpoint"
+            - **question:** "If you route API calls through a proxy, enter the endpoint URL (optional):"
+            - **type:** "text"
+            - **placeholder:** "e.g., https://openrouter.ai/api/v1"
+            - **header:** "Scope"
+            - **question:** "Save configuration scope:"
+            - **type:** "choice"
+            - **multiSelect:** false
+            - **options:**
+                - Label: "Global", Description: "Save globally to ~/.gemini/agent-config.md."
+                - Label: "Project", Description: "Save as project override in superconductor/agent-config.md."
+4.  **Confirming and Writing Config:**
+    -   Draft the configuration content based on the answers:
+        ```markdown
+        # Agent Configuration
+
+        - **Tier 2 (Triage & Extraction):** gemini-2.0-flash-lite
+        - **Tier 3 (Standard Inference):** <Selected Tier 3 Model>
+        - **Tier 4 (Frontier Reasoning):** <Selected Tier 4 Model>
+        - **Proxy Endpoint:** <Selected Proxy Endpoint or '(none)'>
+        ```
+    -   If scope is "Project":
+        -   Write to `superconductor/agent-config.md`.
+    -   If scope is "Global" or "Default":
+        -   Check if `~/.gemini/agent-config.md` exists. If yes, check before overwriting. Otherwise, write it.
+5.  **Continue:** Immediately proceed to the next section.
 
 ### 2.4 Select Guides (Interactive)
 1.  **Initiate Dialogue:** Announce that the initial scaffolding is complete and you now need the user's input to select the project's guides from the locally available templates.

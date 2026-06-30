@@ -15,20 +15,20 @@
 
 ## Phase 1: Setup Integration — Agent Model Configuration
 
-- [ ] Task: Add Agent Model Configuration section to `setup.toml` [TIER-3]
-    - [ ] Sub-task: After tech stack section (Section 2.3), add new Section 2.X "Agent Model Configuration"
-    - [ ] Sub-task: Ask user for preferred Tier 3 model (code generation) with Gemini options
-    - [ ] Sub-task: Ask user for preferred Tier 4 model (frontier reasoning) with options
-    - [ ] Sub-task: Ask user for optional proxy endpoint (LiteLLM/OpenRouter)
-    - [ ] Sub-task: Write responses to global `~/.gemini/agent-config.md` (idempotent — ask before overwriting)
-    - [ ] Sub-task: Offer optional project-level override written to `superconductor/agent-config.md`
-    - [ ] Sub-task: Add graceful skip if user declines configuration
-- [ ] Task: Write unit tests for agent-config file resolution (global vs project override) [TIER-3]
-    - [ ] Sub-task: Create `superconductor/agent_config_resolver.test.js`
-    - [ ] Sub-task: Test: project config overrides global when both exist
-    - [ ] Sub-task: Test: falls back to global when no project config exists
-    - [ ] Sub-task: Test: graceful fallback when neither exists
-- [ ] Task: User Manual Verification 'Phase 1: Setup Integration' (Protocol in workflow.md)
+- [x] Task: Add Agent Model Configuration section to `setup.toml` [TIER-3]
+    - [x] Sub-task: After tech stack section (Section 2.3), add new Section 2.X "Agent Model Configuration"
+    - [x] Sub-task: Ask user for preferred Tier 3 model (code generation) with Gemini options
+    - [x] Sub-task: Ask user for preferred Tier 4 model (frontier reasoning) with options
+    - [x] Sub-task: Ask user for optional proxy endpoint (LiteLLM/OpenRouter)
+    - [x] Sub-task: Write responses to global `~/.gemini/agent-config.md` (idempotent — ask before overwriting)
+    - [x] Sub-task: Offer optional project-level override written to `superconductor/agent-config.md`
+    - [x] Sub-task: Add graceful skip if user declines configuration
+- [x] Task: Write unit tests for agent-config file resolution (global vs project override) [TIER-3]
+    - [x] Sub-task: Create `superconductor/agent_config_resolver.test.js`
+    - [x] Sub-task: Test: project config overrides global when both exist
+    - [x] Sub-task: Test: falls back to global when no project config exists
+    - [x] Sub-task: Test: graceful fallback when neither exists
+- [~] Task: User Manual Verification 'Phase 1: Setup Integration' (Protocol in workflow.md)
 
 ## Phase 2: Plan Annotation — Tier Hints in newTrack
 
