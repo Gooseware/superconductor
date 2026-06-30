@@ -33,6 +33,7 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - **Product Guidelines**: `superconductor/product-guidelines.md`
 - **Tracks Registry**: `superconductor/tracks.md`
 - **Tracks Directory**: `superconductor/tracks/`
+- **Agent Configuration**: `superconductor/agent-config.md`
 
 **Standard Default Paths (Track):**
 - **Specification**: `superconductor/tracks/<track_id>/spec.md`

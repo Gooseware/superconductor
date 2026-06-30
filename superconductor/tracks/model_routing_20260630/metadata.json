@@ -1,0 +1,8 @@
+{
+  "track_id": "model_routing_20260630",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-06-30T06:00:00Z",
+  "updated_at": "2026-06-30T06:00:00Z",
+  "description": "Multi-tier model routing: global+per-project agent-config, tier annotations in plans, shell-for-execution pattern in implement."
+}
