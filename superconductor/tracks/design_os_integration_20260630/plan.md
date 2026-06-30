@@ -58,32 +58,32 @@
 
 ## Phase 3: Catalog & Documentation Updates
 
-- [~] Task: Update `skills/catalog.md` with Design OS skills section [TIER-3]
-    - [~] Sub-task: Add `## Design OS Skills` section heading
-    - [ ] Sub-task: Add entry for `design-os-orchestrator` (detection: `What's next, status check, Design OS`)
-    - [ ] Sub-task: Add entry for `design-os-vision` (detection: `new project, product vision, what are we building`)
-    - [ ] Sub-task: Add entry for `design-os-roadmap` (detection: `roadmap, milestones, development sections`)
-    - [ ] Sub-task: Add entry for `design-os-data-model` (detection: `data model, entities, relationships, schema`)
-    - [ ] Sub-task: Add entry for `design-os-design-system` (detection: `colors, typography, tokens, design system`)
-    - [ ] Sub-task: Add entry for `design-os-kernel-setup` (detection: `MCP server, kernel setup, kernel not connected`)
-    - [ ] Sub-task: Add entry for `theme-manager-flow` (detection: `dark mode, theme, brand colors`)
-    - [ ] Sub-task: Add entry for `design-os-inspiration` (detection: `inspiration, moodboard, visual reference`)
-    - [ ] Sub-task: Add entry for `design-os-enhance` (detection: `refactor UI, upgrade design, brownfield`)
-    - [ ] Sub-task: Add entry for `design-os-i18n` (detection: `i18n, internationalization, localization, multiple languages, currency`)
-    - [ ] Sub-task: Add entry for `design-os-app-shell` (detection: `navigation, sidebar, app layout, chrome`)
-    - [ ] Sub-task: Add entry for `design-os-spec-ingest` (detection: `import spec, external document, PDF spec`)
-    - [ ] Sub-task: Add entry for `component-adapter` (detection: `import component, third-party registry, adapt component`)
-    - [ ] Sub-task: Add entry for `design-os-extractor` (detection: `extract component, Opinion Block, reusable component`)
-- [ ] Task: Update `README.md` with Design OS section [TIER-3]
-    - [ ] Sub-task: Add `## Design OS` section after Features section
-    - [ ] Sub-task: Describe what Design OS is (Kernel MCP + skill suite for product planning and component generation)
-    - [ ] Sub-task: List the bundled Design OS skills with one-line descriptions
-    - [ ] Sub-task: Document the one-time submodule init step
-    - [ ] Sub-task: Document the one-time kernel build step
-- [ ] Task: Update `GEMINI.md` Universal File Resolution Protocol [TIER-3]
-    - [ ] Sub-task: Add `design-os-kernel` MCP server to the Agent Configuration section
-    - [ ] Sub-task: Note that Design OS skills are auto-available when the extension is installed
-- [ ] Task: User Manual Verification 'Phase 3: Catalog & Documentation Updates' (Protocol in workflow.md)
+- [x] Task: Update `skills/catalog.md` with Design OS skills section [TIER-3] (978b72e)
+    - [x] Sub-task: Add `## Design OS Skills` section heading
+    - [x] Sub-task: Add entry for `design-os-orchestrator` (detection: `What's next, status check, Design OS`)
+    - [x] Sub-task: Add entry for `design-os-vision` (detection: `new project, product vision, what are we building`)
+    - [x] Sub-task: Add entry for `design-os-roadmap` (detection: `roadmap, milestones, development sections`)
+    - [x] Sub-task: Add entry for `design-os-data-model` (detection: `data model, entities, relationships, schema`)
+    - [x] Sub-task: Add entry for `design-os-design-system` (detection: `colors, typography, tokens, design system`)
+    - [x] Sub-task: Add entry for `design-os-kernel-setup` (detection: `MCP server, kernel setup, kernel not connected`)
+    - [x] Sub-task: Add entry for `theme-manager-flow` (detection: `dark mode, theme, brand colors`)
+    - [x] Sub-task: Add entry for `design-os-inspiration` (detection: `inspiration, moodboard, visual reference`)
+    - [x] Sub-task: Add entry for `design-os-enhance` (detection: `refactor UI, upgrade design, brownfield`)
+    - [x] Sub-task: Add entry for `design-os-i18n` (detection: `i18n, internationalization, localization, multiple languages, currency`)
+    - [x] Sub-task: Add entry for `design-os-app-shell` (detection: `navigation, sidebar, app layout, chrome`)
+    - [x] Sub-task: Add entry for `design-os-spec-ingest` (detection: `import spec, external document, PDF spec`)
+    - [x] Sub-task: Add entry for `component-adapter` (detection: `import component, third-party registry, adapt component`)
+    - [x] Sub-task: Add entry for `design-os-extractor` (detection: `extract component, Opinion Block, reusable component`)
+- [x] Task: Update `README.md` with Design OS section [TIER-3] (978b72e)
+    - [x] Sub-task: Add `## Design OS` section after Features section
+    - [x] Sub-task: Describe what Design OS is (Kernel MCP + skill suite for product planning and component generation)
+    - [x] Sub-task: List the bundled Design OS skills with one-line descriptions
+    - [x] Sub-task: Document the one-time submodule init step
+    - [x] Sub-task: Document the one-time kernel build step
+- [x] Task: Update `GEMINI.md` Universal File Resolution Protocol [TIER-3] (978b72e)
+    - [x] Sub-task: Add `design-os-kernel` MCP server to the Agent Configuration section
+    - [x] Sub-task: Note that Design OS skills are auto-available when the extension is installed
+- [~] Task: User Manual Verification 'Phase 3: Catalog & Documentation Updates' (Protocol in workflow.md)
 
 ## Phase 4: Commit & Push
 
