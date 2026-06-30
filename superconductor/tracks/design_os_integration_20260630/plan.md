@@ -83,11 +83,11 @@
 - [x] Task: Update `GEMINI.md` Universal File Resolution Protocol [TIER-3] (978b72e)
     - [x] Sub-task: Add `design-os-kernel` MCP server to the Agent Configuration section
     - [x] Sub-task: Note that Design OS skills are auto-available when the extension is installed
-- [~] Task: User Manual Verification 'Phase 3: Catalog & Documentation Updates' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 3: Catalog & Documentation Updates' (Protocol in workflow.md)
 
 ## Phase 4: Commit & Push
 
-- [ ] Task: Stage and commit all track changes [TIER-1]
-    - [ ] Sub-task: `git add -A && git commit -m "feat(design-os): bundle kernel submodule, MCP wiring, and Design OS skills suite"`
+- [~] Task: Stage and commit all track changes [TIER-1]
+    - [~] Sub-task: `git add -A && git commit -m "feat(design-os): bundle kernel submodule, MCP wiring, and Design OS skills suite"`
     - [ ] Sub-task: `git push origin main`
 - [ ] Task: User Manual Verification 'Phase 4: Commit & Push' (Protocol in workflow.md)
