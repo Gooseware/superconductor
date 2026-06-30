@@ -13,7 +13,7 @@
     - [x] Sub-task: Register `agent-config.md` as a Standard Default Path under the Project section
 - [x] Task: User Manual Verification 'Phase 0: Reference Documents & Config Schema' (Protocol in workflow.md)
 
-## Phase 1: Setup Integration — Agent Model Configuration
+## Phase 1: Setup Integration — Agent Model Configuration [checkpoint: 64a3df1]
 
 - [x] Task: Add Agent Model Configuration section to `setup.toml` [TIER-3]
     - [x] Sub-task: After tech stack section (Section 2.3), add new Section 2.X "Agent Model Configuration"
@@ -28,7 +28,7 @@
     - [x] Sub-task: Test: project config overrides global when both exist
     - [x] Sub-task: Test: falls back to global when no project config exists
     - [x] Sub-task: Test: graceful fallback when neither exists
-- [~] Task: User Manual Verification 'Phase 1: Setup Integration' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 1: Setup Integration' (Protocol in workflow.md)
 
 ## Phase 2: Plan Annotation — Tier Hints in newTrack
 
