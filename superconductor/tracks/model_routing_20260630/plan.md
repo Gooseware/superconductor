@@ -1,6 +1,6 @@
 # Implementation Plan: Multi-Tier Model Routing
 
-## Phase 0: Reference Documents & Config Schema
+## Phase 0: Reference Documents & Config Schema [checkpoint: f15734a]
 
 - [x] Task: Create `superconductor/model-routing.md` reference document [TIER-3]
     - [x] Sub-task: Define 4-tier table with Gemini model examples (Flash-Lite, Pro, Ultra)
@@ -11,7 +11,7 @@
     - [x] Sub-task: Document the global vs per-project override resolution order
 - [x] Task: Update `GEMINI.md` Universal File Resolution Protocol [TIER-3]
     - [x] Sub-task: Register `agent-config.md` as a Standard Default Path under the Project section
-- [~] Task: User Manual Verification 'Phase 0: Reference Documents & Config Schema' (Protocol in workflow.md)
+- [x] Task: User Manual Verification 'Phase 0: Reference Documents & Config Schema' (Protocol in workflow.md)
 
 ## Phase 1: Setup Integration — Agent Model Configuration
 
