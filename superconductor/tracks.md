@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Multi-Tier Model Routing
+## [x] Track: Multi-Tier Model Routing
 
 Add a structured 4-tier model routing system to Superconductor. Tasks annotated with `[TIER-N]` hints in `plan.md`. Global `agent-config.md` for model preferences with per-project override. Tier-1 tasks run via shell (zero inference cost) with output fed back as context.
 
