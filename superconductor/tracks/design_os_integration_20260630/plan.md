@@ -34,27 +34,27 @@
 
 ## Phase 2: Bundle Design OS Skills
 
-- [~] Task: Copy Design OS core workflow skills into `skills/` [TIER-1]
-    - [~] Sub-task: Copy `~/.gemini/config/skills/design-os-orchestrator/` → `skills/design-os-orchestrator/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-vision/` → `skills/design-os-vision/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-roadmap/` → `skills/design-os-roadmap/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-data-model/` → `skills/design-os-data-model/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-design-system/` → `skills/design-os-design-system/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-kernel-setup/` → `skills/design-os-kernel-setup/`
-- [ ] Task: Copy theming skills into `skills/` [TIER-1]
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/theme-manager-flow/` → `skills/theme-manager-flow/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-inspiration/` → `skills/design-os-inspiration/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-enhance/` → `skills/design-os-enhance/`
-- [ ] Task: Copy i18n skill into `skills/` [TIER-1]
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-i18n/` → `skills/design-os-i18n/`
-- [ ] Task: Copy UI construction skills into `skills/` [TIER-1]
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-app-shell/` → `skills/design-os-app-shell/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-spec-ingest/` → `skills/design-os-spec-ingest/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/component-adapter/` → `skills/component-adapter/`
-    - [ ] Sub-task: Copy `~/.gemini/config/skills/design-os-extractor/` → `skills/design-os-extractor/`
-- [ ] Task: Verify all 14 skills exist under `skills/` [TIER-1]
-    - [ ] Sub-task: Run `ls skills/` and confirm all 14 new skill directories are present alongside the existing 2
-- [ ] Task: User Manual Verification 'Phase 2: Bundle Design OS Skills' (Protocol in workflow.md)
+- [x] Task: Copy Design OS core workflow skills into `skills/` [TIER-1] (39f1ce1)
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-orchestrator/` → `skills/design-os-orchestrator/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-vision/` → `skills/design-os-vision/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-roadmap/` → `skills/design-os-roadmap/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-data-model/` → `skills/design-os-data-model/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-design-system/` → `skills/design-os-design-system/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-kernel-setup/` → `skills/design-os-kernel-setup/`
+- [x] Task: Copy theming skills into `skills/` [TIER-1] (39f1ce1)
+    - [x] Sub-task: Copy `~/.gemini/config/skills/theme-manager-flow/` → `skills/theme-manager-flow/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-inspiration/` → `skills/design-os-inspiration/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-enhance/` → `skills/design-os-enhance/`
+- [x] Task: Copy i18n skill into `skills/` [TIER-1] (39f1ce1)
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-i18n/` → `skills/design-os-i18n/`
+- [x] Task: Copy UI construction skills into `skills/` [TIER-1] (39f1ce1)
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-app-shell/` → `skills/design-os-app-shell/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-spec-ingest/` → `skills/design-os-spec-ingest/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/component-adapter/` → `skills/component-adapter/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-extractor/` → `skills/design-os-extractor/`
+- [x] Task: Verify all 14 skills exist under `skills/` [TIER-1] (39f1ce1)
+    - [x] Sub-task: Run `ls skills/` and confirm all 14 new skill directories are present alongside the existing 2
+- [~] Task: User Manual Verification 'Phase 2: Bundle Design OS Skills' (Protocol in workflow.md)
 
 ## Phase 3: Catalog & Documentation Updates
 
