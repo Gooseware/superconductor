@@ -1,8 +1,8 @@
-# Superconductor Extension for Gemini CLI
+# Superconductor Extension for AGY (Antigravity CLI)
 
 **Measure twice, code once.**
 
-Superconductor is a Gemini CLI extension that enables **Context-Driven Development**. It turns the Gemini CLI into a proactive project manager that follows a strict protocol to specify, plan, and implement software features and bug fixes.
+Superconductor is an AGY (Antigravity CLI) extension that enables **Context-Driven Development**. It turns AGY into a proactive project manager that follows a strict protocol to specify, plan, and implement software features and bug fixes.
 
 Instead of just writing code, Superconductor ensures a consistent, high-quality lifecycle for every task: **Context -> Spec & Plan -> Implement**.
 
@@ -46,21 +46,21 @@ This will compile the TypeScript source into `packages/design-os-kernel/dist/ind
 ## Installation
 
 ```bash
-gemini extensions install https://github.com/gooseware/superconductor --auto-update
+agy plugin install https://github.com/gooseware/superconductor --auto-update
 ```
 
 That's it. The `--auto-update` flag keeps you on the latest version automatically.
 
 **For local development** (changes reflected immediately):
 ```bash
-gemini extensions link /path/to/superconductor
+agy plugin link /path/to/superconductor
 ```
 
 ## Usage
 
 Superconductor is designed to manage the entire lifecycle of your development tasks.
 
-**Note on Token Consumption:** Superconductor's context-driven approach involves reading and analyzing your project's context, specifications, and plans. This can lead to increased token consumption, especially in larger projects or during extensive planning and implementation phases. You can check the token consumption in the current session by running `/stats model`.
+**Note on Token Consumption:** Superconductor's context-driven approach involves reading and analyzing your project's context, specifications, and plans. This can lead to increased token consumption, especially in larger projects or during extensive planning and implementation phases. You can check the token consumption in the current session by running `/usage`.
 
 ### 1. Set Up the Project (Run Once)
 
@@ -149,8 +149,8 @@ During implementation, you can also:
 
 ## Resources
 
-- [Gemini CLI extensions](https://geminicli.com/docs/extensions/): Documentation about using extensions in Gemini CLI
-- [GitHub issues](https://github.com/gemini-cli-extensions/superconductor/issues): Report bugs or request features
+- [AGY extensions](https://antigravity.google/docs/extensions): Documentation about using extensions in AGY
+- [GitHub issues](https://github.com/gooseware/superconductor/issues): Report bugs or request features
 
 ## Legal
 
