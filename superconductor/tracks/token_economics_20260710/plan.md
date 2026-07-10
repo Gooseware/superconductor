@@ -45,7 +45,7 @@
     - [ ] Integrate with Phase 1 dispatcher's `onTaskResult` callback
 - [x] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Escalation Router' (Protocol in workflow.md) 5e4d261
 
-## Phase 4: Prefix Prompt Cache Manager (FR-3)
+## Phase 4: Prefix Prompt Cache Manager (FR-3) [checkpoint: f267197]
 
 - [x] Task: Write failing tests for prompt cache manager [TIER-3]
     - [x] Test: Calculate caching breakpoints efficiently (based on prefix similarity)
@@ -55,7 +55,7 @@
     - [x] Track system prompt, common task instructions, tool definitions, and standard file context boundaries.
     - [x] Extract overlapping string prefixes to maximize `system_instruction` cache hits on API.
     - [x] Calculate tokens manually via an embedded lightweight tokenizer approximation if exact token counts are unavailable.
-- [~] Task: Superconductor - User Manual Verification 'Phase 4: Prefix Prompt Cache Manager' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Prefix Prompt Cache Manager' (Protocol in workflow.md) f267197
 
 ## Phase 5: Integration Testing
 
