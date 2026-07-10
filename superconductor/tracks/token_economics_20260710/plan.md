@@ -24,7 +24,7 @@
     - [ ] Calculate and emit estimated token savings per trim
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Tool Surface Analyzer' (Protocol in workflow.md) cf90671
 
-## Phase 3: Dynamic Escalation Router (FR-2)
+## Phase 3: Dynamic Escalation Router (FR-2) [checkpoint: 5e4d261]
 
 - [x] Task: Write failing tests for dynamic escalation router [TIER-3] 99f7025
     - [ ] Test: No escalation when failures are below threshold (< 3 consecutive)
@@ -43,7 +43,7 @@
     - [ ] Implement downshift logic: reset failure counters, resume with cheap model
     - [ ] Maintain `EscalationHistory` log per track
     - [ ] Integrate with Phase 1 dispatcher's `onTaskResult` callback
-- [~] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Escalation Router' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Escalation Router' (Protocol in workflow.md) 5e4d261
 
 ## Phase 4: Prefix Prompt Cache Manager (FR-3)
 
