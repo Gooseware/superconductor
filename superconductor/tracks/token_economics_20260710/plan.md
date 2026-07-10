@@ -26,7 +26,7 @@
 
 ## Phase 3: Dynamic Escalation Router (FR-2)
 
-- [ ] Task: Write failing tests for dynamic escalation router [TIER-3]
+- [x] Task: Write failing tests for dynamic escalation router [TIER-3] 99f7025
     - [ ] Test: No escalation when failures are below threshold (< 3 consecutive)
     - [ ] Test: Escalation triggers after 3 consecutive Red→Green failures
     - [ ] Test: Escalation triggers on token budget exceeded
@@ -35,7 +35,7 @@
     - [ ] Test: Downshift to cheaper model after successful post-escalation task
     - [ ] Test: Escalation history is maintained per track
     - [ ] Test: Custom escalation policy overrides default thresholds
-- [ ] Task: Implement dynamic escalation router in `src/routing/escalation-router.ts` [TIER-4]
+- [x] Task: Implement dynamic escalation router in `src/routing/escalation-router.ts` [TIER-4] 99f7025
     - [ ] Define `IEscalationPolicy` interface for pluggable policies
     - [ ] Implement `DefaultEscalationPolicy` with configurable thresholds
     - [ ] Track per-task failure counts, token usage, and edit match results
