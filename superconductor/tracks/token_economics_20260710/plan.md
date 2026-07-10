@@ -9,7 +9,7 @@
     - [ ] Add new event types to the engine's `EngineEvent` union
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Routing Module Scaffolding' (Protocol in workflow.md) bead157
 
-## Phase 2: Tool Surface Analyzer (FR-1)
+## Phase 2: Tool Surface Analyzer (FR-1) [checkpoint: cf90671]
 
 - [x] Task: Write failing tests for tool surface analyzer [TIER-3] 640895f
     - [ ] Test: Parse mock `agy plugin list` output into `PluginInfo[]`
@@ -22,7 +22,7 @@
     - [ ] Match task `role` and `files[]` metadata against plugin capabilities
     - [ ] Generate `--disable-plugin` flag strings for subagent spawn commands
     - [ ] Calculate and emit estimated token savings per trim
-- [~] Task: Superconductor - User Manual Verification 'Phase 2: Tool Surface Analyzer' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Tool Surface Analyzer' (Protocol in workflow.md) cf90671
 
 ## Phase 3: Dynamic Escalation Router (FR-2)
 
