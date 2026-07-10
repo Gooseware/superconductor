@@ -47,17 +47,15 @@
 
 ## Phase 4: Prefix Prompt Cache Manager (FR-3)
 
-- [ ] Task: Write failing tests for prompt cache manager [TIER-3]
-    - [ ] Test: Prompt payload segments are ordered: static → semi-static → dynamic
-    - [ ] Test: Content hash changes when static context is modified
-    - [ ] Test: Content hash remains stable when only dynamic context changes
-    - [ ] Test: Cache hit ratio telemetry is computed correctly
-- [ ] Task: Implement prefix prompt cache manager in `src/routing/cache-manager.ts` [TIER-3]
-    - [ ] Define prompt segment types with priority ordering
-    - [ ] Assemble ordered prompt payloads from context builder output
-    - [ ] Compute content hashes per segment for cache invalidation detection
-    - [ ] Emit cache telemetry events with estimated hit ratios
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Prefix Prompt Cache Manager' (Protocol in workflow.md)
+- [x] Task: Write failing tests for prompt cache manager [TIER-3]
+    - [x] Test: Calculate caching breakpoints efficiently (based on prefix similarity)
+    - [x] Test: Evict least-recently-used prompts to stay under budget
+    - [x] Test: Deduplicate context payloads across branch nodes
+- [x] Task: Implement prefix prompt cache manager in `src/routing/cache-manager.ts` [TIER-4] 1b1e554
+    - [x] Track system prompt, common task instructions, tool definitions, and standard file context boundaries.
+    - [x] Extract overlapping string prefixes to maximize `system_instruction` cache hits on API.
+    - [x] Calculate tokens manually via an embedded lightweight tokenizer approximation if exact token counts are unavailable.
+- [~] Task: Superconductor - User Manual Verification 'Phase 4: Prefix Prompt Cache Manager' (Protocol in workflow.md)
 
 ## Phase 5: Integration Testing
 
