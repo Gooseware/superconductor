@@ -7,7 +7,7 @@
     - [ ] `escalation.types.ts`: `EscalationPolicy`, `EscalationSignal`, `EscalationHistory`, `EscalationEvent`
     - [ ] `cache.types.ts`: `PromptSegment`, `CacheManifest`, `CacheHitReport`
     - [ ] Add new event types to the engine's `EngineEvent` union
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Routing Module Scaffolding' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 1: Routing Module Scaffolding' (Protocol in workflow.md)
 
 ## Phase 2: Tool Surface Analyzer (FR-1)
 

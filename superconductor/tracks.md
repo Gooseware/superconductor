@@ -9,7 +9,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Token Economics & Dynamic Routing**
+- [~] **Track: Token Economics & Dynamic Routing**
 *Link: [./tracks/token_economics_20260710/](./tracks/token_economics_20260710/)*
 
 ---
