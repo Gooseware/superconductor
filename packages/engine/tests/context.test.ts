@@ -5,11 +5,15 @@ import { DagNode } from '../src/types';
 describe('context builder', () => {
   const mockTask: DagNode = {
     id: 'test-task-1',
+    name: 'Context Test Task',
+    description: 'This is a test task for building context',
     role: 'editor',
     tier: 3,
     status: 'pending',
     prompt: 'Implement a feature that does X',
     contextFiles: ['fileA.ts'],
+    constraints: ['Must follow TDD', 'Must be fast'],
+    variables: { API_KEY: 'test-key', URL: 'http://localhost' }
   };
 
   const commonContext = '# Base Agent Context\nThis is AGENTS.md content.';
@@ -24,7 +28,11 @@ describe('context builder', () => {
     
     // Check prompt generation includes constraints/name/description/prompt
     expect(config.prompt).toContain('Task ID: test-task-1');
+    expect(config.prompt).toContain('Name: Context Test Task');
+    expect(config.prompt).toContain('Description: This is a test task for building context');
     expect(config.prompt).toContain('Role: editor');
+    expect(config.prompt).toContain('Constraints:\n- Must follow TDD\n- Must be fast');
+    expect(config.prompt).toContain('Variables:\n- API_KEY: test-key\n- URL: http://localhost');
     expect(config.prompt).toContain('Implement a feature that does X');
     expect(config.prompt).toContain('Context Files: fileA.ts');
   });

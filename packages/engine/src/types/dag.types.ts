@@ -9,12 +9,16 @@ export interface DagEdge {
 
 export interface DagNode {
   id: string;
+  name?: string;
+  description?: string;
   role: TaskRole;
   tier: TaskTier;
   status: TaskStatus;
   prompt: string;
   contextFiles?: string[];
   dependsOn?: string[]; // Array of node IDs
+  constraints?: string[];
+  variables?: Record<string, string>;
 }
 
 export interface TaskGraph {
