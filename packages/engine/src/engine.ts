@@ -6,12 +6,14 @@ import { StormController } from './concurrency/storm.js';
 import { buildContext } from './context/builder.js';
 import { DispatcherEvent } from './types/dispatcher.types.js';
 import { EscalationRouter } from './routing/escalation-router.js';
+import { CacheManager } from './routing/cache-manager.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
   public dispatcher: Dispatcher;
   public storm: StormController;
   public escalationRouter: EscalationRouter;
+  public cacheManager: CacheManager;
   public commonContext: string = '';
   
   private waitingForLocks: Set<DagNode> = new Set();
@@ -21,13 +23,14 @@ export class Engine extends EventEmitter {
   private resolveExecution: ((result: { success: boolean }) => void) | null = null;
   private rejectExecution: ((reason?: any) => void) | null = null;
 
-  constructor(graph: TaskGraph, commonContext: string = '') {
+  constructor(graph: TaskGraph, commonContext: string = '', disableCache: boolean = false) {
     super();
     this.commonContext = commonContext;
     this.scheduler = new Scheduler(graph, this.handleSchedulerEvent.bind(this));
     this.dispatcher = new Dispatcher();
     this.storm = new StormController();
     this.escalationRouter = new EscalationRouter(this);
+    this.cacheManager = new CacheManager({ maxTokenBudget: disableCache ? 0 : 50000 });
     
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }
@@ -133,6 +136,14 @@ export class Engine extends EventEmitter {
     const config = buildContext(task, this.commonContext);
     
     task.prompt = config.prompt; 
+    
+    // Process through cache manager
+    this.cacheManager.processPayload({
+      taskId: task.id,
+      systemInstruction: 'Standard System Prompt Prefix', // Using mock standard prefix
+      tools: 'Standard Tools Definition',
+      context: task.prompt
+    });
     
     this.dispatcher.dispatch(task).catch((err) => {
       console.error(err);
