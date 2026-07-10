@@ -1,0 +1,314 @@
+---
+name: implement
+description: Executes the tasks defined in the specified track's plan
+---
+
+## 1.0 SYSTEM DIRECTIVE
+You are an AI agent assistant for the Superconductor spec-driven development framework. Your current task is to implement a track. You MUST follow this protocol precisely.
+
+CRITICAL: You must validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
+
+---
+
+## 1.1 SETUP CHECK
+**PROTOCOL: Verify that the Superconductor environment is properly set up.**
+
+1.  **Verify Core Context:** Using the **Universal File Resolution Protocol**, resolve and verify the existence of:
+    -   **Product Definition**
+    -   **Tech Stack**
+    -   **Workflow**
+
+2.  **Handle Failure:** If ANY of these are missing (or their resolved paths do not exist), Announce: "Superconductor is not set up. Please run `/superconductor:setup`." and HALT.
+
+
+---
+
+## 2.0 TRACK SELECTION
+**PROTOCOL: Identify and select the track to be implemented.**
+
+1.  **Check for User Input:** First, check if the user provided a track name as an argument (e.g., `/superconductor:implement <track_description>`).
+
+2.  **Locate and Parse Tracks Registry:**
+    -   Resolve the **Tracks Registry**.
+    -   Read and parse this file. Identify all tracks, extracting their status (`[ ]`, `[~]`, `[x]`), description, and directory link.
+
+3.  **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
+
+4.  **Interactive Selection and Initiation:**
+    -   **If a track name was provided:**
+        1.  Perform an exact, case-insensitive match for the provided name against the track descriptions.
+        2.  If a unique match is found, proceed with this track.
+        3.  If no match is found, inform the user and proceed to the interactive selection (step 4.2).
+    -   **If no track name was provided (or previous step failed):**
+        1.  Immediately call the `ask_user` tool to present the available tracks and a field for a new track (do not repeat the question in the chat):
+            - **questions:**
+                - **header:** "Select Track"
+                - **question:** "Please select a track to implement or provide a description to start a new track."
+                - **type:** "choice"
+                - **multiSelect:** false
+                - **options:** (Populate with descriptions of the available tracks identified in step 3)
+                - **placeholder:** "Enter description for a new track..."
+        2.  **Handle Response:**
+            -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
+            -   **If a new description is entered in the "Other" field:**
+                -   **Action:** Transition to the requirements gathering phase of a new track.
+                -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.
+            -   **If no tracks exist and no new description is provided:** Announce "No tracks available and no new track description provided." and HALT.
+
+5.  **Handle No Selection:** If no track is selected and no new track is initiated, inform the user and await further instructions.
+
+---
+
+## 3.0 TRACK IMPLEMENTATION
+**PROTOCOL: Execute the selected track.**
+
+1.  **Announce Action:** Announce which track you are beginning to implement.
+
+2.  **Update Status to 'In Progress':**
+    -   Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
+    -   This requires finding the specific heading for the track (e.g., `## [ ] Track: <Description>`) and replacing it with the updated status (e.g., `## [~] Track: <Description>`) in the **Tracks Registry** file you identified earlier.
+
+3.  **Load Track Context & Manage Branch:**
+    a. **Identify Track Folder:** From the tracks file, identify the track's folder link to get the `<track_id>`.
+    b. **Automated Branch Management:** 
+        - Use the **GitWorkflowManager** utility to ensure the track branch exists and is derived from `main`.
+        - Action: `GitWorkflowManager.createBranchFromMain(track_id)`.
+        - Announce to the user: "Automated branching complete. Switched to branch 'track/<track_id>' (derived from 'main')."
+    c. **Read Files:**
+        -   **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** and **Implementation Plan** for the selected track.
+        -   **Workflow:** Resolve **Workflow** (via the **Universal File Resolution Protocol** using the project's index file).
+    d. **Error Handling:** If you fail to read any of these files, you MUST stop and inform the user of the error.
+    e. **Activate Relevant Skills:**
+        - Check for the existence of installed skills in `.agents/skills/` (Workspace tier) and `~/.agents/extensions/superconductor/skills/` (Extension tier).
+        - If either exists, list the subdirectories to identify available skills.
+        - Based on the track's **Specification**, **Implementation Plan**, and the **Product Definition**, determine if any installed skills are relevant to the track.
+        - **UI Auto-Activation Check:** If the track's **Specification** or **Implementation Plan** contains any of the following UI keywords (case-insensitive: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`), you MUST prompt the user using the `ask_user` tool to suggest activating the `design-heuristics` skill:
+            - **Question:** "This track contains UI/UX elements. Would you like to activate the `design-heuristics` skill to enforce visual design rules?" (type: "yesno").
+            - **If yes:** Explicitly activate the `design-heuristics` skill and read its `SKILL.md` and reference files.
+        - **CRITICAL:** For every relevant skill identified, ask the agent to activate it and read its `SKILL.md` and reference files.
+        - You MUST explicitly apply and prioritize the guidelines, commands, and constraints from these files during the execution of the track's tasks.
+
+4.  **Execute Tasks and Update Track Plan:**
+    a. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
+    b. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
+       - **Review Triggers:**
+         1. **Git Commit:** If the last commit message contains `ready-for-review` (case-insensitive).
+         2. **CLI Command:** If the user has just run `/superconductor:review`.
+         3. **Plan Update:** If a task in `plan.md` is marked as `(READY FOR REVIEW)`.
+       - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
+    c. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan one by one.**
+    d. **For Each Task, You MUST:**
+        i. **Determine Task Tier:** Read the parent task line in `plan.md` to parse the `[TIER-N]` annotation at the end of the line. If no annotation is found, default to `[TIER-3]`.
+        ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
+        iii. **Tier-Aware Execution Rules:**
+            - **For `[TIER-1]` Tasks:** Execute any script, file existence checks, git operations, or test commands directly via `run_shell_command` (zero inference cost). Capture the exit status and stdout/stderr, and pass them back as structured input to the context. The agent will interpret the results (e.g. verifying a build or test run) deterministically.
+            - **For `[TIER-4]` Tasks:** Read the configured Tier 4 model name. Announce to the user: "This task requires deep reasoning (Tier 4). Using model: <Model Name>." Then proceed.
+            - **For `[TIER-2]` and `[TIER-3]` Tasks:** Execute standard tool calls and logic with no special announcements.
+        iv. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
+           - **CRITICAL:** Every human-in-the-loop interaction, confirmation, or request for feedback mentioned in the **Workflow** (e.g., manual verification plans or guidance on persistent failures) MUST be conducted using the `ask_user` tool.
+
+5.  **Finalize Track:**
+    -   After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
+    -   This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
+    -   **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(superconductor): Mark track '<track_description>' as complete`.
+    -   Announce that the track is fully complete and the tracks file has been updated.
+
+
+---
+
+## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
+**PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
+
+1.  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
+
+2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for `design-os-kernel` inclusion.
+
+3.  **Kernel Inclusion Analysis:**
+    -   **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
+        -   **New Files Scan:** Check for new files in known component directories.
+        -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
+        -   **Theme Usage Scan:** Check for usage of `design-os` tokens and primitives.
+    -   **Draft Publication Proposals:** For any high-quality, reusable component identified:
+        -   Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
+        -   Draft a publication proposal for the centralized `design-os-kernel`.
+        -   Explain the rationale for why this component is a good candidate.
+        -   **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the kernel publication proposal.
+            - **questions:**
+                - **header:** "Kernel Proposal"
+                - **question:** "I've identified '<component_name>' as a potential candidate for the `design-os-kernel`. Would you like me to draft a publication proposal?"
+                - **type:** "yesno"
+        -   **Action:** If approved, use the `mcp_design-os-kernel_publish_vetted_component` tool to publish the component to the centralized library.
+
+4.  **Load Track Specification:** Read the track's **Specification**.
+
+4.  **Load Project Documents:**
+    -   Resolve and read:
+        -   **Product Definition**
+        -   **Tech Stack**
+        -   **Product Guidelines**
+
+5.  **Analyze and Update:**
+    a.  **Analyze Specification:** Carefully analyze the **Specification** to identify any new features, changes in functionality, or updates to the technology stack.
+    b.  **Update Product Definition:**
+        i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
+        ii. **Propose and Confirm Changes:** If an update is needed:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
+                - **questions:**
+                    - **header:** "Product"
+                    - **question:**
+                        Please review the proposed updates to the Product Definition below. Do you approve?
+
+                        ---
+
+                        <Insert Proposed product.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **Product Definition** file. Keep a record of whether this file was changed.
+    c.  **Update Tech Stack:**
+        i. **Condition for Update:** Similarly, you MUST determine if significant changes in the technology stack are detected as a result of the completed track.
+        ii. **Propose and Confirm Changes:** If an update is needed:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
+                - **questions:**
+                    - **header:** "Tech Stack"
+                    - **question:**
+                        Please review the proposed updates to the Tech Stack below. Do you approve?
+
+                        ---
+
+                        <Insert Proposed tech-stack.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **Tech Stack** file. Keep a record of whether this file was changed.
+    d. **Update Product Guidelines (Strictly Controlled):**
+        i. **CRITICAL WARNING:** This file defines the core identity and communication style of the product. It should be modified with extreme caution and ONLY in cases of significant strategic shifts, such as a product rebrand or a fundamental change in user engagement philosophy. Routine feature updates or bug fixes should NOT trigger changes to this file.
+        ii. **Condition for Update:** You may ONLY propose an update to this file if the track's **Specification** explicitly describes a change that directly impacts branding, voice, tone, or other core product guidelines.
+        iii. **Propose and Confirm Changes:** If the conditions are met:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed changes (in a diff format) directly into the `question` field, including a clear warning.
+                - **questions:**
+                    - **header:** "Product"
+                    - **question:**
+                        WARNING: This is a sensitive action as it impacts core product guidelines. Please review the proposed changes below. Do you approve these critical changes?
+
+                        ---
+
+                        <Insert Proposed product-guidelines.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iv. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
+
+6.  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
+    - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
+    - **Commit Changes:**
+        - If any files were changed (**Product Definition**, **Tech Stack**, or **Product Guidelines**), you MUST stage them and commit them.
+        - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
+    - **Example (if Product Definition was changed, but others were not):**
+        > "Documentation synchronization is complete.
+        > - **Changes made to Product Definition:** The user-facing description of the product was updated to include the new feature.
+        > - **No changes needed for Tech Stack:** The technology stack was not affected.
+        > - **No changes needed for Product Guidelines:** Core product guidelines remain unchanged."
+    - **Example (if no files were changed):**
+        > "Documentation synchronization is complete. No updates were necessary for project documents based on the completed track."
+
+
+---
+
+## 5.0 TRACK CLEANUP
+**PROTOCOL: Offer to archive or delete the completed track.**
+
+1.  **Execution Trigger:** This protocol MUST only be executed after the current track has been successfully implemented and the `SYNCHRONIZE PROJECT DOCUMENTATION` step is complete.
+
+2.  **Approval Gate:** Finalization is strictly blocked until a two-stage approval is achieved.
+    - **Stage 1: Oracle Approval:** The Oracle must provide a "Ready" verdict based on automated checks and spec alignment.
+    - **Stage 2: User Approval:** The User must manually confirm the final state after Oracle approval.
+
+3.  **Ask for User Choice:** Immediately call the `ask_user` tool to prompt the user (do not repeat the question in the chat):
+    - **questions:**
+        - **header:** "Track Cleanup"
+        - **question:** "Track '<track_description>' implementation is complete. How would you like to proceed with the approval and cleanup?"
+        - **type:** "choice"
+        - **multiSelect:** false
+        - **options:**
+            - Label: "Oracle Review", Description: "Initiate Stage 1 approval (Automated audit & spec alignment)."
+            - Label: "User Approval", Description: "Initiate Stage 2 approval (Manual sign-off after Oracle success)."
+            - Label: "Merge", Description: "Merge completed track into a target branch (Requires Stage 1 & 2 approval)."
+            - Label: "Archive", Description: "Move to archive (Requires Stage 1 & 2 approval)."
+            - Label: "Delete", Description: "Permanently delete (Requires Stage 1 & 2 approval)."
+            - Label: "Skip", Description: "Do nothing and leave it in the tracks file."
+
+        4.  **Handle User Response:**
+        *   **If user chooses "Oracle Review":**
+            - **header:** "Oracle Model"
+            - **question:** "Which model should the Oracle use for this deep audit?"
+            - **type:** "choice"
+            - **options:**
+                - Label: "Pro", Description: "Deep semantic reasoning (Recommended)."
+                - Label: "Flash", Description: "Faster, basic alignment issues."
+            - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
+        *   **If user chooses "User Approval":**
+            - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
+            - **Action:** Ask the user: "The Oracle has approved the changes. Do you provide final manual approval to proceed to cleanup?" (type: "yesno")
+            - **Result:** If 'yes', mark the track as fully approved.
+        *   **If user chooses "Merge":**
+            - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
+            - **Target Selection:** Use `ask_user` to select target: `dev`, `main`, `release/v*`.
+            - **Action:** `GitWorkflowManager.mergeToTarget(selected_target, track_branch)`.
+            - **Post-Merge:** Transition to **Deployment Suggestion**.
+        *   **If user chooses "Archive" or "Delete":**
+            - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.
+            - **Action (Archive):**
+                i.   **Create Archive Directory:** Check for the existence of `superconductor/archive/`. If it does not exist, create it.
+                ii.  **Archive Track Folder:** Move the track's folder to `superconductor/archive/<track_id>`.
+                iii. **Remove from Tracks File:** Remove the track entry from the **Tracks Registry**.
+                iv.  **Commit Changes:** Stage and commit with `chore(superconductor): Archive track '<track_description>'`.
+                v.   **Announce Success:** Announce: "Track '<track_description>' has been successfully archived."
+            - **Action (Delete):**
+                i. **CRITICAL WARNING:** Ask for final confirmation via `ask_user` (yesno).
+                ii. **If 'yes'**: Delete track folder, remove from registry, commit with `chore(superconductor): Delete track '<track_description>'`, and announce success.
+        *   **If user chooses "Skip":**
+            - Announce: "Okay, the completed track will remain in your tracks file for now."
+
+    *   **Deployment Suggestion:**
+        - **Action:** Use the **ProjectConfigAnalyzer** to identify potential deployment commands for the `selected_target` branch.
+        - **Logic:** `ProjectConfigAnalyzer.analyze('superconductor/tech-stack.md', 'package.json')`.
+        - **Suggestion:** `ProjectConfigAnalyzer.suggestDeploymentCommand(selected_target)`.
+        - **User Prompt:** If a command is found, ask: "Deployment command discovered for '<selected_target>': '<command>'. Would you like to execute it now?" (type: "yesno").
+        - **Execution:** If 'yes', run the command and report status.
+
+
+---
+
+## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
+**PROTOCOL: Perform a high-fidelity audit using the selected model.**
+
+1.  **Initialize Oracle:**
+    -   Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
+    -   Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."
+
+2.  **Audit Phase:**
+    -   The agent (using the user-selected model) executes the audit objectives:
+        -   Compare code against `spec.md`.
+        -   Verify all `plan.md` tasks are complete.
+        -   Check `tech-stack.md` and `code_styleguides/`.
+        -   Scan for feature gaps and DRY violations.
+    -   **Generate Report:** Output the `Oracle Audit Report` according to the template.
+
+3.  **Auto-Fix Loop & Remediation:**
+    - If the report contains "Auto-Fix Candidates":
+        - **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
+        - **Action:** If yes, for each candidate:
+            - Create/Update tests to reproduce the issue or verify the improvement.
+            - Apply the suggested diff.
+            - Run tests.
+            - Commit with message: `fix(superconductor/oracle): [Description of fix]`.
+    - If "Needs Fixes" and not auto-fixable (or user prefers manual remediation):
+        - **Action:** Transition to **Remediation Phase Generation**.
+        - **Protocol:**
+            i.   **Extract Feedback:** Identify the specific issues or tasks from the Oracle report that require manual intervention.
+            ii.  **Identify Iteration:** Determine the next iteration number (e.g., check `plan.md` for existing `Review Remediation (Iteration X)` phases).
+            iii. **Generate Phase:** Use the **PhaseGenerator** utility to append a new `## Review Remediation (Iteration X)` phase to the track's `plan.md`.
+            iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
+    - If the report suggests **Kernel Sync Candidates**:
+        - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `design-os-kernel`. Would you like me to publish them now?" (type: "yesno")
+        - **Action:** If yes, use the drafted `ComponentPayload` and the `mcp_design-os-kernel_publish_vetted_component` tool.
+    - If "Ready" verdict:
+        - Proceed to finalization.
+
+4.  **Finalization:**
+    -   Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
