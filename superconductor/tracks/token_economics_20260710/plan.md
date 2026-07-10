@@ -22,7 +22,7 @@
     - [ ] Match task `role` and `files[]` metadata against plugin capabilities
     - [ ] Generate `--disable-plugin` flag strings for subagent spawn commands
     - [ ] Calculate and emit estimated token savings per trim
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Tool Surface Analyzer' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 2: Tool Surface Analyzer' (Protocol in workflow.md)
 
 ## Phase 3: Dynamic Escalation Router (FR-2)
 
