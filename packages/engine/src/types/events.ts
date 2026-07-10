@@ -1,7 +1,8 @@
 import { SchedulerEvent } from './scheduler.types.js';
 import { DispatcherEvent } from './dispatcher.types.js';
+import { EscalationEvent } from '../routing/escalation.types.js';
 
-export type EngineEventType = 'scheduler' | 'dispatcher' | 'concurrency' | 'system';
+export type EngineEventType = 'scheduler' | 'dispatcher' | 'concurrency' | 'system' | 'routing';
 
 export interface BaseEngineEvent {
   type: EngineEventType;
@@ -28,4 +29,9 @@ export interface SystemEngineEvent extends BaseEngineEvent {
   detail: unknown;
 }
 
-export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent;
+export interface RoutingEngineEvent extends BaseEngineEvent {
+  type: 'routing';
+  detail: any; // Can be TrimResult, CacheHitReport, or EscalationEvent
+}
+
+export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent | RoutingEngineEvent | EscalationEvent;
