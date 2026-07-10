@@ -4,7 +4,7 @@ import { SchedulerEvent } from '../types/scheduler.types.js';
 export class Scheduler {
   private graph: TaskGraph;
   private inDegree: Map<string, number> = new Map();
-  private dependents: Map<string, string[]> = new Map();
+  private dependents: Map<string, Set<string>> = new Map();
   private onEvent?: (event: SchedulerEvent) => void;
   private frontier: DagNode[] = [];
 
@@ -14,20 +14,18 @@ export class Scheduler {
     this.initializeGraph();
   }
 
-  private initializeGraph() {
+  private initializeGraph(): void {
     for (const nodeId of Object.keys(this.graph.nodes)) {
       this.inDegree.set(nodeId, 0);
-      this.dependents.set(nodeId, []);
+      this.dependents.set(nodeId, new Set());
     }
 
     for (const edge of this.graph.edges) {
       const toDegree = this.inDegree.get(edge.to) || 0;
       this.inDegree.set(edge.to, toDegree + 1);
 
-      const deps = this.dependents.get(edge.from) || [];
-      if (!deps.includes(edge.to)) {
-        deps.push(edge.to);
-      }
+      const deps = this.dependents.get(edge.from) || new Set();
+      deps.add(edge.to);
       this.dependents.set(edge.from, deps);
     }
 
@@ -54,12 +52,15 @@ export class Scheduler {
     return { tasks: batch };
   }
 
-  completeTask(id: string) {
+  completeTask(id: string): void {
     const node = this.graph.nodes[id];
-    if (node && node.status !== 'completed') {
+    if (!node) {
+      throw new Error(`Task not found: ${id}`);
+    }
+    if (node.status !== 'completed') {
       node.status = 'completed';
       
-      const deps = this.dependents.get(id) || [];
+      const deps = this.dependents.get(id) || new Set();
       for (const depId of deps) {
         const currentDegree = this.inDegree.get(depId) || 0;
         if (currentDegree > 0) {
@@ -79,9 +80,12 @@ export class Scheduler {
     }
   }
 
-  failTask(id: string) {
+  failTask(id: string): void {
     const node = this.graph.nodes[id];
-    if (node && node.status !== 'failed') {
+    if (!node) {
+      throw new Error(`Task not found: ${id}`);
+    }
+    if (node.status !== 'failed') {
       node.status = 'failed';
       
       this.emit({ type: 'task_failed', payload: { taskId: id } });
@@ -90,8 +94,8 @@ export class Scheduler {
     }
   }
 
-  private markDescendantsBlocked(id: string) {
-    const deps = this.dependents.get(id) || [];
+  private markDescendantsBlocked(id: string): void {
+    const deps = this.dependents.get(id) || new Set();
     for (const depId of deps) {
       const depNode = this.graph.nodes[depId];
       if (depNode && depNode.status !== 'blocked' && depNode.status !== 'failed') {
@@ -103,7 +107,7 @@ export class Scheduler {
     }
   }
 
-  private emit(event: SchedulerEvent) {
+  private emit(event: SchedulerEvent): void {
     if (this.onEvent) {
       this.onEvent(event);
     }

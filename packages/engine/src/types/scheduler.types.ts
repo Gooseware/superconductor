@@ -12,6 +12,6 @@ export interface TaskBatch {
 }
 
 export interface SchedulerEvent {
-  type: 'batch_ready' | 'task_completed' | 'task_failed' | 'task_blocked' | 'workflow_finished';
+  type: 'batch_ready' | 'task_completed' | 'task_failed' | 'task_blocked';
   payload?: unknown;
 }
