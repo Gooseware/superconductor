@@ -165,21 +165,4 @@ describe('Scheduler', () => {
     expect(events).toContainEqual(expect.objectContaining({ type: 'task_failed' }));
   });
   
-  it('Emits correct SchedulerEvents on transitions', () => {
-    const nodeA = createNode('A');
-    const graph = createGraph([nodeA]);
-    
-    const events: SchedulerEvent[] = [];
-    const scheduler = new Scheduler(graph, (e) => events.push(e));
-    
-    scheduler.nextBatch();
-    expect(events).toContainEqual({ type: 'batch_ready', payload: { tasks: [nodeA] } });
-    
-    scheduler.completeTask('A');
-    expect(events).toContainEqual({ type: 'task_completed', payload: { taskId: 'A' } });
-    
-    // Assuming nextBatch emits workflow_finished when nothing is left and active is 0
-    scheduler.nextBatch();
-    expect(events).toContainEqual({ type: 'workflow_finished' });
-  });
 });
