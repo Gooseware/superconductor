@@ -1,4 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { EventEmitter } from 'events';
+import * as cp from 'child_process';
+
+vi.mock('child_process', () => ({
+  execSync: vi.fn(() => 'Gemini 3.5 Flash (Medium)\nGemini 3.1 Pro (Low)\nClaude Opus 4.6 (Thinking)\n')
+}));
+
+// Import after mocking
 import { Dispatcher } from '../src/dispatcher/dispatcher.js';
 import { DagNode } from '../src/types/dag.types.js';
 
@@ -17,17 +25,17 @@ describe('Dispatcher', () => {
 
     it('maps TaskTier 2 to flash model spec', () => {
       const config = dispatcher.getTierConfig(2);
-      expect(config.models).toContain('flash');
+      expect(config.models).toContain('Gemini 3.5 Flash (Medium)');
     });
 
     it('maps TaskTier 3 to pro model spec', () => {
       const config = dispatcher.getTierConfig(3);
-      expect(config.models).toContain('pro');
+      expect(config.models).toContain('Gemini 3.1 Pro (Low)');
     });
 
     it('maps TaskTier 4 to oracle model spec', () => {
       const config = dispatcher.getTierConfig(4);
-      expect(config.models).toContain('oracle');
+      expect(config.models).toContain('Claude Opus 4.6 (Thinking)');
     });
   });
 

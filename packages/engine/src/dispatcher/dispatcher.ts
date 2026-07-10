@@ -2,12 +2,45 @@ import { EventEmitter } from 'events';
 import { DagNode } from '../types/dag.types.js';
 import { DispatcherEvent, SubagentResult } from '../types/dispatcher.types.js';
 
-const TIER_CONFIG: Record<number, { models: string[] }> = {
-  1: { models: ['script/regex'] },
-  2: { models: ['flash', 'claude-3-haiku'] },
-  3: { models: ['pro', 'claude-3-5-sonnet'] },
-  4: { models: ['oracle', 'claude-3-opus'] }
-};
+import { execSync } from 'child_process';
+
+function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
+  const config: Record<number, { models: string[] }> = {
+    1: { models: ['script/regex'] },
+    2: { models: [] },
+    3: { models: [] },
+    4: { models: [] }
+  };
+
+  try {
+    const output = execSync('agy models', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const models = output.split('\n').map(m => m.trim()).filter(m => m.length > 0);
+
+    for (const model of models) {
+      const lower = model.toLowerCase();
+      if (lower.includes('opus') || lower.includes('oracle') || lower.includes('high')) {
+        config[4].models.push(model);
+      } else if (lower.includes('pro') || lower.includes('sonnet') || lower.includes('thinking')) {
+        config[3].models.push(model);
+      } else {
+        config[2].models.push(model);
+      }
+    }
+  } catch (err) {
+    // Fallback if agy is not available
+    config[2].models = ['flash', 'claude-3-haiku'];
+    config[3].models = ['pro', 'claude-3-5-sonnet'];
+    config[4].models = ['oracle', 'claude-3-opus'];
+  }
+
+  if (config[2].models.length === 0) config[2].models.push('flash');
+  if (config[3].models.length === 0) config[3].models.push('pro');
+  if (config[4].models.length === 0) config[4].models.push('oracle');
+
+  return config;
+}
+
+const TIER_CONFIG = fetchDynamicTierConfig();
 
 export class Dispatcher extends EventEmitter {
   getTierConfig(tier: number): { models: string[] } {
