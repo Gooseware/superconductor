@@ -3,42 +3,59 @@ import { DagNode, SubagentConfig } from '../types';
 const MAX_PROMPT_LENGTH = 100000;
 
 export function buildContext(task: DagNode, commonContext: string): SubagentConfig {
-  let prompt = `Task ID: ${task.id}\n`;
-  if (task.name) prompt += `Name: ${task.name}\n`;
-  prompt += `Role: ${task.role}\n`;
+  const parts: string[] = [];
+  
+  if (task.id) parts.push(`Task ID: ${task.id}`);
+  if (task.name) parts.push(`Name: ${task.name}`);
+  if (task.role) parts.push(`Role: ${task.role}`);
   
   if (task.description) {
-    prompt += `Description: ${task.description}\n`;
+    parts.push(`Description: ${task.description}`);
   }
 
   if (task.constraints && task.constraints.length > 0) {
-    prompt += `Constraints:\n${task.constraints.map(c => `- ${c}`).join('\n')}\n`;
+    parts.push(`Constraints:\n${task.constraints.map(c => `- ${c}`).join('\n')}`);
   }
 
   if (task.variables && Object.keys(task.variables).length > 0) {
-    prompt += `Variables:\n`;
-    for (const [key, value] of Object.entries(task.variables)) {
-      prompt += `- ${key}: ${value}\n`;
+    let vars = `Variables:\n`;
+    const entries = Object.entries(task.variables);
+    for (let i = 0; i < entries.length; i++) {
+      vars += `- ${entries[i][0]}: ${entries[i][1]}`;
+      if (i < entries.length - 1) vars += '\n';
     }
+    parts.push(vars);
   }
 
   if (task.contextFiles && task.contextFiles.length > 0) {
-    prompt += `Context Files: ${task.contextFiles.join(', ')}\n`;
+    parts.push(`Context Files: ${task.contextFiles.join(', ')}`);
   }
   
-  prompt += `\n--- Task Prompt ---\n${task.prompt}\n`;
-  prompt += `\n--- Common Context ---\n${commonContext}\n`;
-
-  // Enforce basic max length rule on generated prompt
-  if (prompt.length > MAX_PROMPT_LENGTH) {
-    prompt = prompt.substring(0, MAX_PROMPT_LENGTH);
+  const commonCtxStr = commonContext ? `--- Common Context ---\n${commonContext}` : '';
+  
+  // Calculate remaining length for task prompt
+  const partsString = parts.join('\n\n');
+  const overheadLength = partsString.length + commonCtxStr.length + `\n\n--- Task Prompt ---\n\n\n`.length;
+  
+  let taskPromptStr = task.prompt || '';
+  if (taskPromptStr.length + overheadLength > MAX_PROMPT_LENGTH) {
+    const allowedLength = Math.max(0, MAX_PROMPT_LENGTH - overheadLength);
+    taskPromptStr = taskPromptStr.substring(0, allowedLength);
+  }
+  
+  if (taskPromptStr) {
+    parts.push(`--- Task Prompt ---\n${taskPromptStr}`);
+  }
+  
+  if (commonCtxStr) {
+    parts.push(commonCtxStr);
   }
 
   return {
-    agentName: task.id,
-    role: task.role,
-    tier: task.tier,
-    prompt: prompt,
+    agentName: task.id || 'unknown',
+    role: task.role || 'unknown',
+    tier: task.tier || 1,
+    prompt: parts.join('\n\n'),
     workspace: 'inherit',
   };
 }

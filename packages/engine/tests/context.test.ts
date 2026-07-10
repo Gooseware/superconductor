@@ -42,13 +42,32 @@ describe('context builder', () => {
     expect(config.prompt).toContain(commonContext);
   });
 
-  it('Collects file context limits and enforces standard max length', () => {
+  it('Collects file context limits and enforces standard max length by truncating task prompt, keeping commonContext intact', () => {
     const longPrompt = 'A'.repeat(200000);
     const longTask: DagNode = { ...mockTask, prompt: longPrompt };
-    const config = buildContext(longTask, commonContext);
+    const longCommonContext = 'B'.repeat(1000);
+    const config = buildContext(longTask, longCommonContext);
     
     // Expect it to be truncated or limited
     expect(config.prompt.length).toBeLessThanOrEqual(100000);
-    expect(config.prompt).toContain('A'.repeat(50000)); // Should still contain a good chunk
+    // Should still contain a good chunk of task prompt
+    expect(config.prompt).toContain('A'.repeat(50000));
+    // Most importantly, the common context should be fully intact
+    expect(config.prompt).toContain(longCommonContext);
+  });
+
+  it('Handles undefined/falsy values gracefully', () => {
+    const minimalTask: DagNode = {
+      id: '',
+      role: '' as any,
+      tier: 1,
+      status: 'pending',
+      prompt: ''
+    };
+    const config = buildContext(minimalTask, '');
+    
+    expect(config.agentName).toBe('unknown');
+    expect(config.role).toBe('unknown');
+    expect(config.prompt).not.toContain('undefined');
   });
 });
