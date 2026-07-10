@@ -15,9 +15,9 @@ export class Engine extends EventEmitter {
   private waitingForLocks: Set<DagNode> = new Set();
   private activeTasks: number = 0;
   private isHalted: boolean = false;
-  private checkInterval: NodeJS.Timeout | null = null;
-  private executionPromise: Promise<void> | null = null;
-  private resolveExecution: (() => void) | null = null;
+  private executionPromise: Promise<{ success: boolean }> | null = null;
+  private resolveExecution: ((result: { success: boolean }) => void) | null = null;
+  private rejectExecution: ((reason?: any) => void) | null = null;
 
   constructor(graph: TaskGraph, commonContext: string = '') {
     super();
@@ -31,7 +31,7 @@ export class Engine extends EventEmitter {
 
   private handleSchedulerEvent(event: any) {
     if (event.type === 'task_failed' || event.type === 'task_blocked') {
-      // cascading failure logic
+      this.isHalted = true;
     }
   }
 
@@ -50,9 +50,10 @@ export class Engine extends EventEmitter {
     }
   }
 
-  public async execute(): Promise<void> {
-    this.executionPromise = new Promise((resolve) => {
+  public async execute(): Promise<{ success: boolean }> {
+    this.executionPromise = new Promise((resolve, reject) => {
       this.resolveExecution = resolve;
+      this.rejectExecution = reject;
     });
     
     this.pump();
@@ -63,7 +64,7 @@ export class Engine extends EventEmitter {
   private pump() {
     if (this.isHalted) {
       if (this.activeTasks === 0 && this.resolveExecution) {
-        this.resolveExecution();
+        this.resolveExecution({ success: false });
       }
       return;
     }
@@ -95,7 +96,14 @@ export class Engine extends EventEmitter {
     // Check if we are done
     if (this.activeTasks === 0 && this.waitingForLocks.size === 0 && tasks.length === 0) {
       if (this.resolveExecution) {
-        this.resolveExecution();
+        this.resolveExecution({ success: true });
+      }
+    }
+    
+    // Check for deadlock
+    if (this.activeTasks === 0 && this.waitingForLocks.size > 0) {
+      if (this.rejectExecution) {
+        this.rejectExecution(new Error('Engine deadlock: tasks waiting for locks but no active tasks running'));
       }
     }
   }
@@ -103,13 +111,16 @@ export class Engine extends EventEmitter {
   private startTask(task: DagNode) {
     this.activeTasks++;
     const config = buildContext(task, this.commonContext);
-    // the dispatcher does not use config right now, it takes DagNode directly. Let's pass the node but we could update its prompt.
-    // Dispatcher simulateExecution looks at task.prompt
+    
     task.prompt = config.prompt; 
     
-    // We shouldn't block the pump on dispatch (simulateExecution will take time and resolve eventually)
     this.dispatcher.dispatch(task).catch((err) => {
       console.error(err);
+      this.activeTasks--;
+      this.storm.releaseAccess(task.id);
+      this.scheduler.failTask(task.id);
+      this.isHalted = true;
+      this.pump();
     });
   }
 }

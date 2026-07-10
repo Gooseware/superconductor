@@ -17,8 +17,9 @@ describe('Engine Integration', () => {
     };
 
     const engine = new Engine(graph, 'Common Context');
-    await engine.execute();
+    const result = await engine.execute();
 
+    expect(result.success).toBe(true);
     expect(graph.nodes['A'].status).toBe('completed');
     expect(graph.nodes['B'].status).toBe('completed');
     expect(graph.nodes['C'].status).toBe('completed');
@@ -38,8 +39,9 @@ describe('Engine Integration', () => {
     };
 
     const engine = new Engine(graph);
-    await engine.execute();
+    const result = await engine.execute();
 
+    expect(result.success).toBe(false);
     expect(graph.nodes['A'].status).toBe('failed');
     expect(graph.nodes['B'].status).toBe('blocked');
     expect(graph.nodes['C'].status).toBe('blocked');
@@ -52,19 +54,53 @@ describe('Engine Integration', () => {
         B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1, contextFiles: ['file1.txt'] },
         C: { id: 'C', status: 'pending', prompt: 'Do C', tier: 1 }
       },
-      // A and B run in parallel (no edges), but conflict on file1.txt
       edges: [
-        { from: 'A', to: 'C' } // Just to give it some structure
+        { from: 'A', to: 'C' }
       ]
     };
 
     const engine = new Engine(graph);
-    
-    // We expect B to wait for A, or A to wait for B
-    await engine.execute();
+    const result = await engine.execute();
 
+    expect(result.success).toBe(true);
     expect(graph.nodes['A'].status).toBe('completed');
     expect(graph.nodes['B'].status).toBe('completed');
     expect(graph.nodes['C'].status).toBe('completed');
+  });
+
+  it('handles unhandled dispatch rejection without hanging', async () => {
+    const graph: TaskGraph = {
+      nodes: {
+        A: { id: 'A', status: 'pending', prompt: 'Crash me', tier: 1 },
+        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1 }
+      },
+      edges: [
+        { from: 'A', to: 'B' }
+      ]
+    };
+
+    const engine = new Engine(graph);
+    const result = await engine.execute();
+
+    expect(result.success).toBe(false);
+    expect(graph.nodes['A'].status).toBe('failed');
+    expect(graph.nodes['B'].status).toBe('blocked');
+  });
+
+  it('rejects the execution promise upon engine deadlock', async () => {
+    const graph: TaskGraph = {
+      nodes: {
+        A: { id: 'A', status: 'pending', prompt: 'Do A', tier: 1, contextFiles: ['file1.txt'] },
+        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1, contextFiles: ['file2.txt'] }
+      },
+      edges: []
+    };
+
+    const engine = new Engine(graph);
+    
+    // Manually force a deadlock state by claiming files externally so tasks wait forever
+    engine.storm.requestAccess('external', ['file1.txt', 'file2.txt']);
+    
+    await expect(engine.execute()).rejects.toThrow('Engine deadlock');
   });
 });
