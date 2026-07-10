@@ -5,11 +5,13 @@ import { Dispatcher } from './dispatcher/dispatcher.js';
 import { StormController } from './concurrency/storm.js';
 import { buildContext } from './context/builder.js';
 import { DispatcherEvent } from './types/dispatcher.types.js';
+import { EscalationRouter } from './routing/escalation-router.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
   public dispatcher: Dispatcher;
   public storm: StormController;
+  public escalationRouter: EscalationRouter;
   public commonContext: string = '';
   
   private waitingForLocks: Set<DagNode> = new Set();
@@ -25,6 +27,7 @@ export class Engine extends EventEmitter {
     this.scheduler = new Scheduler(graph, this.handleSchedulerEvent.bind(this));
     this.dispatcher = new Dispatcher();
     this.storm = new StormController();
+    this.escalationRouter = new EscalationRouter(this);
     
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }
@@ -37,16 +40,33 @@ export class Engine extends EventEmitter {
 
   private async handleDispatcherEvent(event: DispatcherEvent) {
     if (event.type === 'task_completed') {
+      this.escalationRouter.onTaskSuccess('default-track', event.taskId);
       this.storm.releaseAccess(event.taskId);
       this.scheduler.completeTask(event.taskId);
       this.activeTasks--;
       this.pump();
     } else if (event.type === 'task_failed') {
-      this.storm.releaseAccess(event.taskId);
-      this.scheduler.failTask(event.taskId);
-      this.activeTasks--;
-      this.isHalted = true; // cascading failure, block
-      this.pump();
+      const action = this.escalationRouter.processSignal('default-track', event.taskId, 'red_green_failure');
+      if (action === 'escalate') {
+        // Re-dispatch task instead of halting
+        const task = this.scheduler.getTask(event.taskId);
+        if (task) {
+          // In reality we would upgrade the model. We can just re-dispatch for now.
+          this.activeTasks--; // since it's going to restart
+          this.storm.releaseAccess(event.taskId); // release and let pump pick it up, or just dispatch directly?
+          // Let's release access and put it back in waiting, wait no, scheduler nextBatch handles it?
+          // Since it failed, if we don't mark it failed in scheduler, we can just reset its status to pending.
+          task.status = 'pending';
+          // we don't pump yet, just let pump pick it up again
+          this.pump();
+        }
+      } else {
+        this.storm.releaseAccess(event.taskId);
+        this.scheduler.failTask(event.taskId);
+        this.activeTasks--;
+        this.isHalted = true; // cascading failure, block
+        this.pump();
+      }
     }
   }
 

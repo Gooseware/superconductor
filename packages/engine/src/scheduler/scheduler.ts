@@ -107,6 +107,10 @@ export class Scheduler {
     }
   }
 
+  public getTask(id: string): DagNode | undefined {
+    return this.graph.nodes[id];
+  }
+
   private emit(event: SchedulerEvent): void {
     if (this.onEvent) {
       this.onEvent(event);
