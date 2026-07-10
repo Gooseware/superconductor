@@ -43,7 +43,7 @@
     - [ ] Implement downshift logic: reset failure counters, resume with cheap model
     - [ ] Maintain `EscalationHistory` log per track
     - [ ] Integrate with Phase 1 dispatcher's `onTaskResult` callback
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Escalation Router' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Escalation Router' (Protocol in workflow.md)
 
 ## Phase 4: Prefix Prompt Cache Manager (FR-3)
 
