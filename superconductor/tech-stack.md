@@ -35,5 +35,5 @@ Gemini CLI Extension
 - **Superpowers:** Integration with agent skills.
 - **Skill Management:** Support for **symlinked superpower skills**, allowing for centralized skill management across multiple projects.
 - **Git Context:** Direct utilization of Git metadata for track and history management.
-- **Model Routing:** A structured 4-tier model routing system (Deterministic, Triage, Standard, Frontier) configured via global `~/.gemini/agent-config.md` with project overrides in `superconductor/agent-config.md`.
+- **Token Economics & Routing:** A structured 4-tier model routing system (Deterministic, Triage, Standard, Frontier) dynamically discovered from the `agy` CLI, featuring automatic failure escalation, tool surface trimming, and prompt caching.
 - **Design Heuristics:** A bundled superpower skill (`design-heuristics`) codifying ~25 core visual constraints (layout rhythm, color discipline, motion curves) with on-demand references, auto-activated during execution for UI-heavy development tracks.
