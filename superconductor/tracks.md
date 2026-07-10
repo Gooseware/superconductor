@@ -7,3 +7,22 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: HTN Planning & Multi-Agent Delegation Engine**
 *Link: [./tracks/htn_engine_20260710/](./tracks/htn_engine_20260710/)*
 
+---
+
+- [ ] **Track: Token Economics & Dynamic Routing**
+*Link: [./tracks/token_economics_20260710/](./tracks/token_economics_20260710/)*
+
+---
+
+- [ ] **Track: Sandboxing & State Resilience**
+*Link: [./tracks/sandboxing_resilience_20260710/](./tracks/sandboxing_resilience_20260710/)*
+
+---
+
+- [ ] **Track: Production-Grade Verification**
+*Link: [./tracks/production_verification_20260710/](./tracks/production_verification_20260710/)*
+
+---
+
+- [ ] **Track: Autonomous Curator**
+*Link: [./tracks/autonomous_curator_20260710/](./tracks/autonomous_curator_20260710/)*
