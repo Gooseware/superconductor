@@ -18,6 +18,6 @@ export interface DagNode {
 }
 
 export interface TaskGraph {
-  nodes: Map<string, DagNode>;
+  nodes: Record<string, DagNode>;
   edges: DagEdge[];
 }

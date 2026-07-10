@@ -18,4 +18,14 @@ export interface DispatcherEngineEvent extends BaseEngineEvent {
   detail: DispatcherEvent;
 }
 
-export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent;
+export interface ConcurrencyEngineEvent extends BaseEngineEvent {
+  type: 'concurrency';
+  detail: unknown; // Detailed later if needed
+}
+
+export interface SystemEngineEvent extends BaseEngineEvent {
+  type: 'system';
+  detail: unknown;
+}
+
+export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent;
