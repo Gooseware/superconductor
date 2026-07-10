@@ -7,6 +7,7 @@ export interface AccessResult {
 
 export class StormController {
   private fileOwners: Map<string, string> = new Map();
+  private taskFiles: Map<string, Set<string>> = new Map();
   private conflicts: Map<string, ConflictReport> = new Map();
 
   requestAccess(taskId: string, files: string[]): AccessResult {
@@ -46,8 +47,14 @@ export class StormController {
     }
 
     // Grant access
+    let ownedFiles = this.taskFiles.get(taskId);
+    if (!ownedFiles) {
+      ownedFiles = new Set();
+      this.taskFiles.set(taskId, ownedFiles);
+    }
     for (const file of files) {
       this.fileOwners.set(file, taskId);
+      ownedFiles.add(file);
     }
 
     return {
@@ -57,15 +64,18 @@ export class StormController {
   }
 
   releaseAccess(taskId: string): void {
-    for (const [file, owner] of Array.from(this.fileOwners.entries())) {
-      if (owner === taskId) {
+    const ownedFiles = this.taskFiles.get(taskId);
+    if (ownedFiles) {
+      for (const file of ownedFiles) {
         this.fileOwners.delete(file);
         
         const conflict = this.conflicts.get(file);
         if (conflict) {
           conflict.resolved = true;
+          this.conflicts.delete(file);
         }
       }
+      this.taskFiles.delete(taskId);
     }
   }
 
