@@ -10,22 +10,21 @@ export type ValidationResult =
   | { success: true; graph: TaskGraph }
   | { success: false; errors: ValidationError[] };
 
-function findLineNumber(yamlContent: string, id: string): number {
-  if (!yamlContent) return 1;
-  const lines = yamlContent.split('\n');
+function findLineNumber(lines: string[], id: string): number {
   const index = lines.findIndex(line => line.includes(`id: ${id}`) || line.includes(`id: "${id}"`) || line.includes(`id: '${id}'`));
   return index >= 0 ? index + 1 : 1;
 }
 
 export function validateTaskGraph(graph: TaskGraph, yamlContent: string = ''): ValidationError[] {
   const errors: ValidationError[] = [];
+  const lines = yamlContent ? yamlContent.split('\n') : [];
 
   // Check for missing dependencies
   for (const node of Object.values(graph.nodes)) {
     if (node.dependsOn) {
       for (const dep of node.dependsOn) {
         if (!graph.nodes[dep]) {
-          const line = findLineNumber(yamlContent, node.id);
+          const line = findLineNumber(lines, node.id);
           errors.push({ message: `Task ${node.id} references missing dependency: ${dep}`, line, column: 1 });
         }
       }
@@ -34,12 +33,18 @@ export function validateTaskGraph(graph: TaskGraph, yamlContent: string = ''): V
 
   // Detect Cycles (Kahn's algorithm)
   const inDegree: Record<string, number> = {};
+  const adjList: Record<string, string[]> = {};
+  
   for (const id of Object.keys(graph.nodes)) {
     inDegree[id] = 0;
+    adjList[id] = [];
   }
   for (const edge of graph.edges) {
     if (inDegree[edge.to] !== undefined) {
       inDegree[edge.to]++;
+    }
+    if (adjList[edge.from]) {
+      adjList[edge.from].push(edge.to);
     }
   }
 
@@ -51,18 +56,15 @@ export function validateTaskGraph(graph: TaskGraph, yamlContent: string = ''): V
   }
 
   let visitedCount = 0;
-  const topoOrder: string[] = [];
   while (queue.length > 0) {
     const curr = queue.shift()!;
-    topoOrder.push(curr);
     visitedCount++;
 
-    for (const edge of graph.edges) {
-      if (edge.from === curr) {
-        inDegree[edge.to]--;
-        if (inDegree[edge.to] === 0) {
-          queue.push(edge.to);
-        }
+    const neighbors = adjList[curr] || [];
+    for (const to of neighbors) {
+      inDegree[to]--;
+      if (inDegree[to] === 0) {
+        queue.push(to);
       }
     }
   }
@@ -70,7 +72,7 @@ export function validateTaskGraph(graph: TaskGraph, yamlContent: string = ''): V
   if (visitedCount !== Object.keys(graph.nodes).length) {
     // Find a node that is part of a cycle
     const cycleNodes = Object.keys(graph.nodes).filter(id => inDegree[id] > 0);
-    const line = cycleNodes.length > 0 ? findLineNumber(yamlContent, cycleNodes[0]) : 1;
+    const line = cycleNodes.length > 0 ? findLineNumber(lines, cycleNodes[0]) : 1;
     errors.push({ message: `Graph contains a cycle involving nodes: ${cycleNodes.join(', ')}`, line, column: 1 });
   }
 
@@ -85,21 +87,21 @@ export function validateTaskGraph(graph: TaskGraph, yamlContent: string = ''): V
   // A standard way to find nodes with "no path to root" is to start from all nodes with 0 dependencies and do a BFS/DFS to find all reachable nodes.
   // If some nodes are not reachable, they are orphans.
   
-  const rootNode = Object.values(graph.nodes).find(n => !n.dependsOn || n.dependsOn.length === 0);
-  const rootId = rootNode ? rootNode.id : undefined;
-
+  const rootNodes = Object.values(graph.nodes).filter(n => !n.dependsOn || n.dependsOn.length === 0);
   const reachableFromRoot = new Set<string>();
-  if (rootId) {
-    const bfsQueue = [rootId];
-    reachableFromRoot.add(rootId);
-    
-    while (bfsQueue.length > 0) {
-      const curr = bfsQueue.shift()!;
-      for (const edge of graph.edges) {
-        if (edge.from === curr && !reachableFromRoot.has(edge.to)) {
-          reachableFromRoot.add(edge.to);
-          bfsQueue.push(edge.to);
-        }
+  
+  const bfsQueue = rootNodes.map(n => n.id);
+  for (const id of bfsQueue) {
+    reachableFromRoot.add(id);
+  }
+  
+  while (bfsQueue.length > 0) {
+    const curr = bfsQueue.shift()!;
+    const neighbors = adjList[curr] || [];
+    for (const to of neighbors) {
+      if (!reachableFromRoot.has(to)) {
+        reachableFromRoot.add(to);
+        bfsQueue.push(to);
       }
     }
   }
@@ -108,7 +110,7 @@ export function validateTaskGraph(graph: TaskGraph, yamlContent: string = ''): V
   for (const id of Object.keys(graph.nodes)) {
     if (!reachableFromRoot.has(id)) {
       if (visitedCount === Object.keys(graph.nodes).length) { 
-        const line = findLineNumber(yamlContent, id);
+        const line = findLineNumber(lines, id);
         errors.push({ message: `Task ${id} is an orphan node (no path from root node)`, line, column: 1 });
       }
     }

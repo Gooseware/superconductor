@@ -84,7 +84,7 @@ tasks:
     }
   });
 
-  it('should reject YAML with orphan nodes (no path to root)', () => {
+  it('should parse YAML with multiple root nodes', () => {
     const yaml = `
 tasks:
   - id: root
@@ -92,24 +92,21 @@ tasks:
     description: Root
     role: architect
     tier: 1
-  - id: orphan1
-    name: Orphan 1
-    description: Orphan
-    role: architect
-    tier: 2
-    dependencies: [orphan2]
-  - id: orphan2
-    name: Orphan 2
-    description: Orphan
+  - id: root2
+    name: Root 2
+    description: Root 2
     role: architect
     tier: 2
     dependencies: []
+  - id: child
+    name: Child
+    description: Child
+    role: architect
+    tier: 2
+    dependencies: [root2]
 `;
     const result = parseYamlDag(yaml);
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.errors.some(e => e.message.includes('orphan'))).toBe(true);
-    }
+    expect(result.success).toBe(true);
   });
 
   it('should emit structured validation errors with line numbers', () => {

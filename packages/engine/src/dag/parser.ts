@@ -12,8 +12,7 @@ export interface RawTaskNode {
   dependencies?: string[];
 }
 
-function findLineNumber(yamlContent: string, id: string): number {
-  const lines = yamlContent.split('\n');
+function findLineNumber(lines: string[], id: string): number {
   const index = lines.findIndex(line => line.includes(`id: ${id}`) || line.includes(`id: "${id}"`) || line.includes(`id: '${id}'`));
   return index >= 0 ? index + 1 : 1;
 }
@@ -42,14 +41,15 @@ export function parseYamlDag(yamlContent: string): ValidationResult {
   const errors: ValidationError[] = [];
 
   const rawTasks = doc.tasks as RawTaskNode[];
+  const lines = yamlContent.split('\n');
 
   for (const rawNode of rawTasks) {
-    const line = findLineNumber(yamlContent, rawNode.id);
-
     if (!rawNode.id) {
-      errors.push({ message: 'Task is missing required field "id"', line, column: 1 });
+      errors.push({ message: 'Task is missing required field "id"', line: 1, column: 1 });
       continue;
     }
+
+    const line = findLineNumber(lines, rawNode.id);
 
     if (!rawNode.role || !['architect', 'editor'].includes(rawNode.role)) {
       errors.push({ message: `Task ${rawNode.id} has invalid role: ${rawNode.role}`, line, column: 1 });
