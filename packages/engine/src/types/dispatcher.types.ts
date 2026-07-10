@@ -15,7 +15,8 @@ export interface SubagentResult {
 }
 
 export interface DispatcherEvent {
-  type: 'agent_started' | 'agent_finished' | 'agent_failed';
-  agentId: string;
+  type: 'task_started' | 'task_completed' | 'task_failed';
+  taskId: string;
+  agentId?: string;
   payload?: SubagentResult;
 }
