@@ -11,13 +11,13 @@
 
 ## Phase 2: Tool Surface Analyzer (FR-1)
 
-- [ ] Task: Write failing tests for tool surface analyzer [TIER-3]
+- [x] Task: Write failing tests for tool surface analyzer [TIER-3] 640895f
     - [ ] Test: Parse mock `agy plugin list` output into `PluginInfo[]`
     - [ ] Test: Generate correct `--disable-plugin` flags for an editor task (disable design/notebook plugins)
     - [ ] Test: Generate correct flags for an architect task (disable code-write plugins)
     - [ ] Test: Allowlist overrides preserve explicitly required plugins
     - [ ] Test: Emit telemetry event with estimated token savings
-- [ ] Task: Implement tool surface analyzer in `src/routing/tool-analyzer.ts` [TIER-3]
+- [x] Task: Implement tool surface analyzer in `src/routing/tool-analyzer.ts` [TIER-3] 640895f
     - [ ] Parse plugin list output into typed `PluginInfo[]`
     - [ ] Match task `role` and `files[]` metadata against plugin capabilities
     - [ ] Generate `--disable-plugin` flag strings for subagent spawn commands
