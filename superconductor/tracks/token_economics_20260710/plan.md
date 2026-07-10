@@ -2,7 +2,7 @@
 
 ## Phase 1: Routing Module Scaffolding
 
-- [ ] Task: Create `packages/engine/src/routing/` directory structure and type definitions [TIER-3]
+- [x] Task: Create `packages/engine/src/routing/` directory structure and type definitions [TIER-3] a6e73c0
     - [ ] `tool-analyzer.types.ts`: `PluginInfo`, `ToolAllowlist`, `TrimResult`
     - [ ] `escalation.types.ts`: `EscalationPolicy`, `EscalationSignal`, `EscalationHistory`, `EscalationEvent`
     - [ ] `cache.types.ts`: `PromptSegment`, `CacheManifest`, `CacheHitReport`
