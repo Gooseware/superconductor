@@ -84,7 +84,7 @@ describe('Dispatcher', () => {
       }));
     });
 
-    it('emits task_failed with error details when a subagent fails/crashes', async () => {
+    it('emits task_failed with error details when a subagent returns failure status', async () => {
       const node: DagNode = {
         id: 'task-3',
         role: 'architect',
@@ -111,6 +111,56 @@ describe('Dispatcher', () => {
         payload: expect.objectContaining({
           status: 'failure',
           error: 'Crashed out of memory'
+        })
+      }));
+    });
+
+    it('emits task_failed when simulateExecution throws an exception', async () => {
+      const node: DagNode = {
+        id: 'task-4',
+        role: 'architect',
+        tier: 4,
+        status: 'pending',
+        prompt: 'Crash me'
+      };
+
+      vi.spyOn(dispatcher as any, 'simulateExecution').mockRejectedValue(new Error('Unexpected crash'));
+
+      const onEvent = vi.fn();
+      dispatcher.on('event', onEvent);
+
+      await dispatcher.dispatch(node);
+      
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'task_failed',
+        taskId: 'task-4',
+        payload: expect.objectContaining({
+          status: 'failure',
+          error: 'Unexpected crash'
+        })
+      }));
+    });
+    
+    it('uses the unmocked simulateExecution to correctly fail based on prompt content', async () => {
+      const node: DagNode = {
+        id: 'task-5',
+        role: 'architect',
+        tier: 4,
+        status: 'pending',
+        prompt: 'Crash me' // Hardcoded logic in simulateExecution triggers exception
+      };
+      
+      const onEvent = vi.fn();
+      dispatcher.on('event', onEvent);
+      
+      await dispatcher.dispatch(node);
+      
+      expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'task_failed',
+        taskId: 'task-5',
+        payload: expect.objectContaining({
+          status: 'failure',
+          error: 'Simulated crash'
         })
       }));
     });
