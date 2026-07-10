@@ -12,22 +12,22 @@ describe('Dispatcher', () => {
   describe('Model tier routing', () => {
     it('maps TaskTier 1 to script/regex model spec', () => {
       const config = dispatcher.getTierConfig(1);
-      expect(config.model).toBe('script/regex');
+      expect(config.models).toContain('script/regex');
     });
 
     it('maps TaskTier 2 to flash model spec', () => {
       const config = dispatcher.getTierConfig(2);
-      expect(config.model).toBe('flash');
+      expect(config.models).toContain('flash');
     });
 
     it('maps TaskTier 3 to pro model spec', () => {
       const config = dispatcher.getTierConfig(3);
-      expect(config.model).toBe('pro');
+      expect(config.models).toContain('pro');
     });
 
     it('maps TaskTier 4 to oracle model spec', () => {
       const config = dispatcher.getTierConfig(4);
-      expect(config.model).toBe('oracle');
+      expect(config.models).toContain('oracle');
     });
   });
 

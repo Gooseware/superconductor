@@ -2,16 +2,16 @@ import { EventEmitter } from 'events';
 import { DagNode } from '../types/dag.types.js';
 import { DispatcherEvent, SubagentResult } from '../types/dispatcher.types.js';
 
-const TIER_CONFIG: Record<number, { model: string }> = {
-  1: { model: 'script/regex' },
-  2: { model: 'flash' },
-  3: { model: 'pro' },
-  4: { model: 'oracle' }
+const TIER_CONFIG: Record<number, { models: string[] }> = {
+  1: { models: ['script/regex'] },
+  2: { models: ['flash', 'claude-3-haiku'] },
+  3: { models: ['pro', 'claude-3-5-sonnet'] },
+  4: { models: ['oracle', 'claude-3-opus'] }
 };
 
 export class Dispatcher extends EventEmitter {
-  getTierConfig(tier: number): { model: string } {
-    return TIER_CONFIG[tier] || { model: 'flash' }; // fallback
+  getTierConfig(tier: number): { models: string[] } {
+    return TIER_CONFIG[tier] || { models: ['flash'] }; // fallback
   }
 
   async dispatch(task: DagNode): Promise<void> {
