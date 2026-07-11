@@ -31,12 +31,12 @@
 
 ## Phase 3: Property-Based Testing Integration (FR-2)
 
-- [ ] Task: Write failing tests for PBT validator [TIER-3]
+- [x] Task: Write failing tests for fast-check properties [TIER-3] [390c652]
     - [ ] Test: Accept test file using `fast-check` property assertions
     - [ ] Test: Reject test file with only example-based assertions for in-scope module
     - [ ] Test: Out-of-scope modules are not flagged
     - [ ] Test: Validation report includes actionable PBT conversion suggestions
-- [ ] Task: Implement PBT validator in `src/verification/pbt-validator.ts` [TIER-3]
+- [~] Task: Integrate fast-check in `src/verification/pbt-validator.ts` [TIER-4]
     - [ ] Parse test files to detect assertion patterns (example-based vs property-based)
     - [ ] Check `fast-check` import presence and `fc.property()` / `fc.assert()` usage
     - [ ] Apply scope filter from engine config (which modules require PBT)
