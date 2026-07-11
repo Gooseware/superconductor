@@ -47,8 +47,9 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 4.  **Selection and Initiation:**
     -   **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
-        1. If a specific track was provided, proceed with that track.
-        2. If `--all` was provided or NO track was specified, automatically queue ALL available tracks identified in step 3 for sequential execution. You MUST loop through the full `TRACK IMPLEMENTATION` protocol for each track one by one, bypassing all interactive prompts.
+        1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro or Flash) to be used for the final Oracle Code Review. If in CI, default to Pro.
+        2. If a specific track was provided, proceed with that track.
+        3. If `--all` was provided or NO track was specified, automatically queue ALL available tracks identified in step 3 for sequential execution. You MUST loop through the full `TRACK IMPLEMENTATION` protocol for each track one by one. In the final `TRACK CLEANUP` step, automatically trigger the Oracle Review using the selected supervisor model.
     -   **Interactive Mode (Default):**
         -   **If a track name was provided:**
             1.  Perform an exact, case-insensitive match for the provided name against the track descriptions.
@@ -65,7 +66,13 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                     - **placeholder:** "Enter description for a new track..."
             2.  **Handle Response:**
                 -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
-                -   **If "Execute All Available Tracks (Headless)" is selected:** Transition into headless mode and execute all available tracks sequentially without further interaction.
+                -   **If "Execute All Available Tracks (Headless)" is selected:**
+                    - **Action:** Ask the user to select the supervisor model using `ask_user`:
+                        - **header:** "Supervisor Model"
+                        - **question:** "Which supervisor model should check the final steps (Oracle Review) for these tracks?"
+                        - **type:** "choice"
+                        - **options:** [{Label: "Pro", Description: "Deep semantic reasoning"}, {Label: "Flash", Description: "Faster, basic alignment"}]
+                    - **Execution:** Transition into headless mode and execute all available tracks sequentially without further interaction, using the chosen supervisor model for the final Oracle review of each track.
                 -   **If a new description is entered in the "Other" field:**
                     -   **Action:** Transition to the requirements gathering phase of a new track.
                     -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.
