@@ -25,9 +25,28 @@ export class VerificationPipeline {
   ) {}
 
   async parseCoverage(): Promise<{ passed: boolean; coverage: number; feedback?: string[] }> {
-    // This is a stub for parsing istanbul/clover output.
-    // Real implementation would read coverage/coverage-summary.json
-    return { passed: true, coverage: 100 };
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      
+      const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+      const content = await fs.readFile(coveragePath, 'utf8');
+      const summary = JSON.parse(content);
+      
+      const totalStatements = summary.total?.statements?.pct || 0;
+      
+      return { 
+        passed: totalStatements >= 80, 
+        coverage: totalStatements,
+        feedback: totalStatements < 80 ? [`Coverage ${totalStatements}% is below the 80% threshold`] : []
+      };
+    } catch (e: any) {
+      return { 
+        passed: false, 
+        coverage: 0, 
+        feedback: [`Failed to read coverage summary: ${e.message}. Did tests run with coverage?`] 
+      };
+    }
   }
 
   async runPhaseCheckpoint(phaseName: string): Promise<{ passed: boolean; requiresManualVerification: boolean; escalated?: boolean; feedback?: string[] }> {

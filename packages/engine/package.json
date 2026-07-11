@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Superconductor HTN Planning Engine",
   "type": "module",
+  "bin": {
+    "superconductor-engine": "dist/cli.js"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
