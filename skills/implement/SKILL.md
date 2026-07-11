@@ -47,7 +47,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 4.  **Selection and Initiation:**
     -   **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
-        1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro or Flash) to be used for the final Oracle Code Review. If in CI, default to Pro.
+        1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro, Flash, Claude 3.5 Sonnet, Claude 3 Opus) to be used for the final Oracle Code Review. If in CI, default to Pro.
         2. If a specific track was provided, proceed with that track.
         3. If `--all` was provided or NO track was specified, automatically queue ALL available tracks identified in step 3 for sequential execution. You MUST loop through the full `TRACK IMPLEMENTATION` protocol for each track one by one. In the final `TRACK CLEANUP` step, automatically trigger the Oracle Review using the selected supervisor model.
     -   **Interactive Mode (Default):**
@@ -71,7 +71,12 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                         - **header:** "Supervisor Model"
                         - **question:** "Which supervisor model should check the final steps (Oracle Review) for these tracks?"
                         - **type:** "choice"
-                        - **options:** [{Label: "Pro", Description: "Deep semantic reasoning"}, {Label: "Flash", Description: "Faster, basic alignment"}]
+                        - **options:** [
+                            {Label: "Pro", Description: "Deep semantic reasoning"},
+                            {Label: "Flash", Description: "Faster, basic alignment"},
+                            {Label: "Claude 3.5 Sonnet", Description: "Advanced reasoning and coding capabilities"},
+                            {Label: "Claude 3 Opus", Description: "Maximum capability for complex audits"}
+                          ]
                     - **Execution:** Transition into headless mode and execute all available tracks sequentially without further interaction, using the chosen supervisor model for the final Oracle review of each track.
                 -   **If a new description is entered in the "Other" field:**
                     -   **Action:** Transition to the requirements gathering phase of a new track.
@@ -263,6 +268,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             - **options:**
                 - Label: "Pro", Description: "Deep semantic reasoning (Recommended)."
                 - Label: "Flash", Description: "Faster, basic alignment issues."
+                - Label: "Claude 3.5 Sonnet", Description: "Advanced reasoning and coding capabilities."
+                - Label: "Claude 3 Opus", Description: "Maximum capability for complex audits."
             - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
         *   **If user chooses "User Approval":**
             - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
