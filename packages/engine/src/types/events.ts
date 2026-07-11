@@ -3,8 +3,11 @@ import { DispatcherEvent } from './dispatcher.types.js';
 import { EscalationEvent } from '../routing/escalation.types.js';
 import { GccEvent } from '../safety/gcc.types.js';
 import { RiskClassification } from '../safety/risk.types.js';
+import { AuditEvent } from '../verification/vlm-auditor.types.js';
+import { PbtEvent } from '../verification/pbt.types.js';
+import { MutationEvent } from '../verification/mutation.types.js';
 
-export type EngineEventType = 'scheduler' | 'dispatcher' | 'concurrency' | 'system' | 'routing' | 'safety' | 'state';
+export type EngineEventType = 'scheduler' | 'dispatcher' | 'concurrency' | 'system' | 'routing' | 'safety' | 'state' | 'verification';
 
 export interface BaseEngineEvent {
   type: EngineEventType;
@@ -46,4 +49,9 @@ export interface StateEngineEvent extends BaseEngineEvent {
   detail: unknown;
 }
 
-export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent | RoutingEngineEvent | EscalationEvent | SafetyEngineEvent | StateEngineEvent;
+export interface VerificationEngineEvent extends BaseEngineEvent {
+  type: 'verification';
+  detail: AuditEvent | PbtEvent | MutationEvent;
+}
+
+export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent | RoutingEngineEvent | EscalationEvent | SafetyEngineEvent | StateEngineEvent | VerificationEngineEvent;

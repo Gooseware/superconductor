@@ -1,4 +1,4 @@
-import { BaseEngineEvent } from '../types/events';
+import { BaseEngineEvent } from '../types/events.js';
 
 export type EscalationSignalType = 'red_green_failure' | 'budget_exceeded' | 'edit_match_failure';
 
@@ -22,10 +22,14 @@ export interface EscalationHistory {
   downshifted: boolean;
 }
 
-export interface EscalationEvent extends BaseEngineEvent {
-  type: 'system';
+export interface EscalationEventDetail {
   taskId: string;
   escalationType: 'escalated' | 'downshifted';
   modelTarget: string;
   reason: string;
+}
+
+export interface EscalationEvent extends BaseEngineEvent {
+  type: 'system';
+  detail: EscalationEventDetail;
 }

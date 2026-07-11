@@ -94,10 +94,12 @@ export class EscalationRouter {
     const event: EscalationEvent = {
       type: 'system',
       timestamp: Date.now(),
-      taskId,
-      escalationType: type,
-      modelTarget: model,
-      reason
+      detail: {
+        taskId,
+        escalationType: type,
+        modelTarget: model,
+        reason
+      }
     };
     this.emitter.emit('event', event);
   }
