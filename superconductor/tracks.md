@@ -21,5 +21,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Autonomous Curator**
+- [x] **Track: Autonomous Curator**
 *Link: [./tracks/autonomous_curator_20260710/](./tracks/autonomous_curator_20260710/)*
