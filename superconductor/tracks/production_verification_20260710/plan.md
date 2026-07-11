@@ -44,7 +44,7 @@
     - [ ] Emit `PbtEvent` to the event store
 - [x] Task: Superconductor - User Manual Verification 'Phase 3: Property-Based Testing Integration' (Protocol in workflow.md) [1c97097]
 
-## Phase 4: Mutation Testing Integration (FR-3)
+## Phase 4: Mutation Testing Integration (FR-3) [checkpoint: f86e5cd]
 
 - [x] Task: Write failing tests for mutation testing integration [TIER-3] [f9f96c9]
     - [ ] Test: Run mutation analysis on a single changed file
@@ -58,7 +58,7 @@
     - [ ] Compute mutation score and identify surviving mutants
     - [ ] Enforce configurable threshold; emit pass/fail with actionable feedback
     - [ ] Emit `MutationEvent` to the event store
-- [~] Task: Superconductor - User Manual Verification 'Phase 4: Mutation Testing Integration' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Mutation Testing Integration' (Protocol in workflow.md) [f86e5cd]
 
 ## Phase 5: Integration Testing
 
