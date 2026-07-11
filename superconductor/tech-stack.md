@@ -37,3 +37,7 @@ Gemini CLI Extension
 - **Git Context:** Direct utilization of Git metadata for track and history management.
 - **Token Economics & Routing:** A structured 4-tier model routing system (Deterministic, Triage, Standard, Frontier) dynamically discovered from the `agy` CLI, featuring automatic failure escalation, tool surface trimming, and prompt caching.
 - **Design Heuristics:** A bundled superpower skill (`design-heuristics`) codifying ~25 core visual constraints (layout rhythm, color discipline, motion curves) with on-demand references, auto-activated during execution for UI-heavy development tracks.
+- **Production-Grade Verification:** 
+    - **Visual Auditing:** Headless Playwright integration combined with Vision-Language Models (VLM) for `DESIGN.md` compliance.
+    - **Property-Based Testing:** `fast-check` framework integration to enforce invariant testing.
+    - **Mutation Testing:** Stryker integration to verify test suite quality and eliminate AI testing bias.

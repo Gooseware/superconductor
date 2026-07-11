@@ -15,6 +15,7 @@ Superconductor is a Gemini CLI extension that enables **Context-Driven Developme
 4. **Leverage Vetted Components:** Integrate with `design-os-kernel` to utilize a library of high-quality, pre-tested UI components and logic.
 5. **Token Economics & Routing:** Intelligently manage context size, tool surfaces, and model selection to optimize cost and performance, dynamically escalating to frontier models only when necessary.
 6. **Ensure Standards:** Use specialized code review skills and standardized tech stacks to maintain consistency across different projects and teams.
+7. **Production-Grade Verification:** Enforce rigorous code quality with automated property-based testing (PBT), mutation testing, and headless VLM visual auditing to eliminate AI self-validation bias.
 
 ## Key Features
 - **Scaffolding/Setup:** Commands (`/superconductor:setup`) to initialize and configure the project context (product, guidelines, tech stack, workflow).
