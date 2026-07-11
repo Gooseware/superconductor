@@ -11,13 +11,13 @@
 
 ## Phase 2: SQLite Event Store (FR-1)
 
-- [ ] Task: Write failing tests for SQLite event store [TIER-3]
+- [x] Task: Write failing tests for SQLite event store [TIER-3] [5446c76]
     - [ ] Test: Append event to store and retrieve by ID
     - [ ] Test: Query events by task ID, event type, and time range
     - [ ] Test: Reconstruct full engine state from event replay
     - [ ] Test: Generate `plan.md` materialized view matching current state
     - [ ] Test: Handle 10K+ events without query degradation
-- [ ] Task: Implement SQLite event store in `src/state/event-store.ts` [TIER-4]
+- [~] Task: Implement SQLite event store in `src/state/event-store.ts` [TIER-4]
     - [ ] Initialize SQLite database with schema (events table, indexes)
     - [ ] Implement `append(event)`: serialize and persist engine events
     - [ ] Implement `query(filter)`: filter by task, type, time range
