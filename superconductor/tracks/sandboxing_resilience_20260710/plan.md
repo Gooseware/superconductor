@@ -53,7 +53,7 @@
     - [ ] Test: Dependency modifications classified as `human-required`
     - [ ] Test: Custom `risk-policy.yaml` rules override defaults
     - [ ] Test: Risk classification events are emitted for every action
-- [~] Task: Implement Semantic Risk Middleware in `src/safety/risk-middleware.ts` [TIER-4]
+- [x] Task: Implement Semantic Risk Middleware in `src/safety/risk-middleware.ts` [TIER-4] [c543ab7]
     - [ ] Parse `risk-policy.yaml` into typed `RiskPolicy`
     - [ ] Implement command classifier: regex/glob patterns for each risk tier
     - [ ] Integrate with dispatcher: intercept tool calls before execution
@@ -61,7 +61,7 @@
     - [ ] On `log-proceed`: log and proceed
     - [ ] On `human-required`: pause execution and request approval
     - [ ] Emit `RiskClassification` events to the event store
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Semantic Risk Middleware' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 4: Semantic Risk Middleware' (Protocol in workflow.md)
 
 ## Phase 5: Integration Testing
 
