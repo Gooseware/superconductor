@@ -17,14 +17,14 @@
     - [ ] Test: Reconstruct full engine state from event replay
     - [ ] Test: Generate `plan.md` materialized view matching current state
     - [ ] Test: Handle 10K+ events without query degradation
-- [~] Task: Implement SQLite event store in `src/state/event-store.ts` [TIER-4]
+- [x] Task: Implement SQLite event store in `src/state/event-store.ts` [TIER-4] [ff4868b]
     - [ ] Initialize SQLite database with schema (events table, indexes)
     - [ ] Implement `append(event)`: serialize and persist engine events
     - [ ] Implement `query(filter)`: filter by task, type, time range
     - [ ] Implement `reconstruct(toTimestamp?)`: replay events to rebuild state
     - [ ] Implement `materializePlan()`: generate `plan.md` from current state
     - [ ] Use `better-sqlite3` for synchronous, embedded SQLite access
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: SQLite Event Store' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 2: SQLite Event Store' (Protocol in workflow.md)
 
 ## Phase 3: Git Context Controller (FR-2)
 
