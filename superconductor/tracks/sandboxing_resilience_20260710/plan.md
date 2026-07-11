@@ -28,13 +28,13 @@
 
 ## Phase 3: Git Context Controller (FR-2)
 
-- [ ] Task: Write failing tests for Git Context Controller [TIER-3]
+- [x] Task: Write failing tests for Git Context Controller [TIER-3] [72aebf9]
     - [ ] Test: `gccBranch(taskId)` creates an isolated worktree
     - [ ] Test: `gccMerge(taskId)` merges worktree back to track branch on success
     - [ ] Test: `gccDrop(taskId)` cleanly removes worktree and branch on failure
     - [ ] Test: High-risk tasks (Tier 4) automatically trigger worktree isolation
     - [ ] Test: Worktree lifecycle events are emitted
-- [ ] Task: Implement Git Context Controller in `src/safety/gcc.ts` [TIER-4]
+- [~] Task: Implement Git Context Controller in `src/safety/gcc.ts` [TIER-4]
     - [ ] Implement `gccBranch(taskId)`: create worktree via `git worktree add`
     - [ ] Implement `gccMerge(taskId)`: merge and clean up via `git merge` + `git worktree remove`
     - [ ] Implement `gccDrop(taskId)`: force remove worktree and delete branch
