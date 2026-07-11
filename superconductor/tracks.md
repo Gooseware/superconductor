@@ -19,9 +19,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Production-Grade Verification**
-*Link: [./tracks/production_verification_20260710/](./tracks/production_verification_20260710/)*
-
 ---
 
 - [ ] **Track: Autonomous Curator**
