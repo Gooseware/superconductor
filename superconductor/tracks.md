@@ -31,3 +31,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Setup Enhancements & Plan Verification**
 *Link: [./tracks/setup_enhancements_20260711/](./tracks/setup_enhancements_20260711/)*
+
+---
+
+- [ ] **Track: Hardening Improvements for Job Dispatcher**
+*Link: [./tracks/job_dispatcher_hardening_20260711/](./tracks/job_dispatcher_hardening_20260711/)*
