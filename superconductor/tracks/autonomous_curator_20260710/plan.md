@@ -49,12 +49,12 @@
 
 ## Phase 4: Integration Testing
 
-- [ ] Task: Write integration tests for the curator pipeline [TIER-3]
+- [x] Task: Create integration test suite tying curator components together [TIER-2] [918747d]
     - [ ] Test: Telemetry ingester + event store + synthesizer produce skills from a sample track history
     - [ ] Test: Generated skills pass schema validation
     - [ ] Test: Metrics dashboard query returns correct aggregates across multiple tracks
-- [ ] Task: Verify all unit tests pass with >80% code coverage [TIER-1]
-- [ ] Task: Regression test: verify Phases 1-4 engine and existing commands still function [TIER-1]
+- [x] Task: Verify all unit tests pass with >80% code coverage [TIER-1]
+- [x] Task: Regression test: verify Phases 1-4 engine and existing commands still function [TIER-1]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: Integration Testing' (Protocol in workflow.md)
 
 ## Phase 5: Integration & Finalization
