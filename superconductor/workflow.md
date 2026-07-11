@@ -13,6 +13,12 @@
 
 All tasks follow a strict lifecycle:
 
+### Headless vs Interactive Mode
+
+The Superconductor engine operates in either Interactive or Headless mode.
+- **Interactive (Default):** Requires manual human verification at phase boundaries and utilizes the `ask_user` tool.
+- **Headless (`--headless`):** Designed for asynchronous/autonomous factory execution. Bypasses manual prompts if automated tests pass and >80% coverage is achieved. If quality gates fail, it triggers an escalation router fallback.
+
 ### Standard Task Workflow
 
 1. **Select Task:** Choose the next available task from `plan.md` in sequential order
@@ -114,8 +120,9 @@ All tasks follow a strict lifecycle:
         3.  **Confirm that you receive:** A JSON response with a status of `201 Created`.
         ```
 
-6.  **Await Explicit User Feedback:**
-    -   After presenting the detailed plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
+6.  **Await Explicit User Feedback (Interactive Mode Only):**
+    -   **Headless Mode:** If the engine is running in `--headless` mode, and steps 3 and 4 completed successfully (coverage >80% and all tests pass), **skip** this step and step 5 entirely. The pipeline automatically approves the checkpoint and proceeds to Step 7.
+    -   **Interactive Mode:** After presenting the detailed plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
     -   **PAUSE** and await the user's response. Do not proceed without an explicit yes or confirmation.
 
 7.  **Create Checkpoint Commit:**

@@ -10,7 +10,18 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 ---
 
-## 1.1 SETUP CHECK
+## 1.1 HEADLESS MODE HANDLING
+**PROTOCOL: Detect and adapt to headless execution.**
+
+1. **Detection:** Check if the user's input arguments contain `--headless`.
+2. **Behavior Modification:** If `--headless` is detected:
+   - You MUST NOT use the `ask_user` tool for any manual verification, review, or confirmation prompts.
+   - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, skip cleanup/Oracle review) UNLESS specifically instructed otherwise.
+   - For Phase Completion Checkpoints, follow the Headless bypass rule in `workflow.md`: automatically pass the checkpoint if automated tests and coverage assertions succeed.
+
+---
+
+## 1.2 SETUP CHECK
 **PROTOCOL: Verify that the Superconductor environment is properly set up.**
 
 1.  **Verify Core Context:** Using the **Universal File Resolution Protocol**, resolve and verify the existence of:
