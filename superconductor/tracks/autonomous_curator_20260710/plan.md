@@ -1,12 +1,12 @@
 # Implementation Plan: Autonomous Curator
 
-## Phase 1: Curator Module Scaffolding
+## Phase 1: Curator Module Scaffolding [checkpoint: 1c22749]
 
 - [x] Task: Create `packages/engine/src/curator/` directory structure and type definitions [TIER-3] [4ecb696]
     - [ ] `telemetry.types.ts`: `AgyStatusPayload`, `TaskMetrics`, `TrackMetrics`, `MetricQuery`
     - [ ] `synthesizer.types.ts`: `PatternMatch`, `SynthesizedSkill`, `ConfidenceScore`, `SynthesisEvent`
     - [ ] Add new event types to the engine's `EngineEvent` union
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Curator Module Scaffolding' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Curator Module Scaffolding' (Protocol in workflow.md) [1c22749]
 
 ## Phase 2: Telemetry Ingester (FR-1)
 
