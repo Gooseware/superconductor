@@ -1,8 +1,8 @@
 # Implementation Plan: Job Board Integration
 
 ## Phase 1: Git Backlog Parser
-- [ ] Task: Create tests for markdown list parsing and state updates [TIER-3]
-- [ ] Task: Create parser to extract pending items from `superconductor/backlog.md` [TIER-3]
+- [x] Task: Create tests for markdown list parsing and state updates [TIER-3] 593fbb2
+- [x] Task: Create parser to extract pending items from `superconductor/backlog.md` [TIER-3] 593fbb2
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Git Backlog Parser' (Protocol in workflow.md)
 
 ## Phase 2: Job Dispatcher
