@@ -35,6 +35,7 @@ Gemini CLI Extension
 - **Superpowers:** Integration with agent skills.
 - **Skill Management:** Support for **symlinked superpower skills**, allowing for centralized skill management across multiple projects.
 - **Git Context:** Direct utilization of Git metadata for track and history management.
+- **Headless Factory Execution:** The engine supports a `--headless` flag to bypass interactive prompts and run completely autonomously. When >80% code coverage is achieved and unit tests pass, tasks and phases are automatically approved.
 - **Token Economics & Routing:** A structured 4-tier model routing system (Deterministic, Triage, Standard, Frontier) dynamically discovered from the `agy` CLI, featuring automatic failure escalation, tool surface trimming, and prompt caching.
 - **Design Heuristics:** A bundled superpower skill (`design-heuristics`) codifying ~25 core visual constraints (layout rhythm, color discipline, motion curves) with on-demand references, auto-activated during execution for UI-heavy development tracks.
 - **Production-Grade Verification:** 
