@@ -11,13 +11,13 @@
 
 ## Phase 2: DESIGN.md Schema & Headless VLM Auditor (FR-1)
 
-- [ ] Task: Write failing tests for DESIGN.md schema parser and VLM auditor [TIER-3]
+- [x] Task: Write failing tests for DESIGN.md schema parser and VLM auditor [TIER-3] [9d31b1a]
     - [ ] Test: Parse a valid `DESIGN.md` into typed `DesignSchema` (colors, spacing, typography)
     - [ ] Test: Reject `DESIGN.md` with missing required fields
     - [ ] Test: Playwright script captures DOM screenshot for a rendered component
     - [ ] Test: Audit report flags non-compliant color usage
     - [ ] Test: Iterative fix loop terminates after max 3 iterations
-- [ ] Task: Implement DESIGN.md schema parser in `src/verification/design-schema.ts` [TIER-3]
+- [~] Task: Implement DESIGN.md schema parser in `src/verification/design-schema.ts` [TIER-3]
     - [ ] Define strict schema: hex colors, spacing rhythm (4px/8px grid), typography scale, component dimensions
     - [ ] Parse and validate `DESIGN.md` markdown into typed `DesignSchema`
 - [ ] Task: Implement headless VLM auditor in `src/verification/vlm-auditor.ts` [TIER-4]
