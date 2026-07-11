@@ -19,7 +19,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Headless Workflow**
+- [x] **Track: Headless Workflow**
 *Link: [./tracks/headless_workflow_20260711/](./tracks/headless_workflow_20260711/)*
 
 ---
