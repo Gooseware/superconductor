@@ -26,7 +26,7 @@
     - [ ] Expose `queryMetrics(filter)` API for aggregation
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Telemetry Ingester' (Protocol in workflow.md) [0333d1e]
 
-## Phase 3: Automated Skill Synthesizer (FR-2)
+## Phase 3: Automated Skill Synthesizer (FR-2) [checkpoint: bc30bdf]
 
 - [x] Task: Write failing tests for skill synthesizer [TIER-3] [9f66a7e]
     - [ ] Test: Identify recurring manual intervention pattern from sample event log
@@ -45,7 +45,7 @@
     - [ ] Save skills above threshold to configurable directory
     - [ ] Support scheduled execution mode via a `runAnalysis()` entry point
     - [ ] Emit `SynthesisEvent` for each generated skill
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Automated Skill Synthesizer' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Automated Skill Synthesizer' (Protocol in workflow.md) [bc30bdf]
 
 ## Phase 4: Integration Testing
 
