@@ -14,7 +14,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Sandboxing & State Resilience**
+- [x] **Track: Sandboxing & State Resilience**
 *Link: [./tracks/sandboxing_resilience_20260710/](./tracks/sandboxing_resilience_20260710/)*
 
 ---
