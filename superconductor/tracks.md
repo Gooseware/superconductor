@@ -26,3 +26,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Job Board Integration**
 *Link: [./tracks/job_board_integration_20260711/](./tracks/job_board_integration_20260711/)*
+
+---
+
+- [ ] **Track: Setup Enhancements & Plan Verification**
+*Link: [./tracks/setup_enhancements_20260711/](./tracks/setup_enhancements_20260711/)*
