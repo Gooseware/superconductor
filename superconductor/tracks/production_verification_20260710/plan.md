@@ -17,17 +17,17 @@
     - [ ] Test: Playwright script captures DOM screenshot for a rendered component
     - [ ] Test: Audit report flags non-compliant color usage
     - [ ] Test: Iterative fix loop terminates after max 3 iterations
-- [~] Task: Implement DESIGN.md schema parser in `src/verification/design-schema.ts` [TIER-3]
+- [x] Task: Implement DESIGN.md schema parser in `src/verification/design-schema.ts` [TIER-3] [7b749d6]
     - [ ] Define strict schema: hex colors, spacing rhythm (4px/8px grid), typography scale, component dimensions
     - [ ] Parse and validate `DESIGN.md` markdown into typed `DesignSchema`
-- [ ] Task: Implement headless VLM auditor in `src/verification/vlm-auditor.ts` [TIER-4]
+- [x] Task: Implement headless VLM auditor in `src/verification/vlm-auditor.ts` [TIER-4] [7b749d6]
     - [ ] Launch Playwright headless browser and navigate to component URL
     - [ ] Capture full-page and component-level screenshots
     - [ ] Construct VLM prompt: screenshot + `DesignSchema` tokens + compliance checklist
     - [ ] Parse VLM response into structured `AuditResult` (pass/fail per rule, suggestions)
     - [ ] Implement iterative fix loop: apply fix → re-render → re-audit (max 3)
     - [ ] Emit `AuditEvent` to the event store
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: DESIGN.md Schema & VLM Auditor' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 2: DESIGN.md Schema & Headless VLM Auditor' (Protocol in workflow.md)
 
 ## Phase 3: Property-Based Testing Integration (FR-2)
 
