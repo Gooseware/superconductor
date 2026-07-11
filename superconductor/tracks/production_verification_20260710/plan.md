@@ -29,7 +29,7 @@
     - [ ] Emit `AuditEvent` to the event store
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: DESIGN.md Schema & Headless VLM Auditor' (Protocol in workflow.md) [d9dc361]
 
-## Phase 3: Property-Based Testing Integration (FR-2)
+## Phase 3: Property-Based Testing Integration (FR-2) [checkpoint: 1c97097]
 
 - [x] Task: Write failing tests for fast-check properties [TIER-3] [390c652]
     - [ ] Test: Accept test file using `fast-check` property assertions
@@ -42,7 +42,7 @@
     - [ ] Apply scope filter from engine config (which modules require PBT)
     - [ ] Generate actionable feedback for non-compliant test files
     - [ ] Emit `PbtEvent` to the event store
-- [~] Task: Superconductor - User Manual Verification 'Phase 3: Property-Based Testing Integration' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Property-Based Testing Integration' (Protocol in workflow.md) [1c97097]
 
 ## Phase 4: Mutation Testing Integration (FR-3)
 
