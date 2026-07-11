@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { DagNode } from '../types/dag.types.js';
 import { DispatcherEvent, SubagentResult } from '../types/dispatcher.types.js';
+import { TaskLockManager } from '../concurrency/lock-manager.js';
 
 import { execSync } from 'child_process';
 
@@ -43,11 +44,36 @@ function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
 const TIER_CONFIG = fetchDynamicTierConfig();
 
 export class Dispatcher extends EventEmitter {
+  private lockManager: TaskLockManager;
+
+  constructor() {
+    super();
+    this.lockManager = new TaskLockManager();
+  }
+
   getTierConfig(tier: number): { models: string[] } {
     return TIER_CONFIG[tier] || { models: ['flash'] }; // fallback
   }
 
   async dispatch(task: DagNode): Promise<void> {
+    const dispatcherAgentId = `dispatcher-${process.pid}`;
+    const lockAcquired = await this.lockManager.acquireLock(task.id, dispatcherAgentId);
+    if (!lockAcquired) {
+      console.warn(`Could not acquire lock for task ${task.id}, another process may be handling it.`);
+      const eventFailed: DispatcherEvent = {
+        type: 'task_failed',
+        taskId: task.id,
+        payload: {
+          agentId: dispatcherAgentId,
+          status: 'failure',
+          output: '',
+          error: `Could not acquire lock for task ${task.id}`
+        }
+      };
+      this.emit('event', eventFailed);
+      return;
+    }
+
     const eventStarted: DispatcherEvent = {
       type: 'task_started',
       taskId: task.id
@@ -86,6 +112,8 @@ export class Dispatcher extends EventEmitter {
         }
       };
       this.emit('event', eventFailed);
+    } finally {
+      await this.lockManager.releaseLock(task.id, dispatcherAgentId);
     }
   }
 

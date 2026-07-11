@@ -52,14 +52,12 @@ describe('Dispatcher', () => {
       const onEvent = vi.fn();
       dispatcher.on('event', onEvent);
 
-      const dispatchPromise = dispatcher.dispatch(node);
+      await dispatcher.dispatch(node);
       
       expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
         type: 'task_started',
         taskId: 'task-1'
       }));
-
-      await dispatchPromise;
     });
 
     it('emits task_completed with outputs when a subagent finishes successfully', async () => {

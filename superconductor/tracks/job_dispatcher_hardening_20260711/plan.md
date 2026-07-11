@@ -7,9 +7,9 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 0: Proactive Abstractions' (Protocol in workflow.md)
 
 ## Phase 1: Task-Level Agent Concurrency
-- [ ] Task: Update Job Dispatcher to query `TaskLockManager` before launching an agent for a task [TIER-3]
-- [ ] Task: Ensure agents or the dispatcher safely release task locks upon completion or crash [TIER-3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Task-Level Agent Concurrency' (Protocol in workflow.md)
+- [x] Task: Update Job Dispatcher to query `TaskLockManager` before launching an agent for a task [TIER-3]
+- [x] Task: Ensure agents or the dispatcher safely release task locks upon completion or crash [TIER-3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Task-Level Agent Concurrency' (Protocol in workflow.md)
 
 ## Phase 2: Workspace Isolation
 - [ ] Task: Modify the `agy` spawn logic to use `WorkspaceManager` for an isolated repo clone instead of the primary worktree [TIER-4]

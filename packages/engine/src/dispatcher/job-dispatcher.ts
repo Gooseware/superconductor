@@ -1,13 +1,16 @@
 import { BacklogParser } from './backlog-parser.js';
+import { TaskLockManager } from '../concurrency/lock-manager.js';
 import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
 export class JobDispatcher {
   private parser: BacklogParser;
+  private lockManager: TaskLockManager;
 
   constructor() {
     this.parser = new BacklogParser();
+    this.lockManager = new TaskLockManager();
   }
 
   /**
@@ -40,6 +43,13 @@ export class JobDispatcher {
     const timestamp = new Date().toISOString().replace(/\D/g, '').slice(0, 8); // YYYYMMDD
     const trackId = `${sanitizedTitle}_${timestamp}`;
 
+    const agentId = `dispatcher-${process.pid}`;
+    const lockAcquired = await this.lockManager.acquireLock(trackId, agentId);
+    if (!lockAcquired) {
+      console.warn(`Could not acquire lock for track ${trackId}, another process may be handling it.`);
+      return null;
+    }
+
     const trackDir = path.resolve(path.dirname(backlogPath), 'tracks', trackId);
 
     // Create an isolated branch and git worktree
@@ -58,6 +68,7 @@ export class JobDispatcher {
       }
     } catch (error) {
       console.error(`Failed to create git worktree for ${trackId}:`, error);
+      await this.lockManager.releaseLock(trackId, agentId);
       throw error;
     }
 
@@ -65,14 +76,28 @@ export class JobDispatcher {
     try {
       const prompt = `Please act as a spec generator. I am assigning you the following task from the backlog:\n"${nextJob.title}"\nCreate a spec.md and plan.md in this directory following the Superconductor framework guidelines. Keep it concise.`;
       
-      cp.spawn('agy', ['--new-project', '--prompt-interactive', prompt], {
+      const child = cp.spawn('agy', ['--new-project', '--prompt-interactive', prompt], {
         cwd: trackDir,
         stdio: 'inherit'
       });
+      
+      if (child && typeof child.on === 'function') {
+        child.on('close', async () => {
+          await this.lockManager.releaseLock(trackId, agentId);
+        });
+        
+        child.on('error', async () => {
+          await this.lockManager.releaseLock(trackId, agentId);
+        });
+      } else {
+        // Fallback for mocked tests or immediate execution
+        await this.lockManager.releaseLock(trackId, agentId);
+      }
       // In a real implementation we would wait for it or manage the process
       // But for testing and basic implementation, spawn is sufficient
     } catch (error) {
       console.error(`Failed to spawn agent for ${trackId}:`, error);
+      await this.lockManager.releaseLock(trackId, agentId);
       throw error;
     }
 

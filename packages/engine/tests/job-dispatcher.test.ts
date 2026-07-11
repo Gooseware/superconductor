@@ -28,6 +28,7 @@ describe('JobDispatcher', () => {
 
     // Mock git worktree check
     (cp.execSync as any).mockReturnValue('');
+    (cp.spawn as any).mockReturnValue({ on: vi.fn() });
 
     const trackId = await dispatcher.dispatchNextJob('superconductor/backlog.md');
 
