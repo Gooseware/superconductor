@@ -1,5 +1,6 @@
 import { BacklogParser } from './backlog-parser.js';
 import { TaskLockManager } from '../concurrency/lock-manager.js';
+import { WorkspaceManager } from '../concurrency/workspace-manager.js';
 import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -7,10 +8,12 @@ import * as path from 'path';
 export class JobDispatcher {
   private parser: BacklogParser;
   private lockManager: TaskLockManager;
+  private workspaceManager: WorkspaceManager;
 
   constructor() {
     this.parser = new BacklogParser();
     this.lockManager = new TaskLockManager();
+    this.workspaceManager = new WorkspaceManager();
   }
 
   /**
@@ -50,24 +53,27 @@ export class JobDispatcher {
       return null;
     }
 
-    const trackDir = path.resolve(path.dirname(backlogPath), 'tracks', trackId);
+    let workspaceRoot: string;
+    let trackDir: string;
 
-    // Create an isolated branch and git worktree
+    // Create an isolated branch and git workspace
     try {
-      // Check if branch exists
+      workspaceRoot = this.workspaceManager.createWorkspace(trackId);
       const branchName = `track/${trackId}`;
-      const branches = cp.execSync('git branch --list ' + branchName).toString();
       
-      if (!branches.includes(branchName)) {
-        cp.execSync(`git branch ${branchName} main`);
+      try {
+        cp.execSync(`git checkout -b ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
+      } catch (e) {
+        cp.execSync(`git checkout ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
       }
 
-      // Create worktree
+      const relativeTrackDir = path.join('superconductor', 'tracks', trackId);
+      trackDir = path.join(workspaceRoot, relativeTrackDir);
       if (!fs.existsSync(trackDir)) {
-        cp.execSync(`git worktree add ${trackDir} ${branchName}`);
+        fs.mkdirSync(trackDir, { recursive: true });
       }
     } catch (error) {
-      console.error(`Failed to create git worktree for ${trackId}:`, error);
+      console.error(`Failed to create workspace for ${trackId}:`, error);
       await this.lockManager.releaseLock(trackId, agentId);
       throw error;
     }
@@ -83,14 +89,29 @@ export class JobDispatcher {
       
       if (child && typeof child.on === 'function') {
         child.on('close', async () => {
-          await this.lockManager.releaseLock(trackId, agentId);
+          try {
+            const status = cp.execSync('git status --porcelain', { cwd: workspaceRoot }).toString();
+            if (status.trim() !== '') {
+              cp.execSync('git add .', { cwd: workspaceRoot, stdio: 'ignore' });
+              cp.execSync('git commit -m "chore: generate spec and plan"', { cwd: workspaceRoot, stdio: 'ignore' });
+            }
+            const branchName = `track/${trackId}`;
+            cp.execSync(`git push -u origin ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
+          } catch (e) {
+            console.error(`Failed to sync workspace for ${trackId}:`, e);
+          } finally {
+            this.workspaceManager.cleanupWorkspace(trackId);
+            await this.lockManager.releaseLock(trackId, agentId);
+          }
         });
         
         child.on('error', async () => {
+          this.workspaceManager.cleanupWorkspace(trackId);
           await this.lockManager.releaseLock(trackId, agentId);
         });
       } else {
         // Fallback for mocked tests or immediate execution
+        this.workspaceManager.cleanupWorkspace(trackId);
         await this.lockManager.releaseLock(trackId, agentId);
       }
       // In a real implementation we would wait for it or manage the process

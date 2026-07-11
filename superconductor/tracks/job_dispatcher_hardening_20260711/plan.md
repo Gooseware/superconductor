@@ -12,9 +12,9 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Task-Level Agent Concurrency' (Protocol in workflow.md)
 
 ## Phase 2: Workspace Isolation
-- [ ] Task: Modify the `agy` spawn logic to use `WorkspaceManager` for an isolated repo clone instead of the primary worktree [TIER-4]
-- [ ] Task: Update the commit/push flow to synchronize from the clone to the remote and safely tear down [TIER-3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Workspace Isolation' (Protocol in workflow.md)
+- [x] Task: Modify the `agy` spawn logic to use `WorkspaceManager` for an isolated repo clone instead of the primary worktree [TIER-4]
+- [x] Task: Update the commit/push flow to synchronize from the clone to the remote and safely tear down [TIER-3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Workspace Isolation' (Protocol in workflow.md)
 
 ## Phase 3: Heartbeat Health Checks
 - [ ] Task: Integrate `DaemonHeartbeat` into the primary loop of the Job Dispatcher during headless mode [TIER-3]

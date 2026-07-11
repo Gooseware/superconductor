@@ -35,9 +35,10 @@ describe('JobDispatcher', () => {
     // Should return the track id
     expect(trackId).toMatch(/^test_\d+$/);
 
-    // Should create a worktree
+    // Should create an isolated workspace and checkout the branch
     expect(cp.execSync).toHaveBeenCalledWith(
-      expect.stringContaining('git worktree add ')
+      expect.stringContaining('git checkout -b track/test_'),
+      expect.any(Object)
     );
 
     // Should start the agent
