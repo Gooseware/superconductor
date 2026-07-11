@@ -44,7 +44,7 @@
 
 ## Phase 4: Semantic Risk Middleware (FR-3)
 
-- [ ] Task: Write failing tests for semantic risk middleware [TIER-3]
+- [x] Task: Write failing tests for Semantic Risk Middleware [TIER-3] [1b9fa16]
     - [ ] Test: Read-only commands classified as `auto-approve`
     - [ ] Test: Test runners classified as `auto-approve`
     - [ ] Test: File writes in `src/` classified as `auto-approve`
@@ -53,7 +53,7 @@
     - [ ] Test: Dependency modifications classified as `human-required`
     - [ ] Test: Custom `risk-policy.yaml` rules override defaults
     - [ ] Test: Risk classification events are emitted for every action
-- [ ] Task: Implement semantic risk middleware in `src/safety/risk-middleware.ts` [TIER-4]
+- [~] Task: Implement Semantic Risk Middleware in `src/safety/risk-middleware.ts` [TIER-4]
     - [ ] Parse `risk-policy.yaml` into typed `RiskPolicy`
     - [ ] Implement command classifier: regex/glob patterns for each risk tier
     - [ ] Integrate with dispatcher: intercept tool calls before execution
