@@ -1,6 +1,6 @@
 import * as yaml from 'js-yaml';
-import { TaskGraph, DagNode, DagEdge, TaskRole, TaskTier } from '../types/dag.types';
-import { validateTaskGraph, ValidationResult, ValidationError } from './validator';
+import { TaskGraph, DagNode, DagEdge, TaskRole, TaskTier } from '../types/dag.types.js';
+import { validateTaskGraph, ValidationResult, ValidationError } from './validator.js';
 
 export interface RawTaskNode {
   id: string;

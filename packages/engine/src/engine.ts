@@ -7,6 +7,7 @@ import { buildContext } from './context/builder.js';
 import { DispatcherEvent } from './types/dispatcher.types.js';
 import { EscalationRouter } from './routing/escalation-router.js';
 import { CacheManager } from './routing/cache-manager.js';
+import { EngineConfig } from './types/engine.types.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
@@ -15,6 +16,7 @@ export class Engine extends EventEmitter {
   public escalationRouter: EscalationRouter;
   public cacheManager: CacheManager;
   public commonContext: string = '';
+  public config: EngineConfig;
   
   private waitingForLocks: Set<DagNode> = new Set();
   private activeTasks: number = 0;
@@ -23,14 +25,15 @@ export class Engine extends EventEmitter {
   private resolveExecution: ((result: { success: boolean }) => void) | null = null;
   private rejectExecution: ((reason?: any) => void) | null = null;
 
-  constructor(graph: TaskGraph, commonContext: string = '', disableCache: boolean = false) {
+  constructor(graph: TaskGraph, config: EngineConfig = {}) {
     super();
-    this.commonContext = commonContext;
+    this.config = config;
+    this.commonContext = config.commonContext || '';
     this.scheduler = new Scheduler(graph, this.handleSchedulerEvent.bind(this));
     this.dispatcher = new Dispatcher();
     this.storm = new StormController();
     this.escalationRouter = new EscalationRouter(this);
-    this.cacheManager = new CacheManager({ maxTokenBudget: disableCache ? 0 : 50000 });
+    this.cacheManager = new CacheManager({ maxTokenBudget: config.disableCache ? 0 : 50000 });
     
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }

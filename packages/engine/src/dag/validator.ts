@@ -1,4 +1,4 @@
-import { TaskGraph, DagNode } from '../types/dag.types';
+import { TaskGraph, DagNode } from '../types/dag.types.js';
 
 export interface ValidationError {
   message: string;

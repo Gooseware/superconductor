@@ -1,4 +1,4 @@
-import { DagNode, SubagentConfig } from '../types';
+import { DagNode, SubagentConfig } from '../types/index.js';
 
 const MAX_PROMPT_LENGTH = 100000;
 
@@ -14,7 +14,7 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
   }
 
   if (task.constraints && task.constraints.length > 0) {
-    parts.push(`Constraints:\n${task.constraints.map(c => `- ${c}`).join('\n')}`);
+    parts.push(`Constraints:\n${task.constraints.map((c: string) => `- ${c}`).join('\n')}`);
   }
 
   if (task.variables && Object.keys(task.variables).length > 0) {

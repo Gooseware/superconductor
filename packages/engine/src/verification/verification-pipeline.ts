@@ -120,7 +120,7 @@ export class VerificationPipeline {
         subType: 'vlm_audit',
         timestamp: Date.now(),
         taskId,
-        componentId: componentName,
+        componentName: componentName,
         result: vlmResult
       };
       this.emitter.emit('event', {

@@ -1,4 +1,4 @@
-import { TaskGraph } from '../types/dag.types';
+import { TaskGraph } from '../types/dag.types.js';
 
 /**
  * Generates a TaskGraph (DAG) from unstructured markdown spec and plan.

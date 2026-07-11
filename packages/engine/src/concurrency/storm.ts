@@ -1,4 +1,4 @@
-import { ConflictReport } from '../types/concurrency.types';
+import { ConflictReport } from '../types/concurrency.types.js';
 
 export interface AccessResult {
   success: boolean;
