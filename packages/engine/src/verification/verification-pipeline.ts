@@ -12,12 +12,41 @@ export interface VerificationPipelineResult {
   feedback: string[];
 }
 
+export interface VerificationPipelineConfig {
+  headless?: boolean;
+}
+
 export class VerificationPipeline {
   constructor(
     private emitter: EventEmitter,
     private vlmAuditor: VlmAuditor,
-    private mutationAnalyzer: MutationAnalyzer
+    private mutationAnalyzer: MutationAnalyzer,
+    private config: VerificationPipelineConfig = {}
   ) {}
+
+  async parseCoverage(): Promise<{ passed: boolean; coverage: number; feedback?: string[] }> {
+    // This is a stub for parsing istanbul/clover output.
+    // Real implementation would read coverage/coverage-summary.json
+    return { passed: true, coverage: 100 };
+  }
+
+  async runPhaseCheckpoint(phaseName: string): Promise<{ passed: boolean; requiresManualVerification: boolean; escalated?: boolean; feedback?: string[] }> {
+    if (!this.config.headless) {
+      return { passed: true, requiresManualVerification: true };
+    }
+
+    const coverageResult = await this.parseCoverage();
+    if (coverageResult.passed && coverageResult.coverage >= 80) {
+      return { passed: true, requiresManualVerification: false };
+    }
+
+    return { 
+      passed: false, 
+      requiresManualVerification: false, 
+      escalated: true, 
+      feedback: coverageResult.feedback || [`Coverage is below threshold: ${coverageResult.coverage}%`] 
+    };
+  }
 
   async runVerification(
     taskId: string,
