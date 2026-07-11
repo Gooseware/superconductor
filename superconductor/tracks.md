@@ -18,3 +18,11 @@ This file tracks all major tracks for the project. Each track has its own detail
 *Link: [./tracks/sandboxing_resilience_20260710/](./tracks/sandboxing_resilience_20260710/)*
 
 ---
+
+- [ ] **Track: Headless Workflow**
+*Link: [./tracks/headless_workflow_20260711/](./tracks/headless_workflow_20260711/)*
+
+---
+
+- [ ] **Track: Job Board Integration**
+*Link: [./tracks/job_board_integration_20260711/](./tracks/job_board_integration_20260711/)*
