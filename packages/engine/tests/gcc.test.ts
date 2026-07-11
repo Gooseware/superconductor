@@ -41,6 +41,16 @@ describe('Git Context Controller (GCC)', () => {
     expect((events[0].payload.detail as any).operation).toBe('branch');
   });
 
+  it('gccBranch(taskId) emits error event on failure', () => {
+    vi.mocked(child_process.execSync).mockImplementationOnce(() => { throw new Error('git error'); });
+    const taskId = 'task-1-err';
+    expect(() => controller.gccBranch(taskId)).toThrow('git error');
+    
+    const events = store.query({ taskId, eventType: 'safety' });
+    expect((events[0].payload.detail as any).success).toBe(false);
+    expect((events[0].payload.detail as any).error).toBe('git error');
+  });
+
   it('gccMerge(taskId) merges worktree back to track branch on success', () => {
     const taskId = 'task-2';
     controller.gccMerge(taskId);
@@ -56,6 +66,15 @@ describe('Git Context Controller (GCC)', () => {
 
     const events = store.query({ taskId, eventType: 'safety' });
     expect((events[events.length - 1].payload.detail as any).operation).toBe('merge');
+  });
+
+  it('gccMerge(taskId) emits error event on failure', () => {
+    vi.mocked(child_process.execSync).mockImplementationOnce(() => { throw new Error('merge error'); });
+    const taskId = 'task-2-err';
+    expect(() => controller.gccMerge(taskId)).toThrow('merge error');
+    
+    const events = store.query({ taskId, eventType: 'safety' });
+    expect((events[events.length - 1].payload.detail as any).success).toBe(false);
   });
 
   it('gccDrop(taskId) cleanly removes worktree and branch on failure', () => {
@@ -75,11 +94,23 @@ describe('Git Context Controller (GCC)', () => {
     expect((events[events.length - 1].payload.detail as any).operation).toBe('drop');
   });
 
+  it('gccDrop(taskId) emits error event on failure', () => {
+    vi.mocked(child_process.execSync).mockImplementationOnce(() => { throw new Error('drop error'); });
+    const taskId = 'task-3-err';
+    expect(() => controller.gccDrop(taskId)).toThrow('drop error');
+    
+    const events = store.query({ taskId, eventType: 'safety' });
+    expect((events[events.length - 1].payload.detail as any).success).toBe(false);
+  });
+
   it('High-risk tasks (Tier 4) automatically trigger worktree isolation', () => {
     const result = controller.shouldIsolateTask({ tier: 4 } as any);
     expect(result).toBe(true);
 
     const resultLow = controller.shouldIsolateTask({ tier: 3 } as any);
     expect(resultLow).toBe(false);
+
+    const resultMissing = controller.shouldIsolateTask({} as any);
+    expect(resultMissing).toBe(false);
   });
 });
