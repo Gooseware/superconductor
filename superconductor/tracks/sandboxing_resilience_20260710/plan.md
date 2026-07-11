@@ -76,5 +76,6 @@
 
 ## Phase 6: Integration & Finalization
 
-- [ ] Task: Integrate track 'sandboxing_resilience_20260710' into main branch. [TIER-1]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Integration & Finalization' (Protocol in workflow.md)
+- [x] Task: Ensure all generated artifacts and mock servers are cleanly shut down [TIER-1] [9070304]
+- [x] Task: Review and update documentation (API, guides) for safety features [TIER-2] [14a0cc1]
+- [~] Task: Superconductor - User Manual Verification 'Phase 6: Integration & Finalization' (Protocol in workflow.md)
