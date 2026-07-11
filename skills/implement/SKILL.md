@@ -29,7 +29,14 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     -   **Tech Stack**
     -   **Workflow**
 
-2.  **Handle Failure:** If ANY of these are missing (or their resolved paths do not exist), Announce: "Superconductor is not set up. Please run `/superconductor:setup`." and HALT.
+2.  **Handle Failure:** 
+    -   If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
+        - **questions:**
+            - **header:** "Setup Required"
+            - **question:** "Superconductor is not set up. Would you like me to initiate the `/superconductor:setup` process now?"
+            - **type:** "yesno"
+    -   **If yes:** Immediately transition to executing the `/superconductor:setup` skill protocol.
+    -   **If no:** Announce "Setup is required to proceed. Halting." and HALT.
 
 
 ---
@@ -110,6 +117,25 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             - **If yes:** Explicitly activate the `design-heuristics` skill and read its `SKILL.md` and reference files.
         - **CRITICAL:** For every relevant skill identified, ask the agent to activate it and read its `SKILL.md` and reference files.
         - You MUST explicitly apply and prioritize the guidelines, commands, and constraints from these files during the execution of the track's tasks.
+
+3.1 **Optional Plan Verification:**
+    -   **Headless Automation (`--headless`):** Skip this verification step.
+    -   **Ask for Verification:** Use the `ask_user` tool to ask if the user wants an AI model to audit the existing `plan.md` before starting tasks.
+        - **questions:**
+            - **header:** "Plan Verification"
+            - **question:** "Would you like an AI model to audit and verify the existing `plan.md` before execution begins?"
+            - **type:** "yesno"
+    -   **If yes:**
+        -   First, run `agy models` to fetch the list of available models.
+        -   Use the `ask_user` tool to prompt the user to select the model for this verification.
+            - **questions:**
+                - **header:** "Verification Model"
+                - **question:** "Which model should verify the plan?"
+                - **type:** "choice"
+                - **options:** (Populate dynamically with the models returned by `agy models`)
+        -   **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
+        -   If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
+        -   If approved, update `plan.md`.
 
 4.  **Execute Tasks and Update Track Plan:**
     a. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.

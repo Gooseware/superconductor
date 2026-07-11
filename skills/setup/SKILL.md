@@ -503,6 +503,19 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 2.  **Notify and Pause:** **CRITICAL:** You MUST explicitly instruct the user: "New skills installed. Please run `/skills reload` to enable them. Let me know when you have done this." Do NOT use the `ask_user` tool here.
 3.  **Wait for Confirmation:** You MUST pause your execution here and wait for the user to confirm they have run the command and reloaded the skills before proceeding.
 
+### 2.6.2 Configure Design OS MCP Server & Component Database
+1.  **Introduce the Section:** Announce that you will now configure the Design OS MCP server and the component database repository.
+2.  **Ask for Repository URL:** Use the `ask_user` tool to request the repository URL for the component database. **CRITICAL:** This is a required field.
+    - **questions:**
+        - **header:** "Component Database"
+        - **type:** "text"
+        - **question:** "Please provide the repository URL that will be used for the database of components (Required):"
+        - **placeholder:** "e.g., https://github.com/Gooseware/ui-kit-registry.git"
+3.  **Validate Input:** Wait for the user's response. If the user provides an empty response, you MUST ask again until a valid URL is provided.
+4.  **Configure Design OS MCP Server:**
+    -  Announce: "Configuring the `design-os-kernel` MCP server..."
+    -  Update the MCP server configuration to include the provided repository URL for the component database. This typically involves modifying `mcp_config.json` at the extension root or the project's environment settings to ensure the `design-os-kernel` server points to the selected database.
+
 ### 2.7 Finalization
 1.  **Generate Index File:**
     -   Create `superconductor/index.md` with the following content:

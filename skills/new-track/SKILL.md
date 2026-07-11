@@ -21,9 +21,13 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     -   **Workflow**
 
 2.  **Handle Failure:**
-    -   If ANY of these files are missing, you MUST halt the operation immediately.
-    -   Announce: "Superconductor is not set up. Please run `/superconductor:setup` to set up the environment."
-    -   Do NOT proceed to New Track Initialization.
+    -   If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
+        - **questions:**
+            - **header:** "Setup Required"
+            - **question:** "Superconductor is not set up. Would you like me to initiate the `/superconductor:setup` process now?"
+            - **type:** "yesno"
+    -   **If yes:** Immediately transition to executing the `/superconductor:setup` skill protocol.
+    -   **If no:** Announce "Setup is required to proceed. Halting." and HALT.
 
 ---
 
