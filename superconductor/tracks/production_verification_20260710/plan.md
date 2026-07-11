@@ -46,13 +46,13 @@
 
 ## Phase 4: Mutation Testing Integration (FR-3)
 
-- [ ] Task: Write failing tests for Stryker mutation testing integration [TIER-3]
+- [x] Task: Write failing tests for mutation testing integration [TIER-3] [f9f96c9]
     - [ ] Test: Run mutation analysis on a single changed file
     - [ ] Test: Compute mutation score from Stryker JSON output
     - [ ] Test: Reject test suite with mutation score below threshold (>20% surviving)
     - [ ] Test: Accept test suite with mutation score at or above threshold
     - [ ] Test: Mutation report includes surviving mutant details
-- [ ] Task: Implement mutation testing integration in `src/verification/mutation-runner.ts` [TIER-3]
+- [~] Task: Implement mutation report parser in `src/verification/mutation-analyzer.ts` [TIER-3]
     - [ ] Generate Stryker config scoped to changed files only (incremental)
     - [ ] Execute `npx stryker run` and parse JSON report
     - [ ] Compute mutation score and identify surviving mutants
