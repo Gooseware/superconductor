@@ -17,9 +17,9 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Workspace Isolation' (Protocol in workflow.md)
 
 ## Phase 3: Heartbeat Health Checks
-- [ ] Task: Integrate `DaemonHeartbeat` into the primary loop of the Job Dispatcher during headless mode [TIER-3]
-- [ ] Task: Implement recovery and termination logic if the dispatcher loop detects a frozen state [TIER-3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Heartbeat Health Checks' (Protocol in workflow.md)
+- [x] Task: Integrate `DaemonHeartbeat` into the primary loop of the Job Dispatcher during headless mode [TIER-3]
+- [x] Task: Implement recovery and termination logic if the dispatcher loop detects a frozen state [TIER-3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Heartbeat Health Checks' (Protocol in workflow.md)
 
 ## Phase 4: Integration & Finalization
 - [ ] Task: Integrate track 'job_dispatcher_hardening_20260711' into main branch. [TIER-1]

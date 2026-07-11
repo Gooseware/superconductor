@@ -1,6 +1,7 @@
 import { BacklogParser } from './backlog-parser.js';
 import { TaskLockManager } from '../concurrency/lock-manager.js';
 import { WorkspaceManager } from '../concurrency/workspace-manager.js';
+import { DaemonHeartbeat } from '../concurrency/daemon-heartbeat.js';
 import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -14,6 +15,28 @@ export class JobDispatcher {
     this.parser = new BacklogParser();
     this.lockManager = new TaskLockManager();
     this.workspaceManager = new WorkspaceManager();
+  }
+
+  /**
+   * Runs the dispatcher in a continuous loop for headless daemon mode.
+   */
+  async runHeadless(backlogPath: string, pollIntervalMs: number = 30000): Promise<never> {
+    const heartbeat = new DaemonHeartbeat(pollIntervalMs * 2, () => {
+      console.error('JobDispatcher daemon frozen state detected! Terminating.');
+      process.exit(1);
+    });
+
+    heartbeat.start();
+
+    while (true) {
+      try {
+        await this.dispatchNextJob(backlogPath);
+      } catch (error) {
+        console.error('Error dispatching job:', error);
+      }
+      heartbeat.ping();
+      await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+    }
   }
 
   /**
