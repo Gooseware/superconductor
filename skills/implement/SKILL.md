@@ -67,16 +67,11 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             2.  **Handle Response:**
                 -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
                 -   **If "Execute All Available Tracks (Headless)" is selected:**
-                    - **Action:** Ask the user to select the supervisor model using `ask_user`:
+                    - **Action:** First, run `agy models` to fetch the list of available models. Then, ask the user to select the supervisor model using `ask_user`:
                         - **header:** "Supervisor Model"
                         - **question:** "Which supervisor model should check the final steps (Oracle Review) for these tracks?"
                         - **type:** "choice"
-                        - **options:** [
-                            {Label: "Pro", Description: "Deep semantic reasoning"},
-                            {Label: "Flash", Description: "Faster, basic alignment"},
-                            {Label: "Claude 3.5 Sonnet", Description: "Advanced reasoning and coding capabilities"},
-                            {Label: "Claude 3 Opus", Description: "Maximum capability for complex audits"}
-                          ]
+                        - **options:** (Populate this dynamically with the models returned by `agy models`. Example labels: "Gemini 3.1 Pro", "Claude Sonnet 4.6", "Claude Opus 4.6", etc.)
                     - **Execution:** Transition into headless mode and execute all available tracks sequentially without further interaction, using the chosen supervisor model for the final Oracle review of each track.
                 -   **If a new description is entered in the "Other" field:**
                     -   **Action:** Transition to the requirements gathering phase of a new track.
@@ -265,11 +260,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             - **header:** "Oracle Model"
             - **question:** "Which model should the Oracle use for this deep audit?"
             - **type:** "choice"
-            - **options:**
-                - Label: "Pro", Description: "Deep semantic reasoning (Recommended)."
-                - Label: "Flash", Description: "Faster, basic alignment issues."
-                - Label: "Claude 3.5 Sonnet", Description: "Advanced reasoning and coding capabilities."
-                - Label: "Claude 3 Opus", Description: "Maximum capability for complex audits."
+            - **options:** (Populate this dynamically with the models returned by running `agy models`. Example labels: "Gemini 3.1 Pro", "Claude Sonnet 4.6", "Claude Opus 4.6", etc.)
             - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
         *   **If user chooses "User Approval":**
             - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
