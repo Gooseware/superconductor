@@ -2,7 +2,7 @@
 
 ## Phase 1: Curator Module Scaffolding
 
-- [ ] Task: Create `packages/engine/src/curator/` directory structure and type definitions [TIER-3]
+- [x] Task: Create `packages/engine/src/curator/` directory structure and type definitions [TIER-3] [4ecb696]
     - [ ] `telemetry.types.ts`: `AgyStatusPayload`, `TaskMetrics`, `TrackMetrics`, `MetricQuery`
     - [ ] `synthesizer.types.ts`: `PatternMatch`, `SynthesizedSkill`, `ConfidenceScore`, `SynthesisEvent`
     - [ ] Add new event types to the engine's `EngineEvent` union
