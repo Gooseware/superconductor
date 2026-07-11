@@ -18,8 +18,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 *Link: [./tracks/sandboxing_resilience_20260710/](./tracks/sandboxing_resilience_20260710/)*
 
 ---
-
----
-
-- [x] **Track: Autonomous Curator**
-*Link: [./tracks/autonomous_curator_20260710/](./tracks/autonomous_curator_20260710/)*
