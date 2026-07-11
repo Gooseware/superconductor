@@ -62,7 +62,7 @@
 
 ## Phase 5: Integration Testing
 
-- [ ] Task: Write integration tests for the full verification pipeline [TIER-3]
+- [~] Task: Write integration tests for the full verification pipeline [TIER-3]
     - [ ] Test: VLM audit + PBT validation + mutation testing run in sequence during review phase
     - [ ] Test: Verification failure blocks task completion with structured report
     - [ ] Test: All verification events are persisted to the event store
