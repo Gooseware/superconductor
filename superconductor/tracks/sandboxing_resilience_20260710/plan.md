@@ -9,7 +9,7 @@
     - [ ] Add new event types to the engine's `EngineEvent` union
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: State & Safety Module Scaffolding' (Protocol in workflow.md) [ac7249d]
 
-## Phase 2: SQLite Event Store (FR-1)
+## Phase 2: SQLite Event Store (FR-1) [checkpoint: d56dff8]
 
 - [x] Task: Write failing tests for SQLite event store [TIER-3] [5446c76]
     - [ ] Test: Append event to store and retrieve by ID
@@ -24,7 +24,7 @@
     - [ ] Implement `reconstruct(toTimestamp?)`: replay events to rebuild state
     - [ ] Implement `materializePlan()`: generate `plan.md` from current state
     - [ ] Use `better-sqlite3` for synchronous, embedded SQLite access
-- [~] Task: Superconductor - User Manual Verification 'Phase 2: SQLite Event Store' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: SQLite Event Store' (Protocol in workflow.md) [d56dff8]
 
 ## Phase 3: Git Context Controller (FR-2)
 
