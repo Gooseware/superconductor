@@ -52,13 +52,13 @@
     - [ ] Test: Reject test suite with mutation score below threshold (>20% surviving)
     - [ ] Test: Accept test suite with mutation score at or above threshold
     - [ ] Test: Mutation report includes surviving mutant details
-- [~] Task: Implement mutation report parser in `src/verification/mutation-analyzer.ts` [TIER-3]
+- [x] Task: Implement mutation report parser in `src/verification/mutation-analyzer.ts` [TIER-3] [fa1fb8b]
     - [ ] Generate Stryker config scoped to changed files only (incremental)
     - [ ] Execute `npx stryker run` and parse JSON report
     - [ ] Compute mutation score and identify surviving mutants
     - [ ] Enforce configurable threshold; emit pass/fail with actionable feedback
     - [ ] Emit `MutationEvent` to the event store
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Mutation Testing' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 4: Mutation Testing Integration' (Protocol in workflow.md)
 
 ## Phase 5: Integration Testing
 
