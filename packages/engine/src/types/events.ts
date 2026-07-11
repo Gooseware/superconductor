@@ -6,8 +6,9 @@ import { RiskClassification } from '../safety/risk.types.js';
 import { AuditEvent } from '../verification/vlm-auditor.types.js';
 import { PbtEvent } from '../verification/pbt.types.js';
 import { MutationEvent } from '../verification/mutation.types.js';
+import { SynthesisEvent } from '../curator/synthesizer.types.js';
 
-export type EngineEventType = 'scheduler' | 'dispatcher' | 'concurrency' | 'system' | 'routing' | 'safety' | 'state' | 'verification';
+export type EngineEventType = 'scheduler' | 'dispatcher' | 'concurrency' | 'system' | 'routing' | 'safety' | 'state' | 'verification' | 'curator';
 
 export interface BaseEngineEvent {
   type: EngineEventType;
@@ -54,4 +55,9 @@ export interface VerificationEngineEvent extends BaseEngineEvent {
   detail: AuditEvent | PbtEvent | MutationEvent;
 }
 
-export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent | RoutingEngineEvent | EscalationEvent | SafetyEngineEvent | StateEngineEvent | VerificationEngineEvent;
+export interface CuratorEngineEvent extends BaseEngineEvent {
+  type: 'curator';
+  detail: SynthesisEvent; // Can be expanded with Telemetry events later if needed
+}
+
+export type EngineEvent = SchedulerEngineEvent | DispatcherEngineEvent | ConcurrencyEngineEvent | SystemEngineEvent | RoutingEngineEvent | EscalationEvent | SafetyEngineEvent | StateEngineEvent | VerificationEngineEvent | CuratorEngineEvent;
