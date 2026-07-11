@@ -34,13 +34,13 @@
     - [ ] Test: `gccDrop(taskId)` cleanly removes worktree and branch on failure
     - [ ] Test: High-risk tasks (Tier 4) automatically trigger worktree isolation
     - [ ] Test: Worktree lifecycle events are emitted
-- [~] Task: Implement Git Context Controller in `src/safety/gcc.ts` [TIER-4]
+- [x] Task: Implement Git Context Controller in `src/safety/gcc.ts` [TIER-4] [b2f616d]
     - [ ] Implement `gccBranch(taskId)`: create worktree via `git worktree add`
     - [ ] Implement `gccMerge(taskId)`: merge and clean up via `git merge` + `git worktree remove`
     - [ ] Implement `gccDrop(taskId)`: force remove worktree and delete branch
     - [ ] Add risk-based auto-trigger: integrate with dispatcher to check task tier/conflict history
     - [ ] Emit GCC lifecycle events to the event store
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Git Context Controller' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 3: Git Context Controller' (Protocol in workflow.md)
 
 ## Phase 4: Semantic Risk Middleware (FR-3)
 
