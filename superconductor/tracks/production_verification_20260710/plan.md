@@ -36,13 +36,13 @@
     - [ ] Test: Reject test file with only example-based assertions for in-scope module
     - [ ] Test: Out-of-scope modules are not flagged
     - [ ] Test: Validation report includes actionable PBT conversion suggestions
-- [~] Task: Integrate fast-check in `src/verification/pbt-validator.ts` [TIER-4]
+- [x] Task: Integrate fast-check in `src/verification/pbt-validator.ts` [TIER-4] [ab79e1e]
     - [ ] Parse test files to detect assertion patterns (example-based vs property-based)
     - [ ] Check `fast-check` import presence and `fc.property()` / `fc.assert()` usage
     - [ ] Apply scope filter from engine config (which modules require PBT)
     - [ ] Generate actionable feedback for non-compliant test files
     - [ ] Emit `PbtEvent` to the event store
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: PBT Integration' (Protocol in workflow.md)
+- [~] Task: Superconductor - User Manual Verification 'Phase 3: Property-Based Testing Integration' (Protocol in workflow.md)
 
 ## Phase 4: Mutation Testing Integration (FR-3)
 
