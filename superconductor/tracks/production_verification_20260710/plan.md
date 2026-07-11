@@ -72,8 +72,8 @@
     - [x] Run mutation analyzer on files touched by current task before marking success
     - [x] Route verification failures as escalation signals
 - [x] Task: Verify all unit tests pass with >80% code coverage [TIER-1]
-- [ ] Task: Regression test: verify Phases 1-3 engine and existing commands still function [TIER-1]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Integration Testing' (Protocol in workflow.md)
+- [x] Task: Regression test: verify Phases 1-3 engine and existing commands still function [TIER-1]
+- [~] Task: Superconductor - User Manual Verification 'Phase 5: Integration Testing' (Protocol in workflow.md)
 
 ## Phase 6: Integration & Finalization
 
