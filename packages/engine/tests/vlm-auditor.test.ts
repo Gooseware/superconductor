@@ -2,22 +2,26 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VlmAuditor } from '../src/verification/vlm-auditor.js';
 import { DesignSchema } from '../src/verification/vlm-auditor.types.js';
 
-const mockPage = {
-  goto: vi.fn(),
-  screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-image-data')),
-  locator: vi.fn().mockReturnValue({
-    screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-component-image'))
-  }),
-};
+const mocks = vi.hoisted(() => {
+  const mockPage = {
+    goto: vi.fn(),
+    screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-image-data')),
+    locator: vi.fn().mockReturnValue({
+      screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-component-image'))
+    }),
+  };
 
-const mockBrowser = {
-  newPage: vi.fn().mockResolvedValue(mockPage),
-  close: vi.fn()
-};
+  const mockBrowser = {
+    newPage: vi.fn().mockResolvedValue(mockPage),
+    close: vi.fn()
+  };
+
+  return { mockPage, mockBrowser };
+});
 
 vi.mock('playwright', () => ({
   chromium: {
-    launch: vi.fn().mockResolvedValue(mockBrowser)
+    launch: vi.fn().mockResolvedValue(mocks.mockBrowser)
   }
 }));
 
@@ -40,9 +44,9 @@ describe('Headless VLM Auditor', () => {
   it('Playwright script captures DOM screenshot for a rendered component', async () => {
     const result = await auditor.captureScreenshot('http://localhost:3000/test-component');
     
-    expect(mockBrowser.newPage).toHaveBeenCalled();
-    expect(mockPage.goto).toHaveBeenCalledWith('http://localhost:3000/test-component');
-    expect(mockPage.screenshot).toHaveBeenCalled();
+    expect(mocks.mockBrowser.newPage).toHaveBeenCalled();
+    expect(mocks.mockPage.goto).toHaveBeenCalledWith('http://localhost:3000/test-component', { waitUntil: 'networkidle' });
+    expect(mocks.mockPage.screenshot).toHaveBeenCalled();
     expect(result).toBeInstanceOf(Buffer);
   });
 
