@@ -34,5 +34,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Hardening Improvements for Job Dispatcher**
+- [~] **Track: Hardening Improvements for Job Dispatcher**
 *Link: [./tracks/job_dispatcher_hardening_20260711/](./tracks/job_dispatcher_hardening_20260711/)*

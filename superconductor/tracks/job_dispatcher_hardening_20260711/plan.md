@@ -1,9 +1,9 @@
 # Implementation Plan: Hardening Improvements for Job Dispatcher
 
 ## Phase 0: Proactive Abstractions
-- [ ] Task: Create `TaskLockManager` for acquiring and releasing task-specific locks [TIER-3]
-- [ ] Task: Create `WorkspaceManager` to handle ephemeral git cloning, pushing, and cleanup [TIER-3]
-- [ ] Task: Create `DaemonHeartbeat` module to register heartbeats and perform health assertions [TIER-3]
+- [x] Task: Create `TaskLockManager` for acquiring and releasing task-specific locks [TIER-3]
+- [x] Task: Create `WorkspaceManager` to handle ephemeral git cloning, pushing, and cleanup [TIER-3]
+- [x] Task: Create `DaemonHeartbeat` module to register heartbeats and perform health assertions [TIER-3]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0: Proactive Abstractions' (Protocol in workflow.md)
 
 ## Phase 1: Task-Level Agent Concurrency

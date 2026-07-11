@@ -1,0 +1,6 @@
+tasks:
+  - id: t1
+    role: editor
+    tier: 1
+    name: dummy task
+    description: does nothing

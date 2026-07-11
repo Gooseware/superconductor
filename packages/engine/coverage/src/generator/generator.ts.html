@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>55/55</span>
+                <span class='fraction'>0/55</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>55/55</span>
+                <span class='fraction'>0/55</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -118,116 +118,116 @@
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { TaskGraph } from '../types/dag.types';
-&nbsp;
-/**
- * Generates a TaskGraph (DAG) from unstructured markdown spec and plan.
- * 
- * Note: This is currently a mock implementation that simulates LLM generation.
- * It returns a hardcoded valid TaskGraph demonstrating parallel paths and tier assignment.
- * 
- * @param spec The specification string in markdown.
- * @param plan The plan string in markdown.
- * @returns A promise that resolves to a structured TaskGraph.
- */
-export async function generateDag(spec: string, plan: string): Promise&lt;TaskGraph&gt; {
-  // Simulate asynchronous generation process
-  await new Promise(resolve =&gt; setTimeout(resolve, 50));
-&nbsp;
-  return {
-    nodes: {
-      'task1': {
-        id: 'task1',
-        name: 'Initial Setup',
-        description: 'Complex initial setup task requiring broad context',
-        role: 'architect',
-        tier: 3,
-        status: 'pending',
-        prompt: 'Perform the initial setup...',
-        dependsOn: []
-      },
-      'task2': {
-        id: 'task2',
-        name: 'Parallel Task A',
-        description: 'Simple independent sub-task',
-        role: 'editor',
-        tier: 4,
-        status: 'pending',
-        prompt: 'Implement feature A...',
-        dependsOn: ['task1']
-      },
-      'task3': {
-        id: 'task3',
-        name: 'Parallel Task B',
-        description: 'Another simple independent sub-task',
-        role: 'editor',
-        tier: 4,
-        status: 'pending',
-        prompt: 'Implement feature B...',
-        dependsOn: ['task1']
-      }
-    },
-    edges: [
-      { from: 'task1', to: 'task2' },
-      { from: 'task1', to: 'task3' }
-    ]
-  };
-}
+<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { TaskGraph } from '../types/dag.types.js';<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >/**</span>
+<span class="cstat-no" title="statement not covered" > * Generates a TaskGraph (DAG) from unstructured markdown spec and plan.</span>
+<span class="cstat-no" title="statement not covered" > * </span>
+<span class="cstat-no" title="statement not covered" > * Note: This is currently a mock implementation that simulates LLM generation.</span>
+<span class="cstat-no" title="statement not covered" > * It returns a hardcoded valid TaskGraph demonstrating parallel paths and tier assignment.</span>
+<span class="cstat-no" title="statement not covered" > * </span>
+<span class="cstat-no" title="statement not covered" > * @param spec The specification string in markdown.</span>
+<span class="cstat-no" title="statement not covered" > * @param plan The plan string in markdown.</span>
+<span class="cstat-no" title="statement not covered" > * @returns A promise that resolves to a structured TaskGraph.</span>
+<span class="cstat-no" title="statement not covered" > */</span>
+<span class="cstat-no" title="statement not covered" >export async function generateDag(spec: string, plan: string): Promise&lt;TaskGraph&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  // Simulate asynchronous generation process</span>
+<span class="cstat-no" title="statement not covered" >  await new Promise(resolve =&gt; setTimeout(resolve, 50));</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  return {</span>
+<span class="cstat-no" title="statement not covered" >    nodes: {</span>
+<span class="cstat-no" title="statement not covered" >      'task1': {</span>
+<span class="cstat-no" title="statement not covered" >        id: 'task1',</span>
+<span class="cstat-no" title="statement not covered" >        name: 'Initial Setup',</span>
+<span class="cstat-no" title="statement not covered" >        description: 'Complex initial setup task requiring broad context',</span>
+<span class="cstat-no" title="statement not covered" >        role: 'architect',</span>
+<span class="cstat-no" title="statement not covered" >        tier: 3,</span>
+<span class="cstat-no" title="statement not covered" >        status: 'pending',</span>
+<span class="cstat-no" title="statement not covered" >        prompt: 'Perform the initial setup...',</span>
+<span class="cstat-no" title="statement not covered" >        dependsOn: []</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >      'task2': {</span>
+<span class="cstat-no" title="statement not covered" >        id: 'task2',</span>
+<span class="cstat-no" title="statement not covered" >        name: 'Parallel Task A',</span>
+<span class="cstat-no" title="statement not covered" >        description: 'Simple independent sub-task',</span>
+<span class="cstat-no" title="statement not covered" >        role: 'editor',</span>
+<span class="cstat-no" title="statement not covered" >        tier: 4,</span>
+<span class="cstat-no" title="statement not covered" >        status: 'pending',</span>
+<span class="cstat-no" title="statement not covered" >        prompt: 'Implement feature A...',</span>
+<span class="cstat-no" title="statement not covered" >        dependsOn: ['task1']</span>
+<span class="cstat-no" title="statement not covered" >      },</span>
+<span class="cstat-no" title="statement not covered" >      'task3': {</span>
+<span class="cstat-no" title="statement not covered" >        id: 'task3',</span>
+<span class="cstat-no" title="statement not covered" >        name: 'Parallel Task B',</span>
+<span class="cstat-no" title="statement not covered" >        description: 'Another simple independent sub-task',</span>
+<span class="cstat-no" title="statement not covered" >        role: 'editor',</span>
+<span class="cstat-no" title="statement not covered" >        tier: 4,</span>
+<span class="cstat-no" title="statement not covered" >        status: 'pending',</span>
+<span class="cstat-no" title="statement not covered" >        prompt: 'Implement feature B...',</span>
+<span class="cstat-no" title="statement not covered" >        dependsOn: ['task1']</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    edges: [</span>
+<span class="cstat-no" title="statement not covered" >      { from: 'task1', to: 'task2' },</span>
+<span class="cstat-no" title="statement not covered" >      { from: 'task1', to: 'task3' }</span>
+<span class="cstat-no" title="statement not covered" >    ]</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -235,7 +235,7 @@ export async function generateDag(spec: string, plan: string): Promise&lt;TaskGr
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-11T05:11:39.837Z
+                at 2026-07-11T07:20:58.016Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

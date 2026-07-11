@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>61/61</span>
+                <span class='fraction'>0/61</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95.65% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>22/23</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>61/61</span>
+                <span class='fraction'>0/61</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -124,128 +124,128 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">26x</span>
-<span class="cline-any cline-yes">26x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-yes">27x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { DagNode, SubagentConfig } from '../types';
-&nbsp;
-const MAX_PROMPT_LENGTH = 100000;
-&nbsp;
-export function buildContext(task: DagNode, commonContext: string): SubagentConfig {
-  const parts: string[] = [];
-  
-  if (task.id) parts.push(`Task ID: ${task.id}`);
-  if (task.name) parts.push(`Name: ${task.name}`);
-  if (task.role) parts.push(`Role: ${task.role}`);
-  
-  if (task.description) {
-    parts.push(`Description: ${task.description}`);
-  }
-&nbsp;
-  if (task.constraints &amp;&amp; task.constraints.length &gt; 0) {
-    parts.push(`Constraints:\n${task.constraints.map(c =&gt; `- ${c}`).join('\n')}`);
-  }
-&nbsp;
-  if (task.variables &amp;&amp; Object.keys(task.variables).length &gt; 0) {
-    let vars = `Variables:\n`;
-    const entries = Object.entries(task.variables);
-    for (let i = 0; i &lt; entries.length; i++) {
-      vars += `- ${entries[i][0]}: ${entries[i][1]}`;
-      if (i &lt; entries.length - 1) vars += '\n';
-    }
-    parts.push(vars);
-  }
-&nbsp;
-  if (task.contextFiles &amp;&amp; task.contextFiles.length &gt; 0) {
-    parts.push(`Context Files: ${task.contextFiles.join(', ')}`);
-  }
-  
-  const commonCtxStr = commonContext ? `--- Common Context ---\n${commonContext}` : '';
-  
-  // Calculate remaining length for task prompt
-  const partsString = parts.join('\n\n');
-  const overheadLength = partsString.length + commonCtxStr.length + `\n\n--- Task Prompt ---\n\n\n`.length;
-  
-  let taskPromptStr = task.prompt || '';
-  if (taskPromptStr.length + overheadLength &gt; MAX_PROMPT_LENGTH) {
-    const allowedLength = Math.max(0, MAX_PROMPT_LENGTH - overheadLength);
-    taskPromptStr = taskPromptStr.substring(0, allowedLength);
-  }
-  
-  if (taskPromptStr) {
-    parts.push(`--- Task Prompt ---\n${taskPromptStr}`);
-  }
-  
-  if (commonCtxStr) {
-    parts.push(commonCtxStr);
-  }
-&nbsp;
-  return {
-    agentName: task.id || 'unknown',
-    role: task.role || 'unknown',
-    tier: task.<span class="branch-0 cbranch-no" title="branch not covered" >tier || 1,</span>
-    prompt: parts.join('\n\n'),
-    workspace: 'inherit',
-  };
-}
+<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { DagNode, SubagentConfig } from '../types/index.js';<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >const MAX_PROMPT_LENGTH = 100000;</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export function buildContext(task: DagNode, commonContext: string): SubagentConfig {</span>
+<span class="cstat-no" title="statement not covered" >  const parts: string[] = [];</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  if (task.id) parts.push(`Task ID: ${task.id}`);</span>
+<span class="cstat-no" title="statement not covered" >  if (task.name) parts.push(`Name: ${task.name}`);</span>
+<span class="cstat-no" title="statement not covered" >  if (task.role) parts.push(`Role: ${task.role}`);</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  if (task.description) {</span>
+<span class="cstat-no" title="statement not covered" >    parts.push(`Description: ${task.description}`);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  if (task.constraints &amp;&amp; task.constraints.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >    parts.push(`Constraints:\n${task.constraints.map((c: string) =&gt; `- ${c}`).join('\n')}`);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  if (task.variables &amp;&amp; Object.keys(task.variables).length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >    let vars = `Variables:\n`;</span>
+<span class="cstat-no" title="statement not covered" >    const entries = Object.entries(task.variables);</span>
+<span class="cstat-no" title="statement not covered" >    for (let i = 0; i &lt; entries.length; i++) {</span>
+<span class="cstat-no" title="statement not covered" >      vars += `- ${entries[i][0]}: ${entries[i][1]}`;</span>
+<span class="cstat-no" title="statement not covered" >      if (i &lt; entries.length - 1) vars += '\n';</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    parts.push(vars);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  if (task.contextFiles &amp;&amp; task.contextFiles.length &gt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >    parts.push(`Context Files: ${task.contextFiles.join(', ')}`);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  const commonCtxStr = commonContext ? `--- Common Context ---\n${commonContext}` : '';</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  // Calculate remaining length for task prompt</span>
+<span class="cstat-no" title="statement not covered" >  const partsString = parts.join('\n\n');</span>
+<span class="cstat-no" title="statement not covered" >  const overheadLength = partsString.length + commonCtxStr.length + `\n\n--- Task Prompt ---\n\n\n`.length;</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  let taskPromptStr = task.prompt || '';</span>
+<span class="cstat-no" title="statement not covered" >  if (taskPromptStr.length + overheadLength &gt; MAX_PROMPT_LENGTH) {</span>
+<span class="cstat-no" title="statement not covered" >    const allowedLength = Math.max(0, MAX_PROMPT_LENGTH - overheadLength);</span>
+<span class="cstat-no" title="statement not covered" >    taskPromptStr = taskPromptStr.substring(0, allowedLength);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  if (taskPromptStr) {</span>
+<span class="cstat-no" title="statement not covered" >    parts.push(`--- Task Prompt ---\n${taskPromptStr}`);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" >  </span>
+<span class="cstat-no" title="statement not covered" >  if (commonCtxStr) {</span>
+<span class="cstat-no" title="statement not covered" >    parts.push(commonCtxStr);</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >  return {</span>
+<span class="cstat-no" title="statement not covered" >    agentName: task.id || 'unknown',</span>
+<span class="cstat-no" title="statement not covered" >    role: task.role || 'unknown',</span>
+<span class="cstat-no" title="statement not covered" >    tier: task.tier || 1,</span>
+<span class="cstat-no" title="statement not covered" >    prompt: parts.join('\n\n'),</span>
+<span class="cstat-no" title="statement not covered" >    workspace: 'inherit',</span>
+<span class="cstat-no" title="statement not covered" >  };</span>
+<span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -253,7 +253,7 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-07-11T05:11:39.837Z
+                at 2026-07-11T07:20:58.016Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
