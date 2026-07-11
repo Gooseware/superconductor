@@ -10,6 +10,21 @@ vi.mock('../src/verification/pbt-validator.js', () => ({
   validatePbtUsage: vi.fn()
 }));
 
+vi.mock('playwright', () => ({
+  chromium: {
+    launch: vi.fn().mockResolvedValue({
+      newPage: vi.fn().mockResolvedValue({
+        goto: vi.fn(),
+        screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-screenshot')),
+        locator: vi.fn().mockReturnValue({
+          screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-locator-screenshot'))
+        })
+      }),
+      close: vi.fn()
+    })
+  }
+}));
+
 describe('Verification Pipeline', () => {
   const mockVlmClient = { invokeVlm: vi.fn() };
   const mockAuditor = new VlmAuditor({ colors: {}, spacing: { baseUnit: 4, scale: {} }, typography: { scale: {} }, components: {} }, mockVlmClient);
@@ -47,7 +62,8 @@ describe('Verification Pipeline', () => {
 
   it('All verification events are persisted to the event store', async () => {
     const emitter = new EventEmitter();
-    const store = new EventStore(emitter);
+    const store = new EventStore({ dbPath: ':memory:' });
+    emitter.on('event', (e) => store.append(e));
     const pipeline = new VerificationPipeline(emitter, mockAuditor, mockMutationAnalyzer);
     
     vi.mocked(validatePbtUsage).mockReturnValue({ passed: true, moduleId: 'src/test.ts', propertiesFound: [], feedback: [] });
@@ -55,8 +71,8 @@ describe('Verification Pipeline', () => {
 
     await pipeline.runVerification('task-3', 'ui-component', 'src/test.ts', 'const x = 1;', ['src/test.ts']);
     
-    const events = store.getEvents();
-    const verificationEvents = events.filter(e => e.type === 'verification');
+    const events = store.query({});
+    const verificationEvents = events.filter(e => e.eventType === 'verification');
     
     // Should have emitted events for VLM, PBT, and Mutation Testing
     expect(verificationEvents.length).toBeGreaterThan(0);
