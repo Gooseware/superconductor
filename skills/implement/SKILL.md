@@ -37,7 +37,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 ## 2.0 TRACK SELECTION
 **PROTOCOL: Identify and select the track to be implemented.**
 
-1.  **Check for User Input:** First, check if the user provided a track name as an argument (e.g., `/superconductor:implement <track_description>`).
+1.  **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
 
 2.  **Locate and Parse Tracks Registry:**
     -   Resolve the **Tracks Registry**.
@@ -45,26 +45,31 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 3.  **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
 
-4.  **Interactive Selection and Initiation:**
-    -   **If a track name was provided:**
-        1.  Perform an exact, case-insensitive match for the provided name against the track descriptions.
-        2.  If a unique match is found, proceed with this track.
-        3.  If no match is found, inform the user and proceed to the interactive selection (step 4.2).
-    -   **If no track name was provided (or previous step failed):**
-        1.  Immediately call the `ask_user` tool to present the available tracks and a field for a new track (do not repeat the question in the chat):
-            - **questions:**
-                - **header:** "Select Track"
-                - **question:** "Please select a track to implement or provide a description to start a new track."
-                - **type:** "choice"
-                - **multiSelect:** false
-                - **options:** (Populate with descriptions of the available tracks identified in step 3)
-                - **placeholder:** "Enter description for a new track..."
-        2.  **Handle Response:**
-            -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
-            -   **If a new description is entered in the "Other" field:**
-                -   **Action:** Transition to the requirements gathering phase of a new track.
-                -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.
-            -   **If no tracks exist and no new description is provided:** Announce "No tracks available and no new track description provided." and HALT.
+4.  **Selection and Initiation:**
+    -   **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
+        1. If a specific track was provided, proceed with that track.
+        2. If `--all` was provided or NO track was specified, automatically queue ALL available tracks identified in step 3 for sequential execution. You MUST loop through the full `TRACK IMPLEMENTATION` protocol for each track one by one, bypassing all interactive prompts.
+    -   **Interactive Mode (Default):**
+        -   **If a track name was provided:**
+            1.  Perform an exact, case-insensitive match for the provided name against the track descriptions.
+            2.  If a unique match is found, proceed with this track.
+            3.  If no match is found, inform the user and proceed to the interactive selection.
+        -   **If no track name was provided (or previous step failed):**
+            1.  Immediately call the `ask_user` tool to present the available tracks and a field for a new track (do not repeat the question in the chat):
+                - **questions:**
+                    - **header:** "Select Track"
+                    - **question:** "Please select a track to implement, choose 'All Tracks (Headless)', or provide a description to start a new track."
+                    - **type:** "choice"
+                    - **multiSelect:** false
+                    - **options:** (Populate with descriptions of the available tracks, PLUS an "Execute All Available Tracks (Headless)" option)
+                    - **placeholder:** "Enter description for a new track..."
+            2.  **Handle Response:**
+                -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
+                -   **If "Execute All Available Tracks (Headless)" is selected:** Transition into headless mode and execute all available tracks sequentially without further interaction.
+                -   **If a new description is entered in the "Other" field:**
+                    -   **Action:** Transition to the requirements gathering phase of a new track.
+                    -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.
+                -   **If no tracks exist and no new description is provided:** Announce "No tracks available and no new track description provided." and HALT.
 
 5.  **Handle No Selection:** If no track is selected and no new track is initiated, inform the user and await further instructions.
 
