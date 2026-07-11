@@ -9,7 +9,7 @@
     - [ ] Add new event types to the engine's `EngineEvent` union
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Verification Module Scaffolding' (Protocol in workflow.md) [3e58352]
 
-## Phase 2: DESIGN.md Schema & Headless VLM Auditor (FR-1)
+## Phase 2: DESIGN.md Schema & Headless VLM Auditor (FR-1) [checkpoint: d9dc361]
 
 - [x] Task: Write failing tests for DESIGN.md schema parser and VLM auditor [TIER-3] [9d31b1a]
     - [ ] Test: Parse a valid `DESIGN.md` into typed `DesignSchema` (colors, spacing, typography)
@@ -27,7 +27,7 @@
     - [ ] Parse VLM response into structured `AuditResult` (pass/fail per rule, suggestions)
     - [ ] Implement iterative fix loop: apply fix → re-render → re-audit (max 3)
     - [ ] Emit `AuditEvent` to the event store
-- [~] Task: Superconductor - User Manual Verification 'Phase 2: DESIGN.md Schema & Headless VLM Auditor' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: DESIGN.md Schema & Headless VLM Auditor' (Protocol in workflow.md) [d9dc361]
 
 ## Phase 3: Property-Based Testing Integration (FR-2)
 
