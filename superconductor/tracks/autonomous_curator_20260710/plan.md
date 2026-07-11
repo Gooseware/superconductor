@@ -10,7 +10,7 @@
 
 ## Phase 2: Telemetry Ingester (FR-1)
 
-- [ ] Task: Write failing tests for telemetry ingester [TIER-3]
+- [x] Task: Write failing tests for telemetry ingester [TIER-3] [9d848ec]
     - [ ] Test: Parse AGY status line JSON into typed `AgyStatusPayload`
     - [ ] Test: Compute Token-to-Success Ratio from task events
     - [ ] Test: Compute Edit Match Failure Rate from diff events
