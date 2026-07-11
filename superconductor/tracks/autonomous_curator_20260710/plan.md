@@ -37,7 +37,7 @@
     - [ ] Test: Skills above threshold are saved to the configured directory
     - [ ] Test: Skills below threshold are logged but not installed
     - [ ] Test: Idempotent: re-running on same data produces same skills
-- [ ] Task: Implement skill synthesizer in `src/curator/skill-synthesizer.ts` [TIER-4]
+- [x] Task: Implement skill synthesizer in `src/curator/skill-synthesizer.ts` [TIER-4] [6f78e3a]
     - [ ] Query event store for completed track logs
     - [ ] Pattern detection: cluster similar failure sequences, manual interventions, and repeated task structures
     - [ ] Generate SKILL.md content: concise instructions, code templates, detection signals
