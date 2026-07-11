@@ -8,7 +8,7 @@
     - [ ] Add new event types to the engine's `EngineEvent` union
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Curator Module Scaffolding' (Protocol in workflow.md) [1c22749]
 
-## Phase 2: Telemetry Ingester (FR-1)
+## Phase 2: Telemetry Ingester (FR-1) [checkpoint: 0333d1e]
 
 - [x] Task: Write failing tests for telemetry ingester [TIER-3] [9d848ec]
     - [ ] Test: Parse AGY status line JSON into typed `AgyStatusPayload`
@@ -24,7 +24,7 @@
     - [ ] Compute all 4 derived metrics with rolling aggregation
     - [ ] Persist metrics to SQLite event store with dedicated indexes
     - [ ] Expose `queryMetrics(filter)` API for aggregation
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Telemetry Ingester' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Telemetry Ingester' (Protocol in workflow.md) [0333d1e]
 
 ## Phase 3: Automated Skill Synthesizer (FR-2)
 
