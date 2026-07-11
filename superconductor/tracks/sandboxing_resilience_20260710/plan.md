@@ -26,7 +26,7 @@
     - [ ] Use `better-sqlite3` for synchronous, embedded SQLite access
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: SQLite Event Store' (Protocol in workflow.md) [d56dff8]
 
-## Phase 3: Git Context Controller (FR-2)
+## Phase 3: Git Context Controller (FR-2) [checkpoint: d118fea]
 
 - [x] Task: Write failing tests for Git Context Controller [TIER-3] [72aebf9]
     - [ ] Test: `gccBranch(taskId)` creates an isolated worktree
@@ -40,7 +40,7 @@
     - [ ] Implement `gccDrop(taskId)`: force remove worktree and delete branch
     - [ ] Add risk-based auto-trigger: integrate with dispatcher to check task tier/conflict history
     - [ ] Emit GCC lifecycle events to the event store
-- [~] Task: Superconductor - User Manual Verification 'Phase 3: Git Context Controller' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Git Context Controller' (Protocol in workflow.md) [d118fea]
 
 ## Phase 4: Semantic Risk Middleware (FR-3)
 
