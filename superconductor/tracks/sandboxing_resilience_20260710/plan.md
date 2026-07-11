@@ -2,7 +2,7 @@
 
 ## Phase 1: State & Safety Module Scaffolding
 
-- [ ] Task: Create `packages/engine/src/state/` and `packages/engine/src/safety/` directory structures and type definitions [TIER-3]
+- [x] Task: Create `packages/engine/src/state/` and `packages/engine/src/safety/` directory structures and type definitions [TIER-3] [3c0c324]
     - [ ] `event-store.types.ts`: `EngineEventRecord`, `EventQuery`, `EventStoreConfig`
     - [ ] `gcc.types.ts`: `WorktreeInfo`, `GccOperation`, `GccEvent`
     - [ ] `risk.types.ts`: `RiskTier` (auto-approve|log-proceed|human-required), `RiskRule`, `RiskPolicy`, `RiskClassification`
