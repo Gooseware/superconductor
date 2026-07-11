@@ -18,7 +18,7 @@
     - [ ] Test: Compute Time-to-Green from TDD phase timestamps
     - [ ] Test: Store metrics in SQLite with proper indexing
     - [ ] Test: Query metrics by task ID, track ID, and time range
-- [ ] Task: Implement telemetry ingester in `src/curator/telemetry-ingester.ts` [TIER-3]
+- [x] Task: Implement telemetry ingester in `src/curator/telemetry-ingester.ts` [TIER-3] [961e72a]
     - [ ] Parse AGY status JSON stream (line-delimited)
     - [ ] Subscribe to engine event bus for real-time metric computation
     - [ ] Compute all 4 derived metrics with rolling aggregation
