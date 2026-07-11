@@ -42,7 +42,7 @@
     - [ ] Emit GCC lifecycle events to the event store
 - [x] Task: Superconductor - User Manual Verification 'Phase 3: Git Context Controller' (Protocol in workflow.md) [d118fea]
 
-## Phase 4: Semantic Risk Middleware (FR-3)
+## Phase 4: Semantic Risk Middleware (FR-3) [checkpoint: 641995c]
 
 - [x] Task: Write failing tests for Semantic Risk Middleware [TIER-3] [1b9fa16]
     - [ ] Test: Read-only commands classified as `auto-approve`
@@ -61,7 +61,7 @@
     - [ ] On `log-proceed`: log and proceed
     - [ ] On `human-required`: pause execution and request approval
     - [ ] Emit `RiskClassification` events to the event store
-- [~] Task: Superconductor - User Manual Verification 'Phase 4: Semantic Risk Middleware' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Semantic Risk Middleware' (Protocol in workflow.md) [641995c]
 
 ## Phase 5: Integration Testing
 
