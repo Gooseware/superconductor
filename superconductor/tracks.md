@@ -36,3 +36,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Hardening Improvements for Job Dispatcher**
 *Link: [./tracks/job_dispatcher_hardening_20260711/](./tracks/job_dispatcher_hardening_20260711/)*
+
+---
+
+- [ ] **Track: Workspace Pooling for Job Dispatcher**
+*Link: [./tracks/workspace_pooling_20260712/](./tracks/workspace_pooling_20260712/)*
