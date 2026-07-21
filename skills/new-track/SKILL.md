@@ -52,63 +52,55 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         2. Call the `enter_plan_mode` tool with the reason: "Defining new track".
 3.  **Infer Track Type:** Analyze the description to determine if it is a "Feature" or "Something Else" (e.g., Bug, Chore, Refactor). Do NOT ask the user to classify it.
 
+### 2.0.3 Best Practices Research Phase (NEW)
+1. **Trigger:** This phase runs automatically before spec generation for any new track.
+2. **Action:**
+   - Automatically extract key architectural keywords from the track description (e.g., "authentication", "dashboard", "caching").
+   - Execute a web search query for current state-of-the-art best practices and common pitfalls regarding those keywords (e.g., "modern Next.js auth patterns 2026").
+   - Synthesize the findings into a brief "Research Notes" summary to be directly injected into the Specification.
+   - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
 
-### 2.2 Interactive Specification Generation (`spec.md`)
+### 2.0.5 Architecture Committee Phase (NEW)
+1. **Trigger:** This phase runs automatically before spec generation.
+2. **Action:**
+   - Spin up a background "Architecture Committee" debate using two specialized agent roles:
+     - **Dreamer Role (Tier 4 / Architecture):** Analyzes the track from an architectural, decoupling, and structural patterns perspective.
+     - **Reviewer Role (Tier 4 / Security & Performance):** Critiques the Dreamer's proposed structure for security gaps, performance bottlenecks, and compliance issues.
+   - The agents debate in the background until consensus is achieved, producing an "Architecture Committee Report".
+   - This report and its recommendations are integrated directly into the spec drafting phase without asking the user.
+
+### 2.2 Specification Generation (`spec.md`)
 
 1.  **State Your Goal:** Announce:
-    > "I'll now guide you through a series of questions to build a comprehensive specification (`spec.md`) for this track."
+    > "I will now generate a comprehensive specification (`spec.md`) for this track, incorporating best practices research and architecture committee findings."
 
-2.  **Questioning Phase:** Ask a series of questions to gather details for the `spec.md` using the `ask_user` tool. You must batch up to 4 related questions in a single tool call to streamline the process. Tailor questions based on the track type (Feature or Other).
-    *   **CRITICAL:** Wait for the user's response after each `ask_user` tool call.
+2.  **Questioning Phase:** Ask a single, batched series of questions using the `ask_user` tool to clarify any remaining underspecified requirements.
+    *   **CRITICAL:** You must batch all questions into **exactly one** `ask_user` call containing a maximum of 4 questions to minimize human-in-the-loop iterations.
     *   **General Guidelines:**
         *   Refer to information in **Product Definition**, **Tech Stack**, etc., to ask context-aware questions.
         *   Provide a brief explanation and clear examples for each question.
-        *   **Strongly Recommendation:** Whenever possible, present 2-3 plausible options for the user to choose from.
+        *   **Strong Recommendation:** Whenever possible, present 2-3 plausible options for the user to choose from.
+        *   **Classify Question Type:** Purposely classify questions as Additive (multiSelect: true) or Exclusive Choice (multiSelect: false).
 
-        *   **1. Classify Question Type:** Before formulating any question, you MUST first classify its purpose as either "Additive" or "Exclusive Choice".
-            *   Use **Additive** for brainstorming and defining scope (e.g., users, goals, features, project guidelines). These questions allow for multiple answers.
-            *   Use **Exclusive Choice** for foundational, singular commitments (e.g., selecting a primary technology, a specific workflow rule). These questions require a single answer.
-        
-        *   **2. Formulate the Question:** Use the `ask_user` tool: Adhere to the following for each question in the `questions` array:
-            - **header:** Very short label (max 16 chars).
-            - **type:** "choice", "text", or "yesno".
-            - **multiSelect:** (Required for type: "choice") Set to `true` for multi-select (additive) or `false` for single-choice (exclusive).
-            - **options:** (Required for type: "choice") Provide 2-4 options, each with a `label` and `description`. Note that "Other" is automatically added.
-            - **placeholder:** (For type: "text") Provide a hint.
+    *   *Wait for the user's response to the single batched tool call.*
 
-        *   **3. Interaction Flow:**
-            *   Wait for the user's response after each `ask_user` tool call.
-            *   If the user selects "Other", use a subsequent `ask_user` tool call with `type: "text"` to get their input if necessary.
-            *   Confirm your understanding by summarizing before moving on to drafting.
-
-    *   **If FEATURE:**
-        *   **Ask 3-4 relevant questions** to clarify the feature request using the `ask_user` tool.
-        *   Examples include clarifying questions about the feature, how it should be implemented, interactions, inputs/outputs, etc.
-        *   Tailor the questions to the specific feature request (e.g., if the user didn't specify the UI, ask about it; if they didn't specify the logic, ask about it).
-
-    *   **If SOMETHING ELSE (Bug, Chore, etc.):**
-        *   **Ask 2-3 relevant questions** to obtain necessary details using the `ask_user` tool.
-        *   Examples include reproduction steps for bugs, specific scope for chores, or success criteria.
-        *   Tailor the questions to the specific request.
-
-3.  **Draft `spec.md`:** Once sufficient information is gathered, draft the content for the track's `spec.md` file, including sections like Overview, Functional Requirements, Non-Functional Requirements (if any), Acceptance Criteria, and Out of Scope.
+3.  **Draft `spec.md`:** Once the response is received, draft the content for the track's `spec.md` file, including sections like Overview, Architectural Committee Recommendations, Research Notes, Functional Requirements, Non-Functional Requirements, Acceptance Criteria, and Out of Scope.
 
 4.  **User Confirmation:**
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
+    -   **Headless Mode:** If in headless mode, automatically approve the specification.
+    -   **Interactive Mode:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field.
         - **questions:**
             - **header:** "Confirm Spec"
             - **question:**
                 Please review the drafted Specification below. Does this accurately capture the requirements?
-
                 ---
-
                 <Insert Drafted spec.md Content Here>
             - **type:** "choice"
             - **multiSelect:** false
             - **options:**
                 - Label: "Approve", Description: "The specification looks correct, proceed to planning."
                 - Label: "Revise", Description: "I want to make changes to the requirements."
-    Await user feedback and revise the `spec.md` content until confirmed.
+    -   **Auto-Approval:** If the user selects "Approve", or if no revision is requested within the first feedback cycle, automatically proceed to plan generation.
 
 ### 2.3 Interactive Plan Generation (`plan.md`)
 
@@ -124,27 +116,25 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     *   Resolve and read the **Workflow** file (via the **Universal File Resolution Protocol** using the project's index file).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the **Workflow** file (e.g., TDD tasks for "Write Tests" and "Implement").
-    *   **Inject Oracle Suggestions:** If the Oracle was engaged, include a new phase at the beginning of the plan: `Phase 0: Proactive Abstractions`. Add tasks for creating the reusable units suggested by the Oracle.
+    *   **Mandatory Phase 0: Swarm Preflight:** You MUST include `Phase 0: Swarm Preflight` at the very beginning of the plan to verify if the `swarm-orchestrate` skill is installed and loaded, enabling automated execution.
+    *   **Inject Oracle Suggestions:** Include tasks for creating the reusable units suggested by the Oracle.
     *   **Mandatory Integration Phase:** You MUST always append a final phase: `## Phase X: Integration & Finalization`. Add the following task: `- [ ] Task: Integrate track '<track_id>' into <target_branch> branch.` (Retrieve `<target_branch>` from the `Development Preferences` section in `tech-stack.md`).
     *   Include status markers `[ ]` for **EVERY** task and sub-task. The format must be:
         - Parent Task: `- [ ] Task: ...`
         - Sub-task: `    - [ ] ...`
-    *   **Model Routing Tier Hints:** You MUST append a routing tier hint `[TIER-N]` to the end of every parent task line (e.g. `- [ ] Task: Write failing tests [TIER-3]`). The sub-tasks do not need annotations. Use the following classification rules:
-        - `[TIER-1]`: Local script/shell/git operations, syntax/presence checks, test suite runners.
-        - `[TIER-2]`: Intent parsing, JSON classification, simple triage/status checks.
-        - `[TIER-3]`: Standard code generation, editing files, applying style guides, writing unit tests.
-        - `[TIER-4]`: Complex multi-file refactoring, cascading bug fixes.
+    *   **Model Routing & Agent Role Annotations:** You MUST append a routing tier hint `[TIER-N]` and a Caduceus agent role suggestion `[AGENT:caduceus-<role>]` to the end of every parent task line. Example:
+        - `- [ ] Task: Generate database models [TIER-3] [AGENT:caduceus-processor]`
+        - `- [ ] Task: Run security validation [TIER-4] [AGENT:caduceus-oracle]`
     *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`. This meta-task does not need a tier hint.
 
 4.  **User Confirmation:**
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
+    -   **Headless Mode:** Automatically approve the plan.
+    -   **Interactive Mode:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field.
         - **questions:**
             - **header:** "Confirm Plan"
             - **question:**
                 Please review the drafted Implementation Plan below. Does this look correct and cover all the necessary steps?
-
                 ---
-
                 <Insert Drafted plan.md Content Here>
             - **type:** "choice"
             - **multiSelect:** false
@@ -159,8 +149,9 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     -   Analyze the confirmed `spec.md` and `plan.md` against the `Detection Signals` in the loaded `skills/catalog.md`.
     -   Identify any relevant skills that are NOT yet installed (check `~/.agents/extensions/superconductor/skills/` and `.agents/skills/`).
 2.  **Recommendation Loop:**
+    -   **Caduceus & Swarm Check:** If the plan has more than 5 tasks, automatically suggest the `swarm-orchestrate` skill. If the track involves code generation, suggest the `caduceus-superconductor` skill.
     -   **If relevant missing skills are found:**
-        -   **Ask:** "Would you like to install these skills now?" using the `ask_user` tool (do not repeat in chat):
+        -   **Ask:** "Would you like to install these skills now?" using the `ask_user` tool:
             - **questions:**
                 - **header:** "Install Skills"
                 - **question:** "I've identified some skills that could help with this track. Would you like to install any of them?"
@@ -177,8 +168,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
                     - If `version` is provided, download that specific version.
                     - Otherwise, download the latest copy at the exact `url`.
                 - If `party` is '3p', MUST use the provided `commit_sha` to download the specific vetted commit.
-            -   Download the content of the skill folder from the `url` specified in `catalog.md` (using the determined strategy) to the determined path.
-            -   **CRITICAL:** If the URL is a file path, find the parent folder. If it is a Git URL, use `git clone` or `sparse-checkout` to get the folder.
+            -   Download the content of the skill folder from the `url` specified in `catalog.md` to the determined path.
     -   **If no missing skills found:** Skip this section.
 
 ### 2.4.1 Skill Reload Confirmation
@@ -188,47 +178,16 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
 ### 2.5 Create Track Artifacts and Update Main Plan
 
-1.  **Check for existing track name:** Before generating a new Track ID, resolve the **Tracks Directory** using the **Universal File Resolution Protocol**. List all existing track directories in that resolved path. Extract the short names from these track IDs (e.g., ``shortname_YYYYMMDD`` -> `shortname`). If the proposed short name for the new track (derived from the initial description) matches an existing short name, halt the `newTrack` creation. Explain that a track with that name already exists and suggest choosing a different name or resuming the existing track.
-2.  **Generate Track ID:** Create a unique Track ID (e.g., ``shortname_YYYYMMDD``).
+1.  **Check for existing track name:** Before generating a new Track ID, resolve the **Tracks Directory** using the **Universal File Resolution Protocol**. List all existing track directories in that resolved path. If the proposed short name for the new track matches an existing short name, halt the `newTrack` creation. Explain that a track with that name already exists.
+2.  **Generate Track ID:** Create a unique Track ID (e.g., `shortname_YYYYMMDD`).
 3.  **Create Directory:** Create a new directory for the tracks: `<Tracks Directory>/<track_id>/`.
-4.  **Create `metadata.json`:** Create a metadata file at `<Tracks Directory>/<track_id>/metadata.json` with content like:
-    ```json
-    {
-      "track_id": "<track_id>",
-      "type": "feature", // or "bug", "chore", etc.
-      "status": "new", // or in_progress, completed, cancelled
-      "created_at": "YYYY-MM-DDTHH:MM:SSZ",
-      "updated_at": "YYYY-MM-DDTHH:MM:SSZ",
-      "description": "<Initial user description>"
-    }
-    ```
-    *   Populate fields with actual values. Use the current timestamp.
+4.  **Create `metadata.json`:** Create a metadata file at `<Tracks Directory>/<track_id>/metadata.json` with actual values and current timestamps.
 5.  **Write Files:**
     *   Write the confirmed specification content to `<Tracks Directory>/<track_id>/spec.md`.
     *   Write the confirmed plan content to `<Tracks Directory>/<track_id>/plan.md`.
-    *   Write the index file to `<Tracks Directory>/<track_id>/index.md` with content:
-        ```markdown
-        # Track <track_id> Context
-
-        - [Specification](./spec.md)
-        - [Implementation Plan](./plan.md)
-        - [Metadata](./metadata.json)
-        ```
+    *   Write the index file to `<Tracks Directory>/<track_id>/index.md`.
 6.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `<Tracks Directory>/<track_id>/index.md`.
-
-7.  **Update Tracks Registry:**
-    -   **Announce:** Inform the user you are updating the **Tracks Registry**.
-    -   **Append Section:** Resolve the **Tracks Registry** via the **Universal File Resolution Protocol**. Append a new section for the track to the end of this file. The format MUST be:
-        ```markdown
-
-        ---
-
-        - [ ] **Track: <Track Description>**
-        *Link: [./<Relative Track Path>/](./<Relative Track Path>/)*
-        ```
-        (Replace `<Relative Track Path>` with the path to the track directory relative to the **Tracks Registry** file location.)
-8.  **Commit Code Changes:**
-    -   **Announce:** Inform the user you are committing the **Tracks Registry** changes.
-    -   **Commit Changes:** Stage the **Tracks Registry** files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
+7.  **Update Tracks Registry:** Append a new section for the track to the end of the tracks file.
+8.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
 9.  **Announce Completion:** Inform the user:
     > "New track '<track_id>' has been created and added to the tracks file. You can now start implementation by running `/superconductor:implement`."

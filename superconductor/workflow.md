@@ -69,17 +69,17 @@ The Superconductor engine operates in either Interactive or Headless mode.
 
 1.  **Announce Protocol Start:** Inform the user that the phase is complete and the verification and checkpointing protocol has begun.
 
-2.  **Kernel Inclusion Analysis (New):**
+2.  **Registry Inclusion Analysis (New):**
     -   **Step 2.1: Analyze Components:** Automatically scan for newly created componentry in this phase.
         -   **New Files Scan:** Check for new files in known component directories (e.g., `src/components`).
         -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
-        -   **Theme Usage Scan:** Check for usage of `design-os` tokens and primitives.
+        -   **Theme Usage Scan:** Check for usage of `design-os` or caduceus tokens and primitives.
     -   **Step 2.2: Draft Publication Proposals:** For any high-quality, reusable component identified:
         -   Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
-        -   Draft a publication proposal for the centralized `design-os-kernel`.
+        -   Draft a publication proposal.
         -   Explain the rationale for why this component is a good candidate.
-        -   **Action:** If approved, use the `mcp_design-os-kernel_publish_vetted_component` tool to publish the component to the centralized library.
-        -   Await user approval before any further kernel actions.
+        -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (local Caduceus registry if available, else Design OS kernel MCP).
+        -   Await user approval before any further registry actions.
 
 3.  **Ensure Test Coverage for Phase Changes:**
     -   **Step 3.1: Determine Phase Scope:** To identify the files changed in this phase, you must first find the starting point. Read `plan.md` to find the Git commit SHA of the *previous* phase's checkpoint. If no previous checkpoint exists, the scope is all changes since the first commit.
@@ -121,9 +121,11 @@ The Superconductor engine operates in either Interactive or Headless mode.
         ```
 
 6.  **Await Explicit User Feedback (Interactive Mode Only):**
-    -   **Headless Mode:** If the engine is running in `--headless` mode, and steps 3 and 4 completed successfully (coverage >80% and all tests pass), **skip** this step and step 5 entirely. The pipeline automatically approves the checkpoint and proceeds to Step 7.
-    -   **Interactive Mode:** After presenting the detailed plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
-    -   **PAUSE** and await the user's response. Do not proceed without an explicit yes or confirmation.
+    -   **Headless Mode:** Skip this step entirely if tests pass and coverage is >80%.
+    -   **Interactive Mode:** 
+        -   **Intermediate Phases:** If this is NOT the final implementation phase of the track, do NOT pause or ask the user for confirmation. Automatically approve the checkpoint and proceed to Step 7.
+        -   **Final Implementation Phase:** If this is the final implementation phase before review/integration, present the manual verification plan and ask: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**" PAUSE and await the user's response. Do not proceed without confirmation.
+
 
 7.  **Create Checkpoint Commit:**
     -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.

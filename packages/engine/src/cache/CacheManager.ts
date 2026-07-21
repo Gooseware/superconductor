@@ -1,12 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 
 export class CacheManager<T> {
   private cachePath: string;
   private readonly MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   constructor(cachePath: string) {
-    this.cachePath = cachePath;
+    this.cachePath = cachePath.startsWith('~/') 
+      ? path.join(os.homedir(), cachePath.slice(2)) 
+      : cachePath;
   }
 
   read(): T | null {

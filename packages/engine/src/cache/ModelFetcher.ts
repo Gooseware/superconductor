@@ -14,11 +14,20 @@ export class ModelFetcher {
       throw new ModelFetchError('Failed to execute agy models', err);
     }
 
-    let parsed: any;
+    let parsed: any = [];
     try {
-      parsed = JSON.parse(output);
+      const lines = output.split('\n');
+      for (const line of lines) {
+         const match = line.match(/([a-z0-9\-]+)\s{2,}(.+)/i);
+         if (match) {
+             parsed.push({ name: match[1], description: match[2].trim() });
+         }
+      }
+      if (parsed.length === 0) {
+          throw new Error('No models found in output');
+      }
     } catch (err) {
-      throw new ModelFetchError('Failed to parse models JSON output', err);
+      throw new ModelFetchError('Failed to parse models output', err);
     }
 
     this.cacheManager.write(parsed);

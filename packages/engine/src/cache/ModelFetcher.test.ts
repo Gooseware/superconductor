@@ -18,13 +18,13 @@ describe('ModelFetcher', () => {
   });
 
   it('should run agy models and parse output', () => {
-    const mockOutput = JSON.stringify([{ name: 'model-a' }, { name: 'model-b' }]);
+    const mockOutput = "⠋ Fetching... \r\nmodel-a   Model A\nmodel-b   Model B";
     vi.mocked(child_process.execSync).mockReturnValue(Buffer.from(mockOutput));
 
     const result = fetcher.fetch();
 
     expect(child_process.execSync).toHaveBeenCalledWith('agy models', { encoding: 'utf-8' });
-    expect(result).toEqual([{ name: 'model-a' }, { name: 'model-b' }]);
+    expect(result).toEqual([{ name: 'model-a', description: 'Model A' }, { name: 'model-b', description: 'Model B' }]);
     expect(cacheManager.write).toHaveBeenCalledWith(result);
   });
 
@@ -36,8 +36,8 @@ describe('ModelFetcher', () => {
     expect(() => fetcher.fetch()).toThrow(ModelFetchError);
   });
 
-  it('should throw ModelFetchError on JSON parse failure', () => {
-    vi.mocked(child_process.execSync).mockReturnValue('Invalid JSON');
+  it('should throw ModelFetchError on parse failure (no models found)', () => {
+    vi.mocked(child_process.execSync).mockReturnValue('Just some garbage output');
 
     expect(() => fetcher.fetch()).toThrow(ModelFetchError);
   });

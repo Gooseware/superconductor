@@ -1,12 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { DesignOSRegistryClient } from './design_os_registry_client.js';
+import { RegistryClientRouter } from './registry_client_router.js';
 
 /**
  * Script to migrate local project registries to the centralized Design OS registry.
  */
-export async function migrateLocalRegistry(registryRoot, clientExecutor) {
-  const client = new DesignOSRegistryClient(clientExecutor);
+export async function migrateLocalRegistry(registryRoot, clientExecutor, options = {}) {
+  const client = new RegistryClientRouter({ executor: clientExecutor, ...options });
   const results = { migrated: [], failed: [] };
 
   async function scanDirectory(dir) {

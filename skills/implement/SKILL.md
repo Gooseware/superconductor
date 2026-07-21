@@ -138,15 +138,20 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         -   If approved, update `plan.md`.
 
 4.  **Execute Tasks and Update Track Plan:**
-    a. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
-    b. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
+    a. **Check for Swarm Orchestration Skill:**
+       - Search for the `swarm-orchestrate` skill in the catalog and active skills.
+       - If `swarm-orchestrate` is available, ask the user: "I've detected the `swarm-orchestrate` skill. Would you like to launch the autonomous multi-agent swarm (Dreamer -> Processors -> Reviewers -> Oracle) to complete this track with zero-touch intermediate loops?" (type: "yesno").
+       - **If yes:** Transition execution to the `swarm-orchestrate` skill protocol and halt normal implement execution.
+       - **If no:** Proceed with the standard execution steps below.
+    b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
+    c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
        - **Review Triggers:**
          1. **Git Commit:** If the last commit message contains `ready-for-review` (case-insensitive).
          2. **CLI Command:** If the user has just run `/superconductor:review`.
          3. **Plan Update:** If a task in `plan.md` is marked as `(READY FOR REVIEW)`.
        - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
-    c. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan one by one.**
-    d. **For Each Task, You MUST:**
+    d. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan one by one.**
+    e. **For Each Task, You MUST:**
         i. **Determine Task Tier:** Read the parent task line in `plan.md` to parse the `[TIER-N]` annotation at the end of the line. If no annotation is found, default to `[TIER-3]`.
         ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
         iii. **Tier-Aware Execution Rules:**
@@ -154,14 +159,13 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             - **For `[TIER-4]` Tasks:** Read the configured Tier 4 model name. Announce to the user: "This task requires deep reasoning (Tier 4). Using model: <Model Name>." Then proceed.
             - **For `[TIER-2]` and `[TIER-3]` Tasks:** Execute standard tool calls and logic with no special announcements.
         iv. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
-           - **CRITICAL:** Every human-in-the-loop interaction, confirmation, or request for feedback mentioned in the **Workflow** (e.g., manual verification plans or guidance on persistent failures) MUST be conducted using the `ask_user` tool.
+           - **CRITICAL:** To minimize human-in-the-loop interruptions, phase completion checkpoints in the workflow must run all tests and verify test coverage automatically. Do NOT prompt the user for manual verification checkpoints during intermediate phases. All human-in-the-loop checks must be deferred to the final track review and cleanup phase at the very end of the track.
 
 5.  **Finalize Track:**
     -   After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
     -   This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
     -   **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(superconductor): Mark track '<track_description>' as complete`.
     -   Announce that the track is fully complete and the tracks file has been updated.
-
 
 ---
 
@@ -170,33 +174,33 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 1.  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
 
-2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for `design-os-kernel` inclusion.
+2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Caduceus Golden Registry (or fallback Design OS kernel) inclusion.
 
-3.  **Kernel Inclusion Analysis:**
+3.  **Registry Inclusion Analysis:**
     -   **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
         -   **New Files Scan:** Check for new files in known component directories.
         -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
-        -   **Theme Usage Scan:** Check for usage of `design-os` tokens and primitives.
+        -   **Theme Usage Scan:** Check for usage of `design-os` or caduceus tokens and primitives.
     -   **Draft Publication Proposals:** For any high-quality, reusable component identified:
         -   Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
-        -   Draft a publication proposal for the centralized `design-os-kernel`.
+        -   Draft a publication proposal.
         -   Explain the rationale for why this component is a good candidate.
-        -   **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the kernel publication proposal.
+        -   **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the registry publication proposal.
             - **questions:**
-                - **header:** "Kernel Proposal"
-                - **question:** "I've identified '<component_name>' as a potential candidate for the `design-os-kernel`. Would you like me to draft a publication proposal?"
+                - **header:** "Registry Proposal"
+                - **question:** "I've identified '<component_name>' as a potential candidate for the Caduceus Golden Registry (or fallback Design OS kernel). Would you like me to publish it?"
                 - **type:** "yesno"
-        -   **Action:** If approved, use the `mcp_design-os-kernel_publish_vetted_component` tool to publish the component to the centralized library.
+        -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (local Caduceus repo if available, else Design OS kernel MCP).
 
 4.  **Load Track Specification:** Read the track's **Specification**.
 
-4.  **Load Project Documents:**
+5.  **Load Project Documents:**
     -   Resolve and read:
         -   **Product Definition**
         -   **Tech Stack**
         -   **Product Guidelines**
 
-5.  **Analyze and Update:**
+6.  **Analyze and Update:**
     a.  **Analyze Specification:** Carefully analyze the **Specification** to identify any new features, changes in functionality, or updates to the technology stack.
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
@@ -240,21 +244,13 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
                         <Insert Proposed product-guidelines.md Updates/Diff Here>
                     - **type:** "yesno"
-        iv. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
 
-6.  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
+7.  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
     - **Commit Changes:**
         - If any files were changed (**Product Definition**, **Tech Stack**, or **Product Guidelines**), you MUST stage them and commit them.
         - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
-    - **Example (if Product Definition was changed, but others were not):**
-        > "Documentation synchronization is complete.
-        > - **Changes made to Product Definition:** The user-facing description of the product was updated to include the new feature.
-        > - **No changes needed for Tech Stack:** The technology stack was not affected.
-        > - **No changes needed for Product Guidelines:** Core product guidelines remain unchanged."
-    - **Example (if no files were changed):**
-        > "Documentation synchronization is complete. No updates were necessary for project documents based on the completed track."
-
 
 ---
 
@@ -281,35 +277,35 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             - Label: "Delete", Description: "Permanently delete (Requires Stage 1 & 2 approval)."
             - Label: "Skip", Description: "Do nothing and leave it in the tracks file."
 
-        4.  **Handle User Response:**
-        *   **If user chooses "Oracle Review":**
-            - **header:** "Oracle Model"
-            - **question:** "Which model should the Oracle use for this deep audit?"
-            - **type:** "choice"
-            - **options:** (Populate this dynamically with the models returned by running `agy models`. Example labels: "Gemini 3.1 Pro", "Claude Sonnet 4.6", "Claude Opus 4.6", etc.)
-            - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
-        *   **If user chooses "User Approval":**
-            - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
-            - **Action:** Ask the user: "The Oracle has approved the changes. Do you provide final manual approval to proceed to cleanup?" (type: "yesno")
-            - **Result:** If 'yes', mark the track as fully approved.
-        *   **If user chooses "Merge":**
-            - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
-            - **Target Selection:** Use `ask_user` to select target: `dev`, `main`, `release/v*`.
-            - **Action:** `GitWorkflowManager.mergeToTarget(selected_target, track_branch)`.
-            - **Post-Merge:** Transition to **Deployment Suggestion**.
-        *   **If user chooses "Archive" or "Delete":**
-            - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.
-            - **Action (Archive):**
-                i.   **Create Archive Directory:** Check for the existence of `superconductor/archive/`. If it does not exist, create it.
-                ii.  **Archive Track Folder:** Move the track's folder to `superconductor/archive/<track_id>`.
-                iii. **Remove from Tracks File:** Remove the track entry from the **Tracks Registry**.
-                iv.  **Commit Changes:** Stage and commit with `chore(superconductor): Archive track '<track_description>'`.
-                v.   **Announce Success:** Announce: "Track '<track_description>' has been successfully archived."
-            - **Action (Delete):**
-                i. **CRITICAL WARNING:** Ask for final confirmation via `ask_user` (yesno).
-                ii. **If 'yes'**: Delete track folder, remove from registry, commit with `chore(superconductor): Delete track '<track_description>'`, and announce success.
-        *   **If user chooses "Skip":**
-            - Announce: "Okay, the completed track will remain in your tracks file for now."
+4.  **Handle User Response:**
+    *   **If user chooses "Oracle Review":**
+        - **header:** "Oracle Model"
+        - **question:** "Which model should the Oracle use for this deep audit?"
+        - **type:** "choice"
+        - **options:** (Populate this dynamically with the models returned by running `agy models`. Example labels: "Gemini 3.1 Pro", "Claude Sonnet 4.6", "Claude Opus 4.6", etc.)
+        - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
+    *   **If user chooses "User Approval":**
+        - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
+        - **Action:** Ask the user: "The Oracle has approved the changes. Do you provide final manual approval to proceed to cleanup?" (type: "yesno")
+        - **Result:** If 'yes', mark the track as fully approved.
+    *   **If user chooses "Merge":**
+        - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
+        - **Target Selection:** Use `ask_user` to select target: `dev`, `main`, `release/v*`.
+        - **Action:** `GitWorkflowManager.mergeToTarget(selected_target, track_branch)`.
+        - **Post-Merge:** Transition to **Deployment Suggestion**.
+    *   **If user chooses "Archive" or "Delete":**
+        - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.
+        - **Action (Archive):**
+            i.   **Create Archive Directory:** Check for the existence of `superconductor/archive/`. If it does not exist, create it.
+            ii.  **Archive Track Folder:** Move the track's folder to `superconductor/archive/<track_id>`.
+            iii. **Remove from Tracks File:** Remove the track entry from the **Tracks Registry**.
+            iv.  **Commit Changes:** Stage and commit with `chore(superconductor): Archive track '<track_description>'`.
+            v.   **Announce Success:** Announce: "Track '<track_description>' has been successfully archived."
+        - **Action (Delete):**
+            i. **CRITICAL WARNING:** Ask for final confirmation via `ask_user` (yesno).
+            ii. **If 'yes'**: Delete track folder, remove from registry, commit with `chore(superconductor): Delete track '<track_description>'`, and announce success.
+    *   **If user chooses "Skip":**
+        - Announce: "Okay, the completed track will remain in your tracks file for now."
 
     *   **Deployment Suggestion:**
         - **Action:** Use the **ProjectConfigAnalyzer** to identify potential deployment commands for the `selected_target` branch.
@@ -353,7 +349,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
             iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
     - If the report suggests **Kernel Sync Candidates**:
         - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `design-os-kernel`. Would you like me to publish them now?" (type: "yesno")
-        - **Action:** If yes, use the drafted `ComponentPayload` and the `mcp_design-os-kernel_publish_vetted_component` tool.
+        - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to route publication to the Caduceus registry. If Caduceus is not available, fall back to the `mcp_design-os-kernel_publish_vetted_component` tool.
     - If "Ready" verdict:
         - Proceed to finalization.
 
