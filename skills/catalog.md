@@ -205,3 +205,21 @@ Agent skills that power the automated, structured planning and component generat
 - **Party**: 1p
 - **Detection Signals**:
     - **Keywords**: `extract component`, `Opinion Block`, `reusable component`
+
+## Caduceus Integration Skills
+Skills focused on orchestrating autonomous agent swarms and integrating with Caduceus.
+
+### swarm-orchestrate
+- **Description**: Multi-agent swarm orchestration with automated code > review > code > review > oracle loop for Superconductor tracks.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/swarm-orchestrate/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `swarm`, `orchestration`, `multi-agent`, `review loop`, `parallel workers`
+
+### caduceus-superconductor
+- **Description**: Protocol for Caduceus agents to operate within the Superconductor spec-driven framework.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/caduceus-superconductor/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `caduceus`, `swarm`, `multi-agent`, `code generation`, `parallel agents`
+

@@ -35,7 +35,7 @@ async function runTests() {
     return { success: true };
   };
 
-  const results = await migrateLocalRegistry(tempRegistry, mockExecutor);
+  const results = await migrateLocalRegistry(tempRegistry, mockExecutor, { libraryPath: '/non/existent/path/for/sure' });
 
   if (results.migrated.length !== 1 || results.migrated[0] !== 'test-block/base') {
     throw new Error('Should have migrated 1 component');

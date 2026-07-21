@@ -16,15 +16,18 @@ Superconductor is a Gemini CLI extension that enables **Context-Driven Developme
 5. **Token Economics & Routing:** Intelligently manage context size, tool surfaces, and model selection to optimize cost and performance, dynamically escalating to frontier models only when necessary.
 6. **Ensure Standards:** Use specialized code review skills and standardized tech stacks to maintain consistency across different projects and teams.
 7. **Production-Grade Verification:** Enforce rigorous code quality with automated property-based testing (PBT), mutation testing, and headless VLM visual auditing to eliminate AI self-validation bias.
+8. **Multi-Agent Swarm Orchestration:** Coordinate parallel specialized agents (Dreamer, Processor, Reviewer, Oracle) in an autonomous loop to build, critique, and finalize code with minimal human intervention.
 
 ## Key Features
 - **Scaffolding/Setup:** Commands (`/superconductor:setup`) to initialize and configure the project context (product, guidelines, tech stack, workflow).
-- **Track Management:** Automated generation of task-specific specifications and actionable plans (`/superconductor:newTrack`).
-- **Implement Workflow:** An agent-led implementation loop (`/superconductor:implement`) that follows defined workflows (e.g., TDD), incorporates an iterative code review and remediation loop, and provides manual verification checkpoints.
+- **Track Management:** Automated generation of task-specific specifications and actionable plans (`/superconductor:newTrack`) enhanced by proactive best practices research and Architecture Committee debates.
+- **Implement Workflow:** An agent-led implementation loop (`/superconductor:implement`) supporting both standard execution and multi-agent swarm orchestration.
+- **Autonomous Swarm Loop:** Runs an autonomous code -> review -> code -> review -> oracle loop that resolves compilation and test issues without interrupting the user.
+- **Reduced Human-in-the-Loop:** Automatically verifies intermediate milestones and only requests human review at the very start and end of track implementation.
 - **Automated Git Workflow:** Seamless branch management from `main` and interactive merge target selection upon track completion.
 - **Dynamic Deployment Discovery:** Automatically identifies build and deployment commands from the project configuration to suggest post-merge deployment.
 - **Standardized Tech Stacks:** A library of pre-defined, high-quality technology stacks that users can choose from based on their specific requirements.
-- **Broader Ecosystem Integration:** Hooks and integrations for common external tools and a broader development ecosystem.
+- **Broader Ecosystem Integration:** Hooks and integrations for common external tools, including Caduceus context injection and development skills.
 
 ## Success Metrics
 - Reduction in "drift" between implementation and project goals.

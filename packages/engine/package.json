@@ -25,6 +25,7 @@
     "yaml": "^2.4.1"
   },
   "dependencies": {
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^12.11.1",
+    "enquirer": "^2.4.1"
   }
 }

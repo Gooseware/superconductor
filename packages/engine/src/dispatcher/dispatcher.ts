@@ -5,6 +5,9 @@ import { TaskLockManager } from '../concurrency/lock-manager.js';
 
 import { execSync } from 'child_process';
 
+import { CacheManager } from '../cache/CacheManager.js';
+import { ModelFetcher } from '../cache/ModelFetcher.js';
+
 function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
   const config: Record<number, { models: string[] }> = {
     1: { models: ['script/regex'] },
@@ -14,20 +17,25 @@ function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
   };
 
   try {
-    const output = execSync('agy models', { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const models = output.split('\n').map(m => m.trim()).filter(m => m.length > 0);
-
-    for (const model of models) {
-      const lower = model.toLowerCase();
+    const cacheManager = new CacheManager<any[]>('~/.gemini/available_models.json');
+    let modelsArray = cacheManager.read();
+    if (!modelsArray) {
+      const fetcher = new ModelFetcher(cacheManager);
+      modelsArray = fetcher.fetch();
+    }
+    
+    for (const m of modelsArray) {
+      const lower = m.name.toLowerCase() + " " + (m.description || "").toLowerCase();
       if (lower.includes('opus') || lower.includes('oracle') || lower.includes('high')) {
-        config[4].models.push(model);
+        config[4].models.push(m.name);
       } else if (lower.includes('pro') || lower.includes('sonnet') || lower.includes('thinking')) {
-        config[3].models.push(model);
+        config[3].models.push(m.name);
       } else {
-        config[2].models.push(model);
+        config[2].models.push(m.name);
       }
     }
   } catch (err) {
+    console.error('fetchDynamicTierConfig Error:', err);
     // Fallback if agy is not available
     config[2].models = ['flash', 'claude-3-haiku'];
     config[3].models = ['pro', 'claude-3-5-sonnet'];
