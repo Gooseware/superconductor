@@ -18,7 +18,7 @@ export class ModelFetcher {
     try {
       const lines = output.split('\n');
       for (const line of lines) {
-         const match = line.match(/([a-z0-9\-]+)\s{2,}(.+)/i);
+         const match = line.match(/([a-z0-9\-\.]+)\s{2,}(.+)/i);
          if (match) {
              parsed.push({ name: match[1], description: match[2].trim() });
          }

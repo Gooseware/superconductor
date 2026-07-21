@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import * as cp from 'child_process';
 
 vi.mock('child_process', () => ({
-  execSync: vi.fn(() => 'Gemini 3.5 Flash (Medium)\nGemini 3.1 Pro (Low)\nClaude Opus 4.6 (Thinking)\n')
+  execSync: vi.fn(() => 'gemini-3.5-flash-medium  Gemini 3.5 Flash (Medium)\ngemini-3.1-pro-low  Gemini 3.1 Pro (Low)\nclaude-opus-4-6-thinking  Claude Opus 4.6 (Thinking)\n')
 }));
 
 // Import after mocking
@@ -25,17 +25,17 @@ describe('Dispatcher', () => {
 
     it('maps TaskTier 2 to flash model spec', () => {
       const config = dispatcher.getTierConfig(2);
-      expect(config.models).toContain('Gemini 3.5 Flash (Medium)');
+      expect(config.models).toContain('gemini-3.5-flash-medium');
     });
 
     it('maps TaskTier 3 to pro model spec', () => {
       const config = dispatcher.getTierConfig(3);
-      expect(config.models).toContain('Gemini 3.1 Pro (Low)');
+      expect(config.models).toContain('gemini-3.1-pro-low');
     });
 
     it('maps TaskTier 4 to oracle model spec', () => {
       const config = dispatcher.getTierConfig(4);
-      expect(config.models).toContain('Claude Opus 4.6 (Thinking)');
+      expect(config.models).toContain('claude-opus-4-6-thinking');
     });
   });
 
