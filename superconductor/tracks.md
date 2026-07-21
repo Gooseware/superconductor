@@ -44,5 +44,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Model Selector Automation**
+- [x] **Track: Model Selector Automation**
 *Link: [./tracks/model_selector_20260721/](./tracks/model_selector_20260721/)*
