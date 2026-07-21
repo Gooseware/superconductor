@@ -1,0 +1,8 @@
+{
+  "id": "model_selector_20260721",
+  "name": "Model Selector Automation",
+  "description": "Create a model selector that fetches available models lazily once a day and provides a TUI prompt.",
+  "type": "Feature",
+  "createdAt": "2026-07-21T07:25:37+04:00",
+  "status": "planned"
+}

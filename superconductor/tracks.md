@@ -41,3 +41,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Workspace Pooling for Job Dispatcher**
 *Link: [./tracks/workspace_pooling_20260712/](./tracks/workspace_pooling_20260712/)*
+
+---
+
+- [ ] **Track: Model Selector Automation**
+*Link: [./tracks/model_selector_20260721/](./tracks/model_selector_20260721/)*
