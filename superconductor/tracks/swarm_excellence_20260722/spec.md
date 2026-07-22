@@ -16,9 +16,14 @@ Key Objectives:
 
 ---
 
-## 2. Existing Framework — Extend, Never Reimpleiment
+## 2. Existing Framework — Evaluate Before Extending or Replacing
 
-> **CRITICAL IMPLEMENTATION DIRECTIVE**: This track MUST build on top of the existing Superconductor engine infrastructure. Before writing any new code, the implementing agent MUST read and understand the following files. Do NOT duplicate their logic.
+> **IMPLEMENTATION DIRECTIVE**: Before writing any code for any task in this track, the implementing agent MUST read the relevant existing modules listed below. For each module touched, the agent MUST surface a brief evaluation in `swarm_log.md` covering:
+> - **Case for Extending** — Why the existing implementation fits the new requirement; estimated integration budget (tokens / time).
+> - **Case for Replacing/Rebuilding** — Whether the existing contract, architecture, or performance characteristics are fundamentally misaligned; estimated rebuild budget.
+> - **Decision** — Which path is taken and the decisive reason. If the rebuild case is materially stronger, rebuild. If cases are roughly equal, prefer extension to minimise regression surface.
+>
+> An agent that silently extends OR silently rebuilds without this analysis is out of compliance with the spec.
 
 | Existing Module | File | What It Already Does | What This Track Extends It With |
 |:---|:---|:---|:---|

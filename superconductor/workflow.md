@@ -8,7 +8,11 @@
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
-7. **Build on Existing Framework — Extend, Never Reimplement:** Before writing any code, the implementing agent MUST read the relevant existing modules in the codebase. If a class, method, or interface already exists that serves the purpose, **extend it** — do not create a parallel implementation. This applies universally unless the track spec explicitly states otherwise. New code that duplicates existing functionality is a defect and will be rejected at the Oracle review gate.
+7. **Critically Evaluate Before Extending or Replacing Existing Code:** Before touching any existing module, the implementing agent MUST reason explicitly about both paths and surface that reasoning in the swarm log or a code comment:
+   - **Case for Extending:** Why does the existing implementation serve the new requirement well? What is the integration effort and estimated token/time budget?
+   - **Case for Replacing/Rebuilding:** Is the existing implementation fundamentally misaligned with the new requirement — in architecture, contract, or performance characteristics? Would extending it produce worse code than a clean implementation? What is the estimated token/time budget?
+   - **Decision:** State which path is chosen and why. If the rebuilding case is materially stronger, rebuilding is the correct choice. If the cases are roughly equal, prefer extension to reduce risk and regression surface.
+   - This reasoning must be present before any implementation begins. An agent that silently extends OR silently rebuilds without surfacing this analysis is out of compliance with the workflow.
 
 ## Task Workflow
 

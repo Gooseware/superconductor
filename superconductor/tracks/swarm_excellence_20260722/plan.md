@@ -1,6 +1,6 @@
 # Implementation Plan: Swarm Excellence Engine
 
-> **CRITICAL DIRECTIVE FOR ALL IMPLEMENTING AGENTS**: Before writing any code for any task in this plan, you MUST read the existing module listed in the "Existing Framework" table in `spec.md`. This track extends existing infrastructure — it does NOT rebuild it. If a class, method, or interface already exists, extend it. Do not create a parallel implementation.
+> **AGENT DIRECTIVE — Read Before Starting Any Task**: For every existing module you are asked to extend, you MUST first read its source, then log in `swarm_log.md`: (1) the case for extending it, (2) the case for replacing it, and (3) your decision with estimated token/time budget for each path. Silent extension or silent rebuilding without this reasoning is a workflow violation and grounds for Oracle rejection.
 
 ---
 
