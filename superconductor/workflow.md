@@ -8,6 +8,7 @@
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
+7. **Build on Existing Framework — Extend, Never Reimplement:** Before writing any code, the implementing agent MUST read the relevant existing modules in the codebase. If a class, method, or interface already exists that serves the purpose, **extend it** — do not create a parallel implementation. This applies universally unless the track spec explicitly states otherwise. New code that duplicates existing functionality is a defect and will be rejected at the Oracle review gate.
 
 ## Task Workflow
 
