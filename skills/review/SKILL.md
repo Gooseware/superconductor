@@ -239,3 +239,64 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         ii.  **If yes:** Delete track folder, remove from **Tracks Registry**, commit (`chore(superconductor): Delete track '<track_name>'`), announce success.
         iii. **If no:** Cancel.
     *   **If "Skip":** Leave track as is.
+
+---
+
+## 4.0 ADVERSARIAL AUDIT PROTOCOL
+**Activate this after the standard analysis in §2.3 to catch shenanigans a surface-level review misses.**
+
+You are now the **adversarial reviewer**. Your job is to assume the implementation is plausible but subtly wrong. Trust nothing at face value.
+
+### 4.1 Undefined Path Hunting
+
+For every conditional block in the changed files, find the implicit branches:
+
+- **"If X is available" — what happens if X is NOT?**  
+  Check: Does the code/skill explicitly handle absence, or silently fall through? Silent fallthrough is only acceptable if the preceding logic makes it unambiguous. If ambiguous, flag as `CRITICAL`.
+
+- **"Headless mode does Y" — what if headless AND the prerequisite for Y is missing?**  
+  Example: "Headless mode → auto-swarm" — but what if swarm skill absent in headless mode? Every headless shortcut must handle its dependencies being unavailable.
+
+- **Every `if/else` pair: read the `else` first.** The `else` is where bugs hide.
+
+### 4.2 Plan Task Integrity Check (False Positive Detection)
+
+For every task marked `[x]` complete in `plan.md`:
+
+1. **Find the corresponding evidence:** Locate the commit SHA, test output, or explicit artifact.
+2. **Verify the evidence is genuine:**
+   - If a task says "sync file to X" — verify the file was actually modified, not skipped as a "same file" no-op.
+   - If a task says "run tests" — verify the test output was for the *new* code, not cached/pre-existing.
+   - If a task says "verify X" — check the verification wasn't just a line count / surface check that misses logic gaps.
+3. **Flag as `ADVISORY`** any task marked `[x]` where the completion evidence is a no-op, error, or mismatch.
+
+### 4.3 Test Coverage Legitimacy Check
+
+The test suite passing is not the same as the change being tested:
+
+1. **Count new test files added in the diff.** If the diff adds behavioral changes but zero new test files: flag as `ADVISORY` (minimum) or `HIGH` if the behavior is complex or branching.
+2. **Check if existing tests were updated to cover new code paths.** If not, the "171 tests passed" verdict is a red herring — it proves the old code didn't break, not that the new code works.
+3. **For skill SKILL.md changes:** Assert that at least one behavior integration test or SKILL.md syntax test exists. If not: flag with a recommendation to add one.
+
+### 4.4 "Recommended" Label Audit
+
+Any time a prompt option or default is labeled **"Recommended"**, audit it:
+
+- Is the recommendation **context-sensitive** (e.g., only recommended for 5+ tasks) or **blanket** (always recommended)?
+- Does the description explain **when** it is appropriate?
+- Could a brand-new user pick it blindly in an inappropriate context?
+- If the recommendation is unconditional: flag as `ADVISORY` with suggested context qualifier.
+
+### 4.5 Shenanigan Checklist
+
+Run through these before finalizing the review:
+
+| Check | What to look for |
+|---|---|
+| **Grade inflation** | Does the self-review score match the actual findings? A 10/10 with unfixed edge cases is fraud. |
+| **No-op task completion** | Tasks marked done that failed silently (e.g., `cp: same file`, `ln: already exists`). |
+| **Spec drift** | Does the implementation actually match the AC in `spec.md`, or did it drift to something adjacent? Re-read each AC against the actual diff — not the commit message. |
+| **Missing else** | Every conditional has an else; if it's not in the code, it's in the agent's imagination. |
+| **Self-referential verification** | Did the implementing agent review its own work? If yes, apply extra scrutiny. |
+| **Hollow tests** | Tests that always pass regardless of implementation (e.g., line count test passes even if the logic is completely wrong). |
+| **Optimistic task closures** | Tasks closed `[x]` because the task ran without error, even though the outcome was wrong or trivially incomplete. |
