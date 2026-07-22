@@ -290,9 +290,9 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 4.  **Handle User Response:**
     *   **If user chooses "Oracle Review":**
         - **header:** "Oracle Model"
-        - **question:** "Which model should the Oracle use for this deep audit?"
+        - **question:** "Which model should the Oracle use for this deep audit? (Reasoning models — Pro, Sonnet Thinking, Opus — are strongly recommended. Fast models like Flash may miss subtle correctness issues and are prone to grade inflation on adversarial checks.)"
         - **type:** "choice"
-        - **options:** (Populate this dynamically with the models returned by running `agy models`. Example labels: "Gemini 3.1 Pro", "Claude Sonnet 4.6", "Claude Opus 4.6", etc.)
+        - **options:** (Populate this dynamically with the models returned by running `agy models`. Annotate reasoning-capable models with `[Recommended for Oracle]`. Example: "Gemini 3.1 Pro [Recommended for Oracle]", "Claude Sonnet 4.6 Thinking [Recommended for Oracle]", "Claude Opus 4.6 [Recommended for Oracle]", "Gemini 3.6 Flash", etc.)
         - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
     *   **If user chooses "User Approval":**
         - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
@@ -342,7 +342,18 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         -   Scan for feature gaps and DRY violations.
     -   **Generate Report:** Output the `Oracle Audit Report` according to the template.
 
-3.  **Auto-Fix Loop & Remediation:**
+3.  **Adversarial Audit Phase (Mandatory — runs after every standard audit):**
+    -   Load `skills/review/SKILL.md` §4.0 Adversarial Audit Protocol.
+    -   Execute the full protocol in sequence:
+        -   **§4.1 Undefined Path Hunting:** For every conditional block in the diff, find implicit branches. Flag any `if <X>` with no explicit `else` or fallthrough as `CRITICAL`.
+        -   **§4.2 Plan Task Integrity:** For every task marked `[x]` in `plan.md`, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
+        -   **§4.3 Test Coverage Legitimacy:** Count new test files in the diff. If behavioral changes were added but zero new tests were written, flag as `HIGH`. Verify "tests passed" means *new code* was covered, not just that old code didn't break.
+        -   **§4.4 "Recommended" Label Audit:** For every prompt option or default labeled "Recommended", verify the recommendation is context-qualified, not blanket.
+        -   **§4.5 Shenanigan Checklist:** Run all 8 checks — grade inflation, no-op task completions, spec drift, missing else, self-referential verification, hollow tests, optimistic closures, prerequisite+shortcut traps.
+    -   **Append findings** from the Adversarial Audit to the Oracle Audit Report under a dedicated `## Adversarial Audit Findings` section.
+    -   **CRITICAL:** If the Adversarial Audit finds any issue that the standard Audit Phase missed, the Oracle's final verdict MUST be `Needs Fixes` regardless of the standard audit result.
+
+4.  **Auto-Fix Loop & Remediation:**
     - If the report contains "Auto-Fix Candidates":
         - **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
         - **Action:** If yes, for each candidate:
@@ -363,5 +374,5 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     - If "Ready" verdict:
         - Proceed to finalization.
 
-4.  **Finalization:**
+5.  **Finalization:**
     -   Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
