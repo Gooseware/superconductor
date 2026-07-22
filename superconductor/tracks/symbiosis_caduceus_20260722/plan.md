@@ -22,7 +22,7 @@
 
 ---
 
-## Phase 1: Shared Schema Package
+## Phase 1: Shared Schema Package [checkpoint: 690a88e]
 
 *(Work in Superconductor repo — types consumed by both repos via path aliases)*
 
@@ -34,7 +34,7 @@
 - [x] Task: Configure Caduceus path alias for shared schema [b439923] [TIER-2] [AGENT:caduceus-processor]
     - [ ] Add tsconfig path alias `@superconductor/shared-schema → [superconductor-path]/src/shared-schema` in Caduceus tsconfig.
     - [ ] Write a compile-time test importing from alias.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Shared Schema Package' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Shared Schema Package' (Protocol in workflow.md)
 
 ---
 
