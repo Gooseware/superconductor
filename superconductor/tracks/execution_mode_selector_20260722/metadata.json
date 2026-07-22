@@ -1,0 +1,10 @@
+{
+  "id": "execution_mode_selector_20260722",
+  "name": "Implement Execution Mode Selector",
+  "type": "Feature",
+  "status": "pending",
+  "created": "2026-07-22T18:01:00+04:00",
+  "updated": "2026-07-22T18:01:00+04:00",
+  "description": "Presents an explicit interactive choice between Multi-Agent Swarm (Recommended) and Sequential (Standard) mode when launching implement.",
+  "targetBranch": "main"
+}
