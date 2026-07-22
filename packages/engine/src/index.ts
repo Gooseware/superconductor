@@ -7,5 +7,6 @@ export { SuperconductorEventEmitter } from './events/SuperconductorEventEmitter.
 export * from './generator/index.js';
 export * from './engine.js';
 export { ComponentStagingWriter } from './curator/ComponentStagingWriter.js';
+export { SkillTriggerEngine, type SkillManifest, type SkillMatch } from './skills/skill-trigger-engine.js';
 // Add future module exports here
 
