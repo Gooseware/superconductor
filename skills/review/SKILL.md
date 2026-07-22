@@ -300,3 +300,5 @@ Run through these before finalizing the review:
 | **Self-referential verification** | Did the implementing agent review its own work? If yes, apply extra scrutiny. |
 | **Hollow tests** | Tests that always pass regardless of implementation (e.g., line count test passes even if the logic is completely wrong). |
 | **Optimistic task closures** | Tasks closed `[x]` because the task ran without error, even though the outcome was wrong or trivially incomplete. |
+
+> **Living Document:** This checklist is automatically evolved after every Oracle review via the §7.0 Adversarial Audit Debrief (ABI — Always Be Improving) protocol in `skills/implement/SKILL.md`. New patterns inductied from Oracle runs are appended below with a provenance comment: `<!-- Inducted: <track_id> — <date> — <trigger> -->`.

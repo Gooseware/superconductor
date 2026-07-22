@@ -98,3 +98,23 @@ Run all 8 checks before finalizing:
 
 ## Auto-Fix Instructions
 For every finding marked as an "Auto-Fix Candidate," provide a clear, apply-able Git diff. The developer agent will attempt to apply these using a Red-Green-Refactor loop.
+
+---
+
+## Debrief Output (ABI — Always Be Improving)
+After completing your audit, answer these three questions. This output is consumed by §7.0 of the Superconductor implement skill to evolve the adversarial checklist in situ.
+
+**Q1 — New Patterns:**
+Did you encounter a shenanigan pattern during this audit that is NOT yet in the checklist? If yes, format it as:
+```
+| **<Pattern Name>** | <What to look for — one sentence> |
+```
+If no: write `NONE`.
+
+**Q2 — False Positives / Refinements:**
+Did any existing checklist item fire incorrectly, feel too broad, or miss nuance for this type of change? If yes, write the current row text and your proposed revision. If no: write `NONE`.
+
+**Q3 — Severity Calibration:**
+Were any findings mis-categorised (too harsh or too lenient)? If yes, write the pattern name and the corrected severity mapping. If no: write `NONE`.
+
+> If all three answers are `NONE`, the §7.0 debrief will skip silently — no user prompt, no commit. Only non-NONE answers trigger the approval gate.
