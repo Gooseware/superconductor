@@ -129,29 +129,29 @@
 
 ---
 
-## Phase 7: Caduceus-Side Track Creation
+## Phase 7: Caduceus-Side Track Creation [checkpoint: cacbbac]
 
 *(Create matching tracks in the Caduceus Superconductor directory)*
 
-- [ ] Task: Create Caduceus-side track files [TIER-2] [AGENT:caduceus-organizer]
+- [x] Task: Create Caduceus-side track files [cacbbac] [TIER-2] [AGENT:caduceus-organizer]
     - [ ] Create directory `superconductor/tracks/symbiosis_superconductor_20260722/` in Caduceus repo.
     - [ ] Write `spec.md` (Caduceus-perspective: Phases 3, 4, 5, 6 Caduceus-side work).
     - [ ] Write `plan.md` (Caduceus-perspective tasks only, with Superconductor workflow task markers).
     - [ ] Write `metadata.json` with `{ trackId, title, status, created, repo }`.
     - [ ] Write `index.md` linking spec and plan.
     - [ ] Update Caduceus `superconductor/tracks.md` registry with new entry.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Caduceus-Side Track Creation' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Caduceus-Side Track Creation' (Protocol in workflow.md)
 
 ---
 
-## Phase 8: Integration & Finalization
+## Phase 8: Integration & Finalization [checkpoint: c7eb1dc]
 
-- [ ] Task: End-to-end integration test across both repos [TIER-4] [AGENT:caduceus-oracle]
+- [x] Task: End-to-end integration test across both repos [c7eb1dc] [TIER-4] [AGENT:caduceus-oracle]
     - [ ] Write E2E test sequence: start Superconductor implement session → model resolved via `SmartModelResolver` → `AgentTurnEvent` emitted → Caduceus `pre_invoke` detects workspace + injects `<SUPERCONDUCTOR_CONTEXT>` → task completes → staging manifest written → Caduceus `StagingWatcher` ingests → `AdaptiveRouter` suggests model based on history.
     - [ ] Verify all acceptance criteria from `spec.md` pass.
     - [ ] Run graceful degradation tests: Superconductor works when Caduceus MCP is down; Caduceus works when Superconductor workspace absent.
-- [ ] Task: Documentation updates [TIER-2] [AGENT:caduceus-processor]
+- [x] Task: Documentation updates [c7eb1dc] [TIER-2] [AGENT:caduceus-processor]
     - [ ] Update Superconductor `UPDATES.md` and `README.md` with new capabilities (model switcher, event bus, staging bridge).
     - [ ] Update Caduceus `README.md` with Superconductor detection, model overrides, staging watcher, and adaptive routing.
     - [ ] Update Superconductor `superconductor/agent-config.md` with notes on Caduceus integration.
-- [ ] Task: Integrate track 'symbiosis_caduceus_20260722' into main branch. [TIER-2] [AGENT:caduceus-reviewer]
+- [x] Task: Integrate track 'symbiosis_caduceus_20260722' into main branch. [c7eb1dc] [TIER-2] [AGENT:caduceus-reviewer]
