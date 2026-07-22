@@ -72,5 +72,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Headless Batch Track Executor**
 *Link: [./tracks/headless_batch_20260722/](./tracks/headless_batch_20260722/)*
 
+---
+
+- [x] **Track: Implement Execution Mode Selector**
+*Link: [./tracks/execution_mode_selector_20260722/](./tracks/execution_mode_selector_20260722/)*
+
 
 
