@@ -14,11 +14,11 @@
 
 ---
 
-## Phase 0: Swarm Preflight
+## Phase 0: Swarm Preflight [checkpoint: 4238cf6]
 
-- [ ] Task: Verify if the `swarm-orchestrate` skill is installed and loaded. [TIER-2] [AGENT:caduceus-processor]
-- [ ] Task: Confirm both repos are on clean branches; create `track/symbiosis_caduceus_20260722` in Superconductor repo and `track/symbiosis_superconductor_20260722` in Caduceus repo. [TIER-1] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify if the `swarm-orchestrate` skill is installed and loaded. [4238cf6] [TIER-2] [AGENT:caduceus-processor]
+- [x] Task: Confirm both repos are on clean branches; create `track/symbiosis_caduceus_20260722` in Superconductor repo and `track/symbiosis_superconductor_20260722` in Caduceus repo. [4238cf6] [TIER-1] [AGENT:caduceus-processor]
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
 
