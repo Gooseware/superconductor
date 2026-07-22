@@ -51,3 +51,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Model Switcher Integration & Superconductor–Caduceus Symbiosis**
 *Link: [./tracks/symbiosis_caduceus_20260722/](./tracks/symbiosis_caduceus_20260722/)*
+
+---
+
+- [ ] **Track: Swarm Excellence Engine**
+*Link: [./tracks/swarm_excellence_20260722/](./tracks/swarm_excellence_20260722/)*
+

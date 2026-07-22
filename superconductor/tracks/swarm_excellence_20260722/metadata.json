@@ -1,0 +1,9 @@
+{
+  "id": "swarm_excellence_20260722",
+  "name": "Swarm Excellence Engine",
+  "description": "Synthesizes WORKFLOW_EXCELLENCE_BLUEPRINT.md and deep_research.md into a production-grade multi-agent swarm architecture with asymmetric refinement loops, AST symbol indexing, token budgeting, and 4-tier progressive quality gates.",
+  "status": "planned",
+  "createdAt": "2026-07-22T15:55:00.000Z",
+  "updatedAt": "2026-07-22T15:55:00.000Z",
+  "targetBranch": "main"
+}
