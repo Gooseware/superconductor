@@ -1,70 +1,107 @@
 # Implementation Plan: Review Panel Mode with Coverage-Aware Residual Passes
 
-## Phase 0: Swarm Preflight
+## Phase 0: Swarm Preflight & Schema Definitions
 - [ ] Task: Verify `swarm-orchestrate` skill is loaded and available [TIER-1]
 - [ ] Task: Verify `skills/review/SKILL.md` §4.5 shenanigan checklist is accessible [TIER-1]
 - [ ] Task: Confirm `templates/` directory exists at superconductor root [TIER-1]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [ ] Task: Define and write `schemas/coverage-manifest.schema.json` [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Fields: `reviewer_id`, `examined[]`, `skimmed[]`, `not_examined[]`
+    - [ ] Each entry: `{ file, line_range, concern }`
+    - [ ] Include JSON Schema validation rules (required fields, type constraints)
+- [ ] Task: Define and write `schemas/review-finding.schema.json` [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Fields: `finding_id`, `reviewer_id`, `file`, `line_range`, `severity`, `category`, `description`, `recommendation`, `is_security_critical`
+    - [ ] Severity enum: `critical | high | medium | low | advisory`
+    - [ ] Category enum: `security | correctness | adversarial | architecture | style`
+    - [ ] Include JSON Schema validation rules
+- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight & Schema Definitions' (Protocol in workflow.md)
 
 ## Phase 1: Reviewer Specialization Templates
 - [ ] Task: Create `templates/reviewers/` directory [TIER-1] [AGENT:caduceus-processor]
 - [ ] Task: Write `templates/reviewers/security-reviewer.md` [TIER-3] [AGENT:caduceus-processor]
     - [ ] Role definition: XSS, injection, auth bypass, secrets in code, insecure dependencies
-    - [ ] Coverage Manifest contract (` ```json:coverage-manifest ` fenced block + file artifact write instruction)
+    - [ ] Coverage Manifest contract: mandatory ` ```json:coverage-manifest ` fenced block (schema ref: `schemas/coverage-manifest.schema.json`)
+    - [ ] Findings contract: mandatory ` ```json:review-findings ` fenced block (schema ref: `schemas/review-finding.schema.json`)
+    - [ ] File artifact write instruction: save manifest to `superconductor/tracks/<track_id>/.manifests/<reviewer_id>.json`
     - [ ] Severity schema aligned with adversarial-audit.md
 - [ ] Task: Write `templates/reviewers/correctness-reviewer.md` [TIER-3] [AGENT:caduceus-processor]
     - [ ] Role definition: edge cases, null/undefined paths, off-by-one, race conditions, spec AC alignment
-    - [ ] Coverage Manifest contract (` ```json:coverage-manifest ` fenced block + file artifact write instruction)
+    - [ ] Coverage Manifest contract: mandatory ` ```json:coverage-manifest ` fenced block
+    - [ ] Findings contract: mandatory ` ```json:review-findings ` fenced block
+    - [ ] File artifact write instruction
     - [ ] Explicit instruction: output `NOT examined` list honestly even if it means admitting gaps
 - [ ] Task: Write `templates/reviewers/adversarial-reviewer.md` [TIER-3] [AGENT:caduceus-processor]
     - [ ] Role definition: load full `skills/review/SKILL.md §4.5` shenanigan checklist
     - [ ] Run all 8 shenanigan checks as mandatory output sections
-    - [ ] Coverage Manifest contract (` ```json:coverage-manifest ` fenced block + file artifact write instruction)
+    - [ ] Coverage Manifest contract: mandatory ` ```json:coverage-manifest ` fenced block
+    - [ ] Findings contract: mandatory ` ```json:review-findings ` fenced block
+    - [ ] File artifact write instruction
     - [ ] Include instruction: "You are looking for what the other reviewers will miss"
-- [ ] Task: Write tests verifying all three templates contain Coverage Manifest contract headers [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Write round-trip parser tests for template output contracts [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Test: sample agent output string containing ` ```json:coverage-manifest ` block → parsed correctly by Tier 1 extractor
+    - [ ] Test: sample agent output string containing ` ```json:review-findings ` block → parsed correctly by Tier 1 extractor
+    - [ ] Test: both blocks present in same output → both parsed independently without interference
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Reviewer Specialization Templates' (Protocol in workflow.md)
 
 ## Phase 2: Deterministic Pre-Filter Stage
-- [ ] Task: Write `templates/deterministic-preflight.md` — prompt fragment injected into each reviewer context [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Language detection logic from `tech-stack.md`
-    - [ ] Tool suggestion map: TypeScript → `tsc --noEmit`, Python → `pyright`, Go → `go vet`, etc.
-    - [ ] Output format: structured diagnostic block prepended to reviewer prompt
+- [ ] Task: Write `scripts/deterministic-preflight.ts` — executable script (not a prompt fragment) [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Language detection: read `tech-stack.md`, extract primary language(s)
+    - [ ] Tool execution map: TypeScript → `tsc --noEmit`, Python → `pyright`, Go → `go vet`, Rust → `cargo check`, etc.
+    - [ ] Execution: agent runs the detected tool via `run_command` and captures stdout/stderr
+    - [ ] Fallback: if no matching tool in map → output `{ "status": "skipped", "reason": "no tool detected for <language>" }` and proceed (do NOT block)
+    - [ ] Output format: structured `DiagnosticResult` JSON written to `.manifests/preflight.json`
+    - [ ] Short-circuit rule: if exit code non-zero AND stderr contains error-level diagnostics → write `{ "short_circuit": true }` and halt pipeline
 - [ ] Task: Add deterministic pre-filter invocation to `swarm-orchestrate` skill review phase documentation [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Short-circuit rule: if compiler/linter reports critical errors → emit immediate `Needs Fixes`, skip LLM panel
-- [ ] Task: Write tests for short-circuit logic (mock critical diagnostic → verify panel is skipped) [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Document: agent reads `.manifests/preflight.json`; if `short_circuit: true` → emit immediate `Needs Fixes`, skip LLM panel
+- [ ] Task: Write unit tests for `scripts/deterministic-preflight.ts` [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Test: mock `tsc --noEmit` returning exit code 1 with type error stderr → `short_circuit: true`
+    - [ ] Test: mock `tsc --noEmit` returning exit code 0 → `short_circuit: false`, diagnostics injected into context
+    - [ ] Test: tech-stack.md with unknown language → `status: "skipped"`, pipeline continues
+    - [ ] Test: tech-stack.md missing → `status: "skipped"`, pipeline continues
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Deterministic Pre-Filter Stage' (Protocol in workflow.md)
 
-## Phase 3: Coverage Manifest Aggregation Engine & Extraction Protocol
-- [ ] Task: Define Coverage Manifest JSON schema & extraction parser [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Fields: `reviewer_id`, `examined[]`, `skimmed[]`, `not_examined[]`
-    - [ ] Each entry: `{ file, line_range, concern }` 
+## Phase 3: Extraction Parsers & Coverage Manifest Aggregation Engine
+- [ ] Task: Write `scripts/extract-fenced-block.ts` — shared Tier 1 fenced block parser [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Input: raw agent output text, block language identifier (e.g. `coverage-manifest`, `review-findings`)
+    - [ ] Output: parsed JSON object or `null` if block absent/malformed
+    - [ ] Validate output against the corresponding schema from `schemas/`
+    - [ ] Used by both manifest and findings extraction pipelines
 - [ ] Task: Write `scripts/aggregate-coverage-manifest.ts` [TIER-3] [AGENT:caduceus-processor]
-    - [ ] **Tier 1 Extraction:** Fenced Code Block Regex (`json:coverage-manifest`) from agent output text
-    - [ ] **Tier 2 Extraction:** Read fallback artifact JSON files from `superconductor/tracks/<track_id>/.manifests/`
-    - [ ] **Tier 3 Fail-Safe:** If parsing fails or manifest missing, mark reviewer coverage as `not_examined: ["all files in diff"]` (guarantees residual pass dispatch)
-    - [ ] Output: `ResidualCoverageMap` = union of all `not_examined` entries, deduplicated
-    - [ ] Output: `CoverageStats` = { files_examined, files_not_examined, total_lines_covered }
-- [ ] Task: Write unit tests for extraction and aggregation engine [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Test Tier 1 fenced JSON extraction from raw agent text
-    - [ ] Test Tier 2 file artifact reading fallback
-    - [ ] Test Tier 3 fail-safe default when output is malformed
-    - [ ] Test three manifests with overlapping `not_examined` → correct deduplication
-    - [ ] Test all manifests fully covered → empty residual map
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Coverage Manifest Aggregation Engine' (Protocol in workflow.md)
+    - [ ] **Tier 1 Extraction:** Call `extract-fenced-block.ts` with `coverage-manifest` identifier on each agent output
+    - [ ] **Tier 2 Extraction:** If Tier 1 returns null, read fallback artifact from `superconductor/tracks/<track_id>/.manifests/<reviewer_id>.json`
+    - [ ] **Tier 3 Fail-Safe:** If both fail, mark reviewer coverage as `not_examined: [{ file: "all files in diff", line_range: "all", concern: "extraction failed" }]` — guarantees residual pass dispatch
+    - [ ] Output: `ResidualCoverageMap` = union of all `not_examined` entries, deduplicated by `{ file, line_range }`
+    - [ ] Output: `CoverageStats` = `{ files_examined, files_skimmed, files_not_examined, total_concerns_covered }`
+- [ ] Task: Write `scripts/aggregate-findings.ts` [TIER-3] [AGENT:caduceus-processor]
+    - [ ] **Tier 1 Extraction:** Call `extract-fenced-block.ts` with `review-findings` identifier on each agent output
+    - [ ] **Tier 2 Extraction:** Read fallback artifact from `superconductor/tracks/<track_id>/.manifests/<reviewer_id>-findings.json`
+    - [ ] **Tier 3 Fail-Safe:** If extraction fails, escalate all output to arbiter as unstructured text (never silently drop)
+    - [ ] Deduplication: findings with same `file` + `line_range` within ±3 lines → merged, `reviewer_ids[]` union-ed, `agreement_count` incremented
+- [ ] Task: Write unit tests for extraction and aggregation [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Test: Tier 1 fenced JSON extraction from raw agent text — valid block
+    - [ ] Test: Tier 1 extraction from text with surrounding markdown prose — block isolated correctly
+    - [ ] Test: Tier 2 file artifact reading fallback when Tier 1 returns null
+    - [ ] Test: Tier 3 fail-safe when both Tier 1 and Tier 2 fail
+    - [ ] Test: three manifests with overlapping `not_examined` → correct deduplication
+    - [ ] Test: all manifests fully covered → empty residual map
+    - [ ] Test: three findings from different reviewers at same file/line → merged into one finding with `agreement_count: 3`
+    - [ ] Test: two findings at same file but line ranges differ by more than 3 → treated as separate findings
+- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Extraction Parsers & Coverage Manifest Aggregation Engine' (Protocol in workflow.md)
 
 ## Phase 4: Cascade Deferral Gate
-- [ ] Task: Define finding classification schema [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Fields: `finding_id`, `reviewer_ids[]`, `agreement_count`, `is_disputed`, `severity`, `is_security_critical`
-    - [ ] Rule: `is_disputed` = true if agreement_count < N reviewers
-    - [ ] Rule: `is_security_critical` bypasses quorum
 - [ ] Task: Write `scripts/cascade-deferral-gate.ts` [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Input: all reviewer findings + agreement matrix
-    - [ ] Output: `EscalateToArbiter` flag, classified findings list, `ArbiterBriefing` document
-    - [ ] Unanimous + no security critical → set `CanSkipArbiter: true` flag for user prompt
+    - [ ] Input: aggregated findings array from `aggregate-findings.ts`
+    - [ ] Rule: `is_disputed` = true if `agreement_count < N` (N = number of reviewers that ran)
+    - [ ] Rule: `is_security_critical` = true if `category === "security"` AND `severity` in `["critical", "high"]`
+    - [ ] Rule: security-critical findings bypass quorum unconditionally → always escalate
+    - [ ] Rule: disputed findings have severity downgraded one level in arbiter briefing
+    - [ ] Output: `EscalateToArbiter` boolean, classified findings list, `ArbiterBriefing` markdown document
+    - [ ] Output: `CanSkipArbiter: true` only if ALL findings unanimous AND no security-critical findings
 - [ ] Task: Write unit tests for deferral gate [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Test: all unanimous, no critical → `CanSkipArbiter: true`
-    - [ ] Test: one security-critical finding → always escalate regardless of unanimity
-    - [ ] Test: disputed finding → severity downgraded one level
+    - [ ] Test: all findings unanimous, none security-critical → `CanSkipArbiter: true`
+    - [ ] Test: one security-critical finding (any agreement level) → `CanSkipArbiter: false`, escalates
+    - [ ] Test: disputed finding → severity downgraded one level in output
+    - [ ] Test: zero findings from all reviewers → `CanSkipArbiter: true` (clean pass)
+    - [ ] Test: N=1 reviewer (edge case, residual pass only) → all findings treated as `agreement_count: 1`, not unanimous
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: Cascade Deferral Gate' (Protocol in workflow.md)
 
 ## Phase 5: `swarm-orchestrate` Review Panel Mode Integration
@@ -73,27 +110,36 @@
     - [ ] Option: "Review Panel (Heterogeneous Flash + Arbiter)" with description of the pipeline
     - [ ] Note: "Recommended for tracks touching security-sensitive or complex multi-file changes"
 - [ ] Task: Add `review_panel` protocol section to `swarm-orchestrate` SKILL.md [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Step 1: Run deterministic pre-filter
-    - [ ] Step 2: Fan-out to three specialized Flash reviewers (parallel, isolated)
-    - [ ] Step 3: Aggregate Coverage Manifests → Residual Coverage Map
-    - [ ] Step 4: If residual non-empty → dispatch residual pass reviewer
-    - [ ] Step 5: Run cascade deferral gate
-    - [ ] Step 6: If `CanSkipArbiter` → offer user option to skip (with token savings estimate)
-    - [ ] Step 7: Arbiter synthesises → Oracle Audit Report
-    - [ ] Step 8: ABI Debrief (§7.0)
-    - [ ] Step 9: Token Efficiency Report
-- [ ] Task: Verify backward compatibility — existing single-reviewer Oracle path untouched [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Step 1: Run `scripts/deterministic-preflight.ts`; if `short_circuit: true` → halt with `Needs Fixes`
+    - [ ] Step 2: Fan-out to three specialized Flash reviewers (parallel, isolated, each receives diff + preflight diagnostics)
+    - [ ] Step 3: Run `scripts/aggregate-coverage-manifest.ts` → Residual Coverage Map
+    - [ ] Step 4: If residual non-empty → dispatch residual pass reviewer directed ONLY at gap areas
+    - [ ] Step 5: Run `scripts/aggregate-findings.ts` → unified finding set
+    - [ ] Step 6: Run `scripts/cascade-deferral-gate.ts` → classified findings + `CanSkipArbiter` flag
+    - [ ] Step 7: If `CanSkipArbiter: true` → offer user option to skip arbiter, display token savings estimate
+    - [ ] Step 8: Arbiter receives `ArbiterBriefing` (pre-deduplicated findings) + raw diff → Oracle Audit Report
+    - [ ] Step 9: ABI Debrief (§7.0 in `skills/implement/SKILL.md`)
+    - [ ] Step 10: Token Efficiency Report (reads `.manifests/token-report.json`)
+- [ ] Task: Verify backward compatibility — run existing Oracle path mock and assert output format unchanged [TIER-2] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 5: swarm-orchestrate Integration' (Protocol in workflow.md)
 
-## Phase 6: Token Efficiency Report
-- [ ] Task: Write `templates/token-efficiency-report.md` — output template [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Sections: Stage Breakdown, Findings per Stage, Estimated Savings vs. Baseline, Calibration Notes
-    - [ ] Include K/N threshold recommendation based on agreement rates observed in this run
-- [ ] Task: Add Token Efficiency Report emission to `swarm-orchestrate` review panel protocol (Step 9) [TIER-2] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Token Efficiency Report' (Protocol in workflow.md)
+## Phase 6: Token Instrumentation & Efficiency Report
+- [ ] Task: Add token count instrumentation hooks to each pipeline stage [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Each script (`deterministic-preflight`, `aggregate-coverage-manifest`, `aggregate-findings`, `cascade-deferral-gate`) writes its measured token counts to `.manifests/token-report.json`
+    - [ ] Token report schema: `{ stage, model, input_tokens, output_tokens, cost_usd, timestamp }`
+    - [ ] Arbiter call: agent records actual token usage from API response metadata
+- [ ] Task: Write `scripts/generate-token-report.ts` [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Reads `.manifests/token-report.json`
+    - [ ] Computes: total cost, per-stage breakdown, findings per dollar, estimated savings vs. single-arbiter baseline
+    - [ ] Outputs: formatted markdown report + K/N threshold recommendation based on agreement rates observed
+- [ ] Task: Write `templates/token-efficiency-report.md` — output format template [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Sections: Stage Breakdown, Findings per Stage, Actual vs. Baseline Cost, Calibration Notes
+- [ ] Task: Write unit test for `generate-token-report.ts` with fixture token data [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Token Instrumentation & Efficiency Report' (Protocol in workflow.md)
 
 ## Phase 7: Integration & Finalization
 - [ ] Task: Run full engine test suite [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Run end-to-end smoke test: execute review panel against a fixture diff, assert all `.manifests/` outputs written [TIER-2] [AGENT:caduceus-oracle]
 - [ ] Task: Verify skill line count budget (implement.md ≤ 500, swarm-orchestrate.md within budget) [TIER-1]
 - [ ] Task: Integrate track 'review_panel_20260722' into main branch [TIER-3] [AGENT:caduceus-oracle]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)

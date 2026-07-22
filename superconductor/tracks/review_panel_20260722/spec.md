@@ -43,19 +43,32 @@ If the specialized Flash reviewers **all agree** (no findings or unanimous findi
 
 ## Functional Requirements
 
+### FR-0: JSON Schema Definitions (Pre-requisite)
+Before any templates or scripts are written, two canonical JSON schemas must be defined and versioned:
+- `schemas/coverage-manifest.schema.json` — `{ reviewer_id, examined[], skimmed[], not_examined[] }` each entry `{ file, line_range, concern }`
+- `schemas/review-finding.schema.json` — `{ finding_id, reviewer_id, file, line_range, severity, category, description, recommendation, is_security_critical }` with enums for severity and category
+
+All templates and extraction scripts reference these schemas as the single source of truth.
+
 ### FR-1: Reviewer Specialization Templates
 Three specialized reviewer sub-prompts must be defined and stored as template files:
 - `templates/reviewers/security-reviewer.md` — XSS, injection, auth, secrets, dependency vulnerabilities
 - `templates/reviewers/correctness-reviewer.md` — edge cases, null paths, off-by-one, race conditions, spec alignment
 - `templates/reviewers/adversarial-reviewer.md` — shenanigan checklist §4.1–§4.5 from `skills/review/SKILL.md`
 
-Each template MUST include a **Coverage Manifest output format** as a mandatory section in its output.
+Each template MUST include **two mandatory structured output contracts**:
+- ` ```json:coverage-manifest ` fenced block (schema: `schemas/coverage-manifest.schema.json`)
+- ` ```json:review-findings ` fenced block (schema: `schemas/review-finding.schema.json`)
+
+Each template MUST also instruct the agent to write both blocks as JSON files to `superconductor/tracks/<track_id>/.manifests/`.
 
 ### FR-2: Deterministic Pre-Filter Stage
-Before any LLM reviewer sees the diff:
-- Run available static analysis tools (TypeScript compiler, ESLint, or language-appropriate equivalent detected from `tech-stack.md`)
-- Append diagnostic output to each reviewer's prompt context
-- Flag: if deterministic tools find critical errors, short-circuit to immediate `Needs Fixes` without spending LLM tokens
+Before any LLM reviewer sees the diff, `scripts/deterministic-preflight.ts` MUST be executed by the agent (not suggested to the user):
+- Detect primary language from `tech-stack.md`
+- Execute the corresponding tool via `run_command` (TypeScript → `tsc --noEmit`, Python → `pyright`, Go → `go vet`, etc.)
+- If no tool is detected for the language → write `{ status: "skipped" }` and proceed (never block on missing tool)
+- Write `DiagnosticResult` JSON to `.manifests/preflight.json`
+- If tool exits non-zero AND stderr contains error-level output → write `{ short_circuit: true }` → halt pipeline immediately with `Needs Fixes`
 
 ### FR-3: Parallel Isolated Reviewer Execution
 - Each specialized reviewer runs in a **separate agent context** (no cross-contamination)
@@ -63,17 +76,26 @@ Before any LLM reviewer sees the diff:
 - Reviewers do NOT see each other's outputs until the aggregation step
 - Execution: parallel fan-out (same pattern as existing swarm Processor phase)
 
-### FR-4: Coverage Manifest Aggregation
-After all reviewers complete:
-- Parse each reviewer's Coverage Manifest
-- Compute `Residual Coverage Map` = union of all `NOT examined` sections
-- If Residual Coverage Map is empty → skip residual pass
-- If non-empty → proceed to FR-5
+### FR-4: Extraction, Aggregation & Deduplication
+Two parallel extraction pipelines must run after all reviewers complete:
+
+**Coverage Manifest Pipeline** (`scripts/aggregate-coverage-manifest.ts`):
+- Tier 1: Extract ` ```json:coverage-manifest ` fenced block from agent output text via `scripts/extract-fenced-block.ts`
+- Tier 2: Fallback — read `.manifests/<reviewer_id>.json` from disk
+- Tier 3: Fail-safe — if both fail, mark reviewer as `not_examined: ["all files in diff"]` → guarantees residual pass
+- Output: `ResidualCoverageMap` (union of all `not_examined`, deduplicated by `{file, line_range}`)
+
+**Findings Pipeline** (`scripts/aggregate-findings.ts`):
+- Tier 1: Extract ` ```json:review-findings ` fenced block from agent output text
+- Tier 2: Fallback — read `.manifests/<reviewer_id>-findings.json` from disk
+- Tier 3: Fail-safe — if both fail, escalate raw text to arbiter, never silently drop
+- Deduplication: findings within ±3 lines of same file → merged, `reviewer_ids[]` unioned, `agreement_count` incremented
 
 ### FR-5: Targeted Residual Pass
-- Dispatch a single additional reviewer (same Flash tier) with prompt: "Examine ONLY these specific areas: [Residual Coverage Map]. Do not re-examine areas already covered."
-- This reviewer also outputs a Coverage Manifest for its pass
-- Findings aggregated into the unified findings set
+- Dispatch a single additional Flash reviewer directed ONLY at the `ResidualCoverageMap` areas
+- Prompt: "Examine ONLY these specific areas: [ResidualCoverageMap]. Do not re-examine areas already covered."
+- This reviewer outputs both Coverage Manifest and Findings contracts
+- Outputs merged into unified finding set via `aggregate-findings.ts`
 
 ### FR-6: Cascade Deferral Gate
 Before invoking the reasoning-model arbiter:
@@ -93,12 +115,13 @@ Before invoking the reasoning-model arbiter:
 - Mode configuration stored in `swarm-config.json` alongside other swarm settings
 - Backward compatible: existing single-reviewer Oracle path remains as default
 
-### FR-9: Token Cost Reporting
-After each panel run, output a `## Token Efficiency Report`:
-- Tokens spent at each stage (deterministic: 0, Flash panel, residual pass, arbiter)
-- Findings count per stage
-- Estimated savings vs. single-arbiter baseline
-- This feeds the empirical calibration data needed to tune K/N thresholds over time
+### FR-9: Token Instrumentation & Efficiency Report
+Each pipeline stage writes measured token counts to `.manifests/token-report.json`:
+- Schema: `{ stage, model, input_tokens, output_tokens, cost_usd, timestamp }`
+- `scripts/generate-token-report.ts` reads this file and outputs formatted markdown report
+- Report includes: per-stage breakdown, findings per dollar, **actual** savings vs. single-arbiter baseline (not estimated)
+- K/N threshold recommendation based on agreement rates observed in this run
+- Token budget guardrail: if total cost would exceed 3× arbiter-only baseline, warn user and offer to skip to direct arbiter
 
 ---
 
@@ -113,14 +136,19 @@ After each panel run, output a `## Token Efficiency Report`:
 
 ## Acceptance Criteria
 
+- [ ] AC-0: `schemas/coverage-manifest.schema.json` and `schemas/review-finding.schema.json` exist and are valid JSON Schema
 - [ ] AC-1: `swarm-orchestrate` accepts `review_panel` as a valid review mode
-- [ ] AC-2: All three specialization templates exist and include Coverage Manifest output format
+- [ ] AC-2: All three specialization templates contain both `json:coverage-manifest` and `json:review-findings` output contracts
 - [ ] AC-3: Reviewers run in parallel with no cross-context contamination
 - [ ] AC-4: Residual pass is dispatched iff Residual Coverage Map is non-empty
 - [ ] AC-5: Cascade deferral gate correctly classifies unanimous vs. disputed findings
 - [ ] AC-6: Security-critical findings bypass the quorum gate
-- [ ] AC-7: Token Efficiency Report is output after every panel run
+- [ ] AC-7: Token Efficiency Report outputs **measured** (not estimated) per-stage token counts
 - [ ] AC-8: ABI Debrief (§7.0) runs after arbiter completes
+- [ ] AC-9: Existing single-reviewer Oracle path continues to work unchanged
+- [ ] AC-10: Malformed reviewer output triggers fail-safe (residual pass or arbiter escalation) — never silent drop
+- [ ] AC-11: Deterministic pre-filter tool is RUN by the agent via `run_command`, not just suggested
+- [ ] AC-12: End-to-end smoke test against fixture diff writes all expected `.manifests/` files
 - [ ] AC-9: Existing single-reviewer Oracle path continues to work unchanged
 
 ---
