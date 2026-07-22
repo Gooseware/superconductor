@@ -1,0 +1,14 @@
+{
+  "trackId": "symbiosis_caduceus_20260722",
+  "title": "Model Switcher Integration & Superconductor–Caduceus Symbiosis",
+  "type": "feature",
+  "status": "planned",
+  "repos": [
+    "/home/gooseware/repos/gemini/extensions/superconductor",
+    "/home/gooseware/repos/hippos/caduceus"
+  ],
+  "targetBranch": "main",
+  "created": "2026-07-22T04:56:00+04:00",
+  "updated": "2026-07-22T05:20:00+04:00",
+  "description": "Wires the model_selector_20260721 components into the live Superconductor engine, establishes bi-directional Superconductor–Caduceus awareness (pre_invoke detection, context injection, model default overrides, adaptive routing), implements an async component staging registry bridge, and adds a real-time AgentTurnEvent bus for history-driven automatic model routing."
+}
