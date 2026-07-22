@@ -112,7 +112,8 @@ Task 4:  [Processor: T4 ────────────]  [Reviewer: T3 ─
 Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ──────]
 ```
 
-1. **Task N Start:** Processor begins work on Task N.
+1. **Task N Start:** Processor begins work on Task N.  
+   *(Note: At Task 1, the Reviewer has no prior task to review and remains idle; the sliding window opens concurrently from Task 2 onward.)*
 2. **Concurrent Review:** Concurrently, Reviewer reviews the diff and tests for Task N-1.
 3. **Advisory Feedback Injection:** 
    - Reviewer outputs critique to `swarm_log.md`.

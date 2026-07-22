@@ -59,7 +59,7 @@ If the track fails at any point (Oracle verdict: `NEEDS_FIXES` after iterations,
 Upon completing all tracks in the queue (or if queue is empty), generate the final morning briefing report:
 
 1. **Create File:** Save report to `superconductor/batch_run_<YYYYMMDD_HHMMSS>.md`.
-2. **Update Symlink:** Create or update relative symlink `superconductor/batch_run_latest.md` pointing to the newly created report.
+2. **Update Symlink:** Create or update relative symlink `superconductor/batch_run_latest.md` pointing to the newly created report using relative path target (`cd superconductor && ln -sf batch_run_<YYYYMMDD_HHMMSS>.md batch_run_latest.md`).
 
 ### Report Template
 
