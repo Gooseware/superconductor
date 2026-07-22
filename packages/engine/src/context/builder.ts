@@ -1,5 +1,6 @@
 import { DagNode, SubagentConfig } from '../types/index.js';
 import { execSync } from 'child_process';
+import * as fs from 'fs';
 
 const MAX_PROMPT_LENGTH = 100000;
 
@@ -13,6 +14,24 @@ export async function resolveSymbols(symbols: SymbolDependency[]): Promise<strin
   const parts: string[] = [];
   for (const dep of symbols) {
     try {
+      if (fs.existsSync(dep.file)) {
+        const content = fs.readFileSync(dep.file, 'utf8');
+        const lines = content.split('\n');
+        let matchedLine = -1;
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].includes(dep.symbol)) {
+            matchedLine = i + 1;
+            break;
+          }
+        }
+        if (matchedLine > 0) {
+          const start = Math.max(0, matchedLine - 5);
+          const end = Math.min(lines.length, matchedLine + 15);
+          const snippet = lines.slice(start, end).join('\n');
+          parts.push(`Symbol Context: ${dep.file} -> ${dep.symbol} (L${start + 1}-L${end}):\n${snippet}`);
+          continue;
+        }
+      }
       parts.push(`Symbol Context: ${dep.file} -> ${dep.symbol} (AST Call-Graph Node)`);
     } catch {
       parts.push(`Symbol Context (Offline Fallback): ${dep.file} -> ${dep.symbol}`);
@@ -62,6 +81,16 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
 
   if (task.symbolDependencies && task.symbolDependencies.length > 0) {
     parts.push(`Symbol Dependencies:\n${task.symbolDependencies.map(s => `- ${s.file}#${s.symbol}`).join('\n')}`);
+  }
+
+  // R5: Auto-inject diff payload for Reviewer tasks
+  if (task.role === 'reviewer' && task.contextFiles && task.contextFiles.length > 0) {
+    try {
+      const diff = execSync(`git diff HEAD -- ${task.contextFiles.join(' ')}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+      parts.push(`--- Diff Payload ---\n${diff || '(No diff detected)'}`);
+    } catch {
+      parts.push(`--- Diff Payload ---\nFiles: ${task.contextFiles.join(', ')}\n(Line-level git diff subset)`);
+    }
   }
   
   const commonCtxStr = commonContext ? `--- Common Context ---\n${commonContext}` : '';

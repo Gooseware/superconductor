@@ -2,6 +2,7 @@ export interface EngineConfig {
   headless?: boolean;
   commonContext?: string;
   disableCache?: boolean;
+  dbPath?: string;
 }
 
 export interface ReviewComment {

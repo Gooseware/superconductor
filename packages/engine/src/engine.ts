@@ -7,6 +7,7 @@ import { buildContext } from './context/builder.js';
 import { DispatcherEvent } from './types/dispatcher.types.js';
 import { EscalationRouter } from './routing/escalation-router.js';
 import { CacheManager } from './routing/cache-manager.js';
+import { EventStore } from './state/event-store.js';
 import { EngineConfig, TrackExecutionState } from './types/engine.types.js';
 import { GitCheckpointManager } from './safety/git-checkpoint-manager.js';
 import { classifyDodLevel, runDodGate } from './verification/dod-classifier.js';
@@ -20,6 +21,7 @@ export class Engine extends EventEmitter {
   public cacheManager: CacheManager;
   public checkpointManager: GitCheckpointManager;
   public modelResolver: SmartModelResolver;
+  public eventStore: EventStore;
   public commonContext: string = '';
   public config: EngineConfig;
   
@@ -42,6 +44,7 @@ export class Engine extends EventEmitter {
     this.cacheManager = new CacheManager({ maxTokenBudget: config.disableCache ? 0 : 50000 });
     this.checkpointManager = new GitCheckpointManager();
     this.modelResolver = new SmartModelResolver();
+    this.eventStore = new EventStore({ dbPath: config.dbPath || ':memory:' });
     
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }
@@ -57,6 +60,11 @@ export class Engine extends EventEmitter {
       escalated: false
     };
     this.taskStates.set(taskId, state);
+    this.eventStore.append({
+      type: 'state',
+      timestamp: Date.now(),
+      detail: { taskId, action: 'init', state }
+    });
     this.emit('state_changed', { type: 'init', state });
     return state;
   }
@@ -70,6 +78,11 @@ export class Engine extends EventEmitter {
     if (!current) return undefined;
     const updated = { ...current, ...patch };
     this.taskStates.set(taskId, updated);
+    this.eventStore.append({
+      type: 'state',
+      timestamp: Date.now(),
+      detail: { taskId, action: 'update', state: updated }
+    });
     this.emit('state_changed', { type: 'update', state: updated });
     return updated;
   }

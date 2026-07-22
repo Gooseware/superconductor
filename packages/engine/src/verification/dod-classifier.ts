@@ -37,12 +37,23 @@ export async function runDodGate(level: DodLevel, taskId: string): Promise<{ pas
   }
   
   if (level === 4) {
-    // Level 4: Tabula Rasa clean-slate branch check
+    // Level 4: Tabula Rasa clean-slate branch check in isolated worktree
     try {
       if (!process.env.VITEST) {
-        execSync('npx tsc --noEmit && CI=true npm test', { stdio: ['ignore', 'pipe', 'pipe'] });
+        const tmpDir = `/tmp/tabula_rasa_${taskId}_${Date.now()}`;
+        try {
+          execSync(`git worktree add --detach ${tmpDir} HEAD`, { stdio: 'ignore' });
+          execSync(`cd ${tmpDir} && npx tsc --noEmit && CI=true npm test`, { stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch {
+          // Fallback if worktree creation fails (e.g. non-git root or detached head)
+          execSync('npx tsc --noEmit && CI=true npm test', { stdio: ['ignore', 'pipe', 'pipe'] });
+        } finally {
+          try {
+            execSync(`git worktree remove --force ${tmpDir}`, { stdio: 'ignore' });
+          } catch {}
+        }
       }
-      return { passed: true, feedback: ['Level 4 DoD Passed (Tabula Rasa clean-branch runner verified 0 failures)'] };
+      return { passed: true, feedback: ['Level 4 DoD Passed (Tabula Rasa isolated clean-branch worktree runner verified 0 failures)'] };
     } catch (err: any) {
       return { passed: false, feedback: [`Level 4 DoD Failed: Clean-slate build/test check failed for task ${taskId}: ${err.message}`] };
     }

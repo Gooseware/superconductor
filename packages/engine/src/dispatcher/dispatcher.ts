@@ -132,9 +132,25 @@ export class Dispatcher extends EventEmitter {
     }
   }
 
+  public validateToolCall(surface: 'full' | 'readonly' | undefined, toolName: string): boolean {
+    return this.toolFilter.isAllowed(surface, toolName);
+  }
+
   protected async simulateExecution(task: DagNode): Promise<SubagentResult> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
+        if (task.toolSurface === 'readonly' || task.role === 'reviewer') {
+          const forbiddenTools = ['write_to_file', 'replace_file_content', 'multi_replace_file_content', 'run_command'];
+          for (const tool of forbiddenTools) {
+            if (task.prompt && task.prompt.includes(`Attempting ${tool}`)) {
+              if (!this.validateToolCall('readonly', tool)) {
+                reject(new Error(`Tool surface violation: '${tool}' is forbidden on readonly surface`));
+                return;
+              }
+            }
+          }
+        }
+
         if (task.prompt.includes('Crash me')) {
           reject(new Error('Simulated crash'));
           return;
