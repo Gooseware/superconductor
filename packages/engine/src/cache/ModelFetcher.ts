@@ -1,6 +1,6 @@
 import * as child_process from 'child_process';
-import { CacheManager } from './CacheManager';
-import { ModelFetchError } from './errors';
+import { CacheManager } from './CacheManager.js';
+import { ModelFetchError } from './errors.js';
 
 export class ModelFetcher {
   constructor(private cacheManager: CacheManager<any>) {}

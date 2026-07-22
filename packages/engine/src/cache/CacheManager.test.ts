@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CacheManager } from './CacheManager';
+import { CacheManager } from './CacheManager.js';
 import * as os from 'os';
 
 vi.mock('fs');
@@ -41,14 +41,15 @@ describe('CacheManager', () => {
     expect(cache.read()).toEqual({ some: 'data' });
   });
 
-  it('should write data with 0600 permissions', () => {
+  it('should write data with 0600 permissions atomically', () => {
     const cache = new CacheManager(testFile);
     cache.write({ data: 123 });
     
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      testFile,
-      JSON.stringify({ data: 123 }),
+      expect.stringContaining(testFile),
+      JSON.stringify({ data: 123 }, null, 2),
       { mode: 0o600 }
     );
+    expect(fs.renameSync).toHaveBeenCalled();
   });
 });

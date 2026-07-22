@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as child_process from 'child_process';
-import { ModelFetcher } from './ModelFetcher';
-import { CacheManager } from './CacheManager';
-import { ModelFetchError } from './errors';
+import { ModelFetcher } from './ModelFetcher.js';
+import { CacheManager } from './CacheManager.js';
+import { ModelFetchError } from './errors.js';
 
 vi.mock('child_process');
 vi.mock('./CacheManager');

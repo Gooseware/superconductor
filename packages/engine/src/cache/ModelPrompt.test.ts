@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ModelPrompt } from './ModelPrompt';
-import { CacheManager } from './CacheManager';
-import { ModelFetcher } from './ModelFetcher';
+import { ModelPrompt } from './ModelPrompt.js';
+import { CacheManager } from './CacheManager.js';
+import { ModelFetcher } from './ModelFetcher.js';
 
 // Mock Enquirer correctly
 const mockPrompt = vi.fn();

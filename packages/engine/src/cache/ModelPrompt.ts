@@ -1,6 +1,6 @@
 import Enquirer from 'enquirer';
-import { CacheManager } from './CacheManager';
-import { ModelFetcher } from './ModelFetcher';
+import { CacheManager } from './CacheManager.js';
+import { ModelFetcher } from './ModelFetcher.js';
 
 export class ModelPrompt {
   constructor(

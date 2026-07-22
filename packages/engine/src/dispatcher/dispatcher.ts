@@ -24,14 +24,16 @@ function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
       modelsArray = fetcher.fetch();
     }
     
-    for (const m of modelsArray) {
-      const lower = m.name.toLowerCase() + " " + (m.description || "").toLowerCase();
-      if (lower.includes('opus') || lower.includes('oracle') || lower.includes('high')) {
-        config[4].models.push(m.name);
-      } else if (lower.includes('pro') || lower.includes('sonnet') || lower.includes('thinking')) {
-        config[3].models.push(m.name);
-      } else {
-        config[2].models.push(m.name);
+    if (modelsArray) {
+      for (const m of modelsArray) {
+        const lower = m.name.toLowerCase() + " " + (m.description || "").toLowerCase();
+        if (lower.includes('opus') || lower.includes('oracle') || lower.includes('high')) {
+          config[4].models.push(m.name);
+        } else if (lower.includes('pro') || lower.includes('sonnet') || lower.includes('thinking')) {
+          config[3].models.push(m.name);
+        } else {
+          config[2].models.push(m.name);
+        }
       }
     }
   } catch (err) {
