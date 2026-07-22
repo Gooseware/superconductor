@@ -65,18 +65,18 @@
 
 *(Work in Caduceus repo — `pre_invoke` hook extension, config extension, adaptive routing)*
 
-- [ ] Task: Implement `SuperconductorSensor` class [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Implement `SuperconductorSensor` class [bd476a7] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: detects Superconductor workspace; returns null when absent; symlink boundary check rejects traversal; digest is ≤300 tokens.
     - [ ] Implement `SuperconductorSensor.detect(workspaceRoot: string): Promise<SuperconductorContext | null>` — probes for `superconductor/index.md`, resolves absolute path via config (no env-var influence), validates not a symlink traversal.
     - [ ] Implement `buildContextDigest(ctx: SuperconductorContext): string` — generates ≤300 token structured summary: active track ID, current phase, top-5 incomplete tasks, active model tier from `~/.gemini/active_model.json`.
-- [ ] Task: Extend Caduceus `pre_invoke` with Superconductor context injection [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Extend Caduceus `pre_invoke` with Superconductor context injection [bd476a7] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write integration tests: pre_invoke output contains `<SUPERCONDUCTOR_CONTEXT>` block when workspace detected; output unchanged when absent; no token bloat >300 tokens from new block.
     - [ ] Integrate `SuperconductorSensor` into `pre_invoke.ts`; append `<SUPERCONDUCTOR_CONTEXT>...</SUPERCONDUCTOR_CONTEXT>` to `injectSteps[0].trailingContext`.
     - [ ] Add protocol hint when Superconductor detected: "This workspace uses Superconductor. Follow the Superconductor workflow (plan.md task sequence) before modifying code."
-- [ ] Task: Extend `ConfigManager` with Superconductor agent-config model overrides [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Extend `ConfigManager` with Superconductor agent-config model overrides [bd476a7] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: `readConfig()` with Superconductor `agent-config.md` present overrides `defaultModels`; absent → no change; partial config → selective merge.
     - [ ] Extend `ConfigManager.readConfig()` to check `${workspaceRoot}/superconductor/agent-config.md`; parse tier → model mappings; merge into `defaultModels` (Superconductor values take precedence).
-- [ ] Task: Implement `AdaptiveRouter` with tier-based routing [TIER-4] [AGENT:caduceus-oracle]
+- [x] Task: Implement `AdaptiveRouter` with tier-based routing [bd476a7] [TIER-4] [AGENT:caduceus-oracle]
     - [ ] Write unit tests: routes to `caduceus-oracle` when Superconductor Tier 4 active; falls back to original static routing when no Superconductor context.
     - [ ] Implement `AdaptiveRouter` class encapsulating all routing logic: static type-based routing (existing) + Superconductor tier override (new) + history-based suggestion (Phase 6).
     - [ ] Replace inline routing in `index.ts` with `AdaptiveRouter.route(taskData, superconductorContext)`.
