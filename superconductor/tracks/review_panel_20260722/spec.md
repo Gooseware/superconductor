@@ -149,7 +149,7 @@ Each pipeline stage writes measured token counts to `.manifests/token-report.jso
 - [ ] AC-10: Malformed reviewer output triggers fail-safe (residual pass or arbiter escalation) — never silent drop
 - [ ] AC-11: Deterministic pre-filter tool is RUN by the agent via `run_command`, not just suggested
 - [ ] AC-12: End-to-end smoke test against fixture diff writes all expected `.manifests/` files
-- [ ] AC-9: Existing single-reviewer Oracle path continues to work unchanged
+- [ ] AC-13: `superconductor:review` skill works with zero track context on an arbitrary git repo
 
 ---
 
@@ -159,3 +159,46 @@ Each pipeline stage writes measured token counts to `.manifests/token-report.jso
 - Real LSP server integration (tool detection uses `tech-stack.md`, actual LSP calls are advisory)
 - Persistent calibration database (token efficiency data is reported, not stored automatically)
 - Homogeneous quorum mode (explicitly excluded based on research findings)
+
+---
+
+## FR-10: Standalone `superconductor:review` Skill
+
+A new, standalone skill (`skills/standalone-review/SKILL.md`) that exposes the full panel pipeline as a zero-context-required command. It MUST work with no Superconductor environment setup (no `product.md`, no `tracks.md`, no `spec.md`).
+
+### Input Modes (resolved in priority order)
+
+| Invocation | What it reviews |
+|---|---|
+| `/superconductor:review` (no args) | `git diff HEAD` — last commit |
+| `/superconductor:review --staged` | `git diff --staged` — staged changes |
+| `/superconductor:review --branch <branch>` | `git diff main..<branch>` |
+| `/superconductor:review --pr <url>` | Fetches PR diff via GitLab/GitHub MCP |
+| `/superconductor:review --file <path>` | Single file full content |
+| `/superconductor:review --dir <path>` | Directory scan with triage (see below) |
+| `/superconductor:review` (piped stdin) | Reads raw code or diff from stdin |
+
+### Directory Triage (for `--dir` and large codebases)
+When the input is a directory or codebase too large to fit in context:
+1. **Hot-path scoring:** `git log --since=30.days --name-only` → rank files by change frequency
+2. **Entry-point detection:** identify files with highest fan-in (most imports/depended on)
+3. **Concern chunking:** group files by concern (auth, data access, API routes, etc.) and run separate focused panel passes per concern
+4. **Progressive output:** emit findings per concern group as they complete — don't wait for all groups
+
+### Review Depth Modes
+
+| Flag | Description | Flash Panel | Residual Pass | Arbiter |
+|---|---|---|---|---|
+| `--fast` | Quick scan, no arbiter | ✅ | ❌ | ❌ |
+| (default) | Full panel pipeline | ✅ | ✅ | ✅ |
+| `--deep` | Full pipeline + explicit second residual pass | ✅ | ✅×2 | ✅ |
+
+### Output
+- Structured review report written to `./review-<timestamp>.md` in CWD
+- Token Efficiency Report appended if `--stats` flag present
+- Exit code: `0` = pass / `1` = findings present / `2` = critical security findings
+
+### No Track Context Fallbacks
+- No `spec.md` → skip AC alignment checks, run correctness + security + adversarial panels only
+- No `tech-stack.md` → skip deterministic pre-filter language detection, use file extension heuristics instead
+- No `adversarial-audit.md` → use embedded shenanigan checklist from the adversarial reviewer template directly

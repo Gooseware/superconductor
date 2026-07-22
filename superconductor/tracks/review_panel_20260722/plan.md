@@ -143,3 +143,46 @@
 - [ ] Task: Verify skill line count budget (implement.md ≤ 500, swarm-orchestrate.md within budget) [TIER-1]
 - [ ] Task: Integrate track 'review_panel_20260722' into main branch [TIER-3] [AGENT:caduceus-oracle]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)
+
+## Phase 8: Standalone `superconductor:review` Skill
+- [ ] Task: Create `skills/standalone-review/` directory and scaffolding [TIER-1] [AGENT:caduceus-processor]
+- [ ] Task: Write `skills/standalone-review/SKILL.md` — standalone review skill [TIER-4] [AGENT:caduceus-oracle]
+    - [ ] §1.0 System Directive: zero-track-context mode, full panel pipeline
+    - [ ] §2.0 Input Resolution Protocol:
+        - [ ] Priority 1: resolve `{{args}}` for flags (`--staged`, `--branch`, `--pr`, `--file`, `--dir`, `--fast`, `--deep`, `--stats`)
+        - [ ] Priority 2: if no args and stdin present → read stdin
+        - [ ] Priority 3: if no args and no stdin → `git diff HEAD` as default
+        - [ ] Priority 4: if not a git repo → prompt user to specify target explicitly
+    - [ ] §3.0 Directory Triage Protocol (for `--dir` and large codebases):
+        - [ ] Hot-path scoring: `git log --since=30.days --name-only` → rank by change frequency
+        - [ ] Entry-point detection: file extension heuristics (`index.*`, `main.*`, `app.*`, `server.*`) + import fan-in count
+        - [ ] Concern chunking: group by directory/module boundary → separate panel pass per concern group
+        - [ ] Progressive output: write partial findings file per concern group as it completes
+    - [ ] §4.0 No-Context Fallback Rules:
+        - [ ] No `tech-stack.md` → use file extension map for language detection (`*.ts` → TypeScript, `*.py` → Python, etc.)
+        - [ ] No `spec.md` → skip AC alignment checks; correctness panel uses generic coding standards only
+        - [ ] No `adversarial-audit.md` → embed shenanigan checklist inline in adversarial reviewer prompt
+    - [ ] §5.0 Depth Mode Dispatch:
+        - [ ] `--fast`: Flash panel only (Security + Correctness + Adversarial), no residual pass, no arbiter → emit findings directly
+        - [ ] default: Full pipeline (preflight → panel → residual → deferral gate → arbiter)
+        - [ ] `--deep`: Full pipeline with explicit second residual pass after arbiter returns (arbiter gap analysis → second residual)
+    - [ ] §6.0 Output Protocol:
+        - [ ] Write report to `./review-<timestamp>.md` in CWD
+        - [ ] Append Token Efficiency Report if `--stats` flag present
+        - [ ] Exit code convention: `0` = clean / `1` = findings present / `2` = critical security findings
+    - [ ] §7.0 PR Mode (`--pr <url>`):
+        - [ ] Detect platform from URL (GitLab vs GitHub)
+        - [ ] Fetch PR diff via GitLab-MCP `get_merge_request_diffs` or GitHub equivalent
+        - [ ] Fetch PR description and use as lightweight spec context for AC alignment
+- [ ] Task: Write tests for input resolution logic [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Test: no args + git repo → resolves to `git diff HEAD`
+    - [ ] Test: no args + non-git dir → prompts for target
+    - [ ] Test: `--staged` flag → resolves to `git diff --staged`
+    - [ ] Test: `--file <nonexistent>` → error with clear message, non-zero exit
+    - [ ] Test: `--dir` with large codebase → concern chunking produces ≥2 groups
+- [ ] Task: Write smoke test: run standalone review on superconductor codebase itself (`--fast`) [TIER-2] [AGENT:caduceus-oracle]
+    - [ ] Assert: report file written to CWD
+    - [ ] Assert: exit code is 0 or 1 (not 2 — no critical security findings in our own skill files)
+    - [ ] Assert: Coverage Manifest written to temp `.manifests/` dir
+- [ ] Task: Superconductor - User Manual Verification 'Phase 8: Standalone Review Skill' (Protocol in workflow.md)
+
