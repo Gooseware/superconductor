@@ -1,4 +1,5 @@
 import { DagNode, SubagentConfig } from '../types/index.js';
+import { execSync } from 'child_process';
 
 const MAX_PROMPT_LENGTH = 100000;
 
@@ -22,7 +23,12 @@ export async function resolveSymbols(symbols: SymbolDependency[]): Promise<strin
 
 export async function generateDiffPayload(contextFiles: string[]): Promise<string> {
   if (!contextFiles || contextFiles.length === 0) return '--- Diff Payload ---\n(No files specified)';
-  return `--- Diff Payload ---\nFiles: ${contextFiles.join(', ')}\n(Line-level git diff subset)`;
+  try {
+    const diff = execSync(`git diff HEAD -- ${contextFiles.join(' ')}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+    return `--- Diff Payload ---\n${diff || '(No diff detected)'}`;
+  } catch {
+    return `--- Diff Payload ---\nFiles: ${contextFiles.join(', ')}\n(Line-level git diff subset)`;
+  }
 }
 
 export function buildContext(task: DagNode, commonContext: string): SubagentConfig {

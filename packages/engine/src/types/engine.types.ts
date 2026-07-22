@@ -20,4 +20,6 @@ export interface TrackExecutionState {
   checkpointSha?: string;
   model_tier: 1 | 2 | 3 | 4;
   escalated: boolean;
+  dodLevel?: 1 | 2 | 3 | 4;
+  hitRatio?: number;
 }

@@ -2,11 +2,10 @@ import { EventEmitter } from 'events';
 import { DagNode } from '../types/dag.types.js';
 import { DispatcherEvent, SubagentResult } from '../types/dispatcher.types.js';
 import { TaskLockManager } from '../concurrency/lock-manager.js';
-
-import { execSync } from 'child_process';
-
 import { CacheManager } from '../cache/CacheManager.js';
 import { ModelFetcher } from '../cache/ModelFetcher.js';
+import { ToolSurfaceFilter } from './tool-surface-filter.js';
+import { execSync } from 'child_process';
 
 function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
   const config: Record<number, { models: string[] }> = {
@@ -55,10 +54,12 @@ const TIER_CONFIG = fetchDynamicTierConfig();
 
 export class Dispatcher extends EventEmitter {
   private lockManager: TaskLockManager;
+  public toolFilter: ToolSurfaceFilter;
 
   constructor() {
     super();
     this.lockManager = new TaskLockManager();
+    this.toolFilter = new ToolSurfaceFilter();
   }
 
   getTierConfig(tier: number): { models: string[] } {
@@ -82,6 +83,10 @@ export class Dispatcher extends EventEmitter {
       };
       this.emit('event', eventFailed);
       return;
+    }
+
+    if (task.role === 'reviewer') {
+      task.toolSurface = 'readonly';
     }
 
     const eventStarted: DispatcherEvent = {

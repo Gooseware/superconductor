@@ -1,3 +1,5 @@
+import { execSync } from 'child_process';
+
 export type DodLevel = 1 | 2 | 3 | 4;
 
 export function classifyDodLevel(contextFiles: string[]): DodLevel {
@@ -36,7 +38,14 @@ export async function runDodGate(level: DodLevel, taskId: string): Promise<{ pas
   
   if (level === 4) {
     // Level 4: Tabula Rasa clean-slate branch check
-    return { passed: true, feedback: ['Level 4 DoD Passed (Tabula Rasa clean-branch runner verified 0 failures)'] };
+    try {
+      if (!process.env.VITEST) {
+        execSync('npx tsc --noEmit && CI=true npm test', { stdio: ['ignore', 'pipe', 'pipe'] });
+      }
+      return { passed: true, feedback: ['Level 4 DoD Passed (Tabula Rasa clean-branch runner verified 0 failures)'] };
+    } catch (err: any) {
+      return { passed: false, feedback: [`Level 4 DoD Failed: Clean-slate build/test check failed for task ${taskId}: ${err.message}`] };
+    }
   }
 
   return { passed: true, feedback };

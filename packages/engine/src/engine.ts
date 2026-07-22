@@ -8,6 +8,9 @@ import { DispatcherEvent } from './types/dispatcher.types.js';
 import { EscalationRouter } from './routing/escalation-router.js';
 import { CacheManager } from './routing/cache-manager.js';
 import { EngineConfig, TrackExecutionState } from './types/engine.types.js';
+import { GitCheckpointManager } from './safety/git-checkpoint-manager.js';
+import { classifyDodLevel, runDodGate } from './verification/dod-classifier.js';
+import { SmartModelResolver } from './routing/SmartModelResolver.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
@@ -15,6 +18,8 @@ export class Engine extends EventEmitter {
   public storm: StormController;
   public escalationRouter: EscalationRouter;
   public cacheManager: CacheManager;
+  public checkpointManager: GitCheckpointManager;
+  public modelResolver: SmartModelResolver;
   public commonContext: string = '';
   public config: EngineConfig;
   
@@ -35,6 +40,8 @@ export class Engine extends EventEmitter {
     this.storm = new StormController();
     this.escalationRouter = new EscalationRouter(this);
     this.cacheManager = new CacheManager({ maxTokenBudget: config.disableCache ? 0 : 50000 });
+    this.checkpointManager = new GitCheckpointManager();
+    this.modelResolver = new SmartModelResolver();
     
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }
@@ -50,6 +57,7 @@ export class Engine extends EventEmitter {
       escalated: false
     };
     this.taskStates.set(taskId, state);
+    this.emit('state_changed', { type: 'init', state });
     return state;
   }
 
@@ -62,6 +70,7 @@ export class Engine extends EventEmitter {
     if (!current) return undefined;
     const updated = { ...current, ...patch };
     this.taskStates.set(taskId, updated);
+    this.emit('state_changed', { type: 'update', state: updated });
     return updated;
   }
 
@@ -73,20 +82,56 @@ export class Engine extends EventEmitter {
 
   private async handleDispatcherEvent(event: DispatcherEvent) {
     if (event.type === 'task_completed') {
+      const currentState = this.getTaskState(event.taskId);
+      const dodLevel = currentState?.dodLevel || 2;
+      
+      const dodGateResult = await runDodGate(dodLevel, event.taskId);
+      if (!dodGateResult.passed) {
+        // DodGate failed, treat as task failure for refinement loop
+        const state = currentState || this.initTaskState('default-track', event.taskId);
+        state.iteration_count++;
+        state.execution_errors.push(...dodGateResult.feedback);
+        this.updateTaskState(event.taskId, state);
+
+        if (state.iteration_count >= 3 && state.checkpointSha) {
+          this.checkpointManager.rollbackToCheckpoint(state.checkpointSha);
+        }
+        
+        this.storm.releaseAccess(event.taskId);
+        this.scheduler.failTask(event.taskId);
+        this.activeTasks--;
+        this.isHalted = true;
+        this.pump();
+        return;
+      }
+
       this.escalationRouter.onTaskSuccess('default-track', event.taskId);
       this.storm.releaseAccess(event.taskId);
       this.scheduler.completeTask(event.taskId);
       this.activeTasks--;
       this.pump();
     } else if (event.type === 'task_failed') {
+      const state = this.getTaskState(event.taskId);
+      if (state) {
+        state.iteration_count++;
+        if (event.payload?.error) {
+          state.execution_errors.push(event.payload.error);
+        }
+        this.updateTaskState(event.taskId, state);
+
+        // Circuit breaker: rollback if iteration count >= 3
+        if (state.iteration_count >= 3 && state.checkpointSha) {
+          this.checkpointManager.rollbackToCheckpoint(state.checkpointSha);
+        }
+      }
+
       const action = this.escalationRouter.processSignal('default-track', event.taskId, 'red_green_failure');
       if (action === 'escalate') {
         const task = this.scheduler.getTask(event.taskId);
         if (task) {
-          const currentState = this.getTaskState(event.taskId);
-          if (currentState) {
-            this.updateTaskState(event.taskId, { model_tier: 4, escalated: true });
-          }
+          const resolvedTier = await this.modelResolver.resolve('tier4', 'escalation');
+          const tierNumber = resolvedTier.selection.tier ? (parseInt(resolvedTier.selection.tier.replace('tier', ''), 10) as 1 | 2 | 3 | 4) : 4;
+          this.updateTaskState(event.taskId, { model_tier: tierNumber || 4, escalated: true });
           this.activeTasks--;
           this.storm.releaseAccess(event.taskId);
           task.status = 'pending';
@@ -161,19 +206,33 @@ export class Engine extends EventEmitter {
     if (task.role === 'reviewer') {
       task.toolSurface = 'readonly';
     }
-    if (!this.getTaskState(task.id)) {
-      this.initTaskState('default-track', task.id);
+    let state = this.getTaskState(task.id);
+    if (!state) {
+      state = this.initTaskState('default-track', task.id);
     }
     
+    // Checkpoint pre-task git state
+    const sha = this.checkpointManager.createCheckpoint(task.id);
+    const dodLevel = classifyDodLevel(task.contextFiles || []);
+    
+    this.updateTaskState(task.id, {
+      checkpointSha: sha,
+      dodLevel
+    });
+
     const config = buildContext(task, this.commonContext);
     task.prompt = config.prompt; 
     
-    this.cacheManager.processPayload({
+    const hitRatio = this.cacheManager.processPayload({
       taskId: task.id,
       systemInstruction: 'Standard System Prompt Prefix',
       tools: 'Standard Tools Definition',
       context: task.prompt
     });
+    
+    if (typeof hitRatio === 'number') {
+      this.updateTaskState(task.id, { hitRatio });
+    }
     
     this.dispatcher.dispatch(task).catch((err) => {
       console.error(err);
