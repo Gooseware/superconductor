@@ -1,0 +1,10 @@
+{
+  "id": "headless_batch_20260722",
+  "name": "Headless Batch Track Executor",
+  "type": "Feature",
+  "status": "pending",
+  "created": "2026-07-22T17:49:00+04:00",
+  "updated": "2026-07-22T17:49:00+04:00",
+  "description": "Overnight batch execution of all pending tracks via /superconductor:batch. Continue-on-failure policy — failures are morning presents. Produces a structured morning briefing report per run.",
+  "targetBranch": "main"
+}
