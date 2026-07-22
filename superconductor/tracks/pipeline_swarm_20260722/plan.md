@@ -13,26 +13,26 @@
 
 ## Phase 1: Design the Pipeline Mode Protocol
 
-- [ ] Task: Write the pipeline mode section for `swarm-orchestrate/SKILL.md` [TIER-4] [AGENT:caduceus-oracle]
-    - [ ] Add `## 2.1 Mode Auto-Detection` — rule: flat DAG → `parallel`, linear chain → `pipeline`
-    - [ ] Add `## 2.2 Pipeline Mode — Assembly-Line Scheduling` with:
-        - [ ] Sliding window dispatch: Coder N runs while Reviewer N-1 runs concurrently
-        - [ ] Advisory injection: Reviewer output → `--- Advisory Review ---` block in Coder N+1 prompt
-        - [ ] Oracle cadence: fires every `oracleCadence` tasks (default: 3), advisory-only score
-        - [ ] CRITICAL escalation path: Reviewer severity `CRITICAL` → pause Coder, spawn remediation Coder
-    - [ ] Update the mermaid diagram to show both modes (parallel branch + pipeline branch)
-    - [ ] Update `swarm_log.md` schema section: add `pipeline_state` fields
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1 Protocol Design' (Protocol in workflow.md)
+- [x] Task: Write the pipeline mode section for `swarm-orchestrate/SKILL.md` [TIER-4] [AGENT:caduceus-oracle]
+    - [x] Add `## 2.1 Mode Auto-Detection` — rule: flat DAG → `parallel`, linear chain → `pipeline`
+    - [x] Add `## 2.2 Pipeline Mode — Assembly-Line Scheduling` with:
+        - [x] Sliding window dispatch: Coder N runs while Reviewer N-1 runs concurrently
+        - [x] Advisory injection: Reviewer output → `--- Advisory Review ---` block in Coder N+1 prompt
+        - [x] Oracle cadence: fires every `oracleCadence` tasks (default: 3), advisory-only score
+        - [x] CRITICAL escalation path: Reviewer severity `CRITICAL` → pause Coder, spawn remediation Coder
+    - [x] Update the mermaid diagram to show both modes (parallel branch + pipeline branch)
+    - [x] Update `swarm_log.md` schema section: add `pipeline_state` fields
+- [x] Task: Superconductor - User Manual Verification 'Phase 1 Protocol Design' (Protocol in workflow.md)
 
 ---
 
 ## Phase 2: Verification
 
-- [ ] Task: Run `skill-line-count.test.ts` — assert `swarm-orchestrate/SKILL.md` ≤ 500 lines [TIER-1] [AGENT:caduceus-processor]
-- [ ] Task: Run full test suite — all 171 existing tests must pass, 0 failures [TIER-1] [AGENT:caduceus-processor]
-    - [ ] `CI=true npm test` from `packages/engine/`
-    - [ ] `tsc --noEmit` clean
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2 Verification' (Protocol in workflow.md)
+- [x] Task: Run `skill-line-count.test.ts` — assert `swarm-orchestrate/SKILL.md` ≤ 500 lines [TIER-1] [AGENT:caduceus-processor]
+- [x] Task: Run full test suite — all 171 existing tests must pass, 0 failures [TIER-1] [AGENT:caduceus-processor]
+    - [x] `CI=true npm test` from `packages/engine/`
+    - [x] `tsc --noEmit` clean
+- [x] Task: Superconductor - User Manual Verification 'Phase 2 Verification' (Protocol in workflow.md)
 
 ---
 
