@@ -10,18 +10,18 @@
 - [ ] Task: Create `templates/reviewers/` directory [TIER-1] [AGENT:caduceus-processor]
 - [ ] Task: Write `templates/reviewers/security-reviewer.md` [TIER-3] [AGENT:caduceus-processor]
     - [ ] Role definition: XSS, injection, auth bypass, secrets in code, insecure dependencies
-    - [ ] Coverage Manifest output format section (Examined / Skimmed / NOT examined)
+    - [ ] Coverage Manifest contract (` ```json:coverage-manifest ` fenced block + file artifact write instruction)
     - [ ] Severity schema aligned with adversarial-audit.md
 - [ ] Task: Write `templates/reviewers/correctness-reviewer.md` [TIER-3] [AGENT:caduceus-processor]
     - [ ] Role definition: edge cases, null/undefined paths, off-by-one, race conditions, spec AC alignment
-    - [ ] Coverage Manifest output format section
+    - [ ] Coverage Manifest contract (` ```json:coverage-manifest ` fenced block + file artifact write instruction)
     - [ ] Explicit instruction: output `NOT examined` list honestly even if it means admitting gaps
 - [ ] Task: Write `templates/reviewers/adversarial-reviewer.md` [TIER-3] [AGENT:caduceus-processor]
     - [ ] Role definition: load full `skills/review/SKILL.md §4.5` shenanigan checklist
     - [ ] Run all 8 shenanigan checks as mandatory output sections
-    - [ ] Coverage Manifest output format section
+    - [ ] Coverage Manifest contract (` ```json:coverage-manifest ` fenced block + file artifact write instruction)
     - [ ] Include instruction: "You are looking for what the other reviewers will miss"
-- [ ] Task: Write tests verifying all three templates contain Coverage Manifest section headers [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Write tests verifying all three templates contain Coverage Manifest contract headers [TIER-2] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Reviewer Specialization Templates' (Protocol in workflow.md)
 
 ## Phase 2: Deterministic Pre-Filter Stage
@@ -34,18 +34,22 @@
 - [ ] Task: Write tests for short-circuit logic (mock critical diagnostic → verify panel is skipped) [TIER-2] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Deterministic Pre-Filter Stage' (Protocol in workflow.md)
 
-## Phase 3: Coverage Manifest Aggregation Engine
-- [ ] Task: Define Coverage Manifest JSON schema [TIER-3] [AGENT:caduceus-processor]
+## Phase 3: Coverage Manifest Aggregation Engine & Extraction Protocol
+- [ ] Task: Define Coverage Manifest JSON schema & extraction parser [TIER-3] [AGENT:caduceus-processor]
     - [ ] Fields: `reviewer_id`, `examined[]`, `skimmed[]`, `not_examined[]`
     - [ ] Each entry: `{ file, line_range, concern }` 
 - [ ] Task: Write `scripts/aggregate-coverage-manifest.ts` [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Input: array of Coverage Manifest JSON objects from each reviewer
+    - [ ] **Tier 1 Extraction:** Fenced Code Block Regex (`json:coverage-manifest`) from agent output text
+    - [ ] **Tier 2 Extraction:** Read fallback artifact JSON files from `superconductor/tracks/<track_id>/.manifests/`
+    - [ ] **Tier 3 Fail-Safe:** If parsing fails or manifest missing, mark reviewer coverage as `not_examined: ["all files in diff"]` (guarantees residual pass dispatch)
     - [ ] Output: `ResidualCoverageMap` = union of all `not_examined` entries, deduplicated
     - [ ] Output: `CoverageStats` = { files_examined, files_not_examined, total_lines_covered }
-- [ ] Task: Write unit tests for aggregation engine [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Test: three manifests with overlapping `not_examined` → correct deduplication
-    - [ ] Test: all manifests fully covered → empty residual map
-    - [ ] Test: single manifest with empty `not_examined` → residual is empty
+- [ ] Task: Write unit tests for extraction and aggregation engine [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Test Tier 1 fenced JSON extraction from raw agent text
+    - [ ] Test Tier 2 file artifact reading fallback
+    - [ ] Test Tier 3 fail-safe default when output is malformed
+    - [ ] Test three manifests with overlapping `not_examined` → correct deduplication
+    - [ ] Test all manifests fully covered → empty residual map
 - [ ] Task: Superconductor - User Manual Verification 'Phase 3: Coverage Manifest Aggregation Engine' (Protocol in workflow.md)
 
 ## Phase 4: Cascade Deferral Gate
