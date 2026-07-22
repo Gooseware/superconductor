@@ -140,17 +140,19 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 4.  **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Orchestration Skill:**
        - Search for the `swarm-orchestrate` skill in the catalog and active skills.
-       - If `swarm-orchestrate` is available:
+       - **If `swarm-orchestrate` is available:**
          - **Headless Mode (`--headless`):** Automatically transition to `swarm-orchestrate` skill protocol.
          - **Interactive Mode:** Prompt the user using `ask_user`:
            - **header:** "Execution Mode"
-           - **question:** "Select how you would like to implement this track:"
+           - **question:** "Select how you would like to implement this track (Swarm recommended for 5+ tasks):"
            - **type:** "choice"
            - **options:**
-             - Label: "Multi-Agent Swarm (Recommended)", Description: "Autonomous multi-agent execution loop (Dreamer -> Processors -> Reviewers -> Oracle). Auto-selects Parallel fan-out or Pipeline assembly-line mode based on plan structure."
+             - Label: "Multi-Agent Swarm (Recommended for 5+ tasks)", Description: "Autonomous multi-agent execution loop (Dreamer -> Processors -> Reviewers -> Oracle). Auto-selects Parallel fan-out or Pipeline assembly-line mode based on plan structure."
              - Label: "Sequential (Standard)", Description: "Single-agent task execution following standard step-by-step TDD workflow checkpoints."
-         - **If "Multi-Agent Swarm (Recommended)" is selected:** Transition execution to the `swarm-orchestrate` skill protocol and halt normal implement execution.
+         - **If "Multi-Agent Swarm" is selected:** Transition execution to the `swarm-orchestrate` skill protocol and halt normal implement execution.
          - **If "Sequential (Standard)" is selected:** Proceed with standard sequential execution below.
+       - **If `swarm-orchestrate` is NOT available:**
+         - **Headless Mode (`--headless`) or Interactive Mode:** Skip swarm orchestration check and proceed directly to 4.b (Sequential execution).
     b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
     c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
        - **Review Triggers:**
