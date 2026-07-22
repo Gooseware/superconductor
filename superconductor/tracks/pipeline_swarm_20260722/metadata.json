@@ -1,0 +1,10 @@
+{
+  "id": "pipeline_swarm_20260722",
+  "name": "Pipeline Swarm Mode",
+  "type": "Feature",
+  "status": "pending",
+  "created": "2026-07-22T17:43:00+04:00",
+  "updated": "2026-07-22T17:43:00+04:00",
+  "description": "Adds assembly-line pipeline scheduling to swarm-orchestrate skill — Coder N runs concurrently with Reviewer N-1, Oracle fires every 3 tasks as advisory checkpoint.",
+  "targetBranch": "main"
+}

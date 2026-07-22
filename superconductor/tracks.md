@@ -62,5 +62,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Dynamic Skill Trigger Engine**
 *Link: [./tracks/skill_trigger_20260722/](./tracks/skill_trigger_20260722/)*
 
+---
+
+- [ ] **Track: Pipeline Swarm Mode**
+*Link: [./tracks/pipeline_swarm_20260722/](./tracks/pipeline_swarm_20260722/)*
+
 
 
