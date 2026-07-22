@@ -4,3 +4,5 @@ export * from './dispatcher.types.js';
 export * from './concurrency.types.js';
 export * from './events.js';
 export * from './engine.types.js';
+export * from './shared-schema.js';
+
