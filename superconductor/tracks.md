@@ -59,7 +59,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Dynamic Skill Trigger Engine**
+- [x] **Track: Dynamic Skill Trigger Engine**
 *Link: [./tracks/skill_trigger_20260722/](./tracks/skill_trigger_20260722/)*
 
 
