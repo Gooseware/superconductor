@@ -42,18 +42,18 @@
 
 *(Wire `model_selector_20260721` into the live Superconductor plugin flow)*
 
-- [ ] Task: Implement `IModelRouter` interface and atomic cache writes [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Implement `IModelRouter` interface and atomic cache writes [f4b49d2] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests for `mtime` check, atomic write (write-then-rename), `0600` permissions, concurrent write stress test.
     - [ ] Refactor `CacheManager` from `model_selector_20260721` to implement `IModelRouter` from shared schema.
     - [ ] Replace direct write with atomic write: write to `.tmp` then `fs.renameSync` to final path.
     - [ ] Add in-memory singleton cache to avoid repeated disk I/O within same session.
-- [ ] Task: Implement `SmartModelResolver` and integrate into Superconductor engine [TIER-3] [AGENT:caduceus-dreamer]
+- [x] Task: Implement `SmartModelResolver` and integrate into Superconductor engine [f4b49d2] [TIER-3] [AGENT:caduceus-dreamer]
     - [ ] Write integration tests: session start resolves model from `agent-config.md`; TUI fires only on model change or `--switch-model` flag; `active_model.json` written with `0600` permissions.
     - [ ] Implement `SmartModelResolver`: reads `agent-config.md` tier mappings → queries `CacheManager` for available models → reads `~/.gemini/active_model.json` (last session) → compares; if changed, invoke TUI selector.
     - [ ] Persist resolved model to `~/.gemini/active_model.json` (0600) after selection.
     - [ ] Expose `--switch-model` flag that forces TUI regardless of cached selection.
     - [ ] Hook `SmartModelResolver` into the `implement` skill's session init flow.
-- [ ] Task: Implement `SuperconductorEventEmitter` (fire-and-forget to Caduceus) [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Implement `SuperconductorEventEmitter` (fire-and-forget to Caduceus) [f4b49d2] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: event fires after task completion; silent fail with log when Caduceus unavailable; 500ms timeout respected.
     - [ ] Implement `SuperconductorEventEmitter.emit(event: AgentTurnEvent)`: POSTs to `http://localhost:1691/api/events` with 500ms `AbortSignal.timeout`; wraps in try/catch.
     - [ ] Add hook into Superconductor task completion flow (Step 8 of Standard Task Workflow).
