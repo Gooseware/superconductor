@@ -79,3 +79,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 
 
+
+- [ ] **Track: Review Panel Mode with Coverage-Aware Residual Passes**
+*Link: [./tracks/review_panel_20260722/](./tracks/review_panel_20260722/)*
