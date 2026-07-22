@@ -149,7 +149,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
            - **options:**
              - Label: "Multi-Agent Swarm (Recommended for 5+ tasks)", Description: "Autonomous multi-agent execution loop (Dreamer -> Processors -> Reviewers -> Oracle). Auto-selects Parallel fan-out or Pipeline assembly-line mode based on plan structure."
              - Label: "Sequential (Standard)", Description: "Single-agent task execution following standard step-by-step TDD workflow checkpoints."
-         - **If "Multi-Agent Swarm" is selected:** Transition execution to the `swarm-orchestrate` skill protocol and halt normal implement execution.
+         - **If "Multi-Agent Swarm (Recommended for 5+ tasks)" is selected:** Transition execution to the `swarm-orchestrate` skill protocol and halt normal implement execution.
          - **If "Sequential (Standard)" is selected:** Proceed with standard sequential execution below.
        - **If `swarm-orchestrate` is NOT available:**
          - **Headless Mode (`--headless`) or Interactive Mode:** Skip swarm orchestration check and proceed directly to 4.b (Sequential execution).
