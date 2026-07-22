@@ -38,7 +38,7 @@
 
 ---
 
-## Phase 2: Model Switcher Integration (Superconductor Engine)
+## Phase 2: Model Switcher Integration (Superconductor Engine) [checkpoint: e4fa813]
 
 *(Wire `model_selector_20260721` into the live Superconductor plugin flow)*
 
@@ -57,7 +57,7 @@
     - [ ] Write unit tests: event fires after task completion; silent fail with log when Caduceus unavailable; 500ms timeout respected.
     - [ ] Implement `SuperconductorEventEmitter.emit(event: AgentTurnEvent)`: POSTs to `http://localhost:1691/api/events` with 500ms `AbortSignal.timeout`; wraps in try/catch.
     - [ ] Add hook into Superconductor task completion flow (Step 8 of Standard Task Workflow).
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Model Switcher Integration' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Model Switcher Integration' (Protocol in workflow.md)
 
 ---
 
