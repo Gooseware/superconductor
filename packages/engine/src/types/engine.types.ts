@@ -3,6 +3,7 @@ export interface EngineConfig {
   commonContext?: string;
   disableCache?: boolean;
   dbPath?: string;
+  skillsDir?: string;
 }
 
 export interface ReviewComment {

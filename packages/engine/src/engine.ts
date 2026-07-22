@@ -12,6 +12,7 @@ import { EngineConfig, TrackExecutionState } from './types/engine.types.js';
 import { GitCheckpointManager } from './safety/git-checkpoint-manager.js';
 import { classifyDodLevel, runDodGate } from './verification/dod-classifier.js';
 import { SmartModelResolver } from './routing/SmartModelResolver.js';
+import { SkillTriggerEngine } from './skills/skill-trigger-engine.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
@@ -22,6 +23,7 @@ export class Engine extends EventEmitter {
   public checkpointManager: GitCheckpointManager;
   public modelResolver: SmartModelResolver;
   public eventStore: EventStore;
+  public skillTrigger: SkillTriggerEngine;
   public commonContext: string = '';
   public config: EngineConfig;
   
@@ -45,6 +47,7 @@ export class Engine extends EventEmitter {
     this.checkpointManager = new GitCheckpointManager();
     this.modelResolver = new SmartModelResolver();
     this.eventStore = new EventStore({ dbPath: config.dbPath || ':memory:' });
+    this.skillTrigger = new SkillTriggerEngine(config.skillsDir);
     
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }
@@ -235,6 +238,13 @@ export class Engine extends EventEmitter {
 
     const config = buildContext(task, this.commonContext);
     task.prompt = config.prompt; 
+
+    // Match skills and inject context into the built prompt
+    const matches = this.skillTrigger.match(task);
+    const skillContext = this.skillTrigger.buildSkillContext(matches);
+    if (skillContext) {
+      task.prompt = `${task.prompt}\n\n--- Active Skills ---\n${skillContext}`;
+    } 
     
     const hitRatio = this.cacheManager.processPayload({
       taskId: task.id,

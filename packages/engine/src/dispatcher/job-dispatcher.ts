@@ -128,7 +128,8 @@ export class JobDispatcher {
         child.on('close', async () => {
           this.poolManager.updateProgress(workerId, 'Agent finished, syncing...');
           try {
-            const status = cp.execSync('git status --porcelain', { cwd: workspaceRoot }).toString();
+            const statusOutput = cp.execSync('git status --porcelain', { cwd: workspaceRoot });
+            const status = statusOutput ? statusOutput.toString() : '';
             if (status.trim() !== '') {
               cp.execSync('git add .', { cwd: workspaceRoot, stdio: 'ignore' });
               cp.execSync('git commit -m "chore: generate spec and plan"', { cwd: workspaceRoot, stdio: 'ignore' });
