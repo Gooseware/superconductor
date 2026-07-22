@@ -26,12 +26,12 @@
 
 *(Work in Superconductor repo — types consumed by both repos via path aliases)*
 
-- [ ] Task: Define shared TypeScript types in `src/shared-schema/` [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Define shared TypeScript types in `src/shared-schema/` [4238cf6] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests verifying all exported types compile and match expected shapes (compile-time tests with `tsd`).
     - [ ] Create `src/shared-schema/index.ts` with types: `Track`, `TrackStatus`, `AgentMessage`, `RegistryComponent`, `ComponentStagingManifest`, `ModelTierConfig`, `IModelRouter`, `SuperconductorContext`, `AgentTurnEvent`, `AdaptiveRouteSuggestion`.
     - [ ] Wire tsconfig path aliases in Superconductor: `@shared-schema → ./src/shared-schema`.
     - [ ] Document each type with JSDoc comments.
-- [ ] Task: Configure Caduceus path alias for shared schema [TIER-2] [AGENT:caduceus-processor]
+- [x] Task: Configure Caduceus path alias for shared schema [b439923] [TIER-2] [AGENT:caduceus-processor]
     - [ ] Add tsconfig path alias `@superconductor/shared-schema → [superconductor-path]/src/shared-schema` in Caduceus tsconfig.
     - [ ] Write a compile-time test importing from alias.
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Shared Schema Package' (Protocol in workflow.md)
