@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["swarm", "orchestrate", "multi-agent", "autonomous"],
+    "fileGlobs": ["superconductor/tracks/*/swarm_log.md"],
+    "intentPatterns": ["^swarm.*", "^orchestrate.*"],
+    "executionEvents": ["UserPromptSubmit", "TrackInitialization"]
+  },
+  "metadata": {
+    "name": "swarm-orchestrate",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}

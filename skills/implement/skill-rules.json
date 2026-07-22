@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["implement", "build", "code", "feature"],
+    "fileGlobs": ["superconductor/tracks/*/plan.md"],
+    "intentPatterns": ["^implement.*", "^start task.*"],
+    "executionEvents": ["UserPromptSubmit", "TrackInitialization"]
+  },
+  "metadata": {
+    "name": "implement",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}

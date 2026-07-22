@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["status", "progress", "report"],
+    "fileGlobs": ["superconductor/tracks.md"],
+    "intentPatterns": ["^status.*"],
+    "executionEvents": ["UserPromptSubmit"]
+  },
+  "metadata": {
+    "name": "status",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}

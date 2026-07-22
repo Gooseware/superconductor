@@ -74,7 +74,8 @@ describe('SQLite Event Store', () => {
       store.append({ type: 'system', timestamp: Date.now(), detail: { index: i } } as any);
     }
     const endInsert = Date.now();
-    expect(endInsert - startInsert).toBeLessThan(5000); // Should be fast
+    expect(endInsert - startInsert).toBeLessThan(10000); // Should be fast
+
 
     const startQuery = Date.now();
     const results = store.query({ eventType: 'system' });

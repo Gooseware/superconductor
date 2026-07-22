@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SuperconductorSkillRules",
+  "description": "Canonical schema for Superconductor skill activation rules and progressive disclosure triggers.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "triggers": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "fileGlobs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "intentPatterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "executionEvents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["UserPromptSubmit", "PreToolUse", "PostToolUse", "TrackInitialization"]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "marketplace": {
+          "type": "string",
+          "enum": ["lobehub", "skillsmp", "claudeskills", "1p", "3p"]
+        },
+        "version": { "type": "string" }
+      },
+      "required": ["name", "marketplace", "version"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["version", "triggers", "metadata"],
+  "additionalProperties": false
+}

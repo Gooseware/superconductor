@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["revert", "undo", "rollback"],
+    "fileGlobs": [".git/index"],
+    "intentPatterns": ["^revert.*", "^undo.*"],
+    "executionEvents": ["UserPromptSubmit"]
+  },
+  "metadata": {
+    "name": "revert",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}

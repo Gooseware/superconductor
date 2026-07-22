@@ -7,7 +7,7 @@ import { buildContext } from './context/builder.js';
 import { DispatcherEvent } from './types/dispatcher.types.js';
 import { EscalationRouter } from './routing/escalation-router.js';
 import { CacheManager } from './routing/cache-manager.js';
-import { EngineConfig } from './types/engine.types.js';
+import { EngineConfig, TrackExecutionState } from './types/engine.types.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
@@ -18,6 +18,7 @@ export class Engine extends EventEmitter {
   public commonContext: string = '';
   public config: EngineConfig;
   
+  private taskStates: Map<string, TrackExecutionState> = new Map();
   private waitingForLocks: Set<DagNode> = new Set();
   private activeTasks: number = 0;
   private isHalted: boolean = false;
@@ -38,6 +39,32 @@ export class Engine extends EventEmitter {
     this.dispatcher.on('event', this.handleDispatcherEvent.bind(this));
   }
 
+  public initTaskState(trackId: string, taskId: string): TrackExecutionState {
+    const state: TrackExecutionState = {
+      taskId,
+      trackId,
+      iteration_count: 0,
+      execution_errors: [],
+      review_comments: [],
+      model_tier: 3,
+      escalated: false
+    };
+    this.taskStates.set(taskId, state);
+    return state;
+  }
+
+  public getTaskState(taskId: string): TrackExecutionState | undefined {
+    return this.taskStates.get(taskId);
+  }
+
+  public updateTaskState(taskId: string, patch: Partial<TrackExecutionState>): TrackExecutionState | undefined {
+    const current = this.taskStates.get(taskId);
+    if (!current) return undefined;
+    const updated = { ...current, ...patch };
+    this.taskStates.set(taskId, updated);
+    return updated;
+  }
+
   private handleSchedulerEvent(event: any) {
     if (event.type === 'task_failed' || event.type === 'task_blocked') {
       this.isHalted = true;
@@ -54,23 +81,22 @@ export class Engine extends EventEmitter {
     } else if (event.type === 'task_failed') {
       const action = this.escalationRouter.processSignal('default-track', event.taskId, 'red_green_failure');
       if (action === 'escalate') {
-        // Re-dispatch task instead of halting
         const task = this.scheduler.getTask(event.taskId);
         if (task) {
-          // In reality we would upgrade the model. We can just re-dispatch for now.
-          this.activeTasks--; // since it's going to restart
-          this.storm.releaseAccess(event.taskId); // release and let pump pick it up, or just dispatch directly?
-          // Let's release access and put it back in waiting, wait no, scheduler nextBatch handles it?
-          // Since it failed, if we don't mark it failed in scheduler, we can just reset its status to pending.
+          const currentState = this.getTaskState(event.taskId);
+          if (currentState) {
+            this.updateTaskState(event.taskId, { model_tier: 4, escalated: true });
+          }
+          this.activeTasks--;
+          this.storm.releaseAccess(event.taskId);
           task.status = 'pending';
-          // we don't pump yet, just let pump pick it up again
           this.pump();
         }
       } else {
         this.storm.releaseAccess(event.taskId);
         this.scheduler.failTask(event.taskId);
         this.activeTasks--;
-        this.isHalted = true; // cascading failure, block
+        this.isHalted = true;
         this.pump();
       }
     }
@@ -95,7 +121,6 @@ export class Engine extends EventEmitter {
       return;
     }
 
-    // Try to schedule tasks that were waiting for locks
     const stillWaiting = new Set<DagNode>();
     for (const task of this.waitingForLocks) {
       const access = this.storm.requestAccess(task.id, task.contextFiles || []);
@@ -107,7 +132,6 @@ export class Engine extends EventEmitter {
     }
     this.waitingForLocks = stillWaiting;
 
-    // Get new batch from scheduler
     const { tasks } = this.scheduler.nextBatch();
     
     for (const task of tasks) {
@@ -119,14 +143,12 @@ export class Engine extends EventEmitter {
       }
     }
 
-    // Check if we are done
     if (this.activeTasks === 0 && this.waitingForLocks.size === 0 && tasks.length === 0) {
       if (this.resolveExecution) {
         this.resolveExecution({ success: true });
       }
     }
     
-    // Check for deadlock
     if (this.activeTasks === 0 && this.waitingForLocks.size > 0) {
       if (this.rejectExecution) {
         this.rejectExecution(new Error('Engine deadlock: tasks waiting for locks but no active tasks running'));
@@ -136,14 +158,19 @@ export class Engine extends EventEmitter {
 
   private startTask(task: DagNode) {
     this.activeTasks++;
-    const config = buildContext(task, this.commonContext);
+    if (task.role === 'reviewer') {
+      task.toolSurface = 'readonly';
+    }
+    if (!this.getTaskState(task.id)) {
+      this.initTaskState('default-track', task.id);
+    }
     
+    const config = buildContext(task, this.commonContext);
     task.prompt = config.prompt; 
     
-    // Process through cache manager
     this.cacheManager.processPayload({
       taskId: task.id,
-      systemInstruction: 'Standard System Prompt Prefix', // Using mock standard prefix
+      systemInstruction: 'Standard System Prompt Prefix',
       tools: 'Standard Tools Definition',
       context: task.prompt
     });

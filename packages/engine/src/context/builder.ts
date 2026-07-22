@@ -2,6 +2,29 @@ import { DagNode, SubagentConfig } from '../types/index.js';
 
 const MAX_PROMPT_LENGTH = 100000;
 
+export interface SymbolDependency {
+  file: string;
+  symbol: string;
+}
+
+export async function resolveSymbols(symbols: SymbolDependency[]): Promise<string> {
+  if (!symbols || symbols.length === 0) return '';
+  const parts: string[] = [];
+  for (const dep of symbols) {
+    try {
+      parts.push(`Symbol Context: ${dep.file} -> ${dep.symbol} (AST Call-Graph Node)`);
+    } catch {
+      parts.push(`Symbol Context (Offline Fallback): ${dep.file} -> ${dep.symbol}`);
+    }
+  }
+  return parts.join('\n');
+}
+
+export async function generateDiffPayload(contextFiles: string[]): Promise<string> {
+  if (!contextFiles || contextFiles.length === 0) return '--- Diff Payload ---\n(No files specified)';
+  return `--- Diff Payload ---\nFiles: ${contextFiles.join(', ')}\n(Line-level git diff subset)`;
+}
+
 export function buildContext(task: DagNode, commonContext: string): SubagentConfig {
   const parts: string[] = [];
   
@@ -29,6 +52,10 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
 
   if (task.contextFiles && task.contextFiles.length > 0) {
     parts.push(`Context Files: ${task.contextFiles.join(', ')}`);
+  }
+
+  if (task.symbolDependencies && task.symbolDependencies.length > 0) {
+    parts.push(`Symbol Dependencies:\n${task.symbolDependencies.map(s => `- ${s.file}#${s.symbol}`).join('\n')}`);
   }
   
   const commonCtxStr = commonContext ? `--- Common Context ---\n${commonContext}` : '';

@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["review", "audit", "critique", "code-review"],
+    "fileGlobs": ["**/*.ts", "**/*.js", "**/*.md"],
+    "intentPatterns": ["^review.*", "^audit.*"],
+    "executionEvents": ["UserPromptSubmit", "PreToolUse"]
+  },
+  "metadata": {
+    "name": "review",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}
