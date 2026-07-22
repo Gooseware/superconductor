@@ -88,44 +88,44 @@
 
 *(Cross-repo: Superconductor writes, Caduceus reads)*
 
-- [ ] Task: Implement `ComponentStagingWriter` in Superconductor [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Implement `ComponentStagingWriter` in Superconductor [20329e7] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: manifest written to `~/.caduceus/staging/`; write is atomic (write-then-rename); fire-and-forget (does not block caller); validates against `ComponentStagingManifest` schema before write.
     - [ ] Implement `ComponentStagingWriter.write(payload: ComponentStagingManifest): Promise<void>` — creates `~/.caduceus/staging/` if missing (with `0700` perms); writes JSON atomically.
     - [ ] Integrate into Superconductor workflow's Registry Inclusion Analysis (Step 2.1 of Phase Completion Protocol) as the primary `RegistryClientRouter` route, falling back to `design-os-kernel` MCP if `~/.caduceus/staging/` not accessible.
-- [ ] Task: Implement `StagingWatcher` in Caduceus MCP server [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Implement `StagingWatcher` in Caduceus MCP server [9d6119a] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: watcher ingests new `.json` files; validates schema (rejects corrupt JSON); on success moves to `processed/`; on failure moves to `failed/` with error annotation; 60s poll interval correct.
     - [ ] Implement `StagingWatcher` class: polls `~/.caduceus/staging/` on startup and every 60 seconds; validates `ComponentStagingManifest` schema; ingests via Knowledge Graph API (new component node + edges to track and session); moves to `~/.caduceus/staging/processed/` on success, `~/.caduceus/staging/failed/` on error.
     - [ ] Wire `StagingWatcher` into Caduceus MCP server `index.ts` initialization.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Component Staging Registry Bridge' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Component Staging Registry Bridge' (Protocol in workflow.md)
 
 ---
 
-## Phase 5: Real-Time Event Bus
+## Phase 5: Real-Time Event Bus [checkpoint: 9d6119a]
 
 *(Superconductor emits → Caduceus persists)*
 
-- [ ] Task: Implement `/api/events` endpoint in Caduceus MCP server [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Implement `/api/events` endpoint in Caduceus MCP server [9d6119a] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: `POST /api/events` with valid `AgentTurnEvent` returns 202; rejects malformed with 400; event persisted in SQLite `events` table.
     - [ ] Create Drizzle ORM schema for `events` table: `(id, eventType, sessionId, trackId, phase, modelUsed, taskType, success, timestamp, payload_json)`.
     - [ ] Run Drizzle migration for new `events` table.
     - [ ] Implement `POST /api/events` route in Caduceus `index.ts`; validate payload against `AgentTurnEvent` schema; insert to DB; return 202.
     - [ ] Add `GET /api/suggest-model?taskType=<type>` endpoint that queries `events` table for historical model performance and returns `AdaptiveRouteSuggestion`.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Real-Time Event Bus' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Real-Time Event Bus' (Protocol in workflow.md)
 
 ---
 
-## Phase 6: Automatic Caduceus Model Routing
+## Phase 6: Automatic Caduceus Model Routing [checkpoint: 9d6119a]
 
 *(History-driven model suggestions from Caduceus → Superconductor)*
 
-- [ ] Task: Implement history-based model suggestion in `AdaptiveRouter` [TIER-4] [AGENT:caduceus-oracle]
+- [x] Task: Implement history-based model suggestion in `AdaptiveRouter` [9d6119a] [TIER-4] [AGENT:caduceus-oracle]
     - [ ] Write unit tests: `suggestModel` returns correct model when ≥5 events exist; returns null when insufficient history; handles DB query errors gracefully.
     - [ ] Implement `AdaptiveRouter.suggestModel(taskType: string, context: SuperconductorContext): Promise<string | null>`: queries `events` table grouped by `modelUsed`, calculates success rate (`success=true` count / total), returns top performer if ≥5 data points.
     - [ ] Wire the `GET /api/suggest-model` endpoint to call `AdaptiveRouter.suggestModel`.
-- [ ] Task: Integrate model suggestion into Superconductor's `SmartModelResolver` [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Integrate model suggestion into Superconductor's `SmartModelResolver` [f4b49d2] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: `SmartModelResolver` uses Caduceus suggestion when available and >5 data points; falls back to `agent-config.md` mapping when Caduceus unavailable or insufficient data.
     - [ ] Extend `SmartModelResolver` to call `GET http://localhost:1691/api/suggest-model?taskType=<type>` (200ms timeout, silent fail); if suggestion returned, use as override for that task type.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Automatic Caduceus Model Routing' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Automatic Caduceus Model Routing' (Protocol in workflow.md)
 
 ---
 
