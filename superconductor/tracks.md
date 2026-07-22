@@ -57,5 +57,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Swarm Excellence Engine**
 *Link: [./tracks/swarm_excellence_20260722/](./tracks/swarm_excellence_20260722/)*
 
+---
+
+- [ ] **Track: Dynamic Skill Trigger Engine**
+*Link: [./tracks/skill_trigger_20260722/](./tracks/skill_trigger_20260722/)*
+
 
 

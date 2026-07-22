@@ -1,0 +1,9 @@
+{
+  "id": "skill_trigger_20260722",
+  "name": "Dynamic Skill Trigger Engine",
+  "type": "Feature",
+  "status": "pending",
+  "created": "2026-07-22T16:51:00+04:00",
+  "updated": "2026-07-22T16:51:00+04:00",
+  "description": "Implements FR3 from the Swarm Excellence Engine track. Adds SkillTriggerEngine that scans skill-rules.json manifests, evaluates trigger conditions at dispatch time, and injects matched skill context into the task prompt."
+}
