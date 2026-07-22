@@ -61,7 +61,7 @@
 
 ---
 
-## Phase 3: Caduceus Superconductor-Awareness
+## Phase 3: Caduceus Superconductor-Awareness [checkpoint: 41c76a7]
 
 *(Work in Caduceus repo — `pre_invoke` hook extension, config extension, adaptive routing)*
 
@@ -80,7 +80,7 @@
     - [ ] Write unit tests: routes to `caduceus-oracle` when Superconductor Tier 4 active; falls back to original static routing when no Superconductor context.
     - [ ] Implement `AdaptiveRouter` class encapsulating all routing logic: static type-based routing (existing) + Superconductor tier override (new) + history-based suggestion (Phase 6).
     - [ ] Replace inline routing in `index.ts` with `AdaptiveRouter.route(taskData, superconductorContext)`.
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Caduceus Superconductor-Awareness' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Caduceus Superconductor-Awareness' (Protocol in workflow.md)
 
 ---
 
