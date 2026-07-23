@@ -144,3 +144,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: Swarm-Aware Planner — Throughput & Token Economics Optimizer**
 *Link: [./tracks/swarm_planner_20260724/](./tracks/swarm_planner_20260724/)*
+
+---
+
+- [ ] **Track: Incremental Intelligence Layer — Always-Current, Basically-Free Repo Awareness**
+*Link: [./tracks/intelligence_incremental_20260724/](./tracks/intelligence_incremental_20260724/)*

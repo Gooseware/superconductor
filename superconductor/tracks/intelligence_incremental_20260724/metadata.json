@@ -1,0 +1,11 @@
+{
+  "track_id": "intelligence_incremental_20260724",
+  "title": "Incremental Intelligence Layer — Always-Current, Basically-Free Repo Awareness",
+  "type": "feature",
+  "status": "pending",
+  "created_at": "2026-07-24T03:07:00Z",
+  "target_branch": "main",
+  "phases": 5,
+  "estimated_token_budget": "8400000",
+  "estimated_cost_usd": "0.92"
+}
