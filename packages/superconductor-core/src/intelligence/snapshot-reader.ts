@@ -13,6 +13,8 @@ export interface RepoContext {
 }
 
 export class IntelligenceSnapshotReader {
+  public static readonly NONE_BANNER = '\u274c  Intelligence: NONE (keyword heuristics active \u00b7 run /superconductor:setup for surgical precision)';
+
   static load(outputDir: string, projectRoot?: string): RepoContext | null {
     const manifestPath = path.join(outputDir, '00_manifest.json');
     if (!fs.existsSync(manifestPath)) {

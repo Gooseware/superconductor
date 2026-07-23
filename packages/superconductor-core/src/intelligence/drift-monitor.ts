@@ -44,6 +44,9 @@ export class IntelligenceDriftMonitor {
         cwd: projectRoot,
         encoding: 'utf8',
       });
+      if (result.error) {
+        process.stderr.write(`[superconductor:intelligence] git call failed: ${result.error.message}\n`);
+      }
       if (result.status === 0 && result.stdout) {
         const parsed = parseInt(result.stdout.trim(), 10);
         commitsBehind = isNaN(parsed) ? Infinity : parsed;
@@ -95,8 +98,7 @@ export class IntelligenceDriftMonitor {
   static formatBanner(report: DriftReport): string {
     if (!report.isDrifted) {
       // LIVE banner
-      const ageMin = Math.floor(report.snapshotAgeMs / 60000);
-      const ageStr = ageMin >= 60 ? `${Math.floor(ageMin / 60)}h` : `${ageMin}m`;
+      const ageStr = IntelligenceDriftMonitor._formatAge(report.snapshotAgeMs);
       return `\u2139\ufe0f  Intelligence: LIVE (snapshot age: ${ageStr} \u00b7 last commit: unknown \u00b7 ${report.incrementalRuns} incremental runs)`;
     }
 

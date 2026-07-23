@@ -114,7 +114,9 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
 3.  **Generate Plan:**
     *   Read the confirmed `spec.md` content for this track.
+    *   Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
     *   Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)` and pass it to annotate task complexity scores with real hotspot data.
+    *   If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)` and proceed with keyword heuristics only.
     *   Resolve and read the **Workflow** file (via the **Universal File Resolution Protocol** using the project's index file).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the **Workflow** file (e.g., TDD tasks for "Write Tests" and "Implement").
