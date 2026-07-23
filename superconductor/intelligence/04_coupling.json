@@ -472,6 +472,10 @@
     "churnCount": 3
   },
   {
+    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
+    "churnCount": 3
+  },
+  {
     "file": "packages/superconductor-core/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json",
     "churnCount": 3
   },
@@ -676,6 +680,46 @@
     "churnCount": 2
   },
   {
+    "file": "superconductor/intelligence/repository-health-report.md",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface_summary.md",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/05_sast.json",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/02_dependencies.json",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "churnCount": 2
+  },
+  {
     "file": "superconductor/index.md",
     "churnCount": 2
   },
@@ -712,7 +756,23 @@
     "churnCount": 2
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
+    "file": "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/coupling.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
     "churnCount": 2
   },
   {
@@ -1356,43 +1416,11 @@
     "churnCount": 1
   },
   {
-    "file": "superconductor/intelligence/repository-health-report.md",
+    "file": "superconductor/intelligence/08_package_surface.json",
     "churnCount": 1
   },
   {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/06_api_surface.toon",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/06_api_surface_summary.md",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/05_sast.json",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/02_dependencies.json",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/01_fingerprint.json",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
+    "file": "superconductor/intelligence/04_coupling.csv",
     "churnCount": 1
   },
   {
@@ -7768,23 +7796,11 @@
     "churnCount": 1
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+    "file": "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
     "churnCount": 1
   },
   {
     "file": "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/coupling.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
     "churnCount": 1
   },
   {
@@ -7793,10 +7809,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/preflight.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
     "churnCount": 1
   },
   {

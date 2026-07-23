@@ -108,3 +108,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Project Intelligence Layer & Brownfield Repository Analysis** *(requires core abstraction)*
 *Link: [./tracks/intelligence_layer_20260723/](./tracks/intelligence_layer_20260723/)*
 
+---
+
+- [ ] **Track: Complexity Refactor — Hotspot Files**
+*Link: [./tracks/complexity_refactor_20260723/](./tracks/complexity_refactor_20260723/)*

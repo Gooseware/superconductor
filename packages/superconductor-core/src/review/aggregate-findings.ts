@@ -34,72 +34,77 @@ function isValidFinding(f: any): boolean {
   );
 }
 
-export function aggregateFindings(
-  reviewerOutputs: { reviewer_id: string; raw_text?: string }[],
+/**
+ * 3-tier resolution for a single reviewer's findings:
+ * fenced block → disk JSON → raw text fail-safe.
+ * Also applies isValidFinding filtering and reviewer_id backfill.
+ */
+export function extractReviewerFindings(
+  item: { reviewer_id: string; raw_text?: string },
   manifestsDir?: string
 ): ReviewFinding[] {
-  const rawFindings: ReviewFinding[] = [];
+  let findings: ReviewFinding[] | null = null;
 
-  for (const item of reviewerOutputs) {
-    let findings: ReviewFinding[] | null = null;
-
-    // Tier 1 Extraction
-    if (item.raw_text) {
-      const parsed = extractFencedBlock<ReviewFinding[]>(item.raw_text, 'review-findings');
-      if (Array.isArray(parsed)) {
-        // Empty array = clean pass (zero findings) — NOT a parse failure
-        findings = parsed.filter(isValidFinding);
-      }
-    }
-
-    // Tier 2 Extraction
-    if (!findings && manifestsDir) {
-      const artifactPath = path.join(manifestsDir, `${item.reviewer_id}-findings.json`);
-      if (fs.existsSync(artifactPath)) {
-        try {
-          const content = fs.readFileSync(artifactPath, 'utf-8');
-          const parsed = JSON.parse(content);
-          if (Array.isArray(parsed)) {
-            // Empty array = clean pass — NOT a parse failure
-            findings = parsed.filter(isValidFinding);
-          }
-        } catch (e) {
-          findings = null;
-        }
-      }
-    }
-
-    // Tier 3 Fail-Safe: Create a generic finding from raw text if parsing failed
-    if (!findings && item.raw_text) {
-      findings = [
-        {
-          finding_id: `UNSTRUCTURED-${item.reviewer_id}`,
-          reviewer_id: item.reviewer_id,
-          file: 'unknown',
-          line_range: 'all',
-          severity: 'medium',
-          category: 'correctness',
-          description: item.raw_text.slice(0, 300) + '...',
-          recommendation: 'Manual review required (unstructured output)',
-          is_security_critical: false
-        }
-      ];
-    }
-
-    if (findings) {
-      for (const f of findings) {
-        if (!f.reviewer_id) {
-          f.reviewer_id = item.reviewer_id;
-        }
-      }
-      rawFindings.push(...findings);
+  // Tier 1 Extraction
+  if (item.raw_text) {
+    const parsed = extractFencedBlock<ReviewFinding[]>(item.raw_text, 'review-findings');
+    if (Array.isArray(parsed)) {
+      // Empty array = clean pass (zero findings) — NOT a parse failure
+      findings = parsed.filter(isValidFinding);
     }
   }
 
-  // Deduplicate and count agreement
+  // Tier 2 Extraction
+  if (!findings && manifestsDir) {
+    const artifactPath = path.join(manifestsDir, `${item.reviewer_id}-findings.json`);
+    if (fs.existsSync(artifactPath)) {
+      try {
+        const content = fs.readFileSync(artifactPath, 'utf-8');
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          // Empty array = clean pass — NOT a parse failure
+          findings = parsed.filter(isValidFinding);
+        }
+      } catch (e) {
+        findings = null;
+      }
+    }
+  }
+
+  // Tier 3 Fail-Safe: Create a generic finding from raw text if parsing failed
+  if (!findings && item.raw_text) {
+    findings = [
+      {
+        finding_id: `UNSTRUCTURED-${item.reviewer_id}`,
+        reviewer_id: item.reviewer_id,
+        file: 'unknown',
+        line_range: 'all',
+        severity: 'medium',
+        category: 'correctness',
+        description: item.raw_text.slice(0, 300) + '...',
+        recommendation: 'Manual review required (unstructured output)',
+        is_security_critical: false
+      }
+    ];
+  }
+
+  if (findings) {
+    for (const f of findings) {
+      if (!f.reviewer_id) {
+        f.reviewer_id = item.reviewer_id;
+      }
+    }
+    return findings;
+  }
+
+  return [];
+}
+
+/** Deduplicates findings using isLineRangeClose, merging agreement counts. */
+export function deduplicateFindings(findings: ReviewFinding[]): ReviewFinding[] {
   const deduplicated: ReviewFinding[] = [];
 
-  for (const f of rawFindings) {
+  for (const f of findings) {
     const existing = deduplicated.find(
       (item) => item.file === f.file && isLineRangeClose(item.line_range, f.line_range)
     );
@@ -120,6 +125,18 @@ export function aggregateFindings(
   }
 
   return deduplicated;
+}
+
+export function aggregateFindings(
+  reviewerOutputs: { reviewer_id: string; raw_text?: string }[],
+  manifestsDir?: string
+): ReviewFinding[] {
+  const rawFindings = reviewerOutputs.flatMap((item) =>
+    extractReviewerFindings(item, manifestsDir)
+  );
+
+  // Deduplicate and count agreement
+  return deduplicateFindings(rawFindings);
 }
 
 function isLineRangeClose(rangeA: string, rangeB: string): boolean {

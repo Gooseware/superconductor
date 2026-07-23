@@ -25,74 +25,81 @@ export interface AggregatedCoverageResult {
   };
 }
 
-export function aggregateCoverageManifests(
-  reviewerOutputs: { reviewer_id: string; raw_text?: string }[],
+/** 3-tier fallback: fenced block → disk JSON → fail-safe default. */
+export function resolveCoverageManifest(
+  item: { reviewer_id: string; raw_text?: string },
   manifestsDir?: string
-): AggregatedCoverageResult {
-  const manifests: CoverageManifest[] = [];
-
-  for (const item of reviewerOutputs) {
-    let manifest: CoverageManifest | null = null;
-
-    // Tier 1: Fenced Code Block Extraction
-    if (item.raw_text) {
-      manifest = extractFencedBlock<CoverageManifest>(item.raw_text, 'coverage-manifest');
-    }
-
-    // Tier 2: Disk Artifact Fallback
-    if (!manifest && manifestsDir) {
-      const artifactPath = path.join(manifestsDir, `${item.reviewer_id}.json`);
-      if (fs.existsSync(artifactPath)) {
-        try {
-          const content = fs.readFileSync(artifactPath, 'utf-8');
-          manifest = JSON.parse(content);
-        } catch (e) {
-          manifest = null;
-        }
-      }
-    }
-
-    // Tier 3: Fail-Safe Default (Guarantees residual pass)
-    if (!manifest) {
-      manifest = {
-        reviewer_id: item.reviewer_id,
-        examined: [],
-        skimmed: [],
-        not_examined: [
-          {
-            file: 'all files in diff',
-            line_range: 'all',
-            concern: `extraction failed or uncooperative output for ${item.reviewer_id}`
-          }
-        ]
-      };
-    }
-
-    manifests.push(manifest);
+): CoverageManifest {
+  // Tier 1: Fenced Code Block Extraction
+  if (item.raw_text) {
+    const manifest = extractFencedBlock<CoverageManifest>(item.raw_text, 'coverage-manifest');
+    if (manifest) return manifest;
   }
 
-  // Deduplicate residual map (union of not_examined)
+  // Tier 2: Disk Artifact Fallback
+  if (manifestsDir) {
+    const artifactPath = path.join(manifestsDir, `${item.reviewer_id}.json`);
+    if (fs.existsSync(artifactPath)) {
+      try {
+        const content = fs.readFileSync(artifactPath, 'utf-8');
+        const manifest = JSON.parse(content) as CoverageManifest;
+        if (manifest) return manifest;
+      } catch (e) {
+        // fall through to fail-safe
+      }
+    }
+  }
+
+  // Tier 3: Fail-Safe Default (Guarantees residual pass)
+  return {
+    reviewer_id: item.reviewer_id,
+    examined: [],
+    skimmed: [],
+    not_examined: [
+      {
+        file: 'all files in diff',
+        line_range: 'all',
+        concern: `extraction failed or uncooperative output for ${item.reviewer_id}`
+      }
+    ]
+  };
+}
+
+/** Normalizes a single not_examined entry (string or object) into a CoverageEntry. */
+export function normalizeCoverageEntry(entry: CoverageEntry | string): CoverageEntry {
+  if (typeof entry === 'string') {
+    return { file: entry, line_range: 'all' };
+  }
+  if (typeof entry === 'object' && entry !== null && typeof (entry as any).file === 'string') {
+    return entry;
+  }
+  return { file: String(entry), line_range: 'all' };
+}
+
+/** Deduplicates the residual map and accumulates stats across all manifests. */
+export function aggregateManifestStats(manifests: CoverageManifest[]): {
+  residualMap: CoverageEntry[];
+  examined: number;
+  skimmed: number;
+  notExamined: number;
+  totalConcerns: number;
+} {
   const residualMap: CoverageEntry[] = [];
   const seenKeys = new Set<string>();
 
-  let filesExaminedCount = 0;
-  let filesSkimmedCount = 0;
-  let filesNotExaminedCount = 0;
+  let examined = 0;
+  let skimmed = 0;
+  let notExamined = 0;
   let totalConcerns = 0;
 
   for (const m of manifests) {
-    filesExaminedCount += (m.examined || []).length;
-    filesSkimmedCount += (m.skimmed || []).length;
-    filesNotExaminedCount += (m.not_examined || []).length;
+    examined += (m.examined || []).length;
+    skimmed += (m.skimmed || []).length;
+    notExamined += (m.not_examined || []).length;
     totalConcerns += (m.examined || []).length + (m.skimmed || []).length;
 
     for (const entry of m.not_examined || []) {
-      const normEntry: CoverageEntry =
-        typeof entry === 'string'
-          ? { file: entry, line_range: 'all' }
-          : (typeof entry === 'object' && entry !== null && typeof (entry as any).file === 'string'
-              ? entry
-              : { file: String(entry), line_range: 'all' });
+      const normEntry = normalizeCoverageEntry(entry);
       const key = `${normEntry.file}:${normEntry.line_range}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
@@ -101,13 +108,23 @@ export function aggregateCoverageManifests(
     }
   }
 
+  return { residualMap, examined, skimmed, notExamined, totalConcerns };
+}
+
+export function aggregateCoverageManifests(
+  reviewerOutputs: { reviewer_id: string; raw_text?: string }[],
+  manifestsDir?: string
+): AggregatedCoverageResult {
+  const manifests = reviewerOutputs.map((item) => resolveCoverageManifest(item, manifestsDir));
+  const stats = aggregateManifestStats(manifests);
+
   return {
-    residual_coverage_map: residualMap,
+    residual_coverage_map: stats.residualMap,
     coverage_stats: {
-      files_examined: filesExaminedCount,
-      files_skimmed: filesSkimmedCount,
-      files_not_examined: filesNotExaminedCount,
-      total_concerns_covered: totalConcerns
+      files_examined: stats.examined,
+      files_skimmed: stats.skimmed,
+      files_not_examined: stats.notExamined,
+      total_concerns_covered: stats.totalConcerns
     }
   };
 }

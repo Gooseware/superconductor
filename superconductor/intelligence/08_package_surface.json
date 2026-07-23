@@ -63,9 +63,11 @@
       "packages/superconductor-core/src/track/track-state.ts",
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/deterministic-preflight.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
       "packages/superconductor-core/tests/plan-gap-checker.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts",
       "packages/superconductor-mcp-server/src/index.ts",
       "scripts/aggregate-coverage-manifest.ts",
       "scripts/aggregate-findings.ts",
@@ -139,10 +141,12 @@
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
       "packages/superconductor-core/tests/cascade-deferral-gate.test.ts",
+      "packages/superconductor-core/tests/deterministic-preflight.test.ts",
       "packages/superconductor-core/tests/extract-fenced-block.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
-      "packages/superconductor-core/tests/plan-gap-checker.test.ts"
+      "packages/superconductor-core/tests/plan-gap-checker.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -203,9 +207,11 @@
       "packages/superconductor-core/src/track/track-state.ts",
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/deterministic-preflight.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
       "packages/superconductor-core/tests/plan-gap-checker.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts",
       "packages/superconductor-mcp-server/src/index.ts",
       "scripts/input-resolution.ts"
     ],
@@ -242,9 +248,11 @@
       "packages/superconductor-core/src/protocol/agent-context.ts",
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/deterministic-preflight.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
-      "packages/superconductor-core/tests/plan-gap-checker.test.ts"
+      "packages/superconductor-core/tests/plan-gap-checker.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts"
     ],
     "isNodeBuiltin": true
   },
@@ -279,7 +287,8 @@
       "packages/superconductor-core/src/intelligence/runners/sast.ts",
       "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
       "packages/superconductor-core/src/intelligence/tool-registry.ts",
-      "packages/superconductor-core/src/review/deterministic-preflight.ts"
+      "packages/superconductor-core/src/review/deterministic-preflight.ts",
+      "packages/superconductor-core/tests/sast.test.ts"
     ],
     "isNodeBuiltin": true
   },

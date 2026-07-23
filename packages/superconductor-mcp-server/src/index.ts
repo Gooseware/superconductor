@@ -39,25 +39,76 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
-  const { name, arguments: args } = request.params;
-  const rawProjectRoot = (args && typeof args.projectRoot === 'string') ? args.projectRoot : process.cwd();
-  const allowedRoot = path.resolve(process.env.SUPERCONDUCTOR_WORKSPACE_ROOT || process.cwd());
-  let projectRoot = path.resolve(rawProjectRoot);
+const workspaceRoot = path.resolve(process.env.SUPERCONDUCTOR_WORKSPACE_ROOT || process.cwd());
+
+/**
+ * Resolves and validates a project root path.
+ * Follows symlinks then checks the resolved path is within the allowed workspace root.
+ * Falls back to the workspace root if the path is outside bounds or cannot be resolved.
+ */
+function validateProjectRoot(rawRoot?: string): string {
+  const candidate = path.resolve(rawRoot || process.cwd());
   try {
     // Resolve symlinks BEFORE the containment check — a symlink inside the
     // workspace pointing to /etc would otherwise pass the lexical path.relative check
-    const realProjectRoot = fs.realpathSync(projectRoot);
-    const rel = path.relative(allowedRoot, realProjectRoot);
+    const real = fs.realpathSync(candidate);
+    const rel = path.relative(workspaceRoot, real);
     const isWithinAllowed = !rel.startsWith('..') && !path.isAbsolute(rel);
-    if (!isWithinAllowed || !fs.statSync(realProjectRoot).isDirectory()) {
-      projectRoot = allowedRoot;
-    } else {
-      projectRoot = realProjectRoot;
-    }
+    if (!isWithinAllowed || !fs.statSync(real).isDirectory()) return workspaceRoot;
+    return real;
   } catch {
-    projectRoot = allowedRoot;
+    return workspaceRoot;
   }
+}
+
+/**
+ * Handles superconductor_get_track_status.
+ * Returns stats for a single track when trackId is supplied, otherwise the full registry list.
+ */
+function handleGetTrackStatus(projectRoot: string, args: Record<string, unknown>): object {
+  const tracks = readTrackRegistry(projectRoot);
+  const trackId = typeof args.trackId === 'string' ? args.trackId : undefined;
+  if (trackId) {
+    const stats = getCompletionStats(projectRoot, trackId);
+    return { content: [{ type: 'text', text: JSON.stringify(stats, null, 2) }] };
+  }
+  return { content: [{ type: 'text', text: JSON.stringify(tracks, null, 2) }] };
+}
+
+/**
+ * Handles superconductor_run_review.
+ * Parses targetType/targetValue/depthMode into CLI-style args, resolves the review input,
+ * runs the deterministic preflight, and returns the combined result.
+ */
+function handleRunReview(projectRoot: string, args: Record<string, unknown>): object {
+  const reviewArgs: string[] = [];
+  if (typeof args.targetType === 'string') {
+    if (args.targetType === 'staged') {
+      reviewArgs.push('--staged');
+    } else if (['branch', 'pr', 'file', 'dir'].includes(args.targetType)) {
+      reviewArgs.push(`--${args.targetType}`);
+      if (typeof args.targetValue === 'string') reviewArgs.push(args.targetValue);
+    }
+  }
+  if (typeof args.depthMode === 'string') reviewArgs.push(`--${args.depthMode}`);
+
+  const isGitRepo = fs.existsSync(path.join(projectRoot, '.git'));
+  const resolvedInput = resolveReviewInput(reviewArgs, isGitRepo);
+  const preflight = runDeterministicPreflight(projectRoot);
+
+  return {
+    content: [{ type: 'text', text: JSON.stringify({ resolvedInput, preflight }, null, 2) }]
+  };
+}
+
+/** Wraps a handler result in the MCP content envelope. */
+function mkResult(result: object): object {
+  return result;
+}
+
+server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
+  const { name, arguments: args } = request.params;
+  const projectRoot = validateProjectRoot((args && typeof args.projectRoot === 'string') ? args.projectRoot : undefined);
 
   switch (name) {
     case "superconductor_get_agent_context": {
@@ -72,31 +123,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       };
     }
 
-    case "superconductor_get_track_status": {
-      const tracks = readTrackRegistry(projectRoot);
-      const trackId = args && typeof args.trackId === 'string' ? args.trackId : undefined;
-
-      if (trackId) {
-        const stats = getCompletionStats(projectRoot, trackId);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(stats, null, 2)
-            }
-          ]
-        };
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(tracks, null, 2)
-          }
-        ]
-      };
-    }
+    case "superconductor_get_track_status":
+      return mkResult(handleGetTrackStatus(projectRoot, args ?? {}));
 
     case "superconductor_run_intelligence": {
       const outputDir = path.join(projectRoot, "superconductor");
@@ -118,38 +146,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       };
     }
 
-    case "superconductor_run_review": {
-      const reviewArgs: string[] = [];
-      if (args && typeof args.targetType === 'string') {
-        if (args.targetType === 'staged') {
-          reviewArgs.push('--staged');
-        } else if (['branch', 'pr', 'file', 'dir'].includes(args.targetType)) {
-          reviewArgs.push(`--${args.targetType}`);
-          if (typeof args.targetValue === 'string') {
-            reviewArgs.push(args.targetValue);
-          }
-        }
-      }
-      if (args && typeof args.depthMode === 'string') {
-        reviewArgs.push(`--${args.depthMode}`);
-      }
-
-      const isGitRepo = fs.existsSync(path.join(projectRoot, '.git'));
-      const resolvedInput = resolveReviewInput(reviewArgs, isGitRepo);
-      const preflight = runDeterministicPreflight(projectRoot);
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              resolvedInput,
-              preflight
-            }, null, 2)
-          }
-        ]
-      };
-    }
+    case "superconductor_run_review":
+      return mkResult(handleRunReview(projectRoot, args ?? {}));
 
     case "superconductor_check_plan_gap": {
       const trackId = (args && typeof args.trackId === 'string') ? args.trackId : '';
@@ -183,6 +181,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       throw new Error(`Unknown tool: ${name}`);
   }
 });
+
 
 async function run() {
   const transport = new StdioServerTransport();

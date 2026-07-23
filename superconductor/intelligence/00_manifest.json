@@ -1,6 +1,6 @@
 {
   "superconductorVersion": "1.0.0",
-  "timestamp": 1784792801169,
+  "timestamp": 1784796348057,
   "trackId": "unknown",
   "projectRoot": "/home/gooseware/repos/gemini/extensions/superconductor",
   "tools": {
@@ -48,35 +48,31 @@
   "degraded": [],
   "phases": {
     "p1_fingerprint": {
-      "elapsed": 52,
+      "elapsed": 54,
       "output": "ok"
     },
     "p2_dependency_graph": {
-      "elapsed": 437,
+      "elapsed": 471,
       "output": "ok"
     },
     "p3_complexity": {
-      "elapsed": 1147,
+      "elapsed": 1355,
       "output": "ok"
     },
     "p4_coupling": {
-      "elapsed": 2138,
-      "output": "ok"
-    },
-    "p5_sast": {
-      "elapsed": 13250,
+      "elapsed": 2344,
       "output": "ok"
     },
     "p6_symbol_extraction": {
-      "elapsed": 85,
+      "elapsed": 104,
       "output": "ok"
     },
     "p7_test_gaps": {
-      "elapsed": 12,
+      "elapsed": 22,
       "output": "ok"
     },
     "p8_package_surface": {
-      "elapsed": 7,
+      "elapsed": 11,
       "output": "ok"
     }
   }

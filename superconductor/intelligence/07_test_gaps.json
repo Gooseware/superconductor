@@ -168,6 +168,12 @@
     "riskLevel": "high"
   },
   {
+    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
     "file": "packages/superconductor-core/src/protocol/agent-context.ts",
     "exportedSymbols": [],
     "gitChurnScore": 3,
@@ -246,7 +252,31 @@
     "riskLevel": "high"
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
+    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/coupling.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
     "exportedSymbols": [],
     "gitChurnScore": 2,
     "riskLevel": "high"
@@ -540,12 +570,6 @@
     "riskLevel": "medium"
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/preflight.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
@@ -558,31 +582,13 @@
     "riskLevel": "medium"
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/coupling.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+    "file": "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
@@ -1975,12 +1981,6 @@
   },
   {
     "file": "packages/superconductor-core/dist/types/index.js",
-    "exportedSymbols": [],
-    "gitChurnScore": 0,
-    "riskLevel": "low"
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
