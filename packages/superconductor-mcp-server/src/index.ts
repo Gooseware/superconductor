@@ -43,11 +43,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const rawProjectRoot = (args && typeof args.projectRoot === 'string') ? args.projectRoot : process.cwd();
   let projectRoot = path.resolve(rawProjectRoot);
   try {
-    if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
-      projectRoot = process.cwd();
+    const allowedRoot = path.resolve(process.env.SUPERCONDUCTOR_WORKSPACE_ROOT || process.cwd());
+    const isWithinAllowed = projectRoot === allowedRoot || projectRoot.startsWith(allowedRoot + path.sep);
+    if (!isWithinAllowed || !fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
+      projectRoot = allowedRoot;
     }
   } catch {
-    projectRoot = process.cwd();
+    projectRoot = path.resolve(process.cwd());
   }
 
   switch (name) {

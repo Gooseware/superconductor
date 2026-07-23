@@ -16,13 +16,19 @@ export interface ReviewFinding {
   agreement_count?: number;
 }
 
+const VALID_SEVERITIES = new Set(['critical', 'high', 'medium', 'low', 'advisory']);
+const VALID_CATEGORIES = new Set(['security', 'correctness', 'adversarial', 'architecture', 'style']);
+
 function isValidFinding(f: any): boolean {
   return (
     f !== null &&
+    !Array.isArray(f) &&
     typeof f === 'object' &&
     typeof f.finding_id === 'string' &&
     typeof f.severity === 'string' &&
+    VALID_SEVERITIES.has(f.severity) &&
     typeof f.category === 'string' &&
+    VALID_CATEGORIES.has(f.category) &&
     typeof f.file === 'string'
   );
 }

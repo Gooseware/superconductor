@@ -22,6 +22,11 @@ export interface AgentContext {
 export function getAgentContext(projectRoot: string): AgentContext {
   const rawHome = process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor');
   const homeDir = path.resolve(rawHome);
+  // Validate homeDir is a directory if it exists
+  if (fs.existsSync(homeDir) && !fs.statSync(homeDir).isDirectory()) {
+    console.warn(`[agent-context] SUPERCONDUCTOR_HOME at ${homeDir} is not a directory, ignoring`);
+    // homeDir still used below — registryPath existsSync will correctly return false
+  }
   const registryPath = path.join(homeDir, 'tool-registry.json');
   let toolStatus: AgentContext['toolRegistryStatus'] = 'missing';
 
@@ -29,8 +34,8 @@ export function getAgentContext(projectRoot: string): AgentContext {
     try {
       const reg = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
       toolStatus = reg.overall_status || 'ok';
-    } catch {
-      console.warn(`[agent-context] Corrupt tool registry at ${registryPath}`);
+    } catch (err) {
+      console.warn(`[agent-context] Corrupt tool registry at ${registryPath}: ${err instanceof Error ? err.message : String(err)}`);
       toolStatus = 'degraded';
     }
   }
@@ -53,8 +58,8 @@ export function getAgentContext(projectRoot: string): AgentContext {
         totalFiles: manifest.totalFiles,
         totalLines: manifest.totalLines
       };
-    } catch {
-      console.warn(`[agent-context] Corrupt manifest at ${manifestPath}`);
+    } catch (err) {
+      console.warn(`[agent-context] Corrupt manifest at ${manifestPath}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 

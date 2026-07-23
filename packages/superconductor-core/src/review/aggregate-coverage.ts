@@ -87,13 +87,15 @@ export function aggregateCoverageManifests(
     totalConcerns += (m.examined || []).length + (m.skimmed || []).length;
 
     for (const entry of m.not_examined || []) {
-      const key = typeof entry === 'string' ? entry : `${entry.file}:${entry.line_range}`;
+      const normEntry: CoverageEntry =
+        typeof entry === 'string'
+          ? { file: entry, line_range: 'all' }
+          : (typeof entry === 'object' && entry !== null && typeof (entry as any).file === 'string'
+              ? entry
+              : { file: String(entry), line_range: 'all' });
+      const key = typeof entry === 'string' ? entry : `${normEntry.file}:${normEntry.line_range}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
-        const normEntry: CoverageEntry =
-          typeof entry === 'string'
-            ? { file: entry, line_range: 'all' }
-            : entry;
         residualMap.push(normEntry);
       }
     }

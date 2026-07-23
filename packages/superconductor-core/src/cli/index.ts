@@ -60,7 +60,7 @@ export function runCli(args: string[] = process.argv.slice(2)): void {
     }
 
     case 'intelligence': {
-      console.log('✅ Intelligence layer runner delegated to @superconductor/core');
+      console.log(JSON.stringify({ status: 'NOT_IMPLEMENTED', message: 'Intelligence pipeline is scheduled for implementation in a future track.' }, null, 2));
       break;
     }
 
