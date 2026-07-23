@@ -23,12 +23,27 @@ The core insight is:
 
 ## Functional Requirements
 
-### FR-1: Task Complexity Scorer
+### FR-0: Intelligence Layer Reader
+Before scoring any task, the planner must check for a pre-computed intelligence snapshot at `<outputDir>/intelligence/`. If present (i.e. `00_manifest.json` exists and is < 7 days old), load the following outputs into memory as the **RepoContext**:
+
+| Intelligence File | Loaded As | Used For |
+|---|---|---|
+| `03_complexity.json` | `hotspotMap: Map<file, hotspot_score>` | reasoningDepth |
+| `02_dependencies.json` | `fanOutMap: Map<file, number>` | contextLoad |
+| `05_sast.json` | `sastFindings: Map<file, finding[]>` | crossCuttingRisk |
+| `07_test_gaps.json` | `testGapMap: Map<file, { riskLevel, gitChurnScore }>` | testSurface |
+| `04_coupling.json` | `couplingMap: Map<file, coupledFiles[]>` | contextLoad modifier |
+
+If no snapshot is found, fall back to keyword heuristics. Always surface to the user:
+> `"ℹ️ Intelligence snapshot found (age: Xh). Using real repo data for swarm scoring."`  
+> or `"⚠️ No intelligence snapshot found. Scoring with keyword heuristics. Run \`/superconductor:setup\` for surgical precision."`
+
+### FR-1: Task Complexity Scorer (Intelligence-Aware)
 Produce a `TaskComplexityScore` (TCS) for each plan task, composed of:
-- **Context Load** (0–5): Estimated number of files/modules the task must read
-- **Reasoning Depth** (0–5): Whether the task requires architectural judgment vs. mechanical transformation
-- **Cross-cutting Risk** (0–5): Whether the task touches security boundaries, public APIs, or shared state
-- **Test Surface** (0–5): Estimated number of test cases required
+- **Context Load** (0–5): When RepoContext is available — sum of `fanOutMap[file]` for files mentioned in the task description, normalised to 0–5. Fallback: count file/module references in task text.
+- **Reasoning Depth** (0–5): When RepoContext is available — max `hotspot_score` across files touched by the task, scaled to 0–5 (hotspot ≥ 20 → 5, ≥ 15 → 4, ≥ 10 → 3, ≥ 5 → 2, else 1). Fallback: architectural/design keyword detection.
+- **Cross-cutting Risk** (0–5): When RepoContext is available — count of SAST findings + coupling degree for task files, normalised. Fallback: API/auth/security keyword detection.
+- **Test Surface** (0–5): When RepoContext is available — `gitChurnScore` and `riskLevel` from `testGapMap` for task files. Fallback: test requirement keyword detection.
 
 ### FR-2: Model Tier Router
 Map `TaskComplexityScore` to a model tier recommendation:
@@ -78,7 +93,10 @@ Embed a `## Swarm Blueprint` section at the end of every generated `plan.md`:
 ```
 
 ### FR-7: Planner Skill Integration
-Update `skills/new-track/SKILL.md` to invoke the Swarm-Aware Planner as part of §2.3 Interactive Plan Generation, replacing the static tier annotation step.
+Update `skills/new-track/SKILL.md` §2.3 to:
+1. Invoke `IntelligenceSnapshotReader.load(outputDir)` to check for and load repo intelligence data before plan generation begins.
+2. Invoke `SwarmBlueprintGenerator.generate()` after plan generation, passing the loaded `RepoContext` (or `null` for heuristic fallback).
+3. Surface the intelligence source in the plan confirmation message: `"Swarm Blueprint generated using [real repo intelligence | keyword heuristics]"`.
 
 ### FR-8: `swarm-orchestrate` Runtime Consumption
 Update `skills/swarm-orchestrate/SKILL.md` to read the embedded `## Swarm Blueprint` from `plan.md` at execution time — using the wave schedule and model tiers instead of static `[TIER-N]` annotations to dispatch subagents.

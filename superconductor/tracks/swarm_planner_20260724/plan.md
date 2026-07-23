@@ -4,19 +4,37 @@
 - [ ] Task: Verify `swarm-orchestrate` skill is installed and loaded. [TIER-2] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
-## Phase 1: Task Complexity Scorer
-- [ ] Task: Implement `TaskComplexityScorer` module in `packages/superconductor-core/src/intelligence/task-complexity-scorer.ts`. [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Define `TaskComplexityScore` interface: `{ contextLoad, reasoningDepth, crossCuttingRisk, testSurface, total }` (each 0–5, total 0–20)
-    - [ ] Implement `score(taskDescription: string, planContext?: PlanContext): TaskComplexityScore` using keyword heuristics:
-        - contextLoad: count file/module references in task text
-        - reasoningDepth: detect architectural, design, refactor, security keywords
-        - crossCuttingRisk: detect API, auth, shared-state, public interface keywords
-        - testSurface: detect unit/integration test requirements
-    - [ ] Export `TaskComplexityScorer` from `src/intelligence/index.ts`
-- [ ] Task: Write unit tests for `TaskComplexityScorer` in `packages/superconductor-core/tests/intelligence/task-complexity-scorer.test.ts`. [TIER-3] [AGENT:caduceus-processor]
-    - [ ] Test each sub-score dimension independently
-    - [ ] Boundary value tests: TCS=0, TCS=5, TCS=6, TCS=10, TCS=11, TCS=15, TCS=16, TCS=20
-    - [ ] Test with realistic task description strings from past track plans
+## Phase 1a: Intelligence Snapshot Reader
+- [ ] Task: Implement `IntelligenceSnapshotReader` in `packages/superconductor-core/src/intelligence/snapshot-reader.ts`. [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Define `RepoContext` interface: `{ hotspotMap, fanOutMap, sastFindings, testGapMap, couplingMap, snapshotAge, source: 'intelligence' | 'heuristic' }`
+    - [ ] Implement `load(outputDir: string): RepoContext | null` — reads `00_manifest.json`, checks freshness (< 7 days), then lazy-loads the 5 intelligence JSON files into typed Maps
+    - [ ] Implement `formatSourceBanner(ctx: RepoContext): string` — returns the user-facing `"ℹ️ Intelligence snapshot found..."` or `"⚠️ No intelligence snapshot..."` string
+    - [ ] Gracefully degrade: if any individual file is missing or malformed, exclude that signal and log a warning — never throw
+    - [ ] Export from `src/intelligence/index.ts`
+- [ ] Task: Write unit tests for `IntelligenceSnapshotReader` in `packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts`. [TIER-3] [AGENT:caduceus-processor]
+    - [ ] Test: valid snapshot dir → `source: 'intelligence'`, all maps populated
+    - [ ] Test: snapshot > 7 days old → returns `null`
+    - [ ] Test: missing `03_complexity.json` → `hotspotMap` empty, other maps intact
+    - [ ] Test: malformed JSON in one file → degrades gracefully, no throw
+    - [ ] Test: entirely missing output dir → returns `null`
+- [ ] Task: Superconductor - User Manual Verification 'Phase 1a: Intelligence Snapshot Reader' (Protocol in workflow.md)
+
+## Phase 1: Task Complexity Scorer (Intelligence-Aware)
+- [ ] Task: Implement `TaskComplexityScorer` in `packages/superconductor-core/src/intelligence/task-complexity-scorer.ts`. [TIER-3:TCS=8] [AGENT:caduceus-processor]
+    - [ ] Define `TaskComplexityScore` interface: `{ contextLoad, reasoningDepth, crossCuttingRisk, testSurface, total, source: 'intelligence' | 'heuristic' }`
+    - [ ] Implement `score(taskDescription: string, repoContext: RepoContext | null): TaskComplexityScore`:
+        - **With RepoContext (surgical precision):**
+            - `contextLoad`: extract file references from task text, sum `fanOutMap[file]` + `couplingMap[file].length`, normalise to 0–5
+            - `reasoningDepth`: max `hotspotMap[file]` across mentioned files, scale: ≥20→5, ≥15→4, ≥10→3, ≥5→2, else 1
+            - `crossCuttingRisk`: count `sastFindings[file].length` for mentioned files; apply +2 if any coupling degree > 5
+            - `testSurface`: map `testGapMap[file].riskLevel` to score (HIGH→4, MEDIUM→2, LOW→1) + churn normalisation
+        - **Without RepoContext (heuristic fallback):** keyword-based scoring as originally planned
+    - [ ] Export from `src/intelligence/index.ts`
+- [ ] Task: Write unit tests for `TaskComplexityScorer`. [TIER-3:TCS=6] [AGENT:caduceus-processor]
+    - [ ] Test intelligence-path scoring with a mock `RepoContext` containing known hotspot/fanOut/sast/testGap values
+    - [ ] Test heuristic-path scoring (null RepoContext) with keyword strings
+    - [ ] Boundary value tests: TCS=0, 5, 6, 10, 11, 15, 16, 20 for both paths
+    - [ ] Test that `source` field correctly reflects which path was taken
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Task Complexity Scorer' (Protocol in workflow.md)
 
 ## Phase 2: Model Tier Router
