@@ -50,13 +50,14 @@ export async function generateDiffPayload(contextFiles: string[]): Promise<strin
   }
 }
 
-export function buildContext(task: DagNode, commonContext: string): SubagentConfig {
+/** Formats optional task metadata fields into a partial context string. */
+export function formatTaskMetadata(task: DagNode): string {
   const parts: string[] = [];
-  
+
   if (task.id) parts.push(`Task ID: ${task.id}`);
   if (task.name) parts.push(`Name: ${task.name}`);
   if (task.role) parts.push(`Role: ${task.role}`);
-  
+
   if (task.description) {
     parts.push(`Description: ${task.description}`);
   }
@@ -75,6 +76,13 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
     parts.push(vars);
   }
 
+  return parts.join('\n\n');
+}
+
+/** Formats the contextFiles and symbolDependencies sections into a dependency string. */
+export function formatTaskDependencies(task: DagNode): string {
+  const parts: string[] = [];
+
   if (task.contextFiles && task.contextFiles.length > 0) {
     parts.push(`Context Files: ${task.contextFiles.join(', ')}`);
   }
@@ -82,6 +90,31 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
   if (task.symbolDependencies && task.symbolDependencies.length > 0) {
     parts.push(`Symbol Dependencies:\n${task.symbolDependencies.map(s => `- ${s.file}#${s.symbol}`).join('\n')}`);
   }
+
+  return parts.join('\n\n');
+}
+
+/** Truncates the task prompt so that the full assembled prompt stays within MAX_PROMPT_LENGTH. */
+export function truncatePromptToBudget(
+  prompt: string,
+  overhead: number,
+  maxTokens: number = MAX_PROMPT_LENGTH,
+): string {
+  if (prompt.length + overhead > maxTokens) {
+    const allowedLength = Math.max(0, maxTokens - overhead);
+    return prompt.substring(0, allowedLength);
+  }
+  return prompt;
+}
+
+export function buildContext(task: DagNode, commonContext: string): SubagentConfig {
+  const parts: string[] = [];
+
+  const metadata = formatTaskMetadata(task);
+  if (metadata) parts.push(metadata);
+
+  const dependencies = formatTaskDependencies(task);
+  if (dependencies) parts.push(dependencies);
 
   // R5: Auto-inject diff payload for Reviewer tasks
   if (task.role === 'reviewer' && task.contextFiles && task.contextFiles.length > 0) {
@@ -92,23 +125,20 @@ export function buildContext(task: DagNode, commonContext: string): SubagentConf
       parts.push(`--- Diff Payload ---\nFiles: ${task.contextFiles.join(', ')}\n(Line-level git diff subset)`);
     }
   }
-  
+
   const commonCtxStr = commonContext ? `--- Common Context ---\n${commonContext}` : '';
-  
+
   // Calculate remaining length for task prompt
   const partsString = parts.join('\n\n');
   const overheadLength = partsString.length + commonCtxStr.length + `\n\n--- Task Prompt ---\n\n\n`.length;
-  
+
   let taskPromptStr = task.prompt || '';
-  if (taskPromptStr.length + overheadLength > MAX_PROMPT_LENGTH) {
-    const allowedLength = Math.max(0, MAX_PROMPT_LENGTH - overheadLength);
-    taskPromptStr = taskPromptStr.substring(0, allowedLength);
-  }
-  
+  taskPromptStr = truncatePromptToBudget(taskPromptStr, overheadLength);
+
   if (taskPromptStr) {
     parts.push(`--- Task Prompt ---\n${taskPromptStr}`);
   }
-  
+
   if (commonCtxStr) {
     parts.push(commonCtxStr);
   }

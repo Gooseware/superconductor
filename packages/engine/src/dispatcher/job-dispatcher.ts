@@ -6,6 +6,121 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Sanitizes a job title into a track ID: lowercase, alphanumeric + underscores,
+ * with a YYYYMMDD timestamp suffix.
+ * Pure function — no side effects.
+ */
+export function generateTrackId(jobTitle: string): string {
+  const sanitizedTitle = jobTitle
+    .replace(/^(Feature|Bugfix|Task):\s*/i, '') // Remove prefixes
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+  const timestamp = new Date().toISOString().replace(/\D/g, '').slice(0, 8); // YYYYMMDD
+  return `${sanitizedTitle}_${timestamp}`;
+}
+
+/**
+ * Acquires a worker, checks out the git branch for the track, and creates the track
+ * directory on disk.
+ * If worker acquisition or branch setup fails, the lock is released before re-throwing.
+ */
+export async function setupTrackWorkspace(
+  trackId: string,
+  poolManager: WorkerPoolManager,
+  lockManager: TaskLockManager,
+  agentId: string
+): Promise<{ workerId: string; branchName: string; trackDir: string; workspaceRoot: string }> {
+  try {
+    const acquisition = poolManager.acquireWorker(trackId);
+    const workerId = acquisition.workerId;
+    const workspaceRoot = acquisition.workspacePath;
+
+    poolManager.updateProgress(workerId, 'Checking out branch');
+
+    const branchName = `track/${trackId}`;
+    try {
+      cp.execSync(`git checkout -b ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
+    } catch (e) {
+      cp.execSync(`git checkout ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
+    }
+
+    const relativeTrackDir = path.join('superconductor', 'tracks', trackId);
+    const trackDir = path.join(workspaceRoot, relativeTrackDir);
+    if (!fs.existsSync(trackDir)) {
+      fs.mkdirSync(trackDir, { recursive: true });
+    }
+
+    return { workerId, branchName, trackDir, workspaceRoot };
+  } catch (error) {
+    console.error(`Failed to create workspace for ${trackId}:`, error);
+    await lockManager.releaseLock(trackId, agentId);
+    throw error;
+  }
+}
+
+/**
+ * Spawns the `agy` child process in the track directory and registers 'close'/'error'
+ * event listeners that handle git sync and release the worker + lock on completion.
+ * Both handlers always call releaseWorker AND releaseLock to prevent orphaned resources.
+ */
+export function spawnAgentAndSync(params: {
+  trackId: string;
+  trackDir: string;
+  workerId: string;
+  workspaceRoot: string;
+  poolManager: WorkerPoolManager;
+  lockManager: TaskLockManager;
+  agentId: string;
+  jobTitle: string;
+}): void {
+  const { trackId, trackDir, workerId, workspaceRoot, poolManager, lockManager, agentId, jobTitle } = params;
+
+  poolManager.updateProgress(workerId, 'Agent running');
+  const prompt = `Please act as a spec generator. I am assigning you the following task from the backlog:\n"${jobTitle}"\nCreate a spec.md and plan.md in this directory following the Superconductor framework guidelines. Keep it concise.`;
+
+  const child = cp.spawn('agy', ['--new-project', '--prompt-interactive', prompt], {
+    cwd: trackDir,
+    stdio: 'inherit'
+  });
+
+  if (child && typeof child.on === 'function') {
+    child.on('close', async () => {
+      poolManager.updateProgress(workerId, 'Agent finished, syncing...');
+      try {
+        const statusOutput = cp.execSync('git status --porcelain', { cwd: workspaceRoot });
+        const status = statusOutput ? statusOutput.toString() : '';
+        if (status.trim() !== '') {
+          cp.execSync('git add .', { cwd: workspaceRoot, stdio: 'ignore' });
+          cp.execSync('git commit -m "chore: generate spec and plan"', { cwd: workspaceRoot, stdio: 'ignore' });
+        }
+        const branchName = `track/${trackId}`;
+        // Push to origin
+        cp.execSync(`git push -u origin ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
+
+        // Note: The user requested to merge to the parent branches. Since this is an agent,
+        // the full merge would be handled by the implementation track itself. But we can push the branch here.
+      } catch (e) {
+        console.error(`Failed to sync workspace for ${trackId}:`, e);
+      } finally {
+        poolManager.releaseWorker(workerId);
+        await lockManager.releaseLock(trackId, agentId);
+      }
+    });
+
+    child.on('error', async () => {
+      poolManager.releaseWorker(workerId);
+      await lockManager.releaseLock(trackId, agentId);
+    });
+  } else {
+    // Fallback for mocked tests or immediate execution
+    poolManager.releaseWorker(workerId);
+    lockManager.releaseLock(trackId, agentId);
+  }
+}
+
 export class JobDispatcher {
   private parser: BacklogParser;
   private lockManager: TaskLockManager;
@@ -33,7 +148,7 @@ export class JobDispatcher {
     for (const orphan of orphaned) {
        console.log(`Clearing orphaned lock for track ${orphan.track_id}`);
        // Optionally we could resume it here, but for now just let it be picked up again
-       // since we have the task lock manager holding its lock, wait, the task lock manager 
+       // since we have the task lock manager holding its lock, wait, the task lock manager
        // lock might also be orphaned. We'll rely on timeout for task locks, or clean them up.
     }
 
@@ -67,16 +182,7 @@ export class JobDispatcher {
     }
 
     const nextJob = pendingItems[0];
-    
-    // Generate a track ID based on the title (lowercase, alphanumeric, underscores)
-    const sanitizedTitle = nextJob.title
-      .replace(/^(Feature|Bugfix|Task):\s*/i, '') // Remove prefixes
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-    
-    const timestamp = new Date().toISOString().replace(/\D/g, '').slice(0, 8); // YYYYMMDD
-    const trackId = `${sanitizedTitle}_${timestamp}`;
+    const trackId = generateTrackId(nextJob.title);
 
     const agentId = `dispatcher-${process.pid}`;
     const lockAcquired = await this.lockManager.acquireLock(trackId, agentId);
@@ -86,77 +192,30 @@ export class JobDispatcher {
     }
 
     let workerId: string;
-    let workspaceRoot: string;
     let trackDir: string;
+    let workspaceRoot: string;
 
     try {
-      const acquisition = this.poolManager.acquireWorker(trackId);
-      workerId = acquisition.workerId;
-      workspaceRoot = acquisition.workspacePath;
-
-      this.poolManager.updateProgress(workerId, 'Checking out branch');
-
-      const branchName = `track/${trackId}`;
-      try {
-        cp.execSync(`git checkout -b ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
-      } catch (e) {
-        cp.execSync(`git checkout ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
-      }
-
-      const relativeTrackDir = path.join('superconductor', 'tracks', trackId);
-      trackDir = path.join(workspaceRoot, relativeTrackDir);
-      if (!fs.existsSync(trackDir)) {
-        fs.mkdirSync(trackDir, { recursive: true });
-      }
+      const workspace = await setupTrackWorkspace(trackId, this.poolManager, this.lockManager, agentId);
+      workerId = workspace.workerId;
+      trackDir = workspace.trackDir;
+      workspaceRoot = workspace.workspaceRoot;
     } catch (error) {
-      console.error(`Failed to create workspace for ${trackId}:`, error);
-      await this.lockManager.releaseLock(trackId, agentId);
+      // setupTrackWorkspace already released the lock on failure
       throw error;
     }
 
-    // Spawn the agent in the new worker pool directory to generate spec and plan
     try {
-      this.poolManager.updateProgress(workerId, 'Agent running');
-      const prompt = `Please act as a spec generator. I am assigning you the following task from the backlog:\n"${nextJob.title}"\nCreate a spec.md and plan.md in this directory following the Superconductor framework guidelines. Keep it concise.`;
-      
-      const child = cp.spawn('agy', ['--new-project', '--prompt-interactive', prompt], {
-        cwd: trackDir,
-        stdio: 'inherit'
+      spawnAgentAndSync({
+        trackId,
+        trackDir,
+        workerId,
+        workspaceRoot,
+        poolManager: this.poolManager,
+        lockManager: this.lockManager,
+        agentId,
+        jobTitle: nextJob.title
       });
-      
-      if (child && typeof child.on === 'function') {
-        child.on('close', async () => {
-          this.poolManager.updateProgress(workerId, 'Agent finished, syncing...');
-          try {
-            const statusOutput = cp.execSync('git status --porcelain', { cwd: workspaceRoot });
-            const status = statusOutput ? statusOutput.toString() : '';
-            if (status.trim() !== '') {
-              cp.execSync('git add .', { cwd: workspaceRoot, stdio: 'ignore' });
-              cp.execSync('git commit -m "chore: generate spec and plan"', { cwd: workspaceRoot, stdio: 'ignore' });
-            }
-            const branchName = `track/${trackId}`;
-            // Push to origin
-            cp.execSync(`git push -u origin ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
-            
-            // Note: The user requested to merge to the parent branches. Since this is an agent, 
-            // the full merge would be handled by the implementation track itself. But we can push the branch here.
-          } catch (e) {
-            console.error(`Failed to sync workspace for ${trackId}:`, e);
-          } finally {
-            this.poolManager.releaseWorker(workerId);
-            await this.lockManager.releaseLock(trackId, agentId);
-          }
-        });
-        
-        child.on('error', async () => {
-          this.poolManager.releaseWorker(workerId);
-          await this.lockManager.releaseLock(trackId, agentId);
-        });
-      } else {
-        // Fallback for mocked tests or immediate execution
-        this.poolManager.releaseWorker(workerId);
-        await this.lockManager.releaseLock(trackId, agentId);
-      }
     } catch (error) {
       console.error(`Failed to spawn agent for ${trackId}:`, error);
       this.poolManager.releaseWorker(workerId);

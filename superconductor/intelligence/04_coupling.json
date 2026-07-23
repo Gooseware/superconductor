@@ -1,7 +1,7 @@
 [
   {
     "file": "superconductor/tracks.md",
-    "churnCount": 81
+    "churnCount": 82
   },
   {
     "file": "commands/conductor/setup.toml",
@@ -128,6 +128,10 @@
     "churnCount": 7
   },
   {
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "churnCount": 7
+  },
+  {
     "file": "packages/engine/src/index.ts",
     "churnCount": 7
   },
@@ -161,10 +165,6 @@
   },
   {
     "file": ".release-please-manifest.json",
-    "churnCount": 6
-  },
-  {
-    "file": "packages/superconductor-mcp-server/src/index.ts",
     "churnCount": 6
   },
   {
@@ -304,6 +304,14 @@
     "churnCount": 5
   },
   {
+    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
+    "churnCount": 5
+  },
+  {
+    "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
+    "churnCount": 5
+  },
+  {
     "file": "packages/engine/src/types/engine.types.ts",
     "churnCount": 5
   },
@@ -368,11 +376,7 @@
     "churnCount": 4
   },
   {
-    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
-    "churnCount": 4
-  },
-  {
-    "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
+    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
     "churnCount": 4
   },
   {
@@ -452,6 +456,30 @@
     "churnCount": 3
   },
   {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "churnCount": 3
+  },
+  {
     "file": "skills/setup/SKILL.md",
     "churnCount": 3
   },
@@ -469,10 +497,6 @@
   },
   {
     "file": "packages/superconductor-core/src/protocol/agent-context.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
     "churnCount": 3
   },
   {
@@ -684,11 +708,7 @@
     "churnCount": 2
   },
   {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "churnCount": 2
-  },
-  {
-    "file": "superconductor/intelligence/06_api_surface.toon",
+    "file": "superconductor/intelligence/08_package_surface.json",
     "churnCount": 2
   },
   {
@@ -700,23 +720,7 @@
     "churnCount": 2
   },
   {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "churnCount": 2
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
-    "churnCount": 2
-  },
-  {
     "file": "superconductor/intelligence/02_dependencies.json",
-    "churnCount": 2
-  },
-  {
-    "file": "superconductor/intelligence/01_fingerprint.json",
-    "churnCount": 2
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
     "churnCount": 2
   },
   {
@@ -753,6 +757,10 @@
   },
   {
     "file": "packages/superconductor-core/src/track/plan-gap-checker.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/review/deterministic-preflight.ts",
     "churnCount": 2
   },
   {
@@ -1284,6 +1292,10 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/complexity_refactor_20260723/plan.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/centralize_publishing_20260419/spec.md",
     "churnCount": 1
   },
@@ -1413,10 +1425,6 @@
   },
   {
     "file": "superconductor/kernel_sync_oracle_20260412/index.md",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_package_surface.json",
     "churnCount": 1
   },
   {
@@ -7712,6 +7720,10 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/tests/sast.test.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/tests/plan-gap-checker.test.ts",
     "churnCount": 1
   },
@@ -7725,6 +7737,10 @@
   },
   {
     "file": "packages/superconductor-core/tests/extract-fenced-block.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/deterministic-preflight.test.ts",
     "churnCount": 1
   },
   {
@@ -7769,10 +7785,6 @@
   },
   {
     "file": "packages/superconductor-core/src/review/extract-fenced-block.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/review/deterministic-preflight.ts",
     "churnCount": 1
   },
   {

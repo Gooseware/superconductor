@@ -24,6 +24,12 @@
     "riskLevel": "critical"
   },
   {
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 7,
+    "riskLevel": "critical"
+  },
+  {
     "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
     "exportedSymbols": [],
     "gitChurnScore": 6,
@@ -36,13 +42,19 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "file": "packages/engine/src/types/engine.types.ts",
     "exportedSymbols": [],
-    "gitChurnScore": 6,
+    "gitChurnScore": 5,
     "riskLevel": "critical"
   },
   {
-    "file": "packages/engine/src/types/engine.types.ts",
+    "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 5,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
     "exportedSymbols": [],
     "gitChurnScore": 5,
     "riskLevel": "critical"
@@ -96,13 +108,7 @@
     "riskLevel": "high"
   },
   {
-    "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 4,
-    "riskLevel": "high"
-  },
-  {
-    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
+    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
     "exportedSymbols": [],
     "gitChurnScore": 4,
     "riskLevel": "high"
@@ -163,12 +169,6 @@
   },
   {
     "file": "packages/engine/src/verification/dod-classifier.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 3,
-    "riskLevel": "high"
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
     "exportedSymbols": [],
     "gitChurnScore": 3,
     "riskLevel": "high"
@@ -277,6 +277,12 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/deterministic-preflight.ts",
     "exportedSymbols": [],
     "gitChurnScore": 2,
     "riskLevel": "high"
@@ -619,12 +625,6 @@
   },
   {
     "file": "packages/superconductor-core/src/review/cascade-deferral-gate.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
-    "file": "packages/superconductor-core/src/review/deterministic-preflight.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
@@ -1134,6 +1134,18 @@
     "riskLevel": "low"
   },
   {
+    "file": "packages/engine/dist/dag/utils.d.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/dag/utils.js",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
     "file": "packages/engine/dist/dag/validator.d.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
@@ -1177,6 +1189,18 @@
   },
   {
     "file": "packages/engine/dist/dispatcher/job-dispatcher.js",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/dispatcher/tool-surface-filter.d.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/dispatcher/tool-surface-filter.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
@@ -1350,6 +1374,18 @@
     "riskLevel": "low"
   },
   {
+    "file": "packages/engine/dist/safety/git-checkpoint-manager.d.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/safety/git-checkpoint-manager.js",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
     "file": "packages/engine/dist/safety/risk-middleware.d.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
@@ -1393,6 +1429,18 @@
   },
   {
     "file": "packages/engine/dist/scheduler/scheduler.js",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/skills/skill-trigger-engine.d.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/skills/skill-trigger-engine.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
@@ -1530,6 +1578,18 @@
     "riskLevel": "low"
   },
   {
+    "file": "packages/engine/dist/verification/dod-classifier.d.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/dist/verification/dod-classifier.js",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
     "file": "packages/engine/dist/verification/mutation-analyzer.d.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
@@ -1609,6 +1669,12 @@
   },
   {
     "file": "packages/engine/dist/verification/vlm-auditor.types.js",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/engine/src/dag/utils.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"

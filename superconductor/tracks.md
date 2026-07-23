@@ -110,5 +110,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Complexity Refactor — Hotspot Files**
+- [x] **Track: Complexity Refactor — Hotspot Files**
 *Link: [./tracks/complexity_refactor_20260723/](./tracks/complexity_refactor_20260723/)*
+
+---
+
+- [ ] **Track: Engine Complexity Refactor**
+*Link: [./tracks/engine_complexity_refactor_20260723/](./tracks/engine_complexity_refactor_20260723/)*

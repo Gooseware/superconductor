@@ -7,6 +7,21 @@ import { ModelFetcher } from '../cache/ModelFetcher.js';
 import { ToolSurfaceFilter } from './tool-surface-filter.js';
 import { execSync } from 'child_process';
 
+/**
+ * Categorizes a model into a tier (2, 3, or 4) based on its name and description.
+ * Pure function — no side effects.
+ */
+export function categorizeModelTier(model: { name?: string; description?: string }): 2 | 3 | 4 {
+  const lower = (model.name ?? '').toLowerCase() + ' ' + (model.description ?? '').toLowerCase();
+  if (lower.includes('opus') || lower.includes('oracle') || lower.includes('high')) {
+    return 4;
+  } else if (lower.includes('pro') || lower.includes('sonnet') || lower.includes('thinking')) {
+    return 3;
+  } else {
+    return 2;
+  }
+}
+
 function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
   const config: Record<number, { models: string[] }> = {
     1: { models: ['script/regex'] },
@@ -25,14 +40,8 @@ function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
     
     if (modelsArray) {
       for (const m of modelsArray) {
-        const lower = m.name.toLowerCase() + " " + (m.description || "").toLowerCase();
-        if (lower.includes('opus') || lower.includes('oracle') || lower.includes('high')) {
-          config[4].models.push(m.name);
-        } else if (lower.includes('pro') || lower.includes('sonnet') || lower.includes('thinking')) {
-          config[3].models.push(m.name);
-        } else {
-          config[2].models.push(m.name);
-        }
+        const tier = categorizeModelTier(m);
+        config[tier].models.push(m.name);
       }
     }
   } catch (err) {
@@ -51,6 +60,24 @@ function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
 }
 
 const TIER_CONFIG = fetchDynamicTierConfig();
+
+/**
+ * Checks whether any of the requested tools violate the given tool surface restriction.
+ * Returns an array of violation message strings (empty array = no violations).
+ */
+export function checkToolSurfaceViolations(toolSurface: string | string[], requestedTools: string[]): string[] {
+  const surface = Array.isArray(toolSurface) ? toolSurface[0] : toolSurface;
+  const violations: string[] = [];
+  if (surface === 'readonly') {
+    const forbiddenTools = ['write_to_file', 'replace_file_content', 'multi_replace_file_content', 'run_command'];
+    for (const tool of requestedTools) {
+      if (forbiddenTools.includes(tool)) {
+        violations.push(`Tool surface violation: '${tool}' is forbidden on readonly surface`);
+      }
+    }
+  }
+  return violations;
+}
 
 export class Dispatcher extends EventEmitter {
   private lockManager: TaskLockManager;
