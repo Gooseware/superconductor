@@ -20,3 +20,9 @@
 - **Robustness (Advisory)**: After `cargo install worktrunk`, the binary is placed in `~/.cargo/bin`. The script implicitly assumes this directory is in the user's `PATH`. If it isn't, subsequent setup steps relying on `wt` might fail. It could be helpful to print a warning or instruction if `wt` is not found in `PATH` immediately after installation.
 
 No CRITICAL issues (severe security or logic flaws) were identified.
+
+### [Phase 3] Documentation Updates
+- Added `Workspaces` entry in `tech-stack.md` to document `worktrunk` as the standard backend instead of native git worktrees.
+- Verified `workflow.md` has no outdated native git worktree references.
+- Fixed advisory issues in `scripts/install-worktrunk.sh` by pinning version, adding `--locked`, and checking `PATH`.
+- Committed Phase 3 and script fixes as `24ae3bc`.

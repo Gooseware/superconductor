@@ -16,9 +16,9 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Skill Refactor (`using-git-worktrees`)' (Protocol in workflow.md) (Commit: fc5543d)
 
 ## Phase 3: Documentation Updates
-- [ ] Task: Update `tech-stack.md` to document `worktrunk` as the standard workspace backend. [TIER-2] [AGENT:caduceus-processor]
-- [ ] Task: Update `workflow.md` references (if any) to align with Worktrunk usage instead of native worktrees. [TIER-2] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Documentation Updates' (Protocol in workflow.md)
+- [x] Task: Update `tech-stack.md` to document `worktrunk` as the standard workspace backend. [TIER-2] [AGENT:caduceus-processor] (Commit: 24ae3bc)
+- [x] Task: Update `workflow.md` references (if any) to align with Worktrunk usage instead of native worktrees. [TIER-2] [AGENT:caduceus-processor] (Commit: 24ae3bc)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Documentation Updates' (Protocol in workflow.md) (Commit: 24ae3bc)
 
 ## Phase X: Integration & Finalization
 - [ ] Task: Integrate track 'worktrunk_20260723' into main branch. [TIER-2] [AGENT:caduceus-processor]
