@@ -60,7 +60,9 @@ export function runCli(args: string[] = process.argv.slice(2)): void {
     }
 
     case 'intelligence': {
-      console.log(JSON.stringify({ status: 'NOT_IMPLEMENTED', message: 'Intelligence pipeline is scheduled for implementation in a future track.' }, null, 2));
+      import('../intelligence/index.js').then((m) => {
+        m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
+      });
       break;
     }
 

@@ -17,7 +17,8 @@ import {
   runCascadeDeferralGate,
   generateTokenReport,
   checkPlanGap,
-  resolveReviewInput
+  resolveReviewInput,
+  runPipeline
 } from "@superconductor/core";
 
 const server = new Server(
@@ -93,14 +94,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     }
 
     case "superconductor_run_intelligence": {
+      const outputDir = path.join(projectRoot, "superconductor");
+      let outData;
+      try {
+        runPipeline([], projectRoot, outputDir);
+        const manifest = JSON.parse(fs.readFileSync(path.join(outputDir, "intelligence", "00_manifest.json"), "utf8"));
+        outData = manifest;
+      } catch (e: any) {
+        outData = { error: e.message };
+      }
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify({
-              status: "NOT_IMPLEMENTED",
-              message: "This tool is scheduled for implementation in a future track..."
-            }, null, 2)
+            text: JSON.stringify(outData, null, 2)
           }
         ]
       };

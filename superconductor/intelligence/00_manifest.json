@@ -1,0 +1,86 @@
+{
+  "superconductorVersion": "1.0.0",
+  "timestamp": 1784790325072,
+  "trackId": "unknown",
+  "projectRoot": "/home/gooseware/repos/gemini/extensions/superconductor",
+  "tools": {
+    "fingerprint": {
+      "tool": null,
+      "version": null,
+      "status": "unavailable"
+    },
+    "dependency_graph": {
+      "tool": null,
+      "version": null,
+      "status": "unavailable"
+    },
+    "complexity": {
+      "tool": null,
+      "version": null,
+      "status": "unavailable"
+    },
+    "coupling": {
+      "tool": "git-log-raw",
+      "version": "builtin",
+      "status": "degraded"
+    },
+    "sast": {
+      "tool": null,
+      "version": null,
+      "status": "unavailable"
+    },
+    "sca": {
+      "tool": null,
+      "version": null,
+      "status": "unavailable"
+    },
+    "symbol_extraction": {
+      "tool": null,
+      "version": null,
+      "status": "unavailable"
+    },
+    "test_gaps": {
+      "tool": "static-test-gap-analyzer",
+      "version": "builtin",
+      "status": "available"
+    }
+  },
+  "degraded": [
+    "p1_fingerprint",
+    "p2_dependency_graph",
+    "p3_complexity",
+    "p4_coupling",
+    "p5_sast",
+    "p6_symbol_extraction"
+  ],
+  "phases": {
+    "p1_fingerprint": {
+      "elapsed": 1,
+      "output": "degraded"
+    },
+    "p2_dependency_graph": {
+      "elapsed": 1,
+      "output": "degraded"
+    },
+    "p3_complexity": {
+      "elapsed": 135,
+      "output": "degraded"
+    },
+    "p4_coupling": {
+      "elapsed": 151,
+      "output": "degraded"
+    },
+    "p5_sast": {
+      "elapsed": 0,
+      "output": "degraded"
+    },
+    "p6_symbol_extraction": {
+      "elapsed": 0,
+      "output": "degraded"
+    },
+    "p7_test_gaps": {
+      "elapsed": 42,
+      "output": "ok"
+    }
+  }
+}
