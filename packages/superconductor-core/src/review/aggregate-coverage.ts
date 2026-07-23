@@ -93,7 +93,7 @@ export function aggregateCoverageManifests(
           : (typeof entry === 'object' && entry !== null && typeof (entry as any).file === 'string'
               ? entry
               : { file: String(entry), line_range: 'all' });
-      const key = typeof entry === 'string' ? entry : `${normEntry.file}:${normEntry.line_range}`;
+      const key = `${normEntry.file}:${normEntry.line_range}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
         residualMap.push(normEntry);
