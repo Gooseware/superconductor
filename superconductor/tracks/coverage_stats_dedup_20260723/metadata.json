@@ -1,0 +1,10 @@
+{
+  "track_id": "coverage_stats_dedup_20260723",
+  "name": "Coverage Stats Deduplication & Category Preservation",
+  "type": "Bugfix",
+  "status": "planned",
+  "created_at": "2026-07-23T05:55:00Z",
+  "target_branch": "main",
+  "inducted_from": "review_panel_20260722",
+  "description": "Fixes two advisory findings from adversarial_code_review_v6: makes files_examined return unique file count and preserves all categories on cross-category finding deduplication."
+}
