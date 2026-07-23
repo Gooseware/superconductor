@@ -105,3 +105,14 @@ The scoped path **reads** from the full-scan output file to back-fill existing c
 
 **PAUSE PHASE 2.** Two CRITICAL shell-injection issues (`symbol-extraction.ts` and `dependency-graph.ts`) must be fixed before merging. Both must switch to per-file `spawnSync` with args arrays, or individually-wrapped `execSync` calls using only verified absolute paths — never string-interpolated into the shell command.
 
+### [Phase 2] Incremental Updater Core
+**Status:** Completed
+**Commit:** `ea0deee`
+**Test Count:** 141 tests passing
+
+**Advisory Notes for Phase 3:**
+- The `RunnerResult` interface is now in `runners/types.ts` — Phase 3's CLI wrapper must import it when calling `update()`
+- `00_manifest.json` gains `lastCommitSha` and `incrementalRuns` fields — the CLI wrapper should surface `UpdateReport` to stderr
+- `mergeIntoJson` uses atomic rename — Phase 3 integration tests should verify the `.tmp` file is cleaned up on success
+
+
