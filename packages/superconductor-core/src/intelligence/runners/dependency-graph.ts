@@ -22,11 +22,25 @@ export function runDependencyGraph(projectRoot: string, outputDir: string, capab
     let result = { nodes: [], edges: [], circularDeps: [] };
 
     if (lang === 'typescript' || lang === 'javascript') {
-      const out = execSync(`npx depcruise src -T json`, { cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+      // Target source dirs only — exclude node_modules/dist to avoid noise
+      const candidates = ['packages/superconductor-core/src', 'packages/superconductor-mcp-server/src', 'scripts'];
+      const srcDirs = candidates.filter(d => fs.existsSync(path.join(projectRoot, d))).join(' ');
+      const target = srcDirs || 'src';
+      // Use local depcruise binary so it has access to project's TypeScript transpiler
+      const localBin = path.join(projectRoot, 'node_modules', '.bin', 'depcruise');
+      const depBin = fs.existsSync(localBin) ? localBin : 'npx depcruise';
+      const out = execSync(
+        `${depBin} ${target} --no-config --exclude "node_modules|dist|\\.test\\." -T json`,
+        { cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
+      );
       const data = JSON.parse(out);
-      result.nodes = data.modules || [];
-      // simplify edges logic based on actual output
-      // Note: simple implementation to avoid crashing
+      result.nodes = (data.modules || []).map((m: any) => ({
+        source: m.source,
+        deps: (m.dependencies || []).map((d: any) => d.resolved)
+      }));
+      result.circularDeps = (data.summary?.violations || [])
+        .filter((v: any) => v.rule?.name === 'no-circular')
+        .map((v: any) => v.from);
     } else if (lang === 'python') {
       const out = execSync(`deptry . --json-output`, { cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
       // process output

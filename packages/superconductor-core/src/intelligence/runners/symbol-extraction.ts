@@ -12,7 +12,14 @@ export function runSymbolExtraction(projectRoot: string, outputDir: string, capa
 
   try {
     if (capability.tool === 'universal-ctags' || capability.tool === 'ctags') {
-      const out = execSync(`ctags --output-format=json -R ${projectRoot}`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+      const out = execSync(
+        `ctags --output-format=json -R \
+          --exclude=node_modules --exclude=dist --exclude=.git --exclude=coverage \
+          --exclude='*.min.js' --exclude='*.bundle.js' \
+          --languages=TypeScript,JavaScript \
+          ${projectRoot}`,
+        { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, stdio: ['pipe', 'pipe', 'ignore'] }
+      );
       fs.writeFileSync(outFile, out);
       return { status: 'ok' };
     } else if (capability.tool === 'tree-sitter-analyzer') {

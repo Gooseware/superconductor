@@ -1,1 +1,1196 @@
-null
+{
+  "findings": [
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/.github/workflows/release-please.yml",
+      "line": 17,
+      "message": "GitHub Actions step uses a mutable tag or branch reference. Tags and branch names can be silently repointed by the action owner, enabling supply-chain attacks — as seen in the trivy-action and kics-github-action compromises. Pin the reference to a full 40-character commit SHA instead, e.g. `uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608`."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "yaml.github-actions.security.github-actions-mutable-action-tag.github-actions-mutable-action-tag",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/.github/workflows/release-please.yml",
+      "line": 25,
+      "message": "GitHub Actions step uses a mutable tag or branch reference. Tags and branch names can be silently repointed by the action owner, enabling supply-chain attacks — as seen in the trivy-action and kics-github-action compromises. Pin the reference to a full 40-character commit SHA instead, e.g. `uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608`."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/coverage/prettify.js",
+      "line": 2,
+      "message": "RegExp() called with a `T` function argument, this might allow an attacker to cause a Regular Expression Denial-of-Service (ReDoS) within your application as RegExP blocks the main thread. For this reason, it is recommended to use hardcoded regexes instead. If your regex is run on user-controlled input, consider performing input validation or use a regex checking/sanitization library such as https://www.npmjs.com/package/recheck to verify that the regex does not appear vulnerable to ReDoS."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/cache/CacheManager.ts",
+      "line": 13,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/concurrency/lock-manager.ts",
+      "line": 8,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/concurrency/worker-pool.ts",
+      "line": 25,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/concurrency/worker-pool.ts",
+      "line": 36,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/concurrency/worker-pool.ts",
+      "line": 40,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "INFO",
+      "ruleId": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/concurrency/worker-pool.ts",
+      "line": 161,
+      "message": "Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/concurrency/worker-pool.ts",
+      "line": 164,
+      "message": "Detected calls to child_process from a function argument `workerId`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/context/builder.ts",
+      "line": 46,
+      "message": "Detected calls to child_process from a function argument `contextFiles`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/context/builder.ts",
+      "line": 89,
+      "message": "Detected calls to child_process from a function argument `task`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/curator/ComponentStagingWriter.ts",
+      "line": 24,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/curator/skill-synthesizer.ts",
+      "line": 41,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line": 101,
+      "message": "Detected calls to child_process from a function argument `backlogPath`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line": 103,
+      "message": "Detected calls to child_process from a function argument `backlogPath`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "INFO",
+      "ruleId": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line": 112,
+      "message": "Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line": 139,
+      "message": "Detected calls to child_process from a function argument `backlogPath`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "INFO",
+      "ruleId": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line": 144,
+      "message": "Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "INFO",
+      "ruleId": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line": 161,
+      "message": "Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/safety/gcc.ts",
+      "line": 16,
+      "message": "Detected calls to child_process from a function argument `command`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/safety/gcc.ts",
+      "line": 20,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/safety/git-checkpoint-manager.ts",
+      "line": 10,
+      "message": "Detected calls to child_process from a function argument `taskId`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/safety/git-checkpoint-manager.ts",
+      "line": 23,
+      "message": "Detected calls to child_process from a function argument `sha`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/skills/skill-trigger-engine.ts",
+      "line": 60,
+      "message": "RegExp() called with a `p` function argument, this might allow an attacker to cause a Regular Expression Denial-of-Service (ReDoS) within your application as RegExP blocks the main thread. For this reason, it is recommended to use hardcoded regexes instead. If your regex is run on user-controlled input, consider performing input validation or use a regex checking/sanitization library such as https://www.npmjs.com/package/recheck to verify that the regex does not appear vulnerable to ReDoS."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/skills/skill-trigger-engine.ts",
+      "line": 149,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/verification/dod-classifier.ts",
+      "line": 45,
+      "message": "Detected calls to child_process from a function argument `taskId`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/verification/dod-classifier.ts",
+      "line": 46,
+      "message": "Detected calls to child_process from a function argument `taskId`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/engine/src/verification/dod-classifier.ts",
+      "line": 52,
+      "message": "Detected calls to child_process from a function argument `taskId`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/pipeline.ts",
+      "line": 25,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/pipeline.ts",
+      "line": 77,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/report.ts",
+      "line": 5,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/report.ts",
+      "line": 14,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/report.ts",
+      "line": 25,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/report.ts",
+      "line": 35,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/report.ts",
+      "line": 48,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/complexity.ts",
+      "line": 10,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/complexity.ts",
+      "line": 37,
+      "message": "Detected calls to child_process from a function argument `projectRoot`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/coupling.ts",
+      "line": 8,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/coupling.ts",
+      "line": 31,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "line": 6,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "line": 7,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "line": 27,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "line": 27,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "line": 30,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "line": 33,
+      "message": "Detected calls to child_process from a function argument `projectRoot`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
+      "line": 6,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
+      "line": 15,
+      "message": "Detected calls to child_process from a function argument `projectRoot`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 31,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 31,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 71,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 77,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 78,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 79,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 79,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 97,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "line": 97,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/sast.ts",
+      "line": 16,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/sast.ts",
+      "line": 24,
+      "message": "Detected calls to child_process from a function argument `projectRoot`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/sast.ts",
+      "line": 65,
+      "message": "Detected calls to child_process from a function argument `projectRoot`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+      "line": 6,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+      "line": 16,
+      "message": "Detected calls to child_process from a function argument `projectRoot`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+      "line": 40,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+      "line": 41,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+      "line": 9,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+      "line": 9,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+      "line": 26,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+      "line": 27,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 38,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 48,
+      "message": "Detected calls to child_process from a function argument `name`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "ERROR",
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 48,
+      "message": "Detected calls to child_process from a function argument `p`. This could lead to a command injection if the input is user controllable. Try to avoid calls to child_process, and if it is needed ensure user input is correctly sanitized or sandboxed. "
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 69,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 69,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 99,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 111,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 127,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "line": 139,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/review/extract-fenced-block.ts",
+      "line": 12,
+      "message": "RegExp() called with a `blockIdentifier` function argument, this might allow an attacker to cause a Regular Expression Denial-of-Service (ReDoS) within your application as RegExP blocks the main thread. For this reason, it is recommended to use hardcoded regexes instead. If your regex is run on user-controlled input, consider performing input validation or use a regex checking/sanitization library such as https://www.npmjs.com/package/recheck to verify that the regex does not appear vulnerable to ReDoS."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "INFO",
+      "ruleId": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/src/review/extract-fenced-block.ts",
+      "line": 50,
+      "message": "Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/caduceus_registry_client.js",
+      "line": 49,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/caduceus_registry_client.js",
+      "line": 60,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/caduceus_registry_client.js",
+      "line": 60,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/caduceus_registry_client.js",
+      "line": 79,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 16,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 16,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 17,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 59,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 59,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 68,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "INFO",
+      "ruleId": "javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 84,
+      "message": "Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 92,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 92,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 93,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "semgrep",
+      "severity": "WARNING",
+      "ruleId": "javascript.lang.security.audit.path-traversal.path-join-resolve-traversal.path-join-resolve-traversal",
+      "file": "/home/gooseware/repos/gemini/extensions/superconductor/superconductor/migrate_local_registry.js",
+      "line": 93,
+      "message": "Detected possible user input going into a `path.join` or `path.resolve` function. This could possibly lead to a path traversal vulnerability,  where the attacker can access arbitrary files stored in the file system. Instead, be sure to sanitize or validate user input first."
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-29087",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "@hono/node-server has authorization bypass for protected static paths via encoded slashes in Serve Static Middleware"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-39406",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "@hono/node-server: Middleware bypass via repeated slashes in serveStatic"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "GHSA-frvp-7c67-39w9",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Node.js Adapter for Hono: Path traversal in `serve-static` on Windows via encoded backslash (`%5C`)"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-25547",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "brace-expansion: brace-expansion: Denial of Service via unbounded brace range expansion"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-25536",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "@modelcontextprotocol/sdk: @modelcontextprotocol/sdk cross-client data leak"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2025-69873",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "ajv: ReDoS via $data reference"
+    },
+    {
+      "tool": "trivy",
+      "severity": "LOW",
+      "ruleId": "CVE-2026-12590",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "body-parser: body-parser: Denial of Service via invalid limit option"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-13676",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "fast-uri: fast-uri: Security policy bypass due to improper Unicode hostname canonicalization"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-16221",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Impact: fast-uri versions from 2.3.1 through 4.1.0 (including the 3.x  ..."
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-6321",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "fast-uri: fast-uri: Path traversal vulnerability allows bypass of security policies"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-6322",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "fast-uri: fast-uri: URI authority bypass due to improper delimiter handling"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-29045",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono vulnerable to arbitrary file access via serveStatic vulnerability "
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-54290",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono: CORS Middleware reflects any Origin with credentials when `origin` defaults to the wildcard"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-24398",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono IPv4 address validation bypass in IP Restriction Middleware allows IP spoofing"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-24472",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono cache middleware ignores \"Cache-Control: private\" leading to Web Cache Deception"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-24473",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono has an Arbitrary Key Read in Serve static Middleware (Cloudflare Workers Adapter)"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-24771",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono vulnerable to XSS through ErrorBoundary component "
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-29085",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono Vulnerable to SSE Control Field Injection via CR/LF in writeSSE()"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-29086",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono Vulnerable to Cookie Attribute Injection via Unsanitized domain and path in setCookie()"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-39407",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: Middleware bypass via repeated slashes in serveStatic"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-39408",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: Path traversal in toSSG() allows writing files outside the output directory"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-39409",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono has incorrect IP matching in ipRestriction() for IPv4-mapped IPv6 addresses"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-39410",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: Non-breaking space prefix bypass in cookie name handling in getCookie()"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-44455",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono/jsx has Unvalidated JSX Tag Names that May Allow HTML Injection"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-44456",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: bodyLimit() can be bypassed for chunked / unknown-length requests"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-44457",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono's Cache Middleware ignores Vary: Authorization / Vary: Cookie leading to cross-user cache leakage"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-44458",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono has CSS Declaration Injection via Style Object Values in JSX SSR"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-47673",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: JWT middleware accepts any Authorization scheme, not only Bearer"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-47674",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: IP Restriction bypasses static deny rules for non-canonical IPv6 "
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-47675",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: Cookie helper does not sanitize sameSite and priority, allowing Set-Cookie injection"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-47676",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: app.mount() strips mount prefix using undecoded path, causing incorrect routing for percent-encoded paths"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-54286",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono: Path traversal in `serve-static` on Windows via encoded backslash (`%5C`)"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-54287",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono: AWS Lambda adapter merges multiple `Set-Cookie` headers into one value, dropping cookies on ALB single-header and Lattice"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-54288",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono: Body Limit Middleware can be bypassed on AWS Lambda by understating `Content-Length`"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-54289",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono: Lambda@Edge adapter keeps only the last value of a repeated request header, dropping the rest"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-56761",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "hono Improperly Handles JSX Attribute Names Allows HTML Injection in hono/jsx SSR"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-59895",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: Server-Side XSS via JSX Escaping Bypass in cx() Utility"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-59897",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono: API Gateway v1 adapter can drop a distinct repeated request header value during de-duplication"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "GHSA-26pp-8wgv-hjvm",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono missing validation of cookie name on write path in setCookie()"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "GHSA-v8w9-8mx6-g223",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono vulnerable to Prototype Pollution possible through __proto__ key allowed in parseBody({ dot: true })"
+    },
+    {
+      "tool": "trivy",
+      "severity": "LOW",
+      "ruleId": "CVE-2026-44459",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono has improper validation of NumericDate claims (exp, nbf, iat) in JWT verify()"
+    },
+    {
+      "tool": "trivy",
+      "severity": "LOW",
+      "ruleId": "GHSA-gq3j-xvxp-8hrf",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "Hono added timing comparison hardening in basicAuth and bearerAuth"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-26996",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "minimatch: minimatch: Denial of Service via specially crafted glob patterns"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-27903",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "minimatch: minimatch: Denial of Service due to unbounded recursive backtracking via crafted glob patterns"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-27904",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "minimatch: Minimatch: Denial of Service via catastrophic backtracking in glob expressions"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-4926",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "path-to-regexp: path-to-regexp: Denial of Service via crafted regular expressions"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-4923",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "path-to-regexp: path-to-regexp: Denial of Service via specially crafted paths with multiple wildcards"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-8723",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "### Summary    `qs.stringify` throws `TypeError` when called with `arr ..."
+    },
+    {
+      "tool": "trivy",
+      "severity": "LOW",
+      "ruleId": "CVE-2026-2391",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "qs: qs's arrayLimit bypass in comma parsing allows denial of service"
+    },
+    {
+      "tool": "trivy",
+      "severity": "CRITICAL",
+      "ruleId": "CVE-2026-28292",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "simple-git: simple-git: Remote Code Execution via bypass of prior security fixes"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-28291",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "simple-git: simple-git: Command Execution via Option-Parsing Bypass in simple-git"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-6951",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "simple-git: simple-git: Remote Code Execution due to incomplete fix bypass"
+    },
+    {
+      "tool": "trivy",
+      "severity": "HIGH",
+      "ruleId": "CVE-2026-48779",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "ws: ws: Denial of Service via memory exhaustion from small WebSocket fragments"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "CVE-2026-45736",
+      "file": "packages/design-os-kernel/package-lock.json",
+      "line": 0,
+      "message": "ws: ws: Uninitialized memory disclosure via `websocket.close()` with `TypedArray`"
+    },
+    {
+      "tool": "trivy",
+      "severity": "MEDIUM",
+      "ruleId": "GHSA-frvp-7c67-39w9",
+      "file": "packages/superconductor-mcp-server/package-lock.json",
+      "line": 0,
+      "message": "Node.js Adapter for Hono: Path traversal in `serve-static` on Windows via encoded backslash (`%5C`)"
+    }
+  ]
+}

@@ -20,7 +20,8 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
 
   if (capability && capability.status !== 'unavailable' && capability.tool === 'semgrep') {
     try {
-      const out = execSync(`semgrep --config ${path.join(home, 'semgrep-rules')} --json ${projectRoot}`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+      const quotedRoot = JSON.stringify(projectRoot);
+      const out = execSync(`semgrep scan ${quotedRoot} --config=auto --json 2>/dev/null`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
       const data = JSON.parse(out);
       if (data.results) {
         for (const res of data.results) {
@@ -60,7 +61,8 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
 
   if (scaCapability && scaCapability.status !== 'unavailable' && scaCapability.tool === 'trivy') {
     try {
-      const out = execSync(`trivy fs --skip-db-update --offline-scan --cache-dir ${path.join(home, 'trivy-db')} --format json ${projectRoot}`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+      const quotedRoot = JSON.stringify(projectRoot);
+      const out = execSync(`trivy fs ${quotedRoot} --scanners vuln --format json --quiet 2>/dev/null`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
       const data = JSON.parse(out);
       if (data.Results) {
         for (const res of data.Results) {

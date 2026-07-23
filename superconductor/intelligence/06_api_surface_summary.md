@@ -1,1 +1,1 @@
-No symbol data available.
+# API Surface Summary\n\n

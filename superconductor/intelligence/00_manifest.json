@@ -1,43 +1,43 @@
 {
   "superconductorVersion": "1.0.0",
-  "timestamp": 1784790325072,
+  "timestamp": 1784792801169,
   "trackId": "unknown",
   "projectRoot": "/home/gooseware/repos/gemini/extensions/superconductor",
   "tools": {
     "fingerprint": {
-      "tool": null,
-      "version": null,
-      "status": "unavailable"
+      "tool": "tokei",
+      "version": "tokei 12.1.2 compiled with serialization support: ",
+      "status": "available"
     },
     "dependency_graph": {
-      "tool": null,
-      "version": null,
-      "status": "unavailable"
+      "tool": "depcruise",
+      "version": "18.1.0",
+      "status": "available"
     },
     "complexity": {
-      "tool": null,
-      "version": null,
-      "status": "unavailable"
+      "tool": "lizard",
+      "version": "1.23.0",
+      "status": "available"
     },
     "coupling": {
-      "tool": "git-log-raw",
-      "version": "builtin",
-      "status": "degraded"
+      "tool": "code-maat",
+      "version": "code-maat 1.0.4",
+      "status": "available"
     },
     "sast": {
-      "tool": null,
-      "version": null,
-      "status": "unavailable"
+      "tool": "semgrep",
+      "version": "1.171.0",
+      "status": "available"
     },
     "sca": {
-      "tool": null,
-      "version": null,
-      "status": "unavailable"
+      "tool": "trivy",
+      "version": "Version: 0.72.0",
+      "status": "available"
     },
     "symbol_extraction": {
-      "tool": null,
-      "version": null,
-      "status": "unavailable"
+      "tool": "ctags",
+      "version": "Universal Ctags 6.2.1(v6.2.1), Copyright (C) 2015-",
+      "status": "degraded"
     },
     "test_gaps": {
       "tool": "static-test-gap-analyzer",
@@ -45,41 +45,38 @@
       "status": "available"
     }
   },
-  "degraded": [
-    "p1_fingerprint",
-    "p2_dependency_graph",
-    "p3_complexity",
-    "p4_coupling",
-    "p5_sast",
-    "p6_symbol_extraction"
-  ],
+  "degraded": [],
   "phases": {
     "p1_fingerprint": {
-      "elapsed": 1,
-      "output": "degraded"
+      "elapsed": 52,
+      "output": "ok"
     },
     "p2_dependency_graph": {
-      "elapsed": 1,
-      "output": "degraded"
+      "elapsed": 437,
+      "output": "ok"
     },
     "p3_complexity": {
-      "elapsed": 135,
-      "output": "degraded"
+      "elapsed": 1147,
+      "output": "ok"
     },
     "p4_coupling": {
-      "elapsed": 151,
-      "output": "degraded"
+      "elapsed": 2138,
+      "output": "ok"
     },
     "p5_sast": {
-      "elapsed": 0,
-      "output": "degraded"
+      "elapsed": 13250,
+      "output": "ok"
     },
     "p6_symbol_extraction": {
-      "elapsed": 0,
-      "output": "degraded"
+      "elapsed": 85,
+      "output": "ok"
     },
     "p7_test_gaps": {
-      "elapsed": 42,
+      "elapsed": 12,
+      "output": "ok"
+    },
+    "p8_package_surface": {
+      "elapsed": 7,
       "output": "ok"
     }
   }
