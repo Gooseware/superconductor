@@ -28,28 +28,107 @@ These artifacts serve two purposes:
 
 ## Tool Stack (All Offline ✅)
 
-| Dimension | Tool | Output | Privacy |
-|---|---|---|---|
-| Language fingerprint | `tokei` | JSON | ✅ Fully offline |
-| Dependency graph | `dependency-cruiser` (JS/TS), `auto-uml` (polyglot) | JSON/DOT | ✅ Fully offline |
-| Complexity hotspots | `lizard -w` | JSON | ✅ Fully offline |
-| Git coupling matrix | `code-maat` + raw `git log` | CSV | ✅ Fully offline |
-| Security surface | `semgrep` (local rules), `trivy` (pre-cached DB) | JSON/SARIF | ✅ / ⚠️ initial download |
-| Symbol & API surface | `tree-sitter-analyzer` (TOON format) | TOON/JSON | ✅ Fully offline |
-| Test gap analysis | Custom `static-test-gap-analyzer.ts` | JSON | ✅ Fully offline |
+Each pipeline **capability slot** has a preferred tool and an ordered list of
+alternatives. The Tool Capability Registry (FR-0) records which tool is currently
+installed for each slot and routes the pipeline accordingly.
+
+| Capability Slot | Preferred | Alternatives (in order) | Output | Privacy |
+|---|---|---|---|---|
+| `fingerprint` | `tokei` | `scc`, `cloc` | JSON | ✅ |
+| `dependency_graph` | `dependency-cruiser` | `auto-uml`, `madge`, `deptry` | JSON/DOT | ✅ |
+| `complexity` | `lizard` | `radon`, `scc` | JSON | ✅ |
+| `coupling` | `code-maat` | `git-log-raw` (built-in fallback) | CSV/JSON | ✅ |
+| `sast` | `semgrep` | `bandit`, `eslint-plugin-security` | JSON/SARIF | ✅ / ⚠️ |
+| `sca` | `trivy` | `grype`, `cargo-audit` | JSON/SARIF | ⚠️ initial DB |
+| `symbol_extraction` | `tree-sitter-analyzer` | `universal-ctags`, `pyright` | TOON/JSON | ✅ |
+| `test_gaps` | `static-test-gap-analyzer.ts` | *(no alternative — built-in)* | JSON | ✅ |
+
+> **`git-log-raw` fallback:** If `code-maat` JAR is unavailable, the pipeline
+> falls back to a raw `git log` shell pipeline that produces a simplified churn
+> JSON. Zero external dependencies — always available wherever git is.
 
 > **TOON format:** tree-sitter-analyzer outputs in TOON — a tabular JSON variant
 > purpose-built for LLM context windows that is ~50% smaller than standard JSON.
 
 ## Functional Requirements
 
+### FR-0: Tool Capability Registry
+
+The registry is the single source of truth for which tools are available on the
+current machine. It is a JSON file persisted at:
+`superconductor/intelligence/.tool-registry.json`
+
+#### Registry Schema
+```json
+{
+  "schema_version": "1",
+  "generated_at": "<ISO-8601>",
+  "verified_at": "<ISO-8601>",
+  "capabilities": {
+    "fingerprint": {
+      "preferred": "tokei",
+      "alternatives": ["scc", "cloc"],
+      "installed": "tokei",
+      "version": "12.1.2",
+      "path": "/usr/bin/tokei",
+      "status": "ok"
+    },
+    "dependency_graph": { "...": "..." },
+    "complexity":       { "...": "..." },
+    "coupling":         { "...": "..." },
+    "sast":             { "...": "..." },
+    "sca":              { "...": "..." },
+    "symbol_extraction":{ "...": "..." },
+    "test_gaps":        { "installed": "built-in", "status": "ok" }
+  },
+  "overall_status": "ok" | "degraded" | "minimal"
+}
+```
+
+`status` per capability: `"ok"` | `"degraded"` (alternative in use) | `"unavailable"`
+
+`overall_status`:
+- `"ok"` — all preferred tools installed
+- `"degraded"` — at least one slot using an alternative
+- `"minimal"` — at least one slot fully unavailable (null output)
+
+#### Registry Lifecycle
+
+1. **First run (no registry file):** Full tool setup runs. Registry written.
+2. **Subsequent runs (registry exists):** Quick-verify each `installed` tool:
+   - Check binary path still exists: `fs.existsSync(path)`
+   - Run `<tool> --version` and compare to stored version
+   - If verification passes → use stored routing, skip setup
+   - If verification fails → trigger **self-healing** for that capability slot
+3. **Self-healing flow (capability slot fails verification):**
+   - Try each alternative in order: check existence + `--version`
+   - First alternative that passes → update registry `installed`/`path`/`version`,
+     set `status: "degraded"`, log ⚠️ `[SELF-HEAL] fingerprint: tokei missing → using scc`
+   - If all alternatives fail → set `status: "unavailable"`, log ❌, continue pipeline
+   - Write updated registry after self-heal
+4. **Registry invalidation:** Registry is considered stale if `verified_at` is
+   older than 7 days. Stale registry triggers re-verification (not full setup).
+5. **`--reset-registry` flag:** Deletes the registry and runs full tool setup.
+   Use when tools have been intentionally changed or upgraded.
+6. **`--setup-only` flag:** Runs tool setup and writes registry, exits without
+   running the pipeline. Suitable for CI bootstrap step.
+
+#### Installation Guidance
+For each unavailable capability, the registry script prints:
+```
+❌ [fingerprint] tokei not found. Alternatives tried: scc ❌, cloc ❌
+   Install: cargo install tokei  OR  brew install tokei  OR  apt install tokei
+   Or install any alternative: cargo install scc  |  sudo apt install cloc
+```
+
 ### FR-1: Tool Availability Matrix
-- Script `scripts/intelligence-preflight.ts` checks whether each required tool is
-  installed and executable
-- Reports a per-tool status: ✅ available / ⚠️ missing (degraded mode) / ❌ required
-- Required tools: `tokei`, `lizard`, `git`. All others are degraded-mode optional.
-- Degraded mode: missing tools produce a `null` output file; pipeline continues
-- Prints installation guidance for each missing tool
+- Script `scripts/intelligence-preflight.ts` reads the Tool Capability Registry
+  (FR-0) and runs quick-verification on all installed tools
+- Reports a per-capability status: ✅ preferred / ⚠️ alternative / ❌ unavailable
+- Required capabilities: `fingerprint`, `complexity`, `coupling` (git fallback always
+  available). All others are degraded-mode optional.
+- Degraded mode: unavailable capabilities produce a `null` output file; pipeline continues
+- Prints installation guidance for each unavailable capability
 
 ### FR-2: Core Intelligence Pipeline Script
 - Script `scripts/intelligence-pipeline.ts` is the single entry point
@@ -148,10 +227,14 @@ These artifacts serve two purposes:
 - **Performance:** Full pipeline completes in <60s on 100k LOC. Hotspot-only
   `lizard -w` flag ensures minimal output size. TOON format reduces API surface
   output size by ~50% vs JSON.
-- **Graceful degradation:** Pipeline never hard-fails. Missing tools produce null
-  outputs and the manifest records the degraded-mode flags.
+- **Graceful degradation:** Pipeline never hard-fails. Unavailable capability slots
+  produce null outputs; the registry and manifest both record degraded/unavailable
+  status. A `git-log-raw` built-in fallback ensures `coupling` is always computed.
+- **Self-healing:** If a registered tool fails verification at runtime, the pipeline
+  automatically tries alternatives, updates the registry, and continues. No human
+  intervention required for tool substitution.
 - **Idempotency:** Running the pipeline twice produces identical outputs for the
-  same codebase state.
+  same codebase state. Registry re-verification is non-destructive.
 - **TypeScript-native:** All orchestration scripts are TypeScript (`npx tsx`).
   Shell commands invoked via Node.js `child_process.execSync`. No bash-only scripts.
 - **Zero new runtime npm deps:** Only `node:fs`, `node:path`, `node:child_process`,
@@ -159,11 +242,23 @@ These artifacts serve two purposes:
 
 ## Acceptance Criteria
 
+### Tool Capability Registry
+- [ ] `superconductor/intelligence/.tool-registry.json` created on first run
+- [ ] Registry schema matches FR-0 (schema_version, verified_at, capabilities, overall_status)
+- [ ] Subsequent run with valid registry: skips setup, uses stored routing in <1s
+- [ ] Self-heal: registered tool binary deleted → alternative detected, registry updated, ⚠️ logged
+- [ ] Self-heal: all alternatives exhausted → capability `unavailable`, ❌ logged, pipeline continues
+- [ ] `--reset-registry` flag: deletes registry, triggers full tool setup
+- [ ] `--setup-only` flag: writes registry, exits without running pipeline
+- [ ] Stale registry (>7 days): re-verification triggered automatically
+- [ ] Installation guidance printed for every unavailable capability
+- [ ] `git-log-raw` fallback always resolves coupling slot even without code-maat JAR
+
 ### Pipeline
-- [ ] `scripts/intelligence-preflight.ts` runs and reports tool availability matrix
+- [ ] `scripts/intelligence-preflight.ts` reads registry and reports per-capability status
 - [ ] `scripts/intelligence-pipeline.ts` produces all 7 output files + manifest
 - [ ] Full pipeline completes in <60 seconds on a 100k LOC TypeScript codebase
-- [ ] Missing tool produces `null` file + manifest degraded flag — pipeline continues
+- [ ] Unavailable capability produces `null` file + manifest degraded flag — pipeline continues
 - [ ] `--brownfield --target <path>` runs on any repository without Superconductor setup
 - [ ] `--report` generates a human-readable `repository-health-report.md`
 
@@ -189,7 +284,11 @@ These artifacts serve two purposes:
 - [ ] Zero network calls during a pipeline run (verified by intercepting subprocess calls)
 
 ### Tests
-- [ ] Unit test: pipeline with all tools missing → 7 null files, manifest records all degraded
+- [ ] Unit test: registry missing → full setup runs, registry written
+- [ ] Unit test: registered binary deleted → self-heal finds alternative, updates registry
+- [ ] Unit test: all alternatives unavailable → capability status `unavailable`, pipeline continues
+- [ ] Unit test: registry >7 days old → re-verification triggered
+- [ ] Unit test: pipeline with all optional tools missing → 5 null files, manifest records degraded
 - [ ] Unit test: hotspot score formula produces correct ordering
 - [ ] Unit test: test gap analyzer with mock symbol map and mock test imports
 - [ ] Integration test: pipeline runs end-to-end on the superconductor repo itself

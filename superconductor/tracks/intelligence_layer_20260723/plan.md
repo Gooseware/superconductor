@@ -26,6 +26,36 @@
 
 ---
 
+## Phase 0.5: Tool Capability Registry
+
+- [ ] Task: Write failing tests for Tool Capability Registry lifecycle [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Test: no registry file → `setupRegistry()` runs full discovery, writes `.tool-registry.json`
+    - [ ] Test: valid registry → quick-verify passes, setup skipped, completes in <1s
+    - [ ] Test: registered binary deleted → self-heal detects failure, finds alternative, updates registry
+    - [ ] Test: all alternatives exhausted → capability status `unavailable`, pipeline continues
+    - [ ] Test: registry `verified_at` >7 days → re-verification triggered
+    - [ ] Test: `--reset-registry` flag → registry deleted, full setup re-runs
+    - [ ] Test: `--setup-only` flag → registry written, pipeline does NOT run
+    - [ ] Test: `git-log-raw` fallback → coupling slot resolved with zero external tools
+- [ ] Task: Implement `scripts/tool-registry.ts` — registry read/write/verify [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Define capability slot definitions: `CAPABILITY_SLOTS` constant with preferred + alternatives per slot
+    - [ ] `readRegistry(path): ToolRegistry | null` — reads and parses `.tool-registry.json`
+    - [ ] `verifyTool(name, path): { ok: boolean, version: string }` — runs `<tool> --version`
+    - [ ] `discoverCapability(slot): CapabilityEntry` — tries preferred then alternatives in order
+    - [ ] `setupRegistry(outputDir): ToolRegistry` — full discovery, writes registry, returns result
+    - [ ] `quickVerify(registry): ToolRegistry` — verifies each `installed` tool, self-heals on failure
+    - [ ] `isStale(registry): boolean` — checks `verified_at` age against 7-day threshold
+    - [ ] `resolveRegistry(outputDir, flags): ToolRegistry` — entry point: read → stale check → verify/setup
+    - [ ] Print ✅/⚠️/❌ per capability during setup
+    - [ ] Print installation guidance for each unavailable capability
+    - [ ] `git-log-raw` fallback always populates `coupling` slot — built-in, never unavailable
+- [ ] Task: Implement `--reset-registry` and `--setup-only` CLI flags [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `--reset-registry`: delete `.tool-registry.json`, call `setupRegistry()`
+    - [ ] `--setup-only`: call `resolveRegistry()`, print summary, exit 0
+- [ ] Task: Superconductor - User Manual Verification 'Phase 0.5: Tool Capability Registry' (Protocol in workflow.md)
+
+---
+
 ## Phase 1: Preflight & Tool Availability Matrix
 
 - [ ] Task: Write failing tests for tool availability detection [TIER-2] [AGENT:caduceus-processor]
