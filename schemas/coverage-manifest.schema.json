@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CoverageManifest",
+  "type": "object",
+  "required": ["reviewer_id", "examined", "skimmed", "not_examined"],
+  "properties": {
+    "reviewer_id": {
+      "type": "string"
+    },
+    "examined": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CoverageEntry"
+      }
+    },
+    "skimmed": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CoverageEntry"
+      }
+    },
+    "not_examined": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CoverageEntry"
+      }
+    }
+  },
+  "definitions": {
+    "CoverageEntry": {
+      "type": "object",
+      "required": ["file", "line_range", "concern"],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "line_range": {
+          "type": "string"
+        },
+        "concern": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

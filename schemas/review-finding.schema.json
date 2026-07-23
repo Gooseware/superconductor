@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ReviewFinding",
+  "type": "object",
+  "required": ["finding_id", "reviewer_id", "file", "line_range", "severity", "category", "description", "recommendation", "is_security_critical"],
+  "properties": {
+    "finding_id": {
+      "type": "string"
+    },
+    "reviewer_id": {
+      "type": "string"
+    },
+    "file": {
+      "type": "string"
+    },
+    "line_range": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "advisory"]
+    },
+    "category": {
+      "type": "string",
+      "enum": ["security", "correctness", "adversarial", "architecture", "style"]
+    },
+    "description": {
+      "type": "string"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "is_security_critical": {
+      "type": "boolean"
+    }
+  }
+}
