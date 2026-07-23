@@ -385,7 +385,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 **Execution Trigger:** Run this protocol immediately after §6.0 Finalization, before §5.0 Track Cleanup. Takes ~60 seconds if patterns were found; gracefully exits in ~5 seconds if nothing is new.
 
 1.  **Oracle Self-Reflection:** Ask the Oracle (the same model that ran §6.0) to answer three questions using its completed audit context:
-    - **Q1 — New patterns:** "Did you encounter any shenanigan pattern during this audit that is NOT explicitly listed in `skills/review/SKILL.md §4.5` or `reference/cross-cutting/adversarial-audit.md §5`? If yes, describe it as a new checklist row: `| **Pattern Name** | What to look for |`."
+    - **Q1 — New patterns:** "Did you encounter any shenanigan pattern during this audit that is NOT explicitly listed in `skills/review/SKILL.md §4.5` or `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5`? If yes, describe it as a new checklist row: `| **Pattern Name** | What to look for |`."
     - **Q2 — False positives:** "Did any existing checklist item fire incorrectly or feel misleading for this type of change? If yes, suggest a refinement."
     - **Q3 — Severity calibration:** "Were the right severity levels assigned? If any finding was mis-categorized (too harsh or too lenient), suggest the corrected mapping."
 
@@ -394,7 +394,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 3.  **Draft Protocol Updates:** If the Oracle identified new or refined patterns:
     - **Construct a unified diff** updating both:
         - `skills/review/SKILL.md §4.5` — append new rows to the Shenanigan Checklist table.
-        - `reference/cross-cutting/adversarial-audit.md §5` — append new rows to the Shenanigan Checklist table.
+        - `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5` — append new rows to the Shenanigan Checklist table.
     - **Rationale:** Include a one-line comment above each new row: `<!-- Inducted: <track_id> — <date> —  <pattern trigger> -->`.
 
 4.  **Present and Gate:** Use `ask_user` to show the diff and request approval:

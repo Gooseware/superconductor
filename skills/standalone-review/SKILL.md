@@ -132,11 +132,11 @@ When Superconductor project files are absent:
 |---|---|
 | `tech-stack.md` | Detect language from file extensions: `*.ts/tsx` → TypeScript, `*.py` → Python, `*.go` → Go, `*.rs` → Rust, `*.java` → Java, `*.rb` → Ruby |
 | `spec.md` | Skip AC alignment checks. Correctness reviewer uses generic coding standards only |
-| `adversarial-audit.md` | Use embedded shenanigan checklist (see §4.1) inline in adversarial reviewer prompt |
+| `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md` | Use embedded shenanigan checklist (see §4.1) inline in adversarial reviewer prompt |
 | `product-guidelines.md` | Skip product-specific style checks |
 
 ### 4.1 Embedded Shenanigan Checklist (Fallback)
-Include this directly in the adversarial reviewer prompt when `adversarial-audit.md` is unavailable:
+Include this directly in the adversarial reviewer prompt when `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md` is unavailable:
 - Phantom implementation (stubbed code presented as complete)
 - Scope creep injection (unrequested changes)
 - Test theatre (tests that always pass regardless of implementation)
@@ -170,7 +170,7 @@ cat > /tmp/edge_test.ts << 'EOF'
 EOF
 npx -y tsx /tmp/edge_test.ts
 ```
-Paste the output into the review body. This is the execution evidence required by `adversarial-audit.md §9.4`.
+Paste the output into the review body. This is the execution evidence required by `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §9.4`.
 
 **Logic Inversion Test** — for every boolean gate, ask: *does the else-path (the off-path) do the right thing?* Specifically look for inverted semantics where the common/clean case triggers the expensive path:
 ```
