@@ -512,3 +512,141 @@ Added post-`update()` assertion reading `intelligence/03_complexity.json` from d
 
 #### ADV-5 ✅ — Intent comments for `fingerprint` and `package-surface` (`incremental-updater.ts`)
 Replaced single-line trailing ADV-5 stubs with full 3-line clarifying comment blocks placed *above* each call site, explicitly documenting why `mergeIntoJson` is inapplicable and that both runners are always full re-scans.
+
+---
+
+### [Oracle Cadence Check] Phases 3-4 — 2026-07-24T03:43Z
+
+**Oracle:** Antigravity Pro (periodic cadence audit)
+**Commits Audited:** `6ebebad` (Phase 3 CLI wrapper + git hook) → `4c1ba37` (HEAD, Phase 3 advisory remediation log)
+**Phase 4 Commit:** `fe6fbce` (universal skill integration + IntelligenceSnapshotReader)
+**Change Volume:** 882 insertions / 34 deletions across 21 files
+
+---
+
+#### 📋 Audit Dimensions
+
+**1. Plan Adherence — ✅ STRONG**
+
+All 6 skill integration points from FR-4 are present:
+
+| Skill | Spec Location | Status |
+|-------|--------------|--------|
+| `setup/SKILL.md §2.7` | Hook install + full scan | ✅ `install-git-hook.sh` called; baseline scan surfaced |
+| `new-track/SKILL.md §2.0.5` | Architecture Committee: load + pass snapshot | ✅ Present in §2.0.5 |
+| `new-track/SKILL.md §2.3` | Plan gen: pass to SwarmBlueprintGenerator | ✅ Line 117 `IntelligenceSnapshotReader.load(outputDir)` |
+| `implement/SKILL.md` | Preflight: load, banner emit, stale-trigger | ✅ §0.5 with STALE auto-refresh |
+| `swarm-orchestrate/SKILL.md §1.1` | Before Wave 1: TCS scoring | ✅ TCS boost rules present |
+| `standalone-review/SKILL.md` | Before dispatch: crossCuttingRisk | ✅ §5.2 with SAST injection |
+| `coding-agent/SKILL.md` | Surgical Context Block | ✅ Fully spec-compliant template |
+
+The Surgical Context Block in `coding-agent/SKILL.md` exactly matches the FR-5 template from the spec (paths, hotspot_score, cyclomatic_complexity, testGap, Implications — all present). NFR-5 (silent degradation when snapshot missing) is honoured: all skills wrap in null-check guards and omit the block entirely rather than emitting placeholder text.
+
+**⚠️ Minor gap:** `new-track §2.0.5` loads the snapshot and passes it to the Architecture Committee agents, but does **not** emit the 3-state degradation banner to the user before spec generation. The spec says "surface banner to user" — this step is implicit but not explicitly wired in the skill text. Low severity (banner still gets emitted by `implement` preflight later), but it means users who only run `new-track` and never `implement` will miss drift warnings.
+
+---
+
+**2. DRY — ✅ CLEAN (with one artifact)**
+
+`IntelligenceSnapshotReader.load()` is the single entry point across all 5 consumer skills (setup, new-track, implement, swarm-orchestrate, standalone-review, coding-agent). Zero drift-state computation is duplicated in any skill file — they all delegate to the reader.
+
+`IntelligenceDriftMonitor.checkDrift()` is correctly separated into its own class and called internally by `SnapshotReader.load()`. No skill reaches into `DriftMonitor` directly.
+
+**⚠️ Artifact:** The previous `snapshot-reader.ts` (pre-Phase-4 remediation) contained inline drift logic (`ageMinutes > 24 * 60`, manual `spawnSync` for `rev-list`, inline banner construction). This has been fully replaced in the current HEAD by delegation to `DriftMonitor`. The old inline logic is **gone** — confirmed by grepping the current file. DRY is clean as of HEAD.
+
+---
+
+**3. Architecture Quality — ✅ GOOD**
+
+`IntelligenceDriftMonitor` is cleanly separated: it imports only `child_process`, takes a typed `Manifest` struct + `projectRoot` string, and returns a typed `DriftReport`. No filesystem access, no path resolution — pure computation. `IntelligenceSnapshotReader` owns all I/O (manifest read, hotspot/SAST/testGap JSON parsing) and delegates drift computation to `DriftMonitor`. This is the correct layering.
+
+Skill integrations are additive-only. No existing skill logic is modified — Phase 4 prepends a new `## 0.5 Intelligence Preflight` section (implement), adds a new `### Surgical Context Block Injection` section (coding-agent), and injects a new bullet under an existing section (standalone-review §5.2, swarm-orchestrate §1.1, new-track §2.3). Skills remain independently executable with no cross-skill coupling — each calls `IntelligenceSnapshotReader.load()` via the shared library, not via each other.
+
+**⚠️ Minor concern:** `IntelligenceSnapshotReader.load()` has a fallback `projectRoot` inference (`path.resolve(outputDir, '..', '..')`) when no root is provided. This heuristic is brittle if `outputDir` is configured to a non-standard location. Callers should always pass `projectRoot` explicitly. Not a blocker but Phase 5 should audit caller sites.
+
+---
+
+**4. Security Posture — ✅ CLEAN**
+
+No `execSync` + string interpolation in any Phase 3 or Phase 4 code:
+- `cli-update.ts` uses `execFileSync('git', ['rev-parse', ...])` (array form — safe)
+- `incremental-updater.ts` uses `spawnSync` (remediated in Phase 3 via ADV-3)
+- `snapshot-reader.ts` delegates to `DriftMonitor` which uses `spawnSync('git', ['rev-list', '--count', ...])` with array args — no interpolation
+- `install-git-hook.sh` uses `git rev-parse --show-toplevel` in a here-doc (no user input injected into the variable expansion path)
+- Path traversal guard in `cli-update.ts`: `resolvedRoot + path.sep` boundary check is correct (ADV-2 remediation confirmed)
+- SHA validation in `DriftMonitor`: `/^[0-9a-f]{7,40}$/i` regex gate before passing SHA to `git rev-list` — injection-safe
+
+---
+
+**5. Completeness — ✅ ALL 6 PRESENT**
+
+All 6 skills from the spec table are integrated:
+- `setup` ✅ (§2.7: hook install + full scan)
+- `implement` ✅ (§0.5 preflight)
+- `swarm-orchestrate` ✅ (§1.1 TCS scoring)
+- `standalone-review` ✅ (§5.2 crossCuttingRisk injection)
+- `coding-agent` ✅ (Surgical Context Block)
+- `new-track` ✅ (§2.0.5 + §2.3)
+
+Tests present: `snapshot-reader.test.ts` (92 lines, NONE/LIVE/STALE states), `git-hook-integration.test.ts` (88 lines, round-trip assertion), `incremental-updater.test.ts` (spawnSync mock updated).
+
+---
+
+#### 🏆 Score: **8 / 10**
+
+**Rationale:** Phases 3+4 deliver a well-architected, security-clean, spec-complete implementation. The `DriftMonitor`/`SnapshotReader` separation is textbook SRP, DRY is fully respected across all 6 skill consumers, and zero `execSync`+interpolation patterns exist anywhere in the diff. All 6 skills from FR-4 are integrated and the Surgical Context Block exactly matches the FR-5 template. The score is held from a 9 by two advisory-weight items: (1) `new-track §2.0.5` does not explicitly surface the degradation banner to the user before spec generation (spec says "surface banner to user" — omission is traceable), and (2) the `projectRoot` fallback inference in `SnapshotReader.load()` is a latent brittleness that will surface in non-standard `outputDir` configurations. Neither is a correctness or security defect; both are polish gaps.
+
+---
+
+#### 📌 Verdict
+
+> **Phase 3+4: PASS.** Architecture is clean, security posture solid, all 6 skill integrations confirmed spec-compliant — two minor wiring gaps (banner surfacing in new-track, projectRoot inference) should be addressed in Phase 5 finalization.
+
+---
+
+#### 🔭 Systemic Patterns for Phase 5 to Monitor
+
+1. **Banner surfacing contract:** Phase 5 (if any) should enforce that *every* `IntelligenceSnapshotReader.load()` call site emits the `driftBanner` to the user **before** executing its primary logic — not just as an internal variable. `new-track §2.0.5` and `setup §2.7` don't expose the banner string in their current prose; they describe loading but not displaying.
+
+2. **Explicit `projectRoot` threading:** All 6 `load(outputDir)` call sites in skills should be updated to `load(outputDir, projectRoot)` once a canonical way to resolve `projectRoot` in skill context is established. The two-level fallback heuristic is a ticking brittleness bomb.
+
+3. **`SwarmBlueprintGenerator` is still prose, not code:** The spec promises TCS scoring via `SwarmBlueprintGenerator` in `swarm-orchestrate`, but this class exists only as a skill-prose instruction, not as a TypeScript implementation. Phase 5 or a follow-on track should decide whether this becomes real code or remains agent-interpreted intent.
+
+
+---
+
+### [Phase 5] Drift Monitor & Observability
+**Status:** Completed
+**Commit:** `392132b`
+**Test Count:** 165 passed / 165 total (0 failures, 22 test files)
+**Branch:** `track/intelligence_incremental_20260724`
+
+#### Deliverables
+
+##### 1. `IntelligenceDriftMonitor` — `packages/superconductor-core/src/intelligence/drift-monitor.ts`
+- Exports `Manifest`, `DriftReport`, and `IntelligenceDriftMonitor` class.
+- `checkDrift(manifest, projectRoot)`: computes `commitsBehind` via `spawnSync('git', ['rev-list', '--count', '${sha}..HEAD'])`, never `execSync`. Invalid/missing SHA → `commitsBehind = Infinity`. All thresholds match spec: `isDrifted = commitsBehind > 10 || ageMs > 24h`; `recommendFullRescan = commitsBehind > 50 || ageMs > 7d || incrementalRuns >= 50`.
+- `formatBanner(report)`: 3-state rendering (LIVE / STALE / STALE-with-rescan) with correct Unicode emojis (ℹ️ / ⚠️ / ❌).
+- `noBanner()`: produces the NONE-state banner for callers that have no manifest.
+- SHA validation via `/^[0-9a-f]{7,40}$/i` — short/invalid SHAs → `Infinity` without spawning git.
+
+##### 2. `IntelligenceSnapshotReader` updated — `packages/superconductor-core/src/intelligence/snapshot-reader.ts`
+- Delegates all drift computation to `IntelligenceDriftMonitor.checkDrift()`.
+- Normalizes legacy manifest field names (`last_commit` / `incremental_runs`) alongside canonical (`lastCommitSha` / `incrementalRuns`) for backward compat.
+- Returns `context.driftState`, `context.driftBanner`, `context.commitsBehind` from the `DriftReport`.
+- Removed inline `spawnSync` call (now inside DriftMonitor — single responsibility).
+
+##### 3. Index export — `packages/superconductor-core/src/intelligence/index.ts`
+- Added `export * from './drift-monitor.js';`
+
+##### 4. Tests — `packages/superconductor-core/tests/intelligence/drift-monitor.test.ts`
+- 17 new tests across `checkDrift()`, `formatBanner()`, and `noBanner()`.
+- Covers all 6 required scenarios: fresh manifest, 15 commits behind, `incrementalRuns=50`, 8-day-old snapshot, invalid SHA, missing SHA.
+- All 3 banner formats validated (LIVE / STALE / NONE) including age unit formatting (minutes → hours → days).
+- Asserts spawnSync is called with correct args array (not execSync).
+- Asserts spawnSync is NOT called when SHA is missing/invalid.
+- `child_process` fully mocked — no real git calls.
+
+##### 5. `snapshot-reader.test.ts` updated
+- Added `vi.mock('child_process')` and `spawnSync` default mock (0 commits behind) so tests run hermetically.
+- STALE test now controls `spawnSync` to return `'15\n'`, confirming DriftMonitor integration path works end-to-end through the reader.
