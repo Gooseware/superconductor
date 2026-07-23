@@ -193,3 +193,26 @@
     - [x] AGY CLI can invoke all 28 skills without error
     - [x] Both MCP servers (design-os-kernel, superconductor) register in AGY
 - [x] Task: Integrate track `core_harness_abstraction_20260723` into main [TIER-1] [AGENT:caduceus-triage]
+
+---
+
+## Phase 10: Review Remediation (Iteration 1)
+
+- [x] Task: Fix Core Review Pipeline Bugs [TIER-2] [AGENT:caduceus-processor]
+    - [x] Fix `isLineRangeClose` in `packages/superconductor-core/src/review/aggregate-findings.ts` to strip `L` prefix before `parseInt` (COR-1)
+    - [x] Fix `aggregateCoverageManifests` in `packages/superconductor-core/src/review/aggregate-coverage.ts` to handle string[] entries in `not_examined` (COR-2)
+    - [x] Fix `checkPlanGap` in `packages/superconductor-core/src/track/plan-gap-checker.ts` to return `0.0` confidence when total criteria is 0 (ADV-10)
+    - [x] Add unit test suite using `vitest` in `packages/superconductor-core/tests/` covering all 7 review modules and boundary cases (COR-6, ADV-5)
+- [x] Task: Fix MCP Server Handlers and Script Shims [TIER-2] [AGENT:caduceus-processor]
+    - [x] Update MCP server tool handlers (`superconductor_run_intelligence` and `superconductor_run_abi_retrospective`) to return structured `NOT_IMPLEMENTED` status instead of fake success (ADV-1, ADV-2, COR-4)
+    - [x] Add `path.resolve()` scope validation for `projectRoot` in MCP server (SEC-1)
+    - [x] Fix `scripts/deterministic-preflight.ts` import path extension from `.ts` to `.js` (COR-3)
+    - [x] Add CLI execution wrappers to `scripts/*.ts` shims when invoked directly via `npx tsx` (ADV-7)
+- [x] Task: Fix CLI Adapter and Protocol Utility Guards [TIER-2] [AGENT:caduceus-processor]
+    - [x] Wire CLI `review` command in `src/cli/index.ts` to parse flags and invoke `resolveReviewInput()` (COR-5)
+    - [x] Update CLI `setup` command to validate `~/.superconductor/` tool registry existence (ADV-3)
+    - [x] Canonicalize `SUPERCONDUCTOR_HOME` using `path.resolve()` in `agent-context.ts` (SEC-2)
+    - [x] Add schema validation guard for `JSON.parse` in `aggregate-findings.ts` (SEC-3)
+    - [x] Add diagnostic warnings for corrupt JSON in `agent-context.ts` (ADV-9)
+    - [x] Remove unrequested research markdown files from root commit / git untrack (ADV-4)
+- [x] Task: Superconductor - User Manual Verification 'Phase 10: Review Remediation' (Protocol in workflow.md)

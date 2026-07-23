@@ -16,6 +16,17 @@ export interface ReviewFinding {
   agreement_count?: number;
 }
 
+function isValidFinding(f: any): boolean {
+  return (
+    f !== null &&
+    typeof f === 'object' &&
+    typeof f.finding_id === 'string' &&
+    typeof f.severity === 'string' &&
+    typeof f.category === 'string' &&
+    typeof f.file === 'string'
+  );
+}
+
 export function aggregateFindings(
   reviewerOutputs: { reviewer_id: string; raw_text?: string }[],
   manifestsDir?: string
@@ -27,7 +38,13 @@ export function aggregateFindings(
 
     // Tier 1 Extraction
     if (item.raw_text) {
-      findings = extractFencedBlock<ReviewFinding[]>(item.raw_text, 'review-findings');
+      const parsed = extractFencedBlock<ReviewFinding[]>(item.raw_text, 'review-findings');
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter(isValidFinding);
+        if (valid.length > 0) {
+          findings = valid;
+        }
+      }
     }
 
     // Tier 2 Extraction
@@ -36,7 +53,13 @@ export function aggregateFindings(
       if (fs.existsSync(artifactPath)) {
         try {
           const content = fs.readFileSync(artifactPath, 'utf-8');
-          findings = JSON.parse(content);
+          const parsed = JSON.parse(content);
+          if (Array.isArray(parsed)) {
+            const valid = parsed.filter(isValidFinding);
+            if (valid.length > 0) {
+              findings = valid;
+            }
+          }
         } catch (e) {
           findings = null;
         }
@@ -61,6 +84,11 @@ export function aggregateFindings(
     }
 
     if (findings) {
+      for (const f of findings) {
+        if (!f.reviewer_id) {
+          f.reviewer_id = item.reviewer_id;
+        }
+      }
       rawFindings.push(...findings);
     }
   }
@@ -93,10 +121,11 @@ export function aggregateFindings(
 
 function isLineRangeClose(rangeA: string, rangeB: string): boolean {
   if (rangeA === rangeB) return true;
+  if (!rangeA || !rangeB) return false;
   if (rangeA === 'all' && rangeB === 'all') return true;
   if (rangeA === 'all' || rangeB === 'all') return false;
-  const numA = parseInt(rangeA.split('-')[0], 10);
-  const numB = parseInt(rangeB.split('-')[0], 10);
+  const numA = parseInt(rangeA.replace(/^L/i, '').split('-')[0], 10);
+  const numB = parseInt(rangeB.replace(/^L/i, '').split('-')[0], 10);
   if (isNaN(numA) || isNaN(numB)) return false;
   return Math.abs(numA - numB) <= 3;
 }

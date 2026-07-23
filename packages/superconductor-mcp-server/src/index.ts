@@ -1,3 +1,5 @@
+import path from "node:path";
+import fs from "node:fs";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -14,7 +16,8 @@ import {
   aggregateFindings,
   runCascadeDeferralGate,
   generateTokenReport,
-  checkPlanGap
+  checkPlanGap,
+  resolveReviewInput
 } from "@superconductor/core";
 
 const server = new Server(
@@ -37,7 +40,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const { name, arguments: args } = request.params;
-  const projectRoot = (args && typeof args.projectRoot === 'string') ? args.projectRoot : process.cwd();
+  const rawProjectRoot = (args && typeof args.projectRoot === 'string') ? args.projectRoot : process.cwd();
+  let projectRoot = path.resolve(rawProjectRoot);
+  try {
+    if (!fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
+      projectRoot = process.cwd();
+    }
+  } catch {
+    projectRoot = process.cwd();
+  }
 
   switch (name) {
     case "superconductor_get_agent_context": {
@@ -84,8 +95,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
           {
             type: "text",
             text: JSON.stringify({
-              status: "executed",
-              message: "Intelligence pipeline runner delegated to core engine."
+              status: "NOT_IMPLEMENTED",
+              message: "This tool is scheduled for implementation in a future track..."
             }, null, 2)
           }
         ]
@@ -93,12 +104,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     }
 
     case "superconductor_run_review": {
+      const reviewArgs: string[] = [];
+      if (args && typeof args.targetType === 'string') {
+        if (args.targetType === 'staged') {
+          reviewArgs.push('--staged');
+        } else if (['branch', 'pr', 'file', 'dir'].includes(args.targetType)) {
+          reviewArgs.push(`--${args.targetType}`);
+          if (typeof args.targetValue === 'string') {
+            reviewArgs.push(args.targetValue);
+          }
+        }
+      }
+      if (args && typeof args.depthMode === 'string') {
+        reviewArgs.push(`--${args.depthMode}`);
+      }
+
+      const isGitRepo = fs.existsSync(path.join(projectRoot, '.git'));
+      const resolvedInput = resolveReviewInput(reviewArgs, isGitRepo);
       const preflight = runDeterministicPreflight(projectRoot);
+
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify(preflight, null, 2)
+            text: JSON.stringify({
+              resolvedInput,
+              preflight
+            }, null, 2)
           }
         ]
       };
@@ -124,8 +156,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
           {
             type: "text",
             text: JSON.stringify({
-              status: "executed",
-              message: "ABI retrospective scan completed."
+              status: "NOT_IMPLEMENTED",
+              message: "This tool is scheduled for implementation in a future track..."
             }, null, 2)
           }
         ]

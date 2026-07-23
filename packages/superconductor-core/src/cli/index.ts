@@ -1,6 +1,10 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import { getAgentContext } from '../protocol/agent-context.js';
 import { readTrackRegistry, getCompletionStats } from '../track/index.js';
 import { runDeterministicPreflight } from '../review/deterministic-preflight.js';
+import { resolveReviewInput } from '../review/input-resolution.js';
 
 export function runCli(args: string[] = process.argv.slice(2)): void {
   const command = args[0] || 'context';
@@ -37,13 +41,21 @@ export function runCli(args: string[] = process.argv.slice(2)): void {
     }
 
     case 'review': {
+      const input = resolveReviewInput(args.slice(1), true);
       const preflight = runDeterministicPreflight(process.cwd());
-      console.log(JSON.stringify(preflight, null, 2));
+      console.log(JSON.stringify({ input, preflight }, null, 2));
       break;
     }
 
     case 'setup': {
-      console.log('✅ Superconductor machine setup verified at ~/.superconductor/');
+      const rawHome = process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor');
+      const homeDir = path.resolve(rawHome);
+      const registryPath = path.join(homeDir, 'tool-registry.json');
+      if (fs.existsSync(registryPath)) {
+        console.log('✅ Superconductor machine setup verified');
+      } else {
+        console.log('⚠️ Machine setup not initialized');
+      }
       break;
     }
 

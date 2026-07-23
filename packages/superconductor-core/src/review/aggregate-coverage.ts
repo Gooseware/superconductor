@@ -5,14 +5,14 @@ import { extractFencedBlock } from './extract-fenced-block.js';
 export interface CoverageEntry {
   file: string;
   line_range: string;
-  concern: string;
+  concern?: string;
 }
 
 export interface CoverageManifest {
   reviewer_id: string;
   examined: CoverageEntry[];
   skimmed: CoverageEntry[];
-  not_examined: CoverageEntry[];
+  not_examined: (CoverageEntry | string)[];
 }
 
 export interface AggregatedCoverageResult {
@@ -81,16 +81,20 @@ export function aggregateCoverageManifests(
   let totalConcerns = 0;
 
   for (const m of manifests) {
-    filesExaminedCount += m.examined.length;
-    filesSkimmedCount += m.skimmed.length;
-    filesNotExaminedCount += m.not_examined.length;
-    totalConcerns += m.examined.length + m.skimmed.length;
+    filesExaminedCount += (m.examined || []).length;
+    filesSkimmedCount += (m.skimmed || []).length;
+    filesNotExaminedCount += (m.not_examined || []).length;
+    totalConcerns += (m.examined || []).length + (m.skimmed || []).length;
 
-    for (const entry of m.not_examined) {
-      const key = `${entry.file}:${entry.line_range}`;
+    for (const entry of m.not_examined || []) {
+      const key = typeof entry === 'string' ? entry : `${entry.file}:${entry.line_range}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
-        residualMap.push(entry);
+        const normEntry: CoverageEntry =
+          typeof entry === 'string'
+            ? { file: entry, line_range: 'all' }
+            : entry;
+        residualMap.push(normEntry);
       }
     }
   }

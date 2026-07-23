@@ -9,14 +9,14 @@
     "superconductor": "dist/cli/index.js"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "vitest run",
+    "build": "npx --package typescript tsc",
+    "test": "npx --package vitest vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^1.6.0"
   },
   "dependencies": {
     "@superconductor/engine": "workspace:*"

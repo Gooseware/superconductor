@@ -20,7 +20,8 @@ export interface AgentContext {
 }
 
 export function getAgentContext(projectRoot: string): AgentContext {
-  const homeDir = process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor');
+  const rawHome = process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor');
+  const homeDir = path.resolve(rawHome);
   const registryPath = path.join(homeDir, 'tool-registry.json');
   let toolStatus: AgentContext['toolRegistryStatus'] = 'missing';
 
@@ -29,6 +30,7 @@ export function getAgentContext(projectRoot: string): AgentContext {
       const reg = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
       toolStatus = reg.overall_status || 'ok';
     } catch {
+      console.warn(`[agent-context] Corrupt tool registry at ${registryPath}`);
       toolStatus = 'degraded';
     }
   }
@@ -52,7 +54,7 @@ export function getAgentContext(projectRoot: string): AgentContext {
         totalLines: manifest.totalLines
       };
     } catch {
-      // Ignored if manifest corrupt
+      console.warn(`[agent-context] Corrupt manifest at ${manifestPath}`);
     }
   }
 

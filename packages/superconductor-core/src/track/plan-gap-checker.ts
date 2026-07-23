@@ -40,7 +40,7 @@ export function checkPlanGap(
   }
 
   const total = criteria.length;
-  const confidence = total > 0 ? Math.round((covered.length / total) * 100) / 100 : 1.0;
+  const confidence = total > 0 ? Math.round((covered.length / total) * 100) / 100 : 0.0;
 
   return {
     trackId,
