@@ -42,3 +42,5 @@ Gemini CLI Extension
     - **Visual Auditing:** Headless Playwright integration combined with Vision-Language Models (VLM) for `DESIGN.md` compliance.
     - **Property-Based Testing:** `fast-check` framework integration to enforce invariant testing.
     - **Mutation Testing:** Stryker integration to verify test suite quality and eliminate AI testing bias.
+- **Token Observability:** Granular in-memory token tracking (prompt/completion) flushed to a centralized `TelemetryStore` at subagent lifecycle termination.
+- **Dependency Context & Research:** A `DependencyContextManager` parses workspace manifests (e.g., `package.json`) to dynamically inject context into read-only `GenerateResearchPrompt` artifacts, optimizing token spend on external discovery.
