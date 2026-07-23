@@ -458,6 +458,8 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 ### 2.7 Finalization
 1. **Generate Index File**: Create `superconductor/index.md` linking definition, workflow, and track management files.
 2. **Install Worktrunk (Setup Hook)**: Ensure the `worktrunk` backend is available by executing `./scripts/install-worktrunk.sh`.
+2a. **Install Intelligence Git Hook:** Execute `./scripts/install-git-hook.sh` to install the post-commit incremental intelligence updater hook.
+2b. **Run Full Intelligence Baseline Scan:** Trigger a full intelligence scan by calling the MCP tool `superconductor_run_intelligence` or executing `node packages/superconductor-core/dist/intelligence/cli-update.js` with no arguments (which falls back to full scan). Surface result to user: `"✅ Intelligence baseline established"`.
 3. **Summarize & Transition**: Report setup summary and transition to initial plan generation.
 
 

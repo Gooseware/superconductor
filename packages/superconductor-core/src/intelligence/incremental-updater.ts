@@ -110,8 +110,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   // fingerprint
   if (changedFiles.some(PHASE_INVALIDATION['fingerprint'])) {
     phasesRun.push('fingerprint');
-    const res = runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint, changedFiles);
-    if (res.entries) mergeIntoJson(path.join(outputDir, '01_fingerprint.json'), res.entries);
+    runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint);
   }
 
   // dependency-graph
@@ -152,8 +151,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   // package-surface
   if (changedFiles.some(PHASE_INVALIDATION['package-surface'])) {
     phasesRun.push('package-surface');
-    const res = runPackageSurface(projectRoot, outputDir, changedFiles);
-    if (res.entries) mergeIntoJson(path.join(outputDir, '08_package_surface.json'), res.entries);
+    runPackageSurface(projectRoot, outputDir);
   }
 
   // coupling (always update incrementally)

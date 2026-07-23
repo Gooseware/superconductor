@@ -199,26 +199,26 @@ describe('runSast', () => {
 
   it('returns {status: "degraded"} when both capabilities are null', () => {
     const result = runSast('/project', tmpDir, null, null);
-    expect(result).toEqual({ status: 'degraded' });
+    expect(result).toEqual({ status: 'degraded', entries: null });
   });
 
   it('returns {status: "degraded"} when both capabilities are undefined', () => {
     const result = runSast('/project', tmpDir, undefined, undefined);
-    expect(result).toEqual({ status: 'degraded' });
+    expect(result).toEqual({ status: 'degraded', entries: null });
   });
 
   it('returns {status: "degraded"} when both capabilities have status unavailable', () => {
     const cap = { status: 'unavailable', tool: 'semgrep' };
     const scaCap = { status: 'unavailable', tool: 'trivy' };
     const result = runSast('/project', tmpDir, cap, scaCap);
-    expect(result).toEqual({ status: 'degraded' });
+    expect(result).toEqual({ status: 'degraded', entries: null });
   });
 
   it('returns {status: "ok"} when semgrep capability is available and execSync succeeds', () => {
     vi.mocked(execSync).mockReturnValue(JSON.stringify({ results: [semgrepResult()] }));
     const cap = { status: 'available', tool: 'semgrep' };
     const result = runSast('/project', tmpDir, cap, null);
-    expect(result).toEqual({ status: 'ok' });
+    expect(result).toEqual({ status: 'ok', entries: null });
     const outFile = path.join(tmpDir, '05_sast.json');
     expect(fs.existsSync(outFile)).toBe(true);
   });
@@ -229,7 +229,7 @@ describe('runSast', () => {
     );
     const scaCap = { status: 'available', tool: 'trivy' };
     const result = runSast('/project', tmpDir, null, scaCap);
-    expect(result).toEqual({ status: 'ok' });
+    expect(result).toEqual({ status: 'ok', entries: null });
   });
 
   it('writes findings to 05_sast.json', () => {
@@ -248,13 +248,13 @@ describe('runSast', () => {
     const cap = { status: 'available', tool: 'semgrep' };
     const scaCap = { status: 'available', tool: 'trivy' };
     const result = runSast('/project', tmpDir, cap, scaCap);
-    expect(result).toEqual({ status: 'ok' });
+    expect(result).toEqual({ status: 'ok', entries: null });
   });
 
   it('returns {status: "degraded"} when tool execution throws error (single-tool failure)', () => {
     vi.mocked(execSync).mockImplementation(() => { throw new Error('Command failed'); });
     const cap = { status: 'available', tool: 'semgrep' };
     const result = runSast('/project', tmpDir, cap, null);
-    expect(result).toEqual({ status: 'degraded' });
+    expect(result).toEqual({ status: 'degraded', entries: null });
   });
 });
