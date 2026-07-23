@@ -475,3 +475,40 @@ This is a **semantic regression**: the scoped-files incremental merge (the core 
 - **ADV-1** (unquoted `$CHANGED`) and **ADV-5** (silent scoped-merge removal) are the most important to resolve.
 - **ADV-2**, **ADV-3**, and **ADV-4** can be batched into a single remediation commit.
 
+---
+
+### [Phase 4] Universal Skill Integration
+**Status:** Completed
+**Commit:** fe6fbce
+**Test Count:** 148 tests passing
+
+**Advisory Notes for Phase 5 (Drift Monitor):**
+- `IntelligenceSnapshotReader` exposes `driftState` ('LIVE', 'STALE', 'NONE') and `driftBanner`. The Drift Monitor should leverage this and emit the banner accordingly.
+- Resolved `ADV-5` by documenting that `fingerprint` and `package-surface` produce project-level metrics rather than per-file metrics, so `mergeIntoJson` is unsupported.
+- Resolved `cli-update.ts` directory traversal by validating path boundary.
+- Used `spawnSync` instead of `execSync` for the `git rev-list` in `IntelligenceSnapshotReader`.
+
+
+---
+
+### [Remediation] Phase 3 Advisory Fixes — 2026-07-24T03:40Z
+
+**Processor:** Remediation Processor (subagent)
+**Commit:** `33905b8`
+**Tests:** 148 passed / 148 total (0 failures)
+**Branch:** `track/intelligence_incremental_20260724`
+
+#### ADV-1 ✅ — Hook word-splitting fix (`scripts/install-git-hook.sh`)
+Replaced bare `$CHANGED` expansion with a `while IFS= read -r line` array-loading pattern. Filenames with spaces are now safe. The hook is injected via `if CHANGED=$(...)` so empty output is also handled cleanly without needing `|| true`.
+
+#### ADV-2 ✅ — Path traversal validation strengthened (`cli-update.ts`)
+Replaced the `.startsWith(projectRoot)` filter (susceptible to prefix collisions, e.g. `/project-evil`) with the stricter `abs.startsWith(resolvedRoot + path.sep) || abs === resolvedRoot` check using `path.resolve` for both root and candidate. Renamed `validFiles` → `safeFiles` for clarity. Added early `process.exit(0)` when `safeFiles` is empty.
+
+#### ADV-3 ✅ — `execSync` → `spawnSync` for HEAD SHA (`incremental-updater.ts`)
+Removed shell-invoked `execSync('git rev-parse HEAD', ...)` and replaced with `spawnSync('git', ['rev-parse', 'HEAD'], ...)`. Removed `execSync` from the `child_process` import (no longer used). Errors now degrade gracefully to `headSha = 'unknown'` with a `stderr` diagnostic message. Updated `incremental-updater.test.ts` `beforeEach` to mock `spawnSync` with the correct `SpawnSyncReturns` shape.
+
+#### ADV-4 ✅ — Round-trip on-disk assertion (`git-hook-integration.test.ts`)
+Added post-`update()` assertion reading `intelligence/03_complexity.json` from disk and verifying the `file1` entry exists, proving actual file writes occurred rather than just checking the in-memory `UpdateReport.filesUpdated` count.
+
+#### ADV-5 ✅ — Intent comments for `fingerprint` and `package-surface` (`incremental-updater.ts`)
+Replaced single-line trailing ADV-5 stubs with full 3-line clarifying comment blocks placed *above* each call site, explicitly documenting why `mergeIntoJson` is inapplicable and that both runners are always full re-scans.
