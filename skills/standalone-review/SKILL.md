@@ -94,6 +94,29 @@ Include this directly in the adversarial reviewer prompt when `adversarial-audit
 - Coverage map gaming (manifest claims coverage of unreviewed areas)
 - Silent degradation (error paths that swallow failures without surfacing them)
 
+### Adversarial Edge Case Execution Protocol
+
+For every non-trivial function in the diff, mentally execute it against the worst-input set **before** declaring it clean:
+
+| Input class | Examples | What typically breaks |
+|---|---|---|
+| Empty collection | `[]`, `{}`, `""` | Array operations, reduce, first/last access |
+| Non-numeric string where number expected | `"all"`, `"N/A"`, `""` | `parseInt` → `NaN` → silent comparison failure |
+| Zero / falsy number | `0`, `0.0` | Gate conditions that conflate 0 with false |
+| Null / undefined | `null`, `undefined` | Dereference, optional chaining gaps |
+| Concurrent call | Two calls simultaneously | Race conditions, double-write |
+
+**Logic Inversion Test** — for every boolean gate, ask: *does the else-path (the off-path) do the right thing?* Specifically look for inverted semantics where the common/clean case triggers the expensive path:
+```
+Pattern to catch:  can_skip = condition && items.length > 0
+Inversion:         items.length == 0 (clean, nothing to do) → can_skip = false → triggers expensive Arbiter
+Correct intent:    empty = clean pass, should always skip
+```
+
+**Write-Path / Read-Path Split Test** — for every `readFile` / database read / cache lookup, verify a corresponding **write** exists in this diff or in already-verified code. A read-path with no write-path will always read stale or empty data: 🔴 `[blocking]`.
+
+**Resource Safety Test** — for every blocking subprocess call (`execSync`, `child_process`, network call): verify a **timeout** is set. No timeout in a headless pipeline = infinite hang: 🔴 `[blocking]`.
+
 ---
 
 ## 5.0 REVIEW PIPELINE EXECUTION
@@ -128,6 +151,35 @@ Each reviewer receives:
 - Deterministic preflight output (or `"preflight: skipped - no tool detected"`)
 - Their specialization prompt from `templates/reviewers/<role>-reviewer.md`
 - **No** `spec.md`, **no** `plan.md` context (unless `--pr` mode, where PR description is used)
+
+### 5.3 Plan-Gap Protocol (when plan.md is available)
+
+If a `plan.md` or spec file is found in the target directory (or provided via `--pr` PR description), the Adversarial reviewer MUST additionally run the **Plan-Gap Protocol** before finalizing its findings:
+
+**Step 1 — AC Verification:**
+```bash
+# Identify what files the plan said should exist/change
+grep -E '\- \[ \]|\- \[x\]' plan.md | grep -i 'write\|create\|add\|implement'
+```
+For each required file or behaviour: verify it exists and is non-empty.
+
+**Step 2 — File Change Verification:**
+```bash
+# Were the right files actually changed?
+git diff <baseline>..<head> --name-only
+# Cross-reference against plan deliverables
+```
+If a file the plan said must be modified has the same hash as before implementation: flag as 🔴 `[blocking]` phase omission.
+
+**Step 3 — Test Coverage Ratio:**
+```bash
+grep -c 'Test:' plan.md 2>/dev/null || echo 0    # tests planned
+find . -name '*.test.*' -o -name '*.spec.*' | xargs grep -c 'assert\|expect\|test\|it(' 2>/dev/null | awk -F: '{s+=$2}END{print s}'  # tests implemented
+```
+Coverage < 50% of planned test surface: 🔴 `[blocking]`. 50–80%: 🟡 `[important]`.
+
+**Step 4 — Named Test Case Verification:**
+For each `Test:` line in `plan.md`, verify a test exercising that specific path exists. A matching test count is not sufficient — the specific edge case must be covered.
 
 ---
 
