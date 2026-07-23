@@ -7,7 +7,8 @@ import * as os from 'node:os';
 // Mock child_process so execSync never touches the filesystem / real tools
 // ---------------------------------------------------------------------------
 vi.mock('child_process', () => ({
-  execSync: vi.fn()
+  execSync: vi.fn(),
+  spawnSync: vi.fn()
 }));
 
 // Mock tool-registry so getSuperconductorHome() doesn't fail in unit tests
@@ -16,7 +17,7 @@ vi.mock('../src/intelligence/tool-registry.js', () => ({
 }));
 
 // Import AFTER mocks are registered
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import {
   parseSemgrepOutput,
   parseTrivyOutput,
@@ -189,6 +190,7 @@ describe('runSast', () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-sast-test-'));
     vi.mocked(execSync).mockReset();
+    vi.mocked(spawnSync).mockReset();
   });
 
   afterEach(() => {
@@ -223,10 +225,11 @@ describe('runSast', () => {
     expect(fs.existsSync(outFile)).toBe(true);
   });
 
-  it('returns {status: "ok"} when trivy capability is available and execSync succeeds', () => {
-    vi.mocked(execSync).mockReturnValue(
-      JSON.stringify({ Results: [{ Target: 'go.sum', Vulnerabilities: [trivyVuln()] }] })
-    );
+  it('returns {status: "ok"} when trivy capability is available and spawnSync succeeds', () => {
+    vi.mocked(spawnSync).mockReturnValue({
+      stdout: JSON.stringify({ Results: [{ Target: 'go.sum', Vulnerabilities: [trivyVuln()] }] }),
+      status: 0
+    } as any);
     const scaCap = { status: 'available', tool: 'trivy' };
     const result = runSast('/project', tmpDir, null, scaCap);
     expect(result).toEqual({ status: 'ok', entries: null });
@@ -244,7 +247,10 @@ describe('runSast', () => {
 
   it('returns {status: "ok"} when clean scan yields zero findings with both tools enabled', () => {
     vi.mocked(execSync).mockReturnValueOnce(JSON.stringify({ results: [] }));
-    vi.mocked(execSync).mockReturnValueOnce(JSON.stringify({ Results: [] }));
+    vi.mocked(spawnSync).mockReturnValueOnce({
+      stdout: JSON.stringify({ Results: [] }),
+      status: 0
+    } as any);
     const cap = { status: 'available', tool: 'semgrep' };
     const scaCap = { status: 'available', tool: 'trivy' };
     const result = runSast('/project', tmpDir, cap, scaCap);

@@ -92,8 +92,8 @@ describe('IncrementalUpdater', () => {
 
       fs.writeFileSync(file, '{ malformed json');
       mergeIntoJson(file, [{ file: 'b.ts', hotspot_score: 1 }]);
-      content = JSON.parse(fs.readFileSync(file, 'utf-8'));
-      expect(content).toEqual([{ file: 'b.ts', hotspot_score: 1 }]);
+      const raw = fs.readFileSync(file, 'utf-8');
+      expect(raw).toBe('{ malformed json');
     });
 
     it('atomic write: uses temp file and renames', () => {

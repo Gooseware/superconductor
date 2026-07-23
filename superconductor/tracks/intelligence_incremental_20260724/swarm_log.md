@@ -823,3 +823,14 @@ Added explicit JSDoc `## Required surfacing contract` block to `IntelligenceDrif
 | ADV-3 (inline `require('child_process')`) | ✅ N/A | No inline `require` found — `drift-monitor.ts` already uses ESM `import { spawnSync } from 'child_process'` at top level |
 | ADV-4 (days unit missing from age string) | ✅ FIXED | LIVE banner now uses `_formatAge()` (which has days tier) instead of the old hours-only ternary |
 | ADV-5 (spawnSync errors swallowed) | ✅ FIXED | Added `result.error` check with `process.stderr.write` after `spawnSync` call in `drift-monitor.ts` |
+
+### [Final Oracle Remediation] Adversarial Findings
+
+Status: **Completed**
+- Reverted scope creep in `swarm-phase-gate.ts`
+- Fixed `mergeIntoJson` silent data loss on JSON parse error
+- Removed cached Vitest artifact and checked gitignore
+- Marked all 19 plan tasks as complete
+- Added degradation banner to `new-track/SKILL.md §2.0.5`
+- Strengthened scoped-runner tests for file specificity
+- Tests passing: 165/165

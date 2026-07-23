@@ -11,6 +11,10 @@ if [ -f "$HOOK_FILE" ] && grep -q "$MARKER" "$HOOK_FILE"; then
 fi
 
 # Append to existing hook or create new
+if [ ! -f "$HOOK_FILE" ]; then
+  echo '#!/usr/bin/env bash' > "$HOOK_FILE"
+  chmod +x "$HOOK_FILE"
+fi
 cat >> "$HOOK_FILE" << 'HOOK'
 # superconductor:intelligence
 if CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only "$(git hash-object -t tree /dev/null)" HEAD 2>/dev/null); then

@@ -65,6 +65,8 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 2. **Action:**
    - Spin up a background "Architecture Committee" debate using two specialized agent roles:
      - Load `RepoContext` and pass snapshot data as context to both roles.
+     - Emit `context.driftBanner` to the user before proceeding
+     - If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)`
      - **Dreamer Role (Tier 4 / Architecture):** Analyzes the track from an architectural, decoupling, and structural patterns perspective.
      - **Reviewer Role (Tier 4 / Security & Performance):** Critiques the Dreamer's proposed structure for security gaps, performance bottlenecks, and compliance issues.
    - The agents debate in the background until consensus is achieved, producing an "Architecture Committee Report".

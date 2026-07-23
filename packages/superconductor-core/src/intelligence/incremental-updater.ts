@@ -24,16 +24,24 @@ export const PHASE_INVALIDATION: Record<string, (file: string) => boolean> = {
 
 export function mergeIntoJson<T extends { file: string; hotspot_score?: number }>(outputFile: string, newEntries: T[]): void {
   let existing: T[] = [];
-  try {
-    if (fs.existsSync(outputFile)) {
-      const content = fs.readFileSync(outputFile, 'utf-8');
-      existing = JSON.parse(content);
-      if (!Array.isArray(existing)) {
-        existing = [];
+  if (fs.existsSync(outputFile)) {
+    try {
+      const raw = fs.readFileSync(outputFile, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        existing = parsed;
+      } else {
+        // Non-array JSON (e.g. dep-graph shape) — log and preserve original
+        process.stderr.write(`[superconductor:intelligence] mergeIntoJson: ${outputFile} is not an array, skipping merge\n`);
+        return; // Do NOT overwrite non-array files
       }
+    } catch (e) {
+      // Corrupt JSON — back up, log, return without overwriting
+      const backupPath = `${outputFile}.corrupt.${Date.now()}`;
+      try { fs.copyFileSync(outputFile, backupPath); } catch {}
+      process.stderr.write(`[superconductor:intelligence] mergeIntoJson: corrupt JSON in ${outputFile}, backed up to ${backupPath}, skipping merge\n`);
+      return; // NEVER silently wipe existing data
     }
-  } catch (err) {
-    existing = [];
   }
 
   // Filter out entries where file matches any file in newEntries (normalize paths)
@@ -53,9 +61,14 @@ export function mergeIntoJson<T extends { file: string; hotspot_score?: number }
     });
   }
 
-  const tmp = `${outputFile}.tmp.${Date.now()}`;
-  fs.writeFileSync(tmp, JSON.stringify(merged, null, 2));
-  fs.renameSync(tmp, outputFile);
+  const tmpPath = `${outputFile}.tmp.${Date.now()}`;
+  try {
+    fs.writeFileSync(tmpPath, JSON.stringify(merged, null, 2));
+    fs.renameSync(tmpPath, outputFile);
+  } catch (e) {
+    try { fs.unlinkSync(tmpPath); } catch {}
+    throw e;
+  }
 }
 
 export interface UpdateReport {
@@ -85,7 +98,14 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
       m.lastCommitSha = headSha;
-      fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2));
+      const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
+      try {
+        fs.writeFileSync(tmpManifest, JSON.stringify(m, null, 2));
+        fs.renameSync(tmpManifest, manifestPath);
+      } catch (e) {
+        try { fs.unlinkSync(tmpManifest); } catch {}
+        throw e;
+      }
     } catch (e) {}
     return {
       phasesRun: ['full-scan'],
@@ -104,7 +124,14 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
       m.lastCommitSha = headSha;
-      fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2));
+      const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
+      try {
+        fs.writeFileSync(tmpManifest, JSON.stringify(m, null, 2));
+        fs.renameSync(tmpManifest, manifestPath);
+      } catch (e) {
+        try { fs.unlinkSync(tmpManifest); } catch {}
+        throw e;
+      }
     } catch (e) {}
     return {
       phasesRun: ['full-scan'],
@@ -118,17 +145,27 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     manifest.incrementalRuns = 0;
     manifest.lastCommitSha = headSha; // use the already-resolved headSha
     manifest.timestamp = Date.now();
-    // Write manifest BEFORE runPipeline so it persists even if pipeline crashes
-    fs.writeFileSync(
-      manifestPath,
-      JSON.stringify(manifest, null, 2)
-    );
+    const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
+    try {
+      fs.writeFileSync(tmpManifest, JSON.stringify(manifest, null, 2));
+      fs.renameSync(tmpManifest, manifestPath);
+    } catch (e) {
+      try { fs.unlinkSync(tmpManifest); } catch {}
+      throw e;
+    }
     runPipeline([], projectRoot, options.outputDir); // full rescan overwrites all data
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
       m.lastCommitSha = headSha;
-      fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2));
+      const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
+      try {
+        fs.writeFileSync(tmpManifest, JSON.stringify(m, null, 2));
+        fs.renameSync(tmpManifest, manifestPath);
+      } catch (e) {
+        try { fs.unlinkSync(tmpManifest); } catch {}
+        throw e;
+      }
     } catch (e) {}
     return { phasesRun: ['full-scan'], filesUpdated: 0, durationMs: Date.now() - start, snapshotSha: headSha };
   }
@@ -192,7 +229,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   // coupling (always update incrementally)
   phasesRun.push('coupling');
   try {
-    const SHA_RE = /^[0-9a-f]{40}$/i;
+    const SHA_RE = /^[0-9a-f]{7,40}$/i;
     const lastSha = manifest.lastCommitSha && SHA_RE.test(manifest.lastCommitSha)
       ? manifest.lastCommitSha
       : null;
@@ -224,7 +261,14 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   manifest.lastCommitSha = headSha;
   manifest.incrementalRuns = (manifest.incrementalRuns || 0) + 1;
   manifest.timestamp = Date.now();
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
+  try {
+    fs.writeFileSync(tmpManifest, JSON.stringify(manifest, null, 2));
+    fs.renameSync(tmpManifest, manifestPath);
+  } catch (e) {
+    try { fs.unlinkSync(tmpManifest); } catch {}
+    throw e;
+  }
 
   return {
     phasesRun,

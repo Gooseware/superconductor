@@ -124,13 +124,19 @@ function runTrivyScan(projectRoot: string, scaCapability: any, scopedFiles?: str
       const findings: SastFinding[] = [];
       let success = true;
       for (const file of scopedFiles) {
-        const fullPath = path.join(projectRoot, file);
+        const resolvedRoot = path.resolve(projectRoot);
+        const fullPath = path.resolve(resolvedRoot, file);
+        if (!fullPath.startsWith(resolvedRoot + path.sep)) {
+          process.stderr.write(`[superconductor:intelligence] Path traversal blocked: ${file}\n`);
+          continue;
+        }
         if (!fs.existsSync(fullPath)) continue;
         try {
-          const out = execSync(
-            `trivy fs ${JSON.stringify(fullPath)} --scanners vuln --format json --quiet 2>/dev/null`,
-            { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
-          );
+          const result = spawnSync('trivy', ['fs', fullPath, '--scanners', 'vuln', '--format', 'json', '--quiet'], {
+            cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024
+          });
+          if (result.error) throw result.error;
+          const out = result.stdout || '{}';
           findings.push(...parseTrivyOutput(out));
         } catch (rawError: unknown) {
           const e = rawError as { stdout?: Buffer };
@@ -143,11 +149,11 @@ function runTrivyScan(projectRoot: string, scaCapability: any, scopedFiles?: str
       }
       return { findings, success };
     } else {
-      const quotedRoot = JSON.stringify(projectRoot);
-      const out = execSync(
-        `trivy fs ${quotedRoot} --scanners vuln --format json --quiet 2>/dev/null`,
-        { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
-      );
+      const result = spawnSync('trivy', ['fs', projectRoot, '--scanners', 'vuln', '--format', 'json', '--quiet'], {
+        cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024
+      });
+      if (result.error) throw result.error;
+      const out = result.stdout || '{}';
       return { findings: parseTrivyOutput(out), success: true };
     }
   } catch (rawError: unknown) {

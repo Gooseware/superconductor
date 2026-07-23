@@ -40,6 +40,11 @@ describe('Scoped Runners Backward Compatibility', () => {
           const result = fn(['nonexistent_file_12345.ts']);
           expect(result).toBeDefined();
           expect(result.status).toBeDefined();
+          if (result && 'entries' in result && Array.isArray((result as any).entries)) {
+            (result as any).entries.forEach((entry: any) => {
+              expect(entry.file).toContain('nonexistent_file_12345');
+            });
+          }
         }).not.toThrow();
       });
 

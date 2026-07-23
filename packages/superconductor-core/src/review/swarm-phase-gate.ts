@@ -19,7 +19,7 @@ export function preparePhaseGateContext(taskSpec: string, gitDiff: string, modif
 
 export function evaluatePhaseGate(input: PhaseGateInput): PhaseGateResult {
   if (!input.reviewerOutputs || input.reviewerOutputs.length === 0) {
-    return { status: 'REJECT', critical_findings: [], advisory_findings: [], next_action: 'MANUAL_ESCALATION' };
+    return { status: 'REJECT', critical_findings: [], advisory_findings: [], next_action: 'ESCALATE' };
   }
 
   const allFindings = aggregateFindings(input.reviewerOutputs, input.manifestsDir);
