@@ -5,3 +5,4 @@ export * from './report.js';
 export * from './prompt-generator.js';
 export * from './pair-programming.js';
 export * from './incremental-updater.js';
+export * from './drift-monitor.js';

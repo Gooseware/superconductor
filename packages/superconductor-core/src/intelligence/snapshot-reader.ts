@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { IntelligenceDriftMonitor } from './drift-monitor.js';
 
 export interface RepoContext {
   hotspotMap: Map<string, { hotspot_score: number; cyclomatic_complexity: number; }>;
@@ -12,40 +13,36 @@ export interface RepoContext {
 }
 
 export class IntelligenceSnapshotReader {
-  static load(outputDir: string): RepoContext | null {
+  static load(outputDir: string, projectRoot?: string): RepoContext | null {
     const manifestPath = path.join(outputDir, '00_manifest.json');
     if (!fs.existsSync(manifestPath)) {
       return null; // NONE state
     }
 
     try {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      const snapshotAgeMs = Date.now() - new Date(manifest.timestamp).getTime();
-      const ageMinutes = Math.floor(snapshotAgeMs / 60000);
-      
-      const sha = manifest.last_commit || 'unknown';
-      let commitsBehind = manifest.commitsBehind || 0;
-      
-      if (sha !== 'unknown') {
-        const { spawnSync } = require('child_process');
-        const result = spawnSync('git', ['rev-list', '--count', `${sha}..HEAD`], { encoding: 'utf8' });
-        if (result.status === 0 && result.stdout) {
-          commitsBehind = parseInt(result.stdout.trim(), 10) || 0;
-        }
-      }
-      
-      let driftState: 'LIVE' | 'STALE' | 'NONE' = 'LIVE';
-      let driftBanner = '';
+      const raw = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
-      if (ageMinutes > 24 * 60 || commitsBehind > 10) {
-        driftState = 'STALE';
-        const ageString = ageMinutes > 60 ? `${Math.floor(ageMinutes / 60)}h` : `${ageMinutes}m`;
-        driftBanner = `\u26a0\ufe0f  Intelligence: STALE (snapshot age: ${ageString} \u00b7 ${commitsBehind} commits behind \u00b7 consider running /superconductor:setup)`;
-      } else {
-        const sha = manifest.last_commit || 'unknown';
-        const runs = manifest.incremental_runs || 0;
-        driftBanner = `\u2139\ufe0f  Intelligence: LIVE (snapshot age: ${ageMinutes}m \u00b7 last commit: ${sha.slice(0, 7)} \u00b7 ${runs} incremental runs)`;
-      }
+      // Normalize manifest fields: support both legacy (last_commit / incremental_runs)
+      // and canonical (lastCommitSha / incrementalRuns) field names.
+      const manifest = {
+        lastCommitSha: raw.lastCommitSha ?? raw.last_commit,
+        timestamp: typeof raw.timestamp === 'number'
+          ? raw.timestamp
+          : new Date(raw.timestamp).getTime(),
+        incrementalRuns: raw.incrementalRuns ?? raw.incremental_runs ?? 0,
+      };
+
+      // Derive projectRoot: fall back to the directory two levels above outputDir when
+      // not supplied (best-effort; caller should always pass it explicitly).
+      const root = projectRoot ?? path.resolve(outputDir, '..', '..');
+
+      const report = IntelligenceDriftMonitor.checkDrift(manifest, root);
+
+      const driftState: 'LIVE' | 'STALE' | 'NONE' = report.isDrifted ? 'STALE' : 'LIVE';
+      const driftBanner = report.banner;
+      const commitsBehind = report.commitsBehind === Infinity
+        ? Number.POSITIVE_INFINITY
+        : report.commitsBehind;
 
       const hotspotMap = new Map<string, { hotspot_score: number; cyclomatic_complexity: number; }>();
       const complexityPath = path.join(outputDir, '03_complexity.json');
@@ -98,7 +95,7 @@ export class IntelligenceSnapshotReader {
         sastFindings,
         driftState,
         driftBanner,
-        snapshotAge: snapshotAgeMs,
+        snapshotAge: report.snapshotAgeMs,
         commitsBehind
       };
     } catch (e) {

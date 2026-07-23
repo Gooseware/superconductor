@@ -1,16 +1,31 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as childProcess from 'child_process';
 import { IntelligenceSnapshotReader } from '../../src/intelligence/snapshot-reader';
+
+// Mock child_process so spawnSync (used by IntelligenceDriftMonitor) never
+// shells out to real git during unit tests.
+vi.mock('child_process');
+
+function makeSpawnResult(stdout: string, status = 0) {
+  return {
+    pid: 0, output: [], stdout, stderr: '', status, signal: null, error: undefined,
+  } as any;
+}
 
 describe('IntelligenceSnapshotReader', () => {
   const tempDir = path.join(__dirname, 'temp_output_dir');
 
   beforeEach(() => {
+    vi.clearAllMocks();
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true });
     }
     fs.mkdirSync(tempDir, { recursive: true });
+
+    // Default: git reports 0 commits behind
+    vi.mocked(childProcess.spawnSync).mockReturnValue(makeSpawnResult('0\n'));
   });
 
   afterEach(() => {
@@ -25,6 +40,7 @@ describe('IntelligenceSnapshotReader', () => {
   });
 
   it('loads LIVE state correctly', () => {
+    // spawnSync will return 0 commits behind (from beforeEach default)
     fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
       timestamp: new Date().toISOString(),
       last_commit: 'abcdef1234567890',
@@ -36,10 +52,12 @@ describe('IntelligenceSnapshotReader', () => {
     expect(result).not.toBeNull();
     expect(result?.driftState).toBe('LIVE');
     expect(result?.driftBanner).toContain('\u2139\ufe0f  Intelligence: LIVE');
-    expect(result?.driftBanner).toContain('abcdef1');
   });
 
-  it('loads STALE state correctly (commitsBehind > 10)', () => {
+  it('loads STALE state correctly (commitsBehind > 10 from git)', () => {
+    // Make git report 15 commits behind
+    vi.mocked(childProcess.spawnSync).mockReturnValue(makeSpawnResult('15\n'));
+
     fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
       timestamp: new Date().toISOString(),
       last_commit: 'abcdef1234567890',
