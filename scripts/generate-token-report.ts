@@ -27,7 +27,11 @@ export function recordTokenUsage(reportPath: string, entry: Omit<TokenEntry, 'ti
   }
 
   entries.push({
-    ...entry,
+    stage: entry.stage || 'Unknown Stage',
+    model: entry.model || 'unknown',
+    input_tokens: Math.max(0, entry.input_tokens || 0),
+    output_tokens: Math.max(0, entry.output_tokens || 0),
+    cost_usd: Math.max(0, entry.cost_usd || 0),
     timestamp: new Date().toISOString()
   });
 
@@ -52,17 +56,21 @@ export function generateTokenReport(reportPath: string): string {
     report += `|---|---|---|---|---|\n`;
 
     for (const e of entries) {
-      totalCost += e.cost_usd;
-      totalInput += e.input_tokens;
-      totalOutput += e.output_tokens;
-      report += `| ${e.stage} | ${e.model} | ${e.input_tokens} | ${e.output_tokens} | $${e.cost_usd.toFixed(4)} |\n`;
+      const input = Math.max(0, e.input_tokens || 0);
+      const output = Math.max(0, e.output_tokens || 0);
+      const cost = Math.max(0, e.cost_usd || 0);
+
+      totalCost += cost;
+      totalInput += input;
+      totalOutput += output;
+      report += `| ${e.stage} | ${e.model} | ${input} | ${output} | $${cost.toFixed(4)} |\n`;
     }
 
     report += `| **TOTAL** | -- | **${totalInput}** | **${totalOutput}** | **$${totalCost.toFixed(4)}** |\n\n`;
 
     // Baseline calculation (assumes 1 monolithic arbiter pass = 22k tokens @ $5.40/1M)
     const baselineCost = 0.1188;
-    const savingsPercent = totalCost < baselineCost ? ((1 - totalCost / baselineCost) * 100).toFixed(1) : '0';
+    const savingsPercent = totalCost < baselineCost ? Math.max(0, (1 - totalCost / baselineCost) * 100).toFixed(1) : '0.0';
 
     report += `**Baseline Monolithic Estimate:** $${baselineCost.toFixed(4)}\n`;
     report += `**Actual Savings:** ${savingsPercent}%\n`;

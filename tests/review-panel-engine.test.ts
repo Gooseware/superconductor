@@ -317,4 +317,58 @@ And here are findings:
   console.log('✅ Test 14: Token Instrumentation & Efficiency Report Generation Passed');
 }
 
-console.log('\n🎉 ALL 14 EXPANDED REVIEW PANEL ENGINE TESTS PASSED CLEANLY!');
+// 15. Cascade Deferral Gate: N=1 Reviewer Edge Case (plan.md line 104)
+{
+  const findings = [
+    {
+      finding_id: 'CORR-N1',
+      reviewer_id: 'rev-1',
+      file: 'app.ts',
+      line_range: '10',
+      severity: 'medium' as const,
+      category: 'correctness' as const,
+      description: 'Single reviewer finding',
+      recommendation: 'Fix finding',
+      is_security_critical: false,
+      agreement_count: 1,
+      reviewer_ids: ['rev-1']
+    }
+  ];
+
+  const gateResult = runCascadeDeferralGate(findings, 1);
+  assert.strictEqual(gateResult.can_skip_arbiter, false, 'N=1 reviewer pass with findings must NOT be unanimous');
+  assert.strictEqual(gateResult.escalate_to_arbiter, true);
+  console.log('✅ Test 15: N=1 Reviewer Gate Non-Unanimous Rule Passed');
+}
+
+// 16. Cascade Deferral Gate: 0 Reviewers Guard
+{
+  const gateResult = runCascadeDeferralGate([], 0);
+  assert.strictEqual(gateResult.can_skip_arbiter, false, '0 reviewers must never produce clean pass');
+  assert.strictEqual(gateResult.escalate_to_arbiter, true);
+  console.log('✅ Test 16: Zero Reviewers Guard Passed');
+}
+
+// 17. Token Instrumentation: Negative Token Values Sanitization
+{
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'token-sanitize-test-'));
+  const reportPath = path.join(tmpDir, 'token-report.json');
+
+  recordTokenUsage(reportPath, {
+    stage: 'Corrupted Stage',
+    model: 'test-model',
+    input_tokens: -500,
+    output_tokens: -100,
+    cost_usd: -10.5
+  });
+
+  const reportMd = generateTokenReport(reportPath);
+  assert.ok(reportMd.includes('$0.0000'), 'Negative cost must be sanitized to $0.0000');
+  assert.ok(!reportMd.includes('8417'), 'Savings percentage must not be astronomically corrupt');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  console.log('✅ Test 17: Token Instrumentation Negative Values Sanitization Passed');
+}
+
+console.log('\n🎉 ALL 17 EXPANDED REVIEW PANEL ENGINE TESTS PASSED CLEANLY!');
+

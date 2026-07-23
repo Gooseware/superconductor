@@ -19,6 +19,16 @@ export function runCascadeDeferralGate(
   findings: ReviewFinding[],
   totalReviewersCount: number
 ): DeferralGateResult {
+  // Guard against invalid or 0 reviewer count
+  if (totalReviewersCount <= 0) {
+    return {
+      can_skip_arbiter: false,
+      escalate_to_arbiter: true,
+      classified_findings: findings,
+      arbiter_briefing: '# Arbiter Briefing\n\n**Error:** Invalid reviewer count (0 or negative reviewers).'
+    };
+  }
+
   let hasDisputed = false;
   let hasSecurityCritical = false;
 
@@ -26,8 +36,8 @@ export function runCascadeDeferralGate(
     const copy = { ...f };
     const agreement = copy.agreement_count || 1;
 
-    // Disputed rule
-    if (agreement < totalReviewersCount) {
+    // Disputed rule: agreement below quorum OR N=1 reviewer single pass (cannot establish quorum)
+    if (agreement < totalReviewersCount || totalReviewersCount === 1) {
       hasDisputed = true;
     }
 
@@ -40,8 +50,7 @@ export function runCascadeDeferralGate(
     return copy;
   });
 
-  // Can skip arbiter if ALL findings are unanimous AND no security critical issues exist
-  // (Zero findings is a clean pass -> canSkip = true)
+  // Can skip arbiter if zero findings OR (unanimous findings AND no security critical issues AND totalReviewersCount > 1)
   const canSkip = !hasSecurityCritical && !hasDisputed;
   const escalate = hasSecurityCritical || hasDisputed;
 
@@ -53,13 +62,13 @@ export function runCascadeDeferralGate(
   briefing += `## Deduplicated Findings\n\n`;
 
   for (const f of classified) {
-    const isDisputed = (f.agreement_count || 1) < totalReviewersCount;
+    const isDisputed = (f.agreement_count || 1) < totalReviewersCount || totalReviewersCount === 1;
     const effectiveSeverity = isDisputed ? severityMap[f.severity] || f.severity : f.severity;
 
     briefing += `### [${effectiveSeverity.toUpperCase()}] ${f.category} — ${f.file}:${f.line_range}\n`;
     briefing += `- **Agreement:** ${f.agreement_count}/${totalReviewersCount} reviewers (${f.reviewer_ids?.join(', ')})\n`;
     if (isDisputed) {
-      briefing += `- **Status:** Disputed (Original severity: ${f.severity.toUpperCase()}, downgraded to ${effectiveSeverity.toUpperCase()})\n`;
+      briefing += `- **Status:** Disputed (${totalReviewersCount === 1 ? 'N=1 single reviewer pass' : `Original severity: ${f.severity.toUpperCase()}, downgraded to ${effectiveSeverity.toUpperCase()}`})\n`;
     }
     briefing += `- **Description:** ${f.description}\n`;
     briefing += `- **Recommendation:** ${f.recommendation}\n\n`;
