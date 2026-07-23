@@ -30,3 +30,7 @@ No CRITICAL issues (severe security or logic flaws) were identified.
 ### [Oracle Cadence Check] Tasks 1-3
 **Score**: 9/10
 **Rationale**: The swarm executed Phases 1-3 with strong adherence to the plan and excellent adaptability (e.g., gracefully modifying `setup/SKILL.md` when `setup.toml` was not found). DRY principles were upheld by centralizing the `wt` installation logic in `scripts/install-worktrunk.sh` and reusing it across both the setup hook and the `using-git-worktrees` skill. Code quality is high, particularly with the prompt incorporation of the advisory review feedback to improve script robustness (version pinning, `--locked`, and path checks).
+
+### [Review Task 2] Advisory Review
+- **Logic / Missing Error Handling (CRITICAL)**: In the `Check for Worktrunk (wt)` bash snippet, if `wt` is not found and the `scripts/install-worktrunk.sh` script is missing (or fails), the script prints "Please install worktrunk to continue." but does not halt execution (`exit 1` or `return 1`). This allows the agent to blindly proceed to Step 2, where `wt add` will invariably fail.
+- **Robustness (CRITICAL)**: After running `bash scripts/install-worktrunk.sh`, the snippet immediately assumes `wt` is available in `PATH`. Since Cargo installs binaries to `~/.cargo/bin`, the current shell might not have it in `PATH` yet. The script should either source `~/.cargo/env`, verify `wt` is in `PATH` post-install, or fall back to `~/.cargo/bin/wt`.

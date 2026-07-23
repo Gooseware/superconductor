@@ -141,18 +141,9 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     a. **Check for Swarm Orchestration Skill:**
        - Search for the `swarm-orchestrate` skill in the catalog and active skills.
        - **If `swarm-orchestrate` is available:**
-         - **Headless Mode (`--headless`):** Automatically transition to `swarm-orchestrate` skill protocol.
-         - **Interactive Mode:** Prompt the user using `ask_user`:
-           - **header:** "Execution Mode"
-           - **question:** "Select how you would like to implement this track (Swarm recommended for 5+ tasks):"
-           - **type:** "choice"
-           - **options:**
-             - Label: "Multi-Agent Swarm (Recommended for 5+ tasks)", Description: "Autonomous multi-agent execution loop (Dreamer -> Processors -> Reviewers -> Oracle). Auto-selects Parallel fan-out or Pipeline assembly-line mode based on plan structure."
-             - Label: "Sequential (Standard)", Description: "Single-agent task execution following standard step-by-step TDD workflow checkpoints."
-         - **If "Multi-Agent Swarm (Recommended for 5+ tasks)" is selected:** Transition execution to the `swarm-orchestrate` skill protocol and halt normal implement execution.
-         - **If "Sequential (Standard)" is selected:** Proceed with standard sequential execution below.
+         - **CRITICAL REQUIREMENT:** You MUST unconditionally transition execution to the `swarm-orchestrate` skill protocol for BOTH Headless and Interactive modes, and halt normal sequential implement execution. Do NOT prompt the user to choose an execution mode.
        - **If `swarm-orchestrate` is NOT available:**
-         - **Headless Mode (`--headless`) or Interactive Mode:** Skip swarm orchestration check and proceed directly to 4.b (Sequential execution).
+         - Proceed directly to 4.b (Sequential execution).
     b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
     c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
        - **Review Triggers:**
@@ -408,3 +399,22 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     - Announce: "Adversarial checklist updated. The Oracle is sharper now than it was before this run."
 
 6.  **Proceed to §5.0 Track Cleanup.**
+
+## Command Flow Diagram
+
+```mermaid
+graph TD
+    A[Start /superconductor:implement] --> B{Headless Mode?}
+    B --> C{Verify Setup Context}
+    C --> D[Select Track]
+    D --> E[Update Status to In Progress]
+    E --> F[Load Context & Activate Skills]
+    F --> G[Auto-Transition to Swarm Orchestration]
+    G --> H[Track Complete]
+    H --> I[Sync Docs & Kernel Analysis]
+    I --> J{Oracle Code Review}
+    J -->|Fixes Needed| K[Auto-Fix / Remediation Phase]
+    K --> J
+    J -->|Ready| L[Adversarial Audit Debrief]
+    L --> M[Track Cleanup & Merge]
+```

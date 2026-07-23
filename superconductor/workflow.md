@@ -131,25 +131,31 @@ The Superconductor engine operates in either Interactive or Headless mode.
         -   **Intermediate Phases:** If this is NOT the final implementation phase of the track, do NOT pause or ask the user for confirmation. Automatically approve the checkpoint and proceed to Step 7.
         -   **Final Implementation Phase:** If this is the final implementation phase before review/integration, present the manual verification plan and ask: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**" PAUSE and await the user's response. Do not proceed without confirmation.
 
+7.  **Swarm Phase Gate Review (Mandatory):**
+    -   Execute the Swarm Phase Gate using a 3-reviewer Flash panel.
+    -   Provide only the minimized context (task spec, git diff, modified files) to the panel.
+    -   The checkpointing process is blocked until the Phase Gate returns a PASS (zero CRITICAL findings).
+    -   If CRITICAL findings are found, auto-remediate up to 2 times. If it still fails, escalate to manual intervention.
 
-7.  **Create Checkpoint Commit:**
+8.  **Create Checkpoint Commit:**
     -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.
     -   Perform the commit with a clear and concise message (e.g., `superconductor(checkpoint): Checkpoint end of Phase X`).
 
-8.  **Attach Auditable Verification Report using Git Notes:**
-    -   **Step 8.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.
-    -   **Step 8.2: Attach Note:** Use the `git notes` command and the full commit hash from the previous step to attach the full report to the checkpoint commit.
+9.  **Attach Auditable Verification Report using Git Notes:**
+    -   **Step 9.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.
+    -   **Step 9.2: Attach Note:** Use the `git notes` command and the full commit hash from the previous step to attach the full report to the checkpoint commit.
+    -   **Step 9.3: Attach Quality Note:** Use `QualityNotesWriter.appendPhaseNote()` to write a structured JSON quality payload to `refs/notes/quality`. Ensure the payload follows the `{ track_id, phase, timestamp, swarm_pass_rate, retry_count, critical_findings, advisory_findings, token_usage_estimate, abi_tweaks_applied[] }` schema.
 
-9.  **Get and Record Phase Checkpoint SHA:**
-    -   **Step 9.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
-    -   **Step 9.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
-    -   **Step 9.3: Write Plan:** Write the updated content back to `plan.md`.
+10. **Get and Record Phase Checkpoint SHA:**
+    -   **Step 10.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
+    -   **Step 10.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
+    -   **Step 10.3: Write Plan:** Write the updated content back to `plan.md`.
 
-10. **Commit Plan Update:**
+11. **Commit Plan Update:**
     - **Action:** Stage the modified `plan.md` file.
     - **Action:** Commit this change with a descriptive message following the format `superconductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
-11. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+12. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
 ### Oracle Code Review Loop (Advanced Verification)
 
