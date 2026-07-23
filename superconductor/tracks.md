@@ -98,3 +98,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Coverage Stats Deduplication & Category Preservation**
 *Link: [./tracks/coverage_stats_dedup_20260723/](./tracks/coverage_stats_dedup_20260723/)*
 
+---
+
+- [ ] **Track: Project Intelligence Layer & Brownfield Repository Analysis**
+*Link: [./tracks/intelligence_layer_20260723/](./tracks/intelligence_layer_20260723/)*
+
