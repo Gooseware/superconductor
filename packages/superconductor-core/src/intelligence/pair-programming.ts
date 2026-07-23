@@ -15,7 +15,7 @@ export interface PairProgrammingResult {
 }
 
 export async function runPairProgrammingLoop(options: PairProgrammingOptions): Promise<PairProgrammingResult> {
-  const maxIterations = options.maxIterations || 2;
+  const maxIterations = options.maxIterations ?? 2;
   let currentDiff = '';
   let currentFiles: string[] = [];
   let gateResult: PhaseGateResult = { status: 'REJECT', advisory_findings: [], critical_findings: [], next_action: 'AUTO_REMEDIATE' };

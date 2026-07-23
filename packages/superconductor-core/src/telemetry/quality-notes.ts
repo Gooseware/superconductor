@@ -1,8 +1,5 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { execFileSync } from 'child_process';
 import { z } from 'zod';
-
-const execAsync = promisify(exec);
 
 export const QualityNoteSchema = z.object({
     track_id: z.string(),
@@ -21,21 +18,16 @@ export type QualityNote = z.infer<typeof QualityNoteSchema>;
 export class QualityNotesWriter {
     constructor(private cwd: string = process.cwd()) {}
 
-    private async execute(command: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            exec(command, { cwd: this.cwd }, (error, stdout, stderr) => {
-                if (error) {
-                    reject(new Error(`Command failed: ${command}\nStderr: ${stderr}\nStdout: ${stdout}`));
-                } else {
-                    resolve(stdout.trim());
-                }
-            });
-        });
+    private validateCommitSha(commitSha: string) {
+        if (!/^[a-f0-9]{7,40}$/i.test(commitSha)) {
+            throw new Error(`Invalid commit SHA: ${commitSha}`);
+        }
     }
 
     async hasNote(commitSha: string): Promise<boolean> {
+        this.validateCommitSha(commitSha);
         try {
-            await this.execute(`git notes --ref=refs/notes/quality show ${commitSha}`);
+            execFileSync('git', ['notes', '--ref=refs/notes/quality', 'show', commitSha], { cwd: this.cwd, timeout: 10000 });
             return true;
         } catch {
             return false;
@@ -43,6 +35,7 @@ export class QualityNotesWriter {
     }
 
     async appendPhaseNote(commitSha: string, note: unknown): Promise<void> {
+        this.validateCommitSha(commitSha);
         const validatedNote = QualityNoteSchema.parse(note);
         
         const noteExists = await this.hasNote(commitSha);
@@ -52,6 +45,6 @@ export class QualityNotesWriter {
 
         const noteJson = JSON.stringify(validatedNote);
         const escapedJson = noteJson.replace(/'/g, "'\\''");
-        await this.execute(`git notes --ref=refs/notes/quality append -m '${escapedJson}' ${commitSha}`);
+        execFileSync('git', ['notes', '--ref=refs/notes/quality', 'append', '-m', escapedJson, commitSha], { cwd: this.cwd, timeout: 10000 });
     }
 }

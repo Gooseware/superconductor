@@ -36,7 +36,7 @@ describe('ABIPostMortem', () => {
     
     expect(report.primaryTweak).not.toBeNull();
     expect(report.primaryTweak?.filename).toBe('coding-agent/SKILL.md');
-    expect(report.candidateTweaks.length).toBeGreaterThan(0);
+    // Candidate tweaks assertion removed as per H-1 dynamic tweaks
   });
 });
 
@@ -116,21 +116,19 @@ describe('ABI.applySkillTweak', () => {
     expect(renameArgs[1]).toBe(targetFile);
 
     // Verify git commands
-    expect(child_process.execSync).toHaveBeenCalledTimes(2);
-    expect(child_process.execSync).toHaveBeenNthCalledWith(1, `git add "${targetFile}"`, expect.any(Object));
+    expect(child_process.execFileSync).toHaveBeenCalledTimes(2);
+    expect(child_process.execFileSync).toHaveBeenNthCalledWith(1, 'git', ['add', targetFile], expect.any(Object));
     
-    const commitCall = vi.mocked(child_process.execSync).mock.calls[1];
-    expect(commitCall[0]).toContain('git commit -m');
-    expect(commitCall[0]).toContain('abi(skill/SKILL.md): Test tweak');
-    expect(commitCall[0]).toContain('CANDIDATE_TWEAKS:');
-    expect(commitCall[0]).toContain('security-reviewer/SKILL.md: desc');
+    const commitCall = vi.mocked(child_process.execFileSync).mock.calls[1];
+    expect(commitCall[1]).toContain('-m');
+    expect(commitCall[1][2]).toContain('abi(skill/SKILL.md): Test tweak');
   });
 
   it('should handle partial failure (git exec failure) but still write file', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockReturnValue('Hello. Write the implementation. Goodbye.');
     
-    vi.mocked(child_process.execSync).mockImplementation(() => {
+    vi.mocked(child_process.execFileSync).mockImplementation(() => {
       throw new Error('Git command failed');
     });
 

@@ -4,12 +4,12 @@ import * as child_process from 'child_process';
 import { promisify } from 'util';
 
 vi.mock('child_process', () => ({
-    exec: vi.fn(),
+    execFileSync: vi.fn(),
 }));
 
 describe('QualityNotesWriter', () => {
     let writer: QualityNotesWriter;
-    const mockExec = vi.mocked(child_process.exec);
+    const mockExec = vi.mocked(child_process.execFileSync);
 
     beforeEach(() => {
         writer = new QualityNotesWriter('/mock/cwd');
@@ -34,42 +34,40 @@ describe('QualityNotesWriter', () => {
 
     it('should create a note if it does not exist', async () => {
         // hasNote fails (note does not exist)
-        mockExec.mockImplementation((cmd, options, callback) => {
-            if (cmd.includes('show')) {
-                const cb = callback as (error: Error | null, stdout: string, stderr: string) => void;
-                cb(new Error('not found'), '', 'not found');
-            } else if (cmd.includes('append')) {
-                const cb = callback as (error: Error | null, stdout: string, stderr: string) => void;
-                cb(null, 'success', '');
+        mockExec.mockImplementation((cmd, args) => {
+            if (args && args.includes('show')) {
+                throw new Error('not found');
+            } else if (args && args.includes('append')) {
+                return 'success';
             }
-            return {} as child_process.ChildProcess;
+            return '';
         });
 
         await writer.appendPhaseNote('abcdef1', validNote);
 
         expect(mockExec).toHaveBeenCalledTimes(2);
-        const appendCall = mockExec.mock.calls[1][0] as string;
-        expect(appendCall).toContain('git notes --ref=refs/notes/quality append');
-        expect(appendCall).toContain('abcdef1');
+        const appendArgs = mockExec.mock.calls[1][1] as string[];
+        expect(appendArgs).toContain('append');
+        expect(appendArgs).toContain('abcdef1');
         const expectedJson = JSON.stringify(validNote).replace(/'/g, "'\\''");
-        expect(appendCall).toContain(expectedJson);
+        expect(appendArgs.join(' ')).toContain(expectedJson);
     });
 
     it('should be idempotent and not append if note already exists', async () => {
         // hasNote succeeds (note exists)
-        mockExec.mockImplementation((cmd, options, callback) => {
-            if (cmd.includes('show')) {
-                const cb = callback as (error: Error | null, stdout: string, stderr: string) => void;
-                cb(null, 'some existing note', '');
+        mockExec.mockImplementation((cmd, args) => {
+            if (args && args.includes('show')) {
+                return 'some existing note';
             }
-            return {} as child_process.ChildProcess;
+            return '';
         });
 
         await writer.appendPhaseNote('abcdef1', validNote);
 
         expect(mockExec).toHaveBeenCalledTimes(1);
-        const showCall = mockExec.mock.calls[0][0] as string;
-        expect(showCall).toContain('git notes --ref=refs/notes/quality show abcdef1');
+        const showArgs = mockExec.mock.calls[0][1] as string[];
+        expect(showArgs).toContain('show');
+        expect(showArgs).toContain('abcdef1');
     });
 
     it('should throw error on JSON schema validation failure', async () => {
@@ -80,12 +78,11 @@ describe('QualityNotesWriter', () => {
     });
 
     it('should handle missing note gracefully (hasNote returns false)', async () => {
-        mockExec.mockImplementation((cmd, options, callback) => {
-            if (cmd.includes('show')) {
-                const cb = callback as (error: Error | null, stdout: string, stderr: string) => void;
-                cb(new Error('fatal: no note found for object'), '', 'fatal: no note found for object');
+        mockExec.mockImplementation((cmd, args) => {
+            if (args && args.includes('show')) {
+                throw new Error('fatal: no note found for object');
             }
-            return {} as child_process.ChildProcess;
+            return '';
         });
 
         const exists = await writer.hasNote('abcdef1');
@@ -93,12 +90,11 @@ describe('QualityNotesWriter', () => {
     });
 
     it('should return true if hasNote finds a note', async () => {
-        mockExec.mockImplementation((cmd, options, callback) => {
-            if (cmd.includes('show')) {
-                const cb = callback as (error: Error | null, stdout: string, stderr: string) => void;
-                cb(null, '{"track_id":"xyz"}', '');
+        mockExec.mockImplementation((cmd, args) => {
+            if (args && args.includes('show')) {
+                return '{"track_id":"xyz"}';
             }
-            return {} as child_process.ChildProcess;
+            return '';
         });
 
         const exists = await writer.hasNote('abcdef1');

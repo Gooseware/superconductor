@@ -34,7 +34,10 @@ describe('Pair Programming Mode', () => {
             raw_text: `\`\`\`review-findings\n[\n  { "finding_id": "1", "severity": "critical", "category": "security", "file": "file.ts", "line_range": "all", "description": "d", "recommendation": "r", "is_security_critical": true }\n]\n\`\`\``
           }];
         }
-        return [];
+        return [{
+          reviewer_id: 'r1',
+          raw_text: `\`\`\`review-findings\n[]\n\`\`\``
+        }];
       }
     });
 

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 export interface ABITweak {
   filename: string;
@@ -36,26 +36,25 @@ export class ABIPostMortem {
     };
 
     if (report.criticalFindings.length > 0 || report.retryCount > 0) {
-      report.primaryTweak = {
-        filename: 'coding-agent/SKILL.md',
-        description: 'Enforce stricter compliance to avoid critical failures',
-        search: 'Write the implementation.',
-        replace: 'Write the implementation. ENSURE NO CRITICAL REGRESSIONS.'
-      };
-
-      report.candidateTweaks.push({
-        filename: 'security-reviewer/SKILL.md',
-        description: 'Enhance security checks for injection vulnerabilities',
-        search: 'Review for security.',
-        replace: 'Review for security, specifically injection vulnerabilities.'
-      });
+      const allFindings = report.criticalFindings.join(' ').toLowerCase();
+      let targetFile = 'coding-agent/SKILL.md';
       
-      report.candidateTweaks.push({
-        filename: 'correctness-reviewer/SKILL.md',
-        description: 'Add stricter bounds checking',
-        search: 'Check for correctness.',
-        replace: 'Check for correctness, including off-by-one errors and bounds.'
-      });
+      if (allFindings.includes('security') || allFindings.includes('injection') || allFindings.includes('vulnerab')) {
+        targetFile = 'security-reviewer/SKILL.md';
+      } else if (allFindings.includes('correctness') || allFindings.includes('bounds') || allFindings.includes('off-by-one')) {
+        targetFile = 'correctness-reviewer/SKILL.md';
+      } else if (allFindings.includes('phantom') || allFindings.includes('shenanigan')) {
+        targetFile = 'adversarial-reviewer/SKILL.md';
+      }
+
+      const issueDescription = report.criticalFindings.length > 0 ? report.criticalFindings[0] : 'High retry count without resolution';
+
+      report.primaryTweak = {
+        filename: targetFile,
+        description: `Mitigate: ${issueDescription}`,
+        search: '# Instructions',
+        replace: `# Instructions\n\nCRITICAL FIX: ${issueDescription}`
+      };
     }
 
     return report;
@@ -76,16 +75,20 @@ export class ABI {
     const skillsDir = path.join(scDir, 'skills');
     const targetFile = path.join(skillsDir, report.primaryTweak.filename);
 
+    // Schema validation implicitly through interface typing and logic checks here
+    if (!report.primaryTweak.search || !report.primaryTweak.replace) {
+      throw new Error('Invalid ABI tweak schema: search and replace must be defined.');
+    }
+
+    if (!path.resolve(targetFile).startsWith(path.resolve(skillsDir))) {
+      throw new Error(`Path traversal detected: ${targetFile}`);
+    }
+
     if (!fs.existsSync(targetFile)) {
       throw new Error(`Target skill file not found: ${targetFile}`);
     }
 
     const originalContent = fs.readFileSync(targetFile, 'utf-8');
-    
-    // Schema validation implicitly through interface typing and logic checks here
-    if (!report.primaryTweak.search || !report.primaryTweak.replace) {
-      throw new Error('Invalid ABI tweak schema: search and replace must be defined.');
-    }
 
     // Idempotency: if already applied or search string not found, return
     if (!originalContent.includes(report.primaryTweak.search) || originalContent.includes(report.primaryTweak.replace)) {
@@ -109,8 +112,8 @@ export class ABI {
     try {
       const gitCwd = fs.existsSync(path.join(scDir, '.git')) ? scDir : skillsDir;
       
-      execSync(`git add "${targetFile}"`, { cwd: gitCwd, stdio: 'ignore' });
-      execSync(`git commit -m "${commitMsg}"`, { cwd: gitCwd, stdio: 'ignore' });
+      execFileSync('git', ['add', targetFile], { cwd: gitCwd, stdio: 'ignore', timeout: 10000 });
+      execFileSync('git', ['commit', '-m', commitMsg], { cwd: gitCwd, stdio: 'ignore', timeout: 10000 });
     } catch (e) {
       // Partial failure recovery: swallow git errors if it fails to commit (e.g. no git initialized)
       console.warn('ABI partial failure recovery: failed to commit skill tweak to git.', e);
