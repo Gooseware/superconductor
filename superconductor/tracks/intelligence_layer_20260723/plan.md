@@ -8,20 +8,17 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify tool environment — check `tokei`, `lizard`, `npx`, `git`,
-      `java` (code-maat), `semgrep`, `trivy` are accessible on PATH [TIER-1] [AGENT:caduceus-triage]
-    - [ ] Run `which tokei lizard semgrep trivy java` and log results
-    - [ ] Confirm `superconductor/intelligence/` directory can be created
+- [ ] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:caduceus-triage]
+    - [ ] Check `skills/swarm-orchestrate/SKILL.md` exists
     - [ ] Confirm `scripts/` directory is writable
-- [ ] Task: Download and verify code-maat JAR for local git coupling analysis [TIER-1] [AGENT:caduceus-triage]
-    - [ ] Download `code-maat-1.0.4-standalone.jar` to `scripts/bin/code-maat.jar`
-    - [ ] Verify JAR executes: `java -jar scripts/bin/code-maat.jar --help`
-- [ ] Task: Download semgrep local rule bundles for SAST offline operation [TIER-1] [AGENT:caduceus-triage]
-    - [ ] Clone/copy community security rules to `scripts/semgrep-rules/`
-    - [ ] Verify semgrep runs offline: `semgrep scan --config ./scripts/semgrep-rules --dry-run`
-- [ ] Task: Pre-cache trivy vulnerability database [TIER-1] [AGENT:caduceus-triage]
-    - [ ] `trivy image --download-db-only --cache-dir scripts/trivy-db`
-    - [ ] Verify offline operation: `trivy fs . --skip-db-update --offline-scan --cache-dir scripts/trivy-db`
+- [ ] Task: Verify system prerequisites [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `node --version` ≥ 18, `npx --version` present
+    - [ ] `git --version` present (required for coupling fallback)
+    - [ ] `java --version` present (needed for code-maat.jar in Phase 0.5)
+    - [ ] Log results — these are hard prerequisites; any failure blocks Phase 0.5
+- [ ] Task: Confirm `~/.superconductor/` is writable (create if absent) [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `mkdir -p ~/.superconductor/bin` and verify write permission
+    - [ ] Document `SUPERCONDUCTOR_HOME` env var in `superconductor/workflow.md`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
@@ -29,7 +26,9 @@
 ## Phase 0.5: Tool Capability Registry
 
 - [ ] Task: Write failing tests for Tool Capability Registry lifecycle [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Test: no registry file → `setupRegistry()` runs full discovery, writes `.tool-registry.json`
+    - [ ] Test: `SUPERCONDUCTOR_HOME` defaults to `~/.superconductor/` when env var not set
+    - [ ] Test: `SUPERCONDUCTOR_HOME` env var overrides default (CI / enterprise path)
+    - [ ] Test: no registry file → `setupRegistry()` creates `~/.superconductor/` + writes `tool-registry.json`
     - [ ] Test: valid registry → quick-verify passes, setup skipped, completes in <1s
     - [ ] Test: registered binary deleted → self-heal detects failure, finds alternative, updates registry
     - [ ] Test: all alternatives exhausted → capability status `unavailable`, pipeline continues
@@ -37,21 +36,34 @@
     - [ ] Test: `--reset-registry` flag → registry deleted, full setup re-runs
     - [ ] Test: `--setup-only` flag → registry written, pipeline does NOT run
     - [ ] Test: `git-log-raw` fallback → coupling slot resolved with zero external tools
+    - [ ] Test: two different projects share same `~/.superconductor/tool-registry.json` (harness-agnostic)
 - [ ] Task: Implement `scripts/tool-registry.ts` — registry read/write/verify [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Define capability slot definitions: `CAPABILITY_SLOTS` constant with preferred + alternatives per slot
-    - [ ] `readRegistry(path): ToolRegistry | null` — reads and parses `.tool-registry.json`
+    - [ ] `getSuperconductorHome(): string` — reads `SUPERCONDUCTOR_HOME` env var, falls back to `~/.superconductor/`
+    - [ ] `ensureHomeDir(home: string): void` — creates `~/.superconductor/bin/`, `semgrep-rules/`, `trivy-db/` if absent
+    - [ ] Define `CAPABILITY_SLOTS` constant with preferred + alternatives + paths relative to home dir
+    - [ ] `readRegistry(home): ToolRegistry | null` — reads `$home/tool-registry.json`
     - [ ] `verifyTool(name, path): { ok: boolean, version: string }` — runs `<tool> --version`
-    - [ ] `discoverCapability(slot): CapabilityEntry` — tries preferred then alternatives in order
-    - [ ] `setupRegistry(outputDir): ToolRegistry` — full discovery, writes registry, returns result
-    - [ ] `quickVerify(registry): ToolRegistry` — verifies each `installed` tool, self-heals on failure
+    - [ ] `discoverCapability(slot, home): CapabilityEntry` — tries preferred then alternatives in order
+    - [ ] `setupRegistry(home): ToolRegistry` — full discovery, writes registry, returns result
+    - [ ] `quickVerify(registry, home): ToolRegistry` — verifies each `installed` tool, self-heals on failure
     - [ ] `isStale(registry): boolean` — checks `verified_at` age against 7-day threshold
-    - [ ] `resolveRegistry(outputDir, flags): ToolRegistry` — entry point: read → stale check → verify/setup
+    - [ ] `resolveRegistry(home, flags): ToolRegistry` — entry point: read → stale check → verify/setup
     - [ ] Print ✅/⚠️/❌ per capability during setup
-    - [ ] Print installation guidance for each unavailable capability
+    - [ ] Print installation guidance + `--reset-registry` reminder for each unavailable capability
     - [ ] `git-log-raw` fallback always populates `coupling` slot — built-in, never unavailable
+    - [ ] Registry `superconductor_home` field records resolved home path for debugging
 - [ ] Task: Implement `--reset-registry` and `--setup-only` CLI flags [TIER-1] [AGENT:caduceus-triage]
-    - [ ] `--reset-registry`: delete `.tool-registry.json`, call `setupRegistry()`
-    - [ ] `--setup-only`: call `resolveRegistry()`, print summary, exit 0
+    - [ ] `--reset-registry`: delete `$SUPERCONDUCTOR_HOME/tool-registry.json`, call `setupRegistry()`
+    - [ ] `--setup-only`: call `resolveRegistry()`, print summary table, exit 0
+- [ ] Task: Download `code-maat.jar` to `$SUPERCONDUCTOR_HOME/bin/` during setup [TIER-1] [AGENT:caduceus-triage]
+    - [ ] Download from GitHub releases to `~/.superconductor/bin/code-maat.jar`
+    - [ ] Verify JAR executes: `java -jar ~/.superconductor/bin/code-maat.jar --help`
+- [ ] Task: Download semgrep local rule bundles to `$SUPERCONDUCTOR_HOME/semgrep-rules/` [TIER-1] [AGENT:caduceus-triage]
+    - [ ] Copy/clone community security rules to `~/.superconductor/semgrep-rules/`
+    - [ ] Verify semgrep offline: `semgrep scan --config ~/.superconductor/semgrep-rules --dry-run`
+- [ ] Task: Pre-cache trivy DB to `$SUPERCONDUCTOR_HOME/trivy-db/` [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `trivy image --download-db-only --cache-dir ~/.superconductor/trivy-db`
+    - [ ] Verify offline: `trivy fs . --skip-db-update --offline-scan --cache-dir ~/.superconductor/trivy-db`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0.5: Tool Capability Registry' (Protocol in workflow.md)
 
 ---

@@ -54,16 +54,58 @@ installed for each slot and routes the pipeline accordingly.
 
 ### FR-0: Tool Capability Registry
 
-The registry is the single source of truth for which tools are available on the
-current machine. It is a JSON file persisted at:
-`superconductor/intelligence/.tool-registry.json`
+#### Directory Structure
+
+The system maintains a clean separation between **machine state** and **codebase
+analysis artifacts**:
+
+```
+~/.superconductor/                     ← machine-level, harness-agnostic
+  tool-registry.json                   ← which tools are installed on this machine
+  semgrep-rules/                       ← pre-downloaded local SAST rule bundles
+  trivy-db/                            ← pre-cached vulnerability database
+  bin/
+    code-maat.jar                      ← downloaded tool JARs and binaries
+
+<project>/superconductor/intelligence/ ← project-level, codebase-specific
+  00_manifest.json                     ← pipeline run metadata
+  01_fingerprint.json
+  02_dependencies.json
+  03_complexity.json
+  04_coupling.csv
+  05_sast.json
+  06_api_surface.toon
+  06_api_surface_summary.md
+  07_test_gaps.json
+  README.md                            ← agent reading guide (auto-generated)
+  repository-health-report.md          ← brownfield mode only
+```
+
+**Why this split matters:**
+- `~/.superconductor/` is shared across all projects on the machine and all harnesses
+  (AGY, Claude Desktop, OpenCode, VSCode extensions, CI runners)
+- `superconductor/intelligence/` is project-specific and committed to git so agents
+  and teammates can read the latest codebase snapshot without re-running the pipeline
+- Downloaded rule bundles and vulnerability DBs are fetched once, used everywhere
+- No tool re-discovery when switching between projects
+
+**`SUPERCONDUCTOR_HOME` override:**
+The home directory location can be overridden via environment variable:
+```bash
+export SUPERCONDUCTOR_HOME=/shared/network/superconductor  # CI / enterprise
+export SUPERCONDUCTOR_HOME=/opt/superconductor             # system-wide shared
+```
+Default: `~/.superconductor/` (`os.homedir() + '/.superconductor'`)
 
 #### Registry Schema
+File: `$SUPERCONDUCTOR_HOME/tool-registry.json`
+
 ```json
 {
   "schema_version": "1",
   "generated_at": "<ISO-8601>",
   "verified_at": "<ISO-8601>",
+  "superconductor_home": "/home/user/.superconductor",
   "capabilities": {
     "fingerprint": {
       "preferred": "tokei",
@@ -75,13 +117,25 @@ current machine. It is a JSON file persisted at:
     },
     "dependency_graph": { "...": "..." },
     "complexity":       { "...": "..." },
-    "coupling":         { "...": "..." },
-    "sast":             { "...": "..." },
-    "sca":              { "...": "..." },
+    "coupling":         {
+      "preferred": "code-maat",
+      "path": "$SUPERCONDUCTOR_HOME/bin/code-maat.jar",
+      "status": "ok"
+    },
+    "sast":             {
+      "preferred": "semgrep",
+      "rules_dir": "$SUPERCONDUCTOR_HOME/semgrep-rules",
+      "status": "ok"
+    },
+    "sca":              {
+      "preferred": "trivy",
+      "db_cache": "$SUPERCONDUCTOR_HOME/trivy-db",
+      "status": "ok"
+    },
     "symbol_extraction":{ "...": "..." },
     "test_gaps":        { "installed": "built-in", "status": "ok" }
   },
-  "overall_status": "ok" | "degraded" | "minimal"
+  "overall_status": "ok"
 }
 ```
 
@@ -94,7 +148,8 @@ current machine. It is a JSON file persisted at:
 
 #### Registry Lifecycle
 
-1. **First run (no registry file):** Full tool setup runs. Registry written.
+1. **First run (no registry file):** Full tool setup runs. Registry written to
+   `$SUPERCONDUCTOR_HOME/tool-registry.json`. `~/.superconductor/` created if absent.
 2. **Subsequent runs (registry exists):** Quick-verify each `installed` tool:
    - Check binary path still exists: `fs.existsSync(path)`
    - Run `<tool> --version` and compare to stored version
@@ -112,6 +167,9 @@ current machine. It is a JSON file persisted at:
    Use when tools have been intentionally changed or upgraded.
 6. **`--setup-only` flag:** Runs tool setup and writes registry, exits without
    running the pipeline. Suitable for CI bootstrap step.
+7. **Harness interoperability:** Any harness (AGY, Claude, OpenCode, CI runner)
+   that sets `SUPERCONDUCTOR_HOME` correctly will share the same tool registry,
+   avoiding duplicate tool discovery across environments.
 
 #### Installation Guidance
 For each unavailable capability, the registry script prints:
@@ -119,6 +177,7 @@ For each unavailable capability, the registry script prints:
 ❌ [fingerprint] tokei not found. Alternatives tried: scc ❌, cloc ❌
    Install: cargo install tokei  OR  brew install tokei  OR  apt install tokei
    Or install any alternative: cargo install scc  |  sudo apt install cloc
+   After installing, run: npx tsx scripts/intelligence-pipeline.ts --reset-registry
 ```
 
 ### FR-1: Tool Availability Matrix
