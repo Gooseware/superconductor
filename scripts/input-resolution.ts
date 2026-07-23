@@ -14,6 +14,16 @@ export function resolveReviewInput(
   isGitRepo: boolean,
   stdinText?: string
 ): ResolvedInput {
+  // Check conflicting depth flags
+  if (args.includes('--fast') && args.includes('--deep')) {
+    return {
+      targetType: 'default',
+      depthMode: 'full',
+      stats: false,
+      error: 'Cannot specify both --fast and --deep depth modes'
+    };
+  }
+
   let targetType: ResolvedInput['targetType'] = 'default';
   let targetValue: string | undefined;
   let depthMode: ResolvedInput['depthMode'] = 'full';
@@ -29,18 +39,19 @@ export function resolveReviewInput(
       stats = true;
     } else if (arg === '--staged') {
       targetType = 'staged';
-    } else if (arg === '--branch' && args[i + 1]) {
-      targetType = 'branch';
-      targetValue = args[++i];
-    } else if (arg === '--pr' && args[i + 1]) {
-      targetType = 'pr';
-      targetValue = args[++i];
-    } else if (arg === '--file' && args[i + 1]) {
-      targetType = 'file';
-      targetValue = args[++i];
-    } else if (arg === '--dir' && args[i + 1]) {
-      targetType = 'dir';
-      targetValue = args[++i];
+    } else if (['--branch', '--pr', '--file', '--dir'].includes(arg)) {
+      const nextArg = args[i + 1];
+      if (!nextArg || nextArg.startsWith('--')) {
+        return {
+          targetType: arg.slice(2) as ResolvedInput['targetType'],
+          depthMode,
+          stats,
+          error: `${arg} requires a value argument`
+        };
+      }
+      targetType = arg.slice(2) as ResolvedInput['targetType'];
+      targetValue = nextArg;
+      i++;
     }
   }
 

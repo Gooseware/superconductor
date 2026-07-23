@@ -56,7 +56,7 @@ console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n'
   console.log('✅ Test 5: Existing --file Resolution Passed');
 }
 
-// 6. Input resolution: depth mode flags (--fast, --deep, --stats)
+// 6. Input resolution: depth mode flags (--fast, --deep, --stats) and conflict check
 {
   const resolvedFast = resolveReviewInput(['--fast', '--stats'], true);
   assert.strictEqual(resolvedFast.depthMode, 'fast');
@@ -64,10 +64,26 @@ console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n'
 
   const resolvedDeep = resolveReviewInput(['--deep'], true);
   assert.strictEqual(resolvedDeep.depthMode, 'deep');
-  console.log('✅ Test 6: Depth Mode & Stats Flags Resolution Passed');
+
+  const resolvedConflict = resolveReviewInput(['--fast', '--deep'], true);
+  assert.ok(resolvedConflict.error && resolvedConflict.error.includes('Cannot specify both --fast and --deep'));
+  console.log('✅ Test 6: Depth Mode, Stats Flags & Conflict Validation Passed');
 }
 
-// 7. Standalone Review Smoke Test: execute fast mode pipeline on superconductor root
+// 7. Input resolution: missing argument values (--branch, --dir, --pr)
+{
+  const resBranch = resolveReviewInput(['--branch'], true);
+  assert.ok(resBranch.error && resBranch.error.includes('--branch requires a value argument'));
+
+  const resDir = resolveReviewInput(['--dir'], true);
+  assert.ok(resDir.error && resDir.error.includes('--dir requires a value argument'));
+
+  const resPr = resolveReviewInput(['--pr'], true);
+  assert.ok(resPr.error && resPr.error.includes('--pr requires a value argument'));
+  console.log('✅ Test 7: Missing Flag Values Validation Passed');
+}
+
+// 8. Standalone Review Smoke Test: execute fast mode pipeline on superconductor root
 {
   const projectRoot = path.resolve(__dirname, '..');
   const manifestsDir = path.join(projectRoot, '.manifests');
@@ -88,6 +104,10 @@ console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n'
     { reviewer_id: 'security-reviewer', raw_text: reviewer1 },
     { reviewer_id: 'correctness-reviewer', raw_text: reviewer2 }
   ], manifestsDir);
+
+  // Assert on coverage result (used variable assertion)
+  assert.strictEqual(coverage.residual_coverage_map.length, 0, 'Residual coverage map should be empty when fully examined');
+  assert.strictEqual(coverage.coverage_stats.files_examined, 2, 'Files examined stat should be 2');
 
   const findings = aggregateFindings([
     { reviewer_id: 'security-reviewer', raw_text: reviewer1 },
@@ -123,9 +143,10 @@ console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n'
   assert.ok(fs.existsSync(path.join(manifestsDir, 'preflight.json')), 'preflight.json manifest must exist');
   assert.ok(fs.existsSync(path.join(manifestsDir, 'token-report.json')), 'token-report.json manifest must exist');
 
-  // Cleanup report file created during smoke test
+  // Cleanup report file and manifests directory created during smoke test
   fs.unlinkSync(reportPath);
-  console.log('✅ Test 7: Standalone Review Engine Fast Smoke Test Passed');
+  fs.rmSync(manifestsDir, { recursive: true, force: true });
+  console.log('✅ Test 8: Standalone Review Engine Fast Smoke Test & Directory Cleanup Passed');
 }
 
 console.log('\n🎉 ALL STANDALONE REVIEW TESTS & SMOKE TEST PASSED CLEANLY!');
