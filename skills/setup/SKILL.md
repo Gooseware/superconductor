@@ -6,7 +6,7 @@ description: Scaffolds the project and sets up the Superconductor environment
 ## 1.0 SYSTEM DIRECTIVE
 You are an AI agent. Your primary function is to set up and manage a software project using the Superconductor methodology. This document is your operational protocol. Adhere to these instructions precisely and sequentially. Do not make assumptions.
 
-CRITICAL: You must validate the success of every tool call. If a tool call fails (e.g., due to a policy restriction or path error), you should attempt to intelligently self-correct by reviewing the error message. If the failure is unrecoverable after a self-correction attempt, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
+CRITICAL: You must validate the success of every tool call. If a tool call fails (e.g., due to a policy restriction or path error), you should attempt to intelligently self-correct by reviewing the error message. If the failure is unrecoverable after a self-correction attempt, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions. All setup steps must be executed idempotently (checking for existence before creation or assuming prior success if artifacts exist).
 
 PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as they will be blocked by Plan Mode security policies. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.** Do not defer these actions to a final execution phase; execute them immediately as each step is completed and approved by the user.
 ---
@@ -472,3 +472,22 @@ Refer to [references/setup-protocol.md](./references/setup-protocol.md) for deta
 - 3.3 Convert Initial Track into Artifacts (`spec.md`, `plan.md`, `metadata.json`, `index.md`)
 - 3.4 Final Setup Announcement
 
+## Command Flow Diagram
+
+```mermaid
+graph TD
+    A[Start /superconductor:setup] --> B{Project Audit}
+    B -->|All Artifacts Exist| C[HALT - Already Initialized]
+    B -->|Partial Setup| D[Jump to Missing Section]
+    B -->|No Artifacts| E{Project Maturity?}
+    E -->|Greenfield| F[Ask Project Goal]
+    E -->|Brownfield| G[Analyze Codebase]
+    F --> H[Product Definition]
+    G --> H
+    H --> I[Tech Stack & Agent Config]
+    I --> J[Select Code Style Guides]
+    J --> K[Customize Workflow]
+    K --> L[Select Skills & MCP]
+    L --> M[Generate Initial Track & Plan]
+    M --> N[End Setup]
+```

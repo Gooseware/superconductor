@@ -41,10 +41,13 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 1.  **Parse Content:**
     -   Identify major project phases/sections (e.g., top-level markdown headings).
     -   Identify individual tasks and their current status (e.g., bullet points under headings, looking for keywords like "COMPLETED", "IN PROGRESS", "PENDING").
-2.  **Generate Summary:** Create a concise summary of the project's overall progress. This should include:
+    -   If a phase is marked complete with a checkpoint SHA (`[checkpoint: <sha>]`), extract that SHA.
+2.  **Fetch Quality Notes:** For the latest completed phase with a checkpoint SHA, read its quality notes payload using `git notes show --ref=refs/notes/quality <sha>`.
+3.  **Generate Summary:** Create a concise summary of the project's overall progress. This should include:
     -   The total number of major phases.
     -   The total number of tasks.
     -   The number of tasks completed, in progress, and pending.
+    -   A summary of the latest phase's quality notes (if available).
 
 ### 2.3 Present Status Overview
 1.  **Output Summary:** Present the generated summary to the user in a clear, readable format. The status report must include:
@@ -56,3 +59,4 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
     -   **Phases (total):** The total number of major phases.
     -   **Tasks (total):** The total number of tasks.
     -   **Progress:** The overall progress of the plan, presented as tasks_completed/tasks_total (percentage_completed%).
+    -   **Latest Quality Report:** If available, display key metrics from the quality note (e.g., swarm pass rate, token usage, critical findings).

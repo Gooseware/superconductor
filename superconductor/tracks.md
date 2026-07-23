@@ -137,5 +137,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Swarm Protocol Uplift — Review Gate, ABI Self-Improvement & Plugin UX Audit**
+- [x] **Track: Swarm Protocol Uplift — Review Gate, ABI Self-Improvement & Plugin UX Audit**
 *Link: [./tracks/swarm_protocol_uplift_20260724/](./tracks/swarm_protocol_uplift_20260724/)*

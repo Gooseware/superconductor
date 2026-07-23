@@ -191,3 +191,25 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 8.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
 9.  **Announce Completion:** Inform the user:
     > "New track '<track_id>' has been created and added to the tracks file. You can now start implementation by running `/superconductor:implement`."
+
+## Command Flow Diagram
+
+```mermaid
+graph TD
+    A[Start /superconductor:newTrack] --> B{Check Core Context}
+    B -->|Missing| C[Ask to run setup]
+    B -->|Valid| D[Get Track Description]
+    D --> E[Best Practices Research Phase]
+    E --> F[Architecture Committee Phase]
+    F --> G[Ask Clarifying Questions]
+    G --> H[Draft spec.md]
+    H --> I{User Confirms Spec?}
+    I -->|Revise| G
+    I -->|Approve| J[Oracle Proactive Planning]
+    J --> K[Generate plan.md]
+    K --> L{User Confirms Plan?}
+    L -->|Revise| K
+    L -->|Approve| M[Recommend/Install Skills]
+    M --> N[Create Artifacts & Update Registry]
+    N --> O[Commit & Announce]
+```

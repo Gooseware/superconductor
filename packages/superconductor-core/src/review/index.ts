@@ -5,3 +5,5 @@ export * from './cascade-deferral-gate.js';
 export * from './deterministic-preflight.js';
 export * from './generate-token-report.js';
 export * from './input-resolution.js';
+export * from './swarm-phase-gate.js';
+export * from './abi.js';

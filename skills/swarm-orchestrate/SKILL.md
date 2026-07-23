@@ -130,7 +130,25 @@ Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ─
 
 ---
 
-## 5.0 SWARM LOGGING SCHEMA (`swarm_log.md`)
+## 5.0 PAIR PROGRAMMING MODE (TIGHT LOOP)
+
+In Pair Programming Mode, the coding swarm works in a tight concurrent loop on the same task:
+1. **Concurrent Iteration:** A Coder agent writes the code and diffs, while a Reviewer agent concurrently inspects the immediate output.
+2. **Immediate Remediation:** Instead of waiting for a full pipeline phase, findings are resolved strictly inside the Pair Programming loop.
+3. **Loop Max Iterations:** Bound by a cap to avoid infinite loops (typically 2 remediation attempts).
+
+---
+
+## 6.0 PHASE GATE PROTOCOL
+
+The Phase Gate fires a 3-reviewer Flash panel concurrently after each phase completion.
+1. **Context Minimization:** Only task spec, git diff, and modified files are provided to the panel.
+2. **Consensus Algorithm:** The gate PASSES only if there are **no CRITICAL findings** across all 3 reviewers. ADVISORY findings are injected as context for the next task.
+3. **Hard Cap:** A maximum of 2 auto-remediation attempts is permitted. If the limit is reached, it escalates to Oracle (Tier-4) + human intervention.
+
+---
+
+## 7.0 SWARM LOGGING SCHEMA (`swarm_log.md`)
 
 Create and maintain `superconductor/tracks/<track_id>/swarm_log.md` with structured updates:
 
@@ -152,7 +170,7 @@ Create and maintain `superconductor/tracks/<track_id>/swarm_log.md` with structu
 
 ---
 
-## 6.0 THE ORACLE FINAL AUDIT & REVIEW PANEL MODE
+## 8.0 THE ORACLE FINAL AUDIT & REVIEW PANEL MODE
 
 ### 6.1 Mode Selection: Monolithic Oracle vs. Heterogeneous Review Panel
 When reaching the verification phase, Swarm Orchestration supports two review panel models:
@@ -166,7 +184,7 @@ When `Review Panel Mode` is active, execution proceeds through the following 10-
    - Run `npx ts-node scripts/deterministic-preflight.ts`.
    - Result written to `.manifests/preflight.json`. If `short_circuit: true`, halt immediately with `Needs Fixes` (skip LLM calls).
 2. **Step 2: Specialized Flash Reviewer Fan-Out**
-   - Dispatch 3 parallel isolated reviewers (`security-reviewer`, `correctness-reviewer`, `adversarial-reviewer`).
+   - Dispatch 3 parallel isolated reviewers (`security-reviewer`, `correctness-reviewer`, `adversarial-reviewer`). Load reviewer skills from `$HOME/.superconductor/skills/` with fallback to plugin defaults.
    - Each reviewer runs with context isolation and emits mandatory ````json:coverage-manifest```` and ````json:review-findings```` blocks.
    - Record stage token usage via `recordTokenUsage`.
 3. **Step 3: Coverage Manifest Aggregation**
@@ -185,14 +203,14 @@ When `Review Panel Mode` is active, execution proceeds through the following 10-
 8. **Step 8: Arbiter Pass (If Escalated)**
    - Arbiter (Pro/Sonnet) receives `ArbiterBriefing` + raw diff to issue final Oracle Audit Report.
 9. **Step 9: ABI Debrief Loop**
-   - Execute §7.0 ABI Debrief protocol to induct any new shenanigan patterns into `skills/review/SKILL.md`.
+   - Execute §9.0 ABI Debrief protocol to induct any new shenanigan patterns into `skills/review/SKILL.md`.
 10. **Step 10: Token Efficiency Report Generation**
     - Run `generateTokenReport('.manifests/token-report.json')`.
     - Append Token Efficiency Report to final output.
 
 ---
 
-## 7.0 HEADLESS COMPATIBILITY
+## 9.0 HEADLESS COMPATIBILITY
 1. If the `--headless` flag is active:
    - All human-in-the-loop checks are skipped.
    - The final output is automatically merged to the target branch upon Oracle/Review Panel approval.
