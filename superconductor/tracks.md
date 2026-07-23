@@ -139,3 +139,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Swarm Protocol Uplift — Review Gate, ABI Self-Improvement & Plugin UX Audit**
 *Link: [./tracks/swarm_protocol_uplift_20260724/](./tracks/swarm_protocol_uplift_20260724/)*
+
+---
+
+- [ ] **Track: Swarm-Aware Planner — Throughput & Token Economics Optimizer**
+*Link: [./tracks/swarm_planner_20260724/](./tracks/swarm_planner_20260724/)*
