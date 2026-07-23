@@ -27,7 +27,7 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
     }
   }
 
-  async function readComponentMetadata(srcDir, cName) {
+  async function readComponentMetadata(srcDir) {
     const registryJsonPath = path.join(srcDir, 'registry.json');
     const config = JSON.parse(await fs.readFile(registryJsonPath, 'utf-8'));
     const isBlock = config.type?.includes('block') || srcDir.includes('/blocks/');
@@ -48,8 +48,7 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
     };
   }
 
-  async function copyComponentFiles(cName, srcDir, destDir) {
-    const config = destDir;
+  async function copyComponentFiles(srcDir, config) {
     const files = [];
     if (config.files && Array.isArray(config.files)) {
       for (const fileDef of config.files) {
@@ -71,7 +70,7 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
     return files;
   }
 
-  async function writeDogmaFile(cName, destDir, data) {
+  async function writeDogmaFile(cName, data) {
     console.log(`[Migrate] Publishing ${cName}...`);
     await client.publishComponent(data);
   }
@@ -79,11 +78,11 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
   async function migrateComponent(componentDir, registryJsonPath) {
     console.log(`[Migrate] Found component at ${componentDir}`);
     try {
-      const metadata = await readComponentMetadata(componentDir, 'registry.json');
+      const metadata = await readComponentMetadata(componentDir);
       const config = metadata._config;
       delete metadata._config;
 
-      const files = await copyComponentFiles(metadata.family, componentDir, config);
+      const files = await copyComponentFiles(componentDir, config);
 
       if (files.length === 0) {
         console.warn(`[Migrate] No files found for ${metadata.family}/${metadata.variant}, skipping.`);
@@ -95,7 +94,7 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
         metadata
       };
 
-      await writeDogmaFile(`${metadata.family}/${metadata.variant}`, null, payload);
+      await writeDogmaFile(`${metadata.family}/${metadata.variant}`, payload);
       results.migrated.push(`${metadata.family}/${metadata.variant}`);
     } catch (error) {
       console.error(`[Migrate] Failed to migrate ${componentDir}:`, error.message);
