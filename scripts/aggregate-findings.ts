@@ -81,9 +81,10 @@ export function aggregateFindings(
       existing.agreement_count = existing.reviewer_ids.length;
       if (f.is_security_critical) existing.is_security_critical = true;
     } else {
-      f.reviewer_ids = [f.reviewer_id];
-      f.agreement_count = 1;
-      deduplicated.push(f);
+      const copy = { ...f };
+      copy.reviewer_ids = [f.reviewer_id];
+      copy.agreement_count = 1;
+      deduplicated.push(copy);
     }
   }
 
@@ -92,6 +93,8 @@ export function aggregateFindings(
 
 function isLineRangeClose(rangeA: string, rangeB: string): boolean {
   if (rangeA === rangeB) return true;
+  if (rangeA === 'all' && rangeB === 'all') return true;
+  if (rangeA === 'all' || rangeB === 'all') return false;
   const numA = parseInt(rangeA.split('-')[0], 10);
   const numB = parseInt(rangeB.split('-')[0], 10);
   if (isNaN(numA) || isNaN(numB)) return false;

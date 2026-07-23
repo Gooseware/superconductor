@@ -7,6 +7,14 @@ export interface DeferralGateResult {
   arbiter_briefing: string;
 }
 
+const severityMap: Record<string, ReviewFinding['severity']> = {
+  critical: 'high',
+  high: 'medium',
+  medium: 'low',
+  low: 'advisory',
+  advisory: 'advisory'
+};
+
 export function runCascadeDeferralGate(
   findings: ReviewFinding[],
   totalReviewersCount: number
@@ -33,8 +41,9 @@ export function runCascadeDeferralGate(
   });
 
   // Can skip arbiter if ALL findings are unanimous AND no security critical issues exist
-  const canSkip = !hasSecurityCritical && !hasDisputed && classified.length > 0;
-  const escalate = hasSecurityCritical || hasDisputed || classified.length === 0;
+  // (Zero findings is a clean pass -> canSkip = true)
+  const canSkip = !hasSecurityCritical && !hasDisputed;
+  const escalate = hasSecurityCritical || hasDisputed;
 
   // Build markdown Arbiter Briefing
   let briefing = `# Arbiter Briefing\n\n`;
@@ -44,8 +53,14 @@ export function runCascadeDeferralGate(
   briefing += `## Deduplicated Findings\n\n`;
 
   for (const f of classified) {
-    briefing += `### [${f.severity.toUpperCase()}] ${f.category} — ${f.file}:${f.line_range}\n`;
+    const isDisputed = (f.agreement_count || 1) < totalReviewersCount;
+    const effectiveSeverity = isDisputed ? severityMap[f.severity] || f.severity : f.severity;
+
+    briefing += `### [${effectiveSeverity.toUpperCase()}] ${f.category} — ${f.file}:${f.line_range}\n`;
     briefing += `- **Agreement:** ${f.agreement_count}/${totalReviewersCount} reviewers (${f.reviewer_ids?.join(', ')})\n`;
+    if (isDisputed) {
+      briefing += `- **Status:** Disputed (Original severity: ${f.severity.toUpperCase()}, downgraded to ${effectiveSeverity.toUpperCase()})\n`;
+    }
     briefing += `- **Description:** ${f.description}\n`;
     briefing += `- **Recommendation:** ${f.recommendation}\n\n`;
   }

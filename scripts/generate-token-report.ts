@@ -10,6 +10,30 @@ export interface TokenEntry {
   timestamp: string;
 }
 
+export function recordTokenUsage(reportPath: string, entry: Omit<TokenEntry, 'timestamp'>): void {
+  const dir = path.dirname(reportPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  let entries: TokenEntry[] = [];
+  if (fs.existsSync(reportPath)) {
+    try {
+      const raw = fs.readFileSync(reportPath, 'utf-8');
+      entries = JSON.parse(raw);
+    } catch {
+      entries = [];
+    }
+  }
+
+  entries.push({
+    ...entry,
+    timestamp: new Date().toISOString()
+  });
+
+  fs.writeFileSync(reportPath, JSON.stringify(entries, null, 2), 'utf-8');
+}
+
 export function generateTokenReport(reportPath: string): string {
   if (!fs.existsSync(reportPath)) {
     return `## Token Efficiency Report\n\n*No token logs recorded for this run.*`;

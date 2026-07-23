@@ -150,18 +150,50 @@ Create and maintain `superconductor/tracks/<track_id>/swarm_log.md` with structu
 
 ---
 
-## 6.0 THE ORACLE FINAL AUDIT
-1. **Trigger:** Once all tasks are completed (in both Parallel and Pipeline modes), the Oracle performs the final comprehensive audit.
-2. **Comprehensive Check:** Oracle reviews the full repository state and cumulative diff against `spec.md`.
-3. **Central Registry Verification:** Oracle identifies component candidates for `design-os-kernel` promotion.
-4. **Verdict:**
-   - **Needs Fixes:** Remediation task list returned to Processor.
-   - **Ready:** Track approved for user review and final merge.
+---
+
+## 6.0 THE ORACLE FINAL AUDIT & REVIEW PANEL MODE
+
+### 6.1 Mode Selection: Monolithic Oracle vs. Heterogeneous Review Panel
+When reaching the verification phase, Swarm Orchestration supports two review panel models:
+1. **Monolithic Oracle (Default):** Single Tier-4 model conducts full audit.
+2. **Review Panel Mode (Heterogeneous Flash + Arbiter):** Recommended for tracks touching security-sensitive or complex multi-file changes. Combines parallel Flash-class specialized reviewers with a coverage manifest, residual pass, deferral gate, and Arbiter.
+
+### 6.2 Review Panel Pipeline Protocol (10-Step Sequence)
+When `Review Panel Mode` is active, execution proceeds through the following 10-step protocol:
+
+1. **Step 1: Deterministic Pre-Filter Stage**
+   - Run `npx ts-node scripts/deterministic-preflight.ts`.
+   - Result written to `.manifests/preflight.json`. If `short_circuit: true`, halt immediately with `Needs Fixes` (skip LLM calls).
+2. **Step 2: Specialized Flash Reviewer Fan-Out**
+   - Dispatch 3 parallel isolated reviewers (`security-reviewer`, `correctness-reviewer`, `adversarial-reviewer`).
+   - Each reviewer runs with context isolation and emits mandatory ````json:coverage-manifest```` and ````json:review-findings```` blocks.
+   - Record stage token usage via `recordTokenUsage`.
+3. **Step 3: Coverage Manifest Aggregation**
+   - Run `aggregateCoverageManifests` on outputs.
+   - Generates `ResidualCoverageMap` (union of all `not_examined` entries).
+4. **Step 4: Residual Pass Dispatch (Conditional)**
+   - If `ResidualCoverageMap` is non-empty, dispatch a targeted Flash reviewer focused ONLY on uncovered files/lines.
+5. **Step 5: Findings Aggregation & Deduplication**
+   - Run `aggregateFindings` on all reviewer outputs.
+   - Deduplicates matching findings (file + line range ±3 lines) and tracks `agreement_count`.
+6. **Step 6: Cascade Deferral Gate Evaluation**
+   - Run `runCascadeDeferralGate(findings, totalReviewers)`.
+   - Determines `can_skip_arbiter` and generates `ArbiterBriefing` (downgrading severity on disputed findings).
+7. **Step 7: Arbiter Bypass / Escalation**
+   - If `can_skip_arbiter: true` (unanimous findings, zero security-critical), user/orchestrator may skip Arbiter pass for maximum token savings.
+8. **Step 8: Arbiter Pass (If Escalated)**
+   - Arbiter (Pro/Sonnet) receives `ArbiterBriefing` + raw diff to issue final Oracle Audit Report.
+9. **Step 9: ABI Debrief Loop**
+   - Execute §7.0 ABI Debrief protocol to induct any new shenanigan patterns into `skills/review/SKILL.md`.
+10. **Step 10: Token Efficiency Report Generation**
+    - Run `generateTokenReport('.manifests/token-report.json')`.
+    - Append Token Efficiency Report to final output.
 
 ---
 
 ## 7.0 HEADLESS COMPATIBILITY
 1. If the `--headless` flag is active:
    - All human-in-the-loop checks are skipped.
-   - The final output is automatically merged to the target branch upon Oracle approval.
+   - The final output is automatically merged to the target branch upon Oracle/Review Panel approval.
    - In Pipeline Mode, any unresolvable critical escalation is logged to `swarm_log.md` and causes a non-zero exit status for CI integration.
