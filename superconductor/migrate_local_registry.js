@@ -53,7 +53,11 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
     if (config.files && Array.isArray(config.files)) {
       for (const fileDef of config.files) {
         const filePath = typeof fileDef === 'string' ? fileDef : fileDef.path;
-        const absoluteFilePath = path.join(srcDir, filePath);
+        const absoluteFilePath = path.resolve(srcDir, filePath);
+        if (!absoluteFilePath.startsWith(path.resolve(srcDir) + path.sep)) {
+           console.warn(`[Migrate] Skipping out-of-bounds file path: ${filePath}`);
+           continue;
+        }
         const content = await fs.readFile(absoluteFilePath, 'utf-8');
         files.push({
           path: filePath,
