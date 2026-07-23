@@ -9,6 +9,7 @@ export interface ReviewFinding {
   line_range: string;
   severity: 'critical' | 'high' | 'medium' | 'low' | 'advisory';
   category: 'security' | 'correctness' | 'adversarial' | 'architecture' | 'style';
+  categories?: string[];
   description: string;
   recommendation: string;
   is_security_critical: boolean;
@@ -116,10 +117,15 @@ export function deduplicateFindings(findings: ReviewFinding[]): ReviewFinding[] 
       }
       existing.agreement_count = existing.reviewer_ids.length;
       if (f.is_security_critical) existing.is_security_critical = true;
+      if (!existing.categories) existing.categories = [existing.category];
+      if (f.category && !existing.categories.includes(f.category)) {
+        existing.categories.push(f.category);
+      }
     } else {
       const copy = { ...f };
       copy.reviewer_ids = [f.reviewer_id];
       copy.agreement_count = 1;
+      copy.categories = [f.category];
       deduplicated.push(copy);
     }
   }

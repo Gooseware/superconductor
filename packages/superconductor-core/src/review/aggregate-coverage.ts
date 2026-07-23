@@ -19,6 +19,7 @@ export interface AggregatedCoverageResult {
   residual_coverage_map: CoverageEntry[];
   coverage_stats: {
     files_examined: number;
+    total_examination_entries: number;
     files_skimmed: number;
     files_not_examined: number;
     total_concerns_covered: number;
@@ -76,27 +77,34 @@ export function normalizeCoverageEntry(entry: CoverageEntry | string): CoverageE
   return { file: String(entry), line_range: 'all' };
 }
 
-/** Deduplicates the residual map and accumulates stats across all manifests. */
 export function aggregateManifestStats(manifests: CoverageManifest[]): {
   residualMap: CoverageEntry[];
-  examined: number;
+  examinedUnique: number;
+  examinedRaw: number;
   skimmed: number;
   notExamined: number;
   totalConcerns: number;
 } {
   const residualMap: CoverageEntry[] = [];
   const seenKeys = new Set<string>();
+  const examinedPaths = new Set<string>();
 
-  let examined = 0;
+  let examinedRaw = 0;
   let skimmed = 0;
   let notExamined = 0;
   let totalConcerns = 0;
 
   for (const m of manifests) {
-    examined += (m.examined || []).length;
+    examinedRaw += (m.examined || []).length;
     skimmed += (m.skimmed || []).length;
     notExamined += (m.not_examined || []).length;
     totalConcerns += (m.examined || []).length + (m.skimmed || []).length;
+
+    for (const ex of (m.examined || [])) {
+      if (ex.file) {
+        examinedPaths.add(ex.file);
+      }
+    }
 
     for (const entry of m.not_examined || []) {
       const normEntry = normalizeCoverageEntry(entry);
@@ -108,7 +116,7 @@ export function aggregateManifestStats(manifests: CoverageManifest[]): {
     }
   }
 
-  return { residualMap, examined, skimmed, notExamined, totalConcerns };
+  return { residualMap, examinedUnique: examinedPaths.size, examinedRaw, skimmed, notExamined, totalConcerns };
 }
 
 export function aggregateCoverageManifests(
@@ -121,7 +129,8 @@ export function aggregateCoverageManifests(
   return {
     residual_coverage_map: stats.residualMap,
     coverage_stats: {
-      files_examined: stats.examined,
+      files_examined: stats.examinedUnique,
+      total_examination_entries: stats.examinedRaw,
       files_skimmed: stats.skimmed,
       files_not_examined: stats.notExamined,
       total_concerns_covered: stats.totalConcerns

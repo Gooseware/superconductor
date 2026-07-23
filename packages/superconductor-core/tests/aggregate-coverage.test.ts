@@ -32,11 +32,50 @@ describe('aggregateCoverageManifests', () => {
     const result = aggregateCoverageManifests([{ reviewer_id: 'rev1', raw_text: rawText }]);
 
     expect(result.coverage_stats.files_examined).toBe(1);
+    expect(result.coverage_stats.total_examination_entries).toBe(1);
     expect(result.coverage_stats.files_not_examined).toBe(2);
     expect(result.residual_coverage_map).toEqual([
       { file: 'src/b.ts', line_range: 'all' },
       { file: 'src/c.ts', line_range: 'all' }
     ]);
+  });
+
+  it('should count unique files_examined and preserve raw sum as total_examination_entries', () => {
+    const rawText1 = `
+\`\`\`coverage-manifest
+{
+  "reviewer_id": "rev1",
+  "examined": [{ "file": "src/a.ts", "line_range": "1-10" }, { "file": "src/b.ts", "line_range": "1-10" }],
+  "skimmed": [],
+  "not_examined": []
+}
+\`\`\`
+`;
+    const rawText2 = `
+\`\`\`coverage-manifest
+{
+  "reviewer_id": "rev2",
+  "examined": [{ "file": "src/a.ts", "line_range": "11-20" }],
+  "skimmed": [],
+  "not_examined": []
+}
+\`\`\`
+`;
+
+    const result = aggregateCoverageManifests([
+      { reviewer_id: 'rev1', raw_text: rawText1 },
+      { reviewer_id: 'rev2', raw_text: rawText2 }
+    ]);
+
+    // r1 examines [a, b], r2 examines [a] -> unique=2, total=3
+    expect(result.coverage_stats.files_examined).toBe(2);
+    expect(result.coverage_stats.total_examination_entries).toBe(3);
+  });
+
+  it('should handle zero reviewers and return zero counts', () => {
+    const result = aggregateCoverageManifests([]);
+    expect(result.coverage_stats.files_examined).toBe(0);
+    expect(result.coverage_stats.total_examination_entries).toBe(0);
   });
 
   it('should deduplicate string and object entries in not_examined across reviewers', () => {

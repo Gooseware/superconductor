@@ -56,18 +56,19 @@ console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n'
   console.log('✅ Test 5: Existing --file Resolution Passed');
 }
 
-// 6. Input resolution: depth mode flags (--fast, --deep, --stats) and conflict check
+// 6. Input resolution: depth mode flags (--fast, --deep, --stats, --skip-self-check) and conflict check
 {
-  const resolvedFast = resolveReviewInput(['--fast', '--stats'], true);
+  const resolvedFast = resolveReviewInput(['--fast', '--stats', '--skip-self-check'], true);
   assert.strictEqual(resolvedFast.depthMode, 'fast');
   assert.strictEqual(resolvedFast.stats, true);
+  assert.strictEqual(resolvedFast.skipSelfCheck, true);
 
   const resolvedDeep = resolveReviewInput(['--deep'], true);
   assert.strictEqual(resolvedDeep.depthMode, 'deep');
 
   const resolvedConflict = resolveReviewInput(['--fast', '--deep'], true);
   assert.ok(resolvedConflict.error && resolvedConflict.error.includes('Cannot specify both --fast and --deep'));
-  console.log('✅ Test 6: Depth Mode, Stats Flags & Conflict Validation Passed');
+  console.log('✅ Test 6: Depth Mode, Stats, Skip Self Check Flags & Conflict Validation Passed');
 }
 
 // 7. Input resolution: missing argument values (--branch, --dir, --pr)

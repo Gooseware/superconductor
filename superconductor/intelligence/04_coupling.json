@@ -1,7 +1,7 @@
 [
   {
     "file": "superconductor/tracks.md",
-    "churnCount": 82
+    "churnCount": 84
   },
   {
     "file": "commands/conductor/setup.toml",
@@ -72,6 +72,10 @@
     "churnCount": 10
   },
   {
+    "file": "packages/engine/src/dispatcher/dispatcher.ts",
+    "churnCount": 10
+  },
+  {
     "file": "superconductor/tracks/implement_select_20260409/plan.md",
     "churnCount": 9
   },
@@ -81,10 +85,6 @@
   },
   {
     "file": "packages/engine/src/engine.ts",
-    "churnCount": 9
-  },
-  {
-    "file": "packages/engine/src/dispatcher/dispatcher.ts",
     "churnCount": 9
   },
   {
@@ -116,6 +116,14 @@
     "churnCount": 8
   },
   {
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "churnCount": 8
+  },
+  {
+    "file": "packages/engine/src/context/builder.ts",
+    "churnCount": 8
+  },
+  {
     "file": "GEMINI.md",
     "churnCount": 8
   },
@@ -128,15 +136,11 @@
     "churnCount": 7
   },
   {
-    "file": "packages/superconductor-mcp-server/src/index.ts",
-    "churnCount": 7
-  },
-  {
     "file": "packages/engine/src/index.ts",
     "churnCount": 7
   },
   {
-    "file": "packages/engine/src/context/builder.ts",
+    "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
     "churnCount": 7
   },
   {
@@ -168,15 +172,15 @@
     "churnCount": 6
   },
   {
+    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
+    "churnCount": 6
+  },
+  {
     "file": "packages/engine/tests/dispatcher.test.ts",
     "churnCount": 6
   },
   {
     "file": "packages/engine/src/types/events.ts",
-    "churnCount": 6
-  },
-  {
-    "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
     "churnCount": 6
   },
   {
@@ -304,10 +308,6 @@
     "churnCount": 5
   },
   {
-    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
-    "churnCount": 5
-  },
-  {
     "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
     "churnCount": 5
   },
@@ -349,6 +349,30 @@
   },
   {
     "file": "superconductor/tracks/intelligence_layer_20260723/spec.md",
+    "churnCount": 4
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "churnCount": 4
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "churnCount": 4
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churnCount": 4
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "churnCount": 4
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "churnCount": 4
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
     "churnCount": 4
   },
   {
@@ -404,6 +428,14 @@
     "churnCount": 4
   },
   {
+    "file": "packages/engine/src/dag/validator.ts",
+    "churnCount": 4
+  },
+  {
+    "file": "packages/engine/src/dag/parser.ts",
+    "churnCount": 4
+  },
+  {
     "file": "packages/engine/src/cache/ModelFetcher.ts",
     "churnCount": 4
   },
@@ -456,27 +488,7 @@
     "churnCount": 3
   },
   {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "churnCount": 3
-  },
-  {
-    "file": "superconductor/intelligence/06_api_surface.toon",
-    "churnCount": 3
-  },
-  {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "churnCount": 3
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
-    "churnCount": 3
-  },
-  {
-    "file": "superconductor/intelligence/01_fingerprint.json",
-    "churnCount": 3
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
+    "file": "superconductor/migrate_local_registry.js",
     "churnCount": 3
   },
   {
@@ -500,6 +512,10 @@
     "churnCount": 3
   },
   {
+    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
+    "churnCount": 3
+  },
+  {
     "file": "packages/superconductor-core/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json",
     "churnCount": 3
   },
@@ -513,14 +529,6 @@
   },
   {
     "file": "packages/engine/src/types/index.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "packages/engine/src/dag/validator.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "packages/engine/src/dag/parser.ts",
     "churnCount": 3
   },
   {
@@ -700,10 +708,6 @@
     "churnCount": 2
   },
   {
-    "file": "superconductor/migrate_local_registry.js",
-    "churnCount": 2
-  },
-  {
     "file": "superconductor/intelligence/repository-health-report.md",
     "churnCount": 2
   },
@@ -773,10 +777,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/runners/coupling.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
     "churnCount": 2
   },
   {
@@ -1240,6 +1240,10 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/engine_complexity_refactor_20260723/plan.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/design_os_integration_20260630/spec.md",
     "churnCount": 1
   },
@@ -1289,6 +1293,10 @@
   },
   {
     "file": "superconductor/tracks/core_harness_abstraction_20260723/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/complexity_refactor_round3_20260723/plan.md",
     "churnCount": 1
   },
   {
@@ -8085,6 +8093,10 @@
   },
   {
     "file": "packages/engine/src/dispatcher/backlog-parser.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/engine/src/dag/utils.ts",
     "churnCount": 1
   },
   {

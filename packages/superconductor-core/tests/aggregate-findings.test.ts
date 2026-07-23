@@ -65,6 +65,119 @@ describe('aggregateFindings', () => {
     expect(result[0].reviewer_ids).toEqual(['rev1', 'rev2']);
   });
 
+  it('should preserve and union categories on cross-category deduplication', () => {
+    const rawText1 = `
+\`\`\`review-findings
+[
+  {
+    "finding_id": "F1",
+    "reviewer_id": "rev1",
+    "file": "src/app.ts",
+    "line_range": "10-15",
+    "severity": "high",
+    "category": "security",
+    "description": "Bug 1",
+    "recommendation": "Fix 1",
+    "is_security_critical": true
+  }
+]
+\`\`\`
+`;
+    const rawText2 = `
+\`\`\`review-findings
+[
+  {
+    "finding_id": "F2",
+    "reviewer_id": "rev2",
+    "file": "src/app.ts",
+    "line_range": "10-15",
+    "severity": "medium",
+    "category": "correctness",
+    "description": "Bug 1 duplicate",
+    "recommendation": "Fix 1 duplicate",
+    "is_security_critical": false
+  }
+]
+\`\`\`
+`;
+
+    const result = aggregateFindings([
+      { reviewer_id: 'rev1', raw_text: rawText1 },
+      { reviewer_id: 'rev2', raw_text: rawText2 }
+    ]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].categories).toContain('security');
+    expect(result[0].categories).toContain('correctness');
+    expect(result[0].categories?.length).toBe(2);
+  });
+
+  it('should initialize categories for a single finding without duplicates', () => {
+    const rawText1 = `
+\`\`\`review-findings
+[
+  {
+    "finding_id": "F1",
+    "reviewer_id": "rev1",
+    "file": "src/app.ts",
+    "line_range": "10-15",
+    "severity": "high",
+    "category": "architecture",
+    "description": "Bug 1",
+    "recommendation": "Fix 1",
+    "is_security_critical": false
+  }
+]
+\`\`\`
+`;
+    const result = aggregateFindings([{ reviewer_id: 'rev1', raw_text: rawText1 }]);
+    expect(result).toHaveLength(1);
+    expect(result[0].categories).toEqual(['architecture']);
+  });
+
+  it('should not add duplicate categories when merging the same category', () => {
+    const rawText1 = `
+\`\`\`review-findings
+[
+  {
+    "finding_id": "F1",
+    "reviewer_id": "rev1",
+    "file": "src/app.ts",
+    "line_range": "10-15",
+    "severity": "high",
+    "category": "security",
+    "description": "Bug 1",
+    "recommendation": "Fix 1",
+    "is_security_critical": true
+  }
+]
+\`\`\`
+`;
+    const rawText2 = `
+\`\`\`review-findings
+[
+  {
+    "finding_id": "F2",
+    "reviewer_id": "rev2",
+    "file": "src/app.ts",
+    "line_range": "10-15",
+    "severity": "high",
+    "category": "security",
+    "description": "Bug 1 dup",
+    "recommendation": "Fix 1 dup",
+    "is_security_critical": true
+  }
+]
+\`\`\`
+`;
+    const result = aggregateFindings([
+      { reviewer_id: 'rev1', raw_text: rawText1 },
+      { reviewer_id: 'rev2', raw_text: rawText2 }
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].categories).toEqual(['security']);
+  });
+
   it('should enforce schema guard rejecting objects missing required string fields', () => {
     const invalidRawText = `
 \`\`\`review-findings

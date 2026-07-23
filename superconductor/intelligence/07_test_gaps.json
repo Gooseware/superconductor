@@ -2,7 +2,7 @@
   {
     "file": "packages/engine/src/dispatcher/dispatcher.ts",
     "exportedSymbols": [],
-    "gitChurnScore": 9,
+    "gitChurnScore": 10,
     "riskLevel": "critical"
   },
   {
@@ -14,6 +14,18 @@
   {
     "file": "packages/engine/src/context/builder.ts",
     "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
+    "exportedSymbols": [],
     "gitChurnScore": 7,
     "riskLevel": "critical"
   },
@@ -24,19 +36,13 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-mcp-server/src/index.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 7,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
+    "file": "packages/engine/src/types/events.ts",
     "exportedSymbols": [],
     "gitChurnScore": 6,
     "riskLevel": "critical"
   },
   {
-    "file": "packages/engine/src/types/events.ts",
+    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
     "exportedSymbols": [],
     "gitChurnScore": 6,
     "riskLevel": "critical"
@@ -49,12 +55,6 @@
   },
   {
     "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 5,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
     "exportedSymbols": [],
     "gitChurnScore": 5,
     "riskLevel": "critical"
@@ -73,6 +73,18 @@
   },
   {
     "file": "packages/engine/src/cache/ModelFetcher.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/engine/src/dag/parser.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/engine/src/dag/validator.ts",
     "exportedSymbols": [],
     "gitChurnScore": 4,
     "riskLevel": "high"
@@ -150,18 +162,6 @@
     "riskLevel": "high"
   },
   {
-    "file": "packages/engine/src/dag/parser.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 3,
-    "riskLevel": "high"
-  },
-  {
-    "file": "packages/engine/src/dag/validator.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 3,
-    "riskLevel": "high"
-  },
-  {
     "file": "packages/engine/src/types/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 3,
@@ -174,6 +174,12 @@
     "riskLevel": "high"
   },
   {
+    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
     "file": "packages/superconductor-core/src/protocol/agent-context.ts",
     "exportedSymbols": [],
     "gitChurnScore": 3,
@@ -181,6 +187,12 @@
   },
   {
     "file": "scripts/aggregate-coverage-manifest.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "superconductor/migrate_local_registry.js",
     "exportedSymbols": [],
     "gitChurnScore": 3,
     "riskLevel": "high"
@@ -258,12 +270,6 @@
     "riskLevel": "high"
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 2,
-    "riskLevel": "high"
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/runners/coupling.ts",
     "exportedSymbols": [],
     "gitChurnScore": 2,
@@ -295,12 +301,6 @@
   },
   {
     "file": "superconductor/git_workflow_manager.js",
-    "exportedSymbols": [],
-    "gitChurnScore": 2,
-    "riskLevel": "high"
-  },
-  {
-    "file": "superconductor/migrate_local_registry.js",
     "exportedSymbols": [],
     "gitChurnScore": 2,
     "riskLevel": "high"
@@ -403,6 +403,12 @@
   },
   {
     "file": "packages/engine/src/curator/telemetry.types.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "packages/engine/src/dag/utils.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
@@ -1669,12 +1675,6 @@
   },
   {
     "file": "packages/engine/dist/verification/vlm-auditor.types.js",
-    "exportedSymbols": [],
-    "gitChurnScore": 0,
-    "riskLevel": "low"
-  },
-  {
-    "file": "packages/engine/src/dag/utils.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"

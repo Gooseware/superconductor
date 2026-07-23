@@ -85,12 +85,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: ABI Retrospective Protocol Formalization**
+- [x] **Track: ABI Retrospective Protocol Formalization**
 *Link: [./tracks/abi_retrospective_20260723/](./tracks/abi_retrospective_20260723/)*
 
 ---
 
-- [ ] **Track: Review Self-Verification Gate**
+- [x] **Track: Review Self-Verification Gate**
 *Link: [./tracks/review_self_verification_20260723/](./tracks/review_self_verification_20260723/)*
 
 ---
@@ -120,5 +120,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Complexity Refactor Round 3**
+- [x] **Track: Complexity Refactor Round 3**
 *Link: [./tracks/complexity_refactor_round3_20260723/](./tracks/complexity_refactor_round3_20260723/)*

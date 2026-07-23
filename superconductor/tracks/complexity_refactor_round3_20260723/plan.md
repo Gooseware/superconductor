@@ -12,11 +12,12 @@ We are knocking out the remaining hotspots >10 CCN across the workspace:
 
 ## Acceptance Criteria
 
-- [ ] `mcp-server/index.ts`: extract `handleGetAgentContext`, `handleRunIntelligence`, `handleCheckPlanGap`, `handleRunAbiRetrospective`
-- [ ] `complexity.ts`: extract `calculateGitChurn`, `runLizardScan`, `mergeComplexityAndChurn`
-- [ ] `aggregate-findings.ts`: extract inner loops in `extractReviewerFindings`
-- [ ] `migrate_local_registry.js`: extract `readComponentMetadata`, `writeDogmaFile`, `copyComponentFiles`
-- [ ] Tests pass (171 in engine, 66 in core)
+- [x] `mcp-server/index.ts`: extract `handleGetAgentContext`, `handleRunIntelligence`, `handleCheckPlanGap`, `handleRunAbiRetrospective`
+- [x] `complexity.ts`: extract `calculateGitChurn`, `runLizardScan`, `mergeComplexityAndChurn`
+- [x] `aggregate-findings.ts`: extract inner loops in `extractReviewerFindings`
+- [x] `migrate_local_registry.js`: extract `readComponentMetadata`, `writeDogmaFile`, `copyComponentFiles`
+- [x] Extra inline: `deterministic-preflight.ts` (CCN 18->6), `skill-trigger-engine.ts` (CCN 24->9), `sast.ts` (CCN 16->11)
+- [x] Tests pass (171 in engine, 66 in core)
 
 ## Swarm Assignment
 

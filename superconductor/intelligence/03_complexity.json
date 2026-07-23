@@ -1,66 +1,38 @@
 [
   {
     "file": "packages/superconductor-mcp-server/src/index.ts",
-    "cyclomatic_complexity": 18,
-    "nloc": 68,
-    "churnCount": 7,
-    "hotspot_score": 37.42994775023704
+    "cyclomatic_complexity": 15,
+    "nloc": 20,
+    "churnCount": 8,
+    "hotspot_score": 32.95836866004329
   },
   {
     "file": "packages/engine/src/context/builder.ts",
     "cyclomatic_complexity": 15,
     "nloc": 29,
-    "churnCount": 7,
-    "hotspot_score": 31.191623125197538
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
-    "cyclomatic_complexity": 16,
-    "nloc": 24,
-    "churnCount": 4,
-    "hotspot_score": 25.751006598945605
+    "churnCount": 8,
+    "hotspot_score": 32.95836866004329
   },
   {
     "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
-    "cyclomatic_complexity": 13,
-    "nloc": 51,
-    "churnCount": 5,
-    "hotspot_score": 23.292873099964716
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
-    "cyclomatic_complexity": 20,
-    "nloc": 70,
-    "churnCount": 2,
-    "hotspot_score": 21.97224577336219
+    "cyclomatic_complexity": 12,
+    "nloc": 48,
+    "churnCount": 6,
+    "hotspot_score": 23.350921788663758
   },
   {
     "file": "packages/engine/src/dispatcher/dispatcher.ts",
     "cyclomatic_complexity": 9,
     "nloc": 11,
-    "churnCount": 9,
-    "hotspot_score": 20.723265836946414
-  },
-  {
-    "file": "packages/superconductor-core/src/review/deterministic-preflight.ts",
-    "cyclomatic_complexity": 18,
-    "nloc": 21,
-    "churnCount": 2,
-    "hotspot_score": 19.77502119602597
-  },
-  {
-    "file": "superconductor/migrate_local_registry.js",
-    "cyclomatic_complexity": 17,
-    "nloc": 50,
-    "churnCount": 2,
-    "hotspot_score": 18.676408907357864
+    "churnCount": 10,
+    "hotspot_score": 21.581057455185338
   },
   {
     "file": "packages/engine/src/dag/validator.ts",
     "cyclomatic_complexity": 13,
     "nloc": 34,
-    "churnCount": 3,
-    "hotspot_score": 18.021826694558577
+    "churnCount": 4,
+    "hotspot_score": 20.922692861643302
   },
   {
     "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
@@ -70,11 +42,11 @@
     "hotspot_score": 17.91759469228055
   },
   {
-    "file": "packages/engine/src/skills/skill-trigger-engine.ts",
-    "cyclomatic_complexity": 24,
-    "nloc": 51,
-    "churnCount": 1,
-    "hotspot_score": 16.635532333438686
+    "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
+    "cyclomatic_complexity": 11,
+    "nloc": 11,
+    "churnCount": 4,
+    "hotspot_score": 17.703817036775103
   },
   {
     "file": "packages/engine/src/verification/dod-classifier.ts",
@@ -133,11 +105,25 @@
     "hotspot_score": 14.281959752685424
   },
   {
+    "file": "packages/superconductor-core/src/intelligence/runners/complexity.ts",
+    "cyclomatic_complexity": 10,
+    "nloc": 27,
+    "churnCount": 3,
+    "hotspot_score": 13.862943611198906
+  },
+  {
     "file": "packages/engine/src/engine.ts",
     "cyclomatic_complexity": 6,
     "nloc": 25,
     "churnCount": 9,
     "hotspot_score": 13.815510557964275
+  },
+  {
+    "file": "superconductor/migrate_local_registry.js",
+    "cyclomatic_complexity": 9,
+    "nloc": 19,
+    "churnCount": 3,
+    "hotspot_score": 12.476649250079015
   },
   {
     "file": "packages/engine/src/concurrency/storm.ts",
@@ -150,8 +136,22 @@
     "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
     "cyclomatic_complexity": 6,
     "nloc": 47,
-    "churnCount": 6,
-    "hotspot_score": 11.675460894331879
+    "churnCount": 7,
+    "hotspot_score": 12.476649250079014
+  },
+  {
+    "file": "packages/superconductor-core/src/review/deterministic-preflight.ts",
+    "cyclomatic_complexity": 11,
+    "nloc": 8,
+    "churnCount": 2,
+    "hotspot_score": 12.084735175349206
+  },
+  {
+    "file": "packages/engine/src/dag/parser.ts",
+    "cyclomatic_complexity": 7,
+    "nloc": 22,
+    "churnCount": 4,
+    "hotspot_score": 11.266065387038703
   },
   {
     "file": "packages/engine/src/routing/escalation-router.ts",
@@ -165,13 +165,6 @@
     "cyclomatic_complexity": 14,
     "nloc": 34,
     "churnCount": 1,
-    "hotspot_score": 9.704060527839234
-  },
-  {
-    "file": "packages/engine/src/dag/parser.ts",
-    "cyclomatic_complexity": 7,
-    "nloc": 22,
-    "churnCount": 3,
     "hotspot_score": 9.704060527839234
   },
   {
@@ -241,6 +234,13 @@
     "file": "packages/superconductor-core/src/intelligence/tool-registry.ts",
     "cyclomatic_complexity": 10,
     "nloc": 27,
+    "churnCount": 1,
+    "hotspot_score": 6.931471805599453
+  },
+  {
+    "file": "packages/engine/src/skills/skill-trigger-engine.ts",
+    "cyclomatic_complexity": 10,
+    "nloc": 35,
     "churnCount": 1,
     "hotspot_score": 6.931471805599453
   },
@@ -472,6 +472,13 @@
     "file": "packages/engine/tests/integration.test.ts",
     "cyclomatic_complexity": 4,
     "nloc": 24,
+    "churnCount": 1,
+    "hotspot_score": 2.772588722239781
+  },
+  {
+    "file": "packages/engine/src/dag/utils.ts",
+    "cyclomatic_complexity": 4,
+    "nloc": 9,
     "churnCount": 1,
     "hotspot_score": 2.772588722239781
   },
@@ -1214,13 +1221,6 @@
     "file": "packages/design-os-kernel/src/index.ts",
     "cyclomatic_complexity": 45,
     "nloc": 265,
-    "churnCount": 0,
-    "hotspot_score": 0
-  },
-  {
-    "file": "packages/engine/src/dag/utils.ts",
-    "cyclomatic_complexity": 4,
-    "nloc": 9,
     "churnCount": 0,
     "hotspot_score": 0
   },

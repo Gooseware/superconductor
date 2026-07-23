@@ -296,11 +296,17 @@ A report without this block is a reading-only review. Its verdict is voided unde
    ## Coverage Report
    ## [Token Efficiency Report] (if --stats)
    ```
-3. **Exit code:**
+3. **Self-Check Verification:** Immediately after writing the report, you MUST run:
+   ```bash
+   npx -y tsx scripts/review-self-check.ts <report-path>
+   ```
+   - If the script fails (exit code > 0): Announce the failure reason to the user, instruct them to resolve it (e.g., by actually executing edge cases and pasting evidence), and request a re-run. Do not output final success message.
+   - **Bypass Path:** If you are intentionally skipping the self-check (e.g., for automated runs), pass `--skip-self-check` to input resolution, which skips this verification.
+4. **Exit code:**
    - `0` — no findings or findings are advisory only
    - `1` — findings present (medium or high severity)
    - `2` — critical security findings present (pipeline must block)
-4. **Announce:** After writing the report, output the path to the user:
+5. **Announce:** After writing the report and passing the self-check, output the path to the user:
    > "Review complete. Report written to: `./review-<timestamp>.md`"
 
 ---

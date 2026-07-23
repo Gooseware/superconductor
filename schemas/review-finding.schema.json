@@ -24,6 +24,12 @@
       "type": "string",
       "enum": ["security", "correctness", "adversarial", "architecture", "style"]
     },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "description": {
       "type": "string"
     },

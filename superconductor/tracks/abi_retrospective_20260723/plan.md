@@ -52,5 +52,5 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 4: Retrospective Report & CLI' (Protocol in workflow.md)
 
 ## Phase 5: Integration & Finalization
-- [ ] Task: Run full test suite and confirm zero regressions [TIER-1] [AGENT:caduceus-triage]
-- [ ] Task: Integrate track 'abi_retrospective_20260723' into main branch [TIER-1] [AGENT:caduceus-triage]
+- [x] Task: Run full test suite and confirm zero regressions [TIER-1] [AGENT:caduceus-triage]
+- [x] Task: Integrate track 'abi_retrospective_20260723' into main branch [TIER-1] [AGENT:caduceus-triage]

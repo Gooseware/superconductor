@@ -1,16 +1,16 @@
 {
   "languages": {
-    "JSON": 43234,
-    "JavaScript": 35731,
+    "JSON": 43327,
+    "JavaScript": 35748,
     "Markdown": 0,
     "Plain Text": 0,
     "Shell": 180,
     "TOML": 12,
     "TSX": 11,
-    "TypeScript": 79466,
+    "TypeScript": 79498,
     "YAML": 62
   },
-  "totalLines": 158696,
-  "totalFiles": 1586,
+  "totalLines": 158838,
+  "totalFiles": 1587,
   "primaryLanguage": "TypeScript"
 }

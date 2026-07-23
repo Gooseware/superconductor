@@ -5,6 +5,7 @@ export interface ResolvedInput {
   targetValue?: string;
   depthMode: 'fast' | 'deep' | 'full';
   stats: boolean;
+  skipSelfCheck?: boolean;
   resolvedDiffCommand?: string;
   error?: string;
 }
@@ -20,6 +21,7 @@ export function resolveReviewInput(
       targetType: 'default',
       depthMode: 'full',
       stats: false,
+      skipSelfCheck: false,
       error: 'Cannot specify both --fast and --deep depth modes'
     };
   }
@@ -28,6 +30,7 @@ export function resolveReviewInput(
   let targetValue: string | undefined;
   let depthMode: ResolvedInput['depthMode'] = 'full';
   let stats = false;
+  let skipSelfCheck = false;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -37,6 +40,8 @@ export function resolveReviewInput(
       depthMode = 'deep';
     } else if (arg === '--stats') {
       stats = true;
+    } else if (arg === '--skip-self-check') {
+      skipSelfCheck = true;
     } else if (arg === '--staged') {
       targetType = 'staged';
     } else if (['--branch', '--pr', '--file', '--dir'].includes(arg)) {
@@ -46,6 +51,7 @@ export function resolveReviewInput(
           targetType: arg.slice(2) as ResolvedInput['targetType'],
           depthMode,
           stats,
+          skipSelfCheck,
           error: `${arg} requires a value argument`
         };
       }
@@ -63,6 +69,7 @@ export function resolveReviewInput(
         targetValue,
         depthMode,
         stats,
+        skipSelfCheck,
         error: `File not found: ${targetValue || 'unspecified'}`
       };
     }
@@ -70,7 +77,8 @@ export function resolveReviewInput(
       targetType,
       targetValue,
       depthMode,
-      stats
+      stats,
+      skipSelfCheck
     };
   }
 
@@ -79,6 +87,7 @@ export function resolveReviewInput(
       targetType,
       depthMode,
       stats,
+      skipSelfCheck,
       resolvedDiffCommand: 'git diff --staged'
     };
   }
@@ -89,6 +98,7 @@ export function resolveReviewInput(
       targetValue,
       depthMode,
       stats,
+      skipSelfCheck,
       resolvedDiffCommand: `git diff main..${targetValue}`
     };
   }
@@ -98,7 +108,8 @@ export function resolveReviewInput(
       targetType,
       targetValue,
       depthMode,
-      stats
+      stats,
+      skipSelfCheck
     };
   }
 
@@ -108,7 +119,8 @@ export function resolveReviewInput(
       targetType: 'stdin',
       targetValue: stdinText,
       depthMode,
-      stats
+      stats,
+      skipSelfCheck
     };
   }
 
@@ -118,6 +130,7 @@ export function resolveReviewInput(
       targetType: 'default',
       depthMode,
       stats,
+      skipSelfCheck,
       resolvedDiffCommand: 'git diff HEAD'
     };
   }
@@ -126,6 +139,7 @@ export function resolveReviewInput(
     targetType: 'default',
     depthMode,
     stats,
+    skipSelfCheck,
     error: 'No review target specified and this is not a git repository. Please provide --file, --dir, or --pr.'
   };
 }
