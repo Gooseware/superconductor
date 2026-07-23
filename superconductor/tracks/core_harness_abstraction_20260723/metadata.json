@@ -1,0 +1,22 @@
+{
+  "track_id": "core_harness_abstraction_20260723",
+  "name": "Harness-Agnostic Core Abstraction",
+  "type": "Architecture",
+  "status": "planned",
+  "created_at": "2026-07-23T09:32:00Z",
+  "target_branch": "main",
+  "complexity": "high",
+  "priority": "critical",
+  "must_precede": ["intelligence_layer_20260723"],
+  "description": "Extracts all business logic from AGY-coupled code into @superconductor/core package. Each harness (AGY, Claude Desktop, OpenCode, VSCode, CLI) becomes a thin adapter. The MCP server pattern established by design-os-kernel is extended to expose all Superconductor capabilities to any MCP-compatible harness. Migrates 7 review scripts to core, adds track management module, agent context protocol, and universal CLI adapter.",
+  "packages_created": [
+    "@superconductor/core",
+    "@superconductor/mcp-server"
+  ],
+  "harness_scaffolds": [
+    "harnesses/agy/",
+    "harnesses/claude/",
+    "harnesses/opencode/",
+    "harnesses/cli/"
+  ]
+}

@@ -100,6 +100,11 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Project Intelligence Layer & Brownfield Repository Analysis**
+- [ ] **Track: Harness-Agnostic Core Abstraction** *(prerequisite for intelligence layer)*
+*Link: [./tracks/core_harness_abstraction_20260723/](./tracks/core_harness_abstraction_20260723/)*
+
+---
+
+- [ ] **Track: Project Intelligence Layer & Brownfield Repository Analysis** *(requires core abstraction)*
 *Link: [./tracks/intelligence_layer_20260723/](./tracks/intelligence_layer_20260723/)*
 
