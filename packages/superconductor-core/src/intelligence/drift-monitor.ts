@@ -21,6 +21,14 @@ export class IntelligenceDriftMonitor {
   /**
    * Check drift state against current HEAD.
    * Uses spawnSync for all git calls — never execSync + string interpolation.
+   *
+   * @param manifest  - The parsed 00_manifest.json object (canonical field names expected;
+   *                    callers should normalise legacy `last_commit`/`incremental_runs` fields
+   *                    before passing here — see IntelligenceSnapshotReader for reference).
+   * @param projectRoot - Absolute path to the git repository root.  Callers MUST pass this
+   *                      explicitly; the two-level `path.resolve(outputDir, '../..')` fallback
+   *                      in IntelligenceSnapshotReader is only for legacy call sites that have
+   *                      not yet threaded projectRoot through.
    */
   static checkDrift(manifest: Manifest, projectRoot: string): DriftReport {
     const snapshotAgeMs = Date.now() - manifest.timestamp;
@@ -70,10 +78,19 @@ export class IntelligenceDriftMonitor {
   }
 
   /**
-   * Format the 3-state banner:
+   * Format the 3-state banner for display to the user.
+   *
    * LIVE:  'ℹ️  Intelligence: LIVE (snapshot age: Xm · last commit: abc1234 · N incremental runs)'
    * STALE: '⚠️  Intelligence: STALE (snapshot age: Xd · N commits behind · consider running /superconductor:setup)'
    * NONE:  '❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)'
+   *
+   * ## Required surfacing contract (oracle advisory §1)
+   * Every call site that invokes `IntelligenceSnapshotReader.load()` or
+   * `IntelligenceDriftMonitor.checkDrift()` MUST emit the returned `banner` string
+   * to the user (e.g. via `process.stderr.write`) **before** executing any primary
+   * analysis logic.  Skills such as `new-track §2.0.5` and `setup §2.7` are
+   * responsible for honouring this contract so the user always sees the current
+   * intelligence health state before results are presented.
    */
   static formatBanner(report: DriftReport): string {
     if (!report.isDrifted) {
@@ -98,7 +115,11 @@ export class IntelligenceDriftMonitor {
     return `\u26a0\ufe0f  Intelligence: STALE (snapshot age: ${ageStr} \u00b7 ${behindStr} commits behind \u00b7 consider running /superconductor:setup)`;
   }
 
-  /** Format a NONE-state banner (no manifest present). */
+  /**
+   * Format a NONE-state banner (no manifest present).
+   * Call sites that receive `null` from `IntelligenceSnapshotReader.load()` MUST
+   * emit this banner before falling back to keyword heuristics.
+   */
   static noBanner(): string {
     return `\u274c  Intelligence: NONE (keyword heuristics active \u00b7 run /superconductor:setup for surgical precision)`;
   }
