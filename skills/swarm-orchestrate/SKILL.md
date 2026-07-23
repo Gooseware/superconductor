@@ -14,6 +14,16 @@ All intermediate implementation, testing, bug-fixing, and reviews must happen in
 
 ---
 
+**Intelligence Preflight (before Wave 1):**
+1. Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)`
+2. Emit the degradation banner
+3. Pass `RepoContext` to `SwarmBlueprintGenerator` for TCS (Task Complexity Score) computation
+   - Tasks touching HIGH hotspot files get TCS boosted by +2
+   - Tasks touching HIGH test-gap files get TIER-4 routing
+   - Tasks with active SAST findings get a security reviewer added to their review panel
+
+---
+
 ## 1.1 SWARM ROLES
 The swarm consists of the following specialized roles (configured as subagents or using tier-appropriate routing):
 

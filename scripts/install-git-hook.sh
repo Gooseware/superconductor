@@ -13,9 +13,14 @@ fi
 # Append to existing hook or create new
 cat >> "$HOOK_FILE" << 'HOOK'
 # superconductor:intelligence
-CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only "$(git hash-object -t tree /dev/null)" HEAD 2>/dev/null || true)
-if [ -n "$CHANGED" ]; then
-  node "$(git rev-parse --show-toplevel)/packages/superconductor-core/dist/intelligence/cli-update.js" $CHANGED &
+if CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-only "$(git hash-object -t tree /dev/null)" HEAD 2>/dev/null); then
+  CHANGED_ARRAY=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && CHANGED_ARRAY+=("$line")
+  done <<< "$CHANGED"
+  if [ ${#CHANGED_ARRAY[@]} -gt 0 ]; then
+    node "$(git rev-parse --show-toplevel)/packages/superconductor-core/dist/intelligence/cli-update.js" "${CHANGED_ARRAY[@]}" &
+  fi
 fi
 HOOK
 

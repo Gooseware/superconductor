@@ -64,6 +64,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 1. **Trigger:** This phase runs automatically before spec generation.
 2. **Action:**
    - Spin up a background "Architecture Committee" debate using two specialized agent roles:
+     - Load `RepoContext` and pass snapshot data as context to both roles.
      - **Dreamer Role (Tier 4 / Architecture):** Analyzes the track from an architectural, decoupling, and structural patterns perspective.
      - **Reviewer Role (Tier 4 / Security & Performance):** Critiques the Dreamer's proposed structure for security gaps, performance bottlenecks, and compliance issues.
    - The agents debate in the background until consensus is achieved, producing an "Architecture Committee Report".
@@ -113,6 +114,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
 3.  **Generate Plan:**
     *   Read the confirmed `spec.md` content for this track.
+    *   Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)` and pass it to annotate task complexity scores with real hotspot data.
     *   Resolve and read the **Workflow** file (via the **Universal File Resolution Protocol** using the project's index file).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the **Workflow** file (e.g., TDD tasks for "Write Tests" and "Implement").

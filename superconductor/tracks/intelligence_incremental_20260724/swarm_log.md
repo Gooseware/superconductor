@@ -312,3 +312,166 @@ The 3 advisories (ADVISORY-2 counter persistence, ADVISORY-3 sync/async ambiguit
 - ORACLE ADVISORY: `mergeIntoJson` assumes all outputs are `{ file: string }[]` arrays, but `dependency-graph` outputs `{ nodes, edges, circularDeps }`. Phase 4 should introduce a dedicated merge strategy for non-array outputs.
 - ORACLE ADVISORY: Do not introduce any new `execSync` + string interpolation patterns. Use `spawnSync`.
 - ORACLE ADVISORY: `trivy fs <file.ts>` is semantically incorrect (it scans directories). Scoped trivial scanning should be skipped or stubbed instead of asserting findings.
+
+### [Remediation] Phase 2 Critical Fix
+**Status:** Completed
+**Commit:** 27c5ff3
+**Test Count:** 142 tests passing
+
+---
+
+### [Review Phase 3] Advisory Review
+**Auditor:** Swarm Reviewer (pipeline assembly-line)
+**Timestamp:** 2026-07-24T03:35:00Z
+**Commit reviewed:** `6ebebad` — `feat(intelligence): add cli-update wrapper, git post-commit hook, and setup integration`
+
+---
+
+#### Checklist Results
+
+| Item | Status | Notes |
+|------|--------|-------|
+| `cli-update.ts` outputs `UpdateReport` to **stderr** | ✅ PASS | `process.stderr.write(...)` on both success and error paths |
+| `cli-update.ts` uses `execFileSync` (not `execSync` + string) for `git rev-parse` | ✅ PASS | `execFileSync('git', ['rev-parse', '--show-toplevel'], ...)` — args array, no interpolation |
+| `cli-update.ts` exits 0 on all error paths | ✅ PASS | `.catch(e => { …; process.exit(0); })` — explicit comment explains rationale |
+| `cli-update.ts` no stdout writes | ✅ PASS | No `console.log`, no `process.stdout.write` found |
+| `install-git-hook.sh` idempotency marker check | ✅ PASS | `grep -q "$MARKER"` guard present before any write |
+| `install-git-hook.sh` runs hook in background (`&`) | ✅ PASS | `node … $CHANGED &` in injected block |
+| `install-git-hook.sh` appends to existing hook (no overwrite) | ✅ PASS | `cat >> "$HOOK_FILE"` — append redirect, not `>` |
+| `setup/SKILL.md §2.7` has hook install step | ✅ PASS | Step `2a` added |
+| `setup/SKILL.md §2.7` has baseline scan step | ✅ PASS | Step `2b` added |
+| Integration test: modified file entries change | ⚠️ PARTIAL | Tests `filesUpdated` count but does **not** assert that the on-disk JSON entry for `file1.ts` was actually updated with new data |
+| Integration test: `lastCommitSha` updates | ✅ PASS | `expect(manifest.lastCommitSha).toBe(newSha)` |
+| Integration test: no `.tmp` files left | ✅ PASS | `tmpFiles.length === 0` assertion present |
+
+---
+
+#### Findings
+
+##### 🔴 CRITICAL — None
+
+No CRITICAL issues found in this commit.
+
+---
+
+##### 🟡 ADVISORY-1 — `$CHANGED` unquoted in hook invocation (word-splitting)
+
+**File:** `scripts/install-git-hook.sh`, line 19 (injected into hook)
+```sh
+node "$(git rev-parse --show-toplevel)/packages/superconductor-core/dist/intelligence/cli-update.js" $CHANGED &
+```
+
+`$CHANGED` is **unquoted** in the `node` invocation. When filenames contain spaces (e.g., `"my component.ts"`), the shell will word-split across the space, producing two separate argv values and corrupting the file path passed to `cli-update.js`. This is a known footgun in bash scripts.
+
+**Fix:** Use `mapfile` / `read -a` or quote the expansion:
+```sh
+# Option A: pass via xargs / array
+CHANGED_ARRAY=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && CHANGED_ARRAY+=("$line")
+done <<< "$CHANGED"
+node "$(git rev-parse --show-toplevel)/packages/superconductor-core/dist/intelligence/cli-update.js" "${CHANGED_ARRAY[@]}" &
+```
+
+**Severity:** Advisory — only triggers on repos with space-containing filenames, but this is a real possibility for any JS project with component libraries (e.g., `"Button (v2).tsx"`).
+
+---
+
+##### 🟡 ADVISORY-2 — `cli-update.ts` does not validate `changedFiles` are within `projectRoot`
+
+**File:** `packages/superconductor-core/src/intelligence/cli-update.ts`, lines 14–21
+
+`changedFiles` is taken directly from `process.argv.slice(2)` and passed to `update()` without checking that each path resolves to a location within `projectRoot`. While the hook injects only git-tracked filenames, a manually invoked `cli-update.js ../../../etc/passwd` (or a compromised hook) could trigger runner logic on files outside the project boundary.
+
+**Fix:** Add a validation step in `main()`:
+```ts
+const resolvedRoot = path.resolve(projectRoot);
+const safeFiles = changedFiles.filter(f => {
+  const abs = path.resolve(resolvedRoot, f);
+  return abs.startsWith(resolvedRoot + path.sep);
+});
+```
+
+**Severity:** Advisory — not exploitable through the normal hook flow, but a defence-in-depth gap.
+
+---
+
+##### 🟡 ADVISORY-3 — `incremental-updater.ts` still uses `execSync` for `git rev-parse HEAD`
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`, line 75
+```ts
+headSha = execSync('git rev-parse HEAD', { cwd: projectRoot, encoding: 'utf-8' }).trim();
+```
+
+This was flagged as a residual in the Phase 1-2 Oracle review. The `cwd: projectRoot` mitigates the most obvious attack surface (the command string itself is fixed), but the pattern is inconsistent with the `spawnSync` approach adopted by `cli-update.ts` and the remediated runners. It is not a new regression introduced in this commit, but it was not addressed during Phase 3 either.
+
+**Fix:** Replace with `spawnSync`:
+```ts
+const result = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: projectRoot, encoding: 'utf-8' });
+headSha = (result.stdout || '').trim();
+```
+
+**Severity:** Advisory — `projectRoot` is set at process startup and is not user-controlled per-call, but pattern inconsistency creates maintenance risk.
+
+---
+
+##### 🟡 ADVISORY-4 — Integration test does not verify on-disk content mutation for `file1.ts`
+
+**File:** `packages/superconductor-core/tests/intelligence/git-hook-integration.test.ts`, lines 55–75
+
+The test asserts `report.filesUpdated === 1`, `manifest.lastCommitSha === newSha`, and no `.tmp` files — all correct. However, it does **not** assert that the content of `03_complexity.json` (or any runner output file) was actually mutated with new entries for `file1.ts`. The runner mocks are spied via `ToolRegistry` but the runners themselves are not mocked — this means the actual runner code runs, which is good. But without asserting the final JSON content, a silent "runner ran but wrote nothing" regression would pass undetected.
+
+**Fix:** Add assertion after `update()`:
+```ts
+const complexity = JSON.parse(fs.readFileSync(path.join(outputDir, '03_complexity.json'), 'utf-8'));
+const file1Entry = complexity.find((e: any) => e.file === 'file1.ts');
+expect(file1Entry).toBeDefined(); // runner must have updated the entry
+```
+
+**Severity:** Advisory — the `.tmp` cleanup is verified (good), but the round-trip data mutation is not.
+
+---
+
+##### 🟡 ADVISORY-5 — `fingerprint` and `package-surface` runners silently dropped scoped-files support
+
+**File:** `packages/superconductor-core/src/intelligence/incremental-updater.ts`, diff in this commit
+
+This commit removed the scoped-file merge for `fingerprint` (lines 113–114) and `package-surface` (lines 155–156):
+
+```diff
+-    const res = runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint, changedFiles);
+-    if (res.entries) mergeIntoJson(path.join(outputDir, '01_fingerprint.json'), res.entries);
++    runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint);
+```
+
+```diff
+-    const res = runPackageSurface(projectRoot, outputDir, changedFiles);
+-    if (res.entries) mergeIntoJson(path.join(outputDir, '08_package_surface.json'), res.entries);
++    runPackageSurface(projectRoot, outputDir);
+```
+
+This is a **semantic regression**: the scoped-files incremental merge (the core Phase 2 value proposition) was intentionally removed for these two runners. The runners now do a full re-scan and overwrite their output files directly, rather than calling `mergeIntoJson`. Phase 3 may have a legitimate reason (e.g., `fingerprint` and `package-surface` do not support per-file scoping), but:
+
+1. The commit message does not document this intentional drop.
+2. The integration test does not cover these two runners, so the regression is not caught by CI.
+3. If unintentional, this is a correctness bug: changed files in the fingerprint/package-surface domains will trigger a full re-scan instead of a targeted merge, defeating the "basically-free" goal of the track.
+
+**Action required:** The coder agent should confirm whether `fingerprint` and `package-surface` intentionally do not support `mergeIntoJson` (e.g., because their output format is not an array of `{ file: string }` objects). If intentional, document it in a comment. If unintentional, restore the merge calls.
+
+**Severity:** Advisory — this is a functional correctness question, not a security issue. However, it directly impacts the spec's core incremental update goal and warrants explicit confirmation.
+
+---
+
+#### Severity Summary
+
+| Severity | Count |
+|----------|-------|
+| 🔴 CRITICAL | 0 |
+| 🟠 HIGH | 0 |
+| 🟡 ADVISORY | 5 |
+| ✅ PASS (spec checks) | 9/12 |
+
+**Verdict:** Phase 3 is **clear to proceed** from a correctness and security standpoint. No CRITICAL blockers. The five advisories should be triaged before phase close:
+- **ADV-1** (unquoted `$CHANGED`) and **ADV-5** (silent scoped-merge removal) are the most important to resolve.
+- **ADV-2**, **ADV-3**, and **ADV-4** can be batched into a single remediation commit.
+

@@ -10,6 +10,17 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 ---
 
+## 0.5 Intelligence Preflight
+1. Load the intelligence snapshot via `IntelligenceSnapshotReader.load(outputDir)`
+2. Emit the degradation banner (LIVE / STALE / NONE)
+3. If STALE (> 24h or > 10 commits behind current HEAD):
+   - Identify changed files: `git diff --name-only HEAD~10..HEAD`
+   - Trigger incremental update: `node packages/superconductor-core/dist/intelligence/cli-update.js <files>`
+   - Reload snapshot and emit updated banner
+4. Proceed to Phase 0 with RepoContext available for task context injection
+
+---
+
 ## 1.1 HEADLESS MODE HANDLING
 **PROTOCOL: Detect and adapt to headless execution.**
 

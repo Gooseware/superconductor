@@ -136,6 +136,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   if (changedFiles.some(PHASE_INVALIDATION['fingerprint'])) {
     phasesRun.push('fingerprint');
     runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint);
+    // ADV-5 Note: fingerprint does not support per-file mergeIntoJson because its output is a project-level hash/summary, not a { file: string }[] array.
   }
 
   // dependency-graph
@@ -177,6 +178,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   if (changedFiles.some(PHASE_INVALIDATION['package-surface'])) {
     phasesRun.push('package-surface');
     runPackageSurface(projectRoot, outputDir);
+    // ADV-5 Note: package-surface does not support per-file mergeIntoJson because it analyzes the entire package.json dependency tree and exports, not a { file: string }[] array.
   }
 
   // coupling (always update incrementally)
