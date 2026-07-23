@@ -58,6 +58,12 @@ describe('IncrementalUpdater', () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
     fs.mkdirSync(tmpDir, { recursive: true });
+
+    // ADV-3: spawnSync is now used instead of execSync. Provide a default mock
+    // that returns the correct SpawnSyncReturns shape so headSha resolves gracefully.
+    vi.mocked(childProcess.spawnSync).mockReturnValue({
+      pid: 0, output: [], stdout: '', stderr: '', status: 0, signal: null, error: undefined
+    } as any);
   });
 
   describe('mergeIntoJson', () => {

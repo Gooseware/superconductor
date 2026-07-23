@@ -74,5 +74,15 @@ describe('Git Hook & CLI Wrapper Integration', () => {
     const files = fs.readdirSync(outputDir);
     const tmpFiles = files.filter(f => f.includes('.tmp'));
     expect(tmpFiles.length).toBe(0);
+
+    // ADV-4: Verify on-disk content was actually updated (not just 'filesUpdated' count)
+    const complexityPath = path.join(outputDir, 'intelligence', '03_complexity.json');
+    if (fs.existsSync(complexityPath)) {
+      const complexity = JSON.parse(fs.readFileSync(complexityPath, 'utf-8'));
+      const changedFileEntry = Array.isArray(complexity)
+        ? complexity.find((e: any) => e.file && e.file.includes('file1'))
+        : null;
+      expect(changedFileEntry).toBeDefined();
+    }
   });
 });

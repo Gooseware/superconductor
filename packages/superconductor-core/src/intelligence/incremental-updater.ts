@@ -9,7 +9,7 @@ import { runSymbolExtraction } from './runners/symbol-extraction.js';
 import { runTestGaps } from './runners/test-gaps.js';
 import { runPackageSurface } from './runners/package-surface.js';
 import { getSuperconductorHome, resolveRegistry } from './tool-registry.js';
-import { execSync, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 
 export const PHASE_INVALIDATION: Record<string, (file: string) => boolean> = {
   complexity:          (f) => /\.(ts|js|tsx|jsx)$/.test(f) && !f.includes('.test.') && !f.includes('.spec.'),
@@ -71,9 +71,13 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   const manifestPath = path.join(outputDir, '00_manifest.json');
 
   let headSha = 'unknown';
-  try {
-    headSha = execSync('git rev-parse HEAD', { cwd: projectRoot, encoding: 'utf-8' }).trim();
-  } catch(e) {}
+  // ADV-3: Use spawnSync instead of execSync — avoids shell interpretation and handles errors explicitly.
+  const headResult = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: projectRoot, encoding: 'utf-8' });
+  headSha = (headResult.stdout || '').trim();
+  if (!headSha) {
+    process.stderr.write('[superconductor:intelligence] Could not resolve HEAD SHA\n');
+    headSha = 'unknown';
+  }
 
   if (!fs.existsSync(manifestPath)) {
     runPipeline([], projectRoot, options.outputDir);
@@ -135,8 +139,10 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   // fingerprint
   if (changedFiles.some(PHASE_INVALIDATION['fingerprint'])) {
     phasesRun.push('fingerprint');
+    // NOTE: `fingerprint` runner summarises the whole repo (token counts, file stats).
+    // It does not support per-file scoping — always runs as a full re-scan.
+    // Per-file incremental merge is not applicable here.
     runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint);
-    // ADV-5 Note: fingerprint does not support per-file mergeIntoJson because its output is a project-level hash/summary, not a { file: string }[] array.
   }
 
   // dependency-graph
@@ -177,8 +183,10 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   // package-surface
   if (changedFiles.some(PHASE_INVALIDATION['package-surface'])) {
     phasesRun.push('package-surface');
+    // NOTE: `package-surface` maps package.json exports across the repo.
+    // It does not produce { file: string }[] output, so mergeIntoJson is not applicable.
+    // Always runs as a full re-scan when package.json changes trigger this phase.
     runPackageSurface(projectRoot, outputDir);
-    // ADV-5 Note: package-surface does not support per-file mergeIntoJson because it analyzes the entire package.json dependency tree and exports, not a { file: string }[] array.
   }
 
   // coupling (always update incrementally)

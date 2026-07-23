@@ -18,12 +18,16 @@ async function main() {
   const projectRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
   const outputDir = getSuperconductorHome();
 
-  // Validate paths against projectRoot boundary
-  const validFiles = changedFiles.map(f => path.resolve(projectRoot, f))
-    .filter(f => f.startsWith(projectRoot))
-    .map(f => path.relative(projectRoot, f));
+  // Validate paths against projectRoot boundary (ADV-2: use resolvedRoot + sep to prevent traversal)
+  const resolvedRoot = path.resolve(projectRoot);
+  const safeFiles = changedFiles.filter(f => {
+    const abs = path.resolve(resolvedRoot, f);
+    return abs.startsWith(resolvedRoot + path.sep) || abs === resolvedRoot;
+  });
 
-  const report = await update({ projectRoot, changedFiles: validFiles, outputDir });
+  if (safeFiles.length === 0) process.exit(0);
+
+  const report = await update({ projectRoot, changedFiles: safeFiles, outputDir });
   process.stderr.write(`[superconductor:intelligence] ${JSON.stringify(report)}\n`);
 }
 
