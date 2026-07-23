@@ -83,58 +83,57 @@ export class SkillTriggerEngine {
       const triggers = manifest.triggers;
       if (!triggers) continue;
 
-      // 1. Execution Events (TrackInitialization if task has no dependencies)
-      if (triggers.executionEvents?.includes('TrackInitialization') && (!task.dependsOn || task.dependsOn.length === 0)) {
+      if (this.matchExecutionEvents(triggers, task)) {
         matches.push({ manifest, matchedBy: 'event' });
         continue;
       }
-
-      // 2. File Globs
-      if (triggers.fileGlobs && task.contextFiles && task.contextFiles.length > 0) {
-        let matched = false;
-        for (const glob of triggers.fileGlobs) {
-          for (const file of task.contextFiles) {
-            if (minimatch(file, glob)) {
-              matches.push({ manifest, matchedBy: 'glob' });
-              matched = true;
-              break;
-            }
-          }
-          if (matched) break;
-        }
-        if (matched) continue;
+      if (this.matchFileGlobs(triggers, task)) {
+        matches.push({ manifest, matchedBy: 'glob' });
+        continue;
       }
-
-      // 3. Keywords
-      if (triggers.keywords && task.prompt) {
-        const promptLower = task.prompt.toLowerCase();
-        let matched = false;
-        for (const kw of triggers.keywords) {
-          if (promptLower.includes(kw.toLowerCase())) {
-            matches.push({ manifest, matchedBy: 'keyword' });
-            matched = true;
-            break;
-          }
-        }
-        if (matched) continue;
+      if (this.matchKeywords(triggers, task)) {
+        matches.push({ manifest, matchedBy: 'keyword' });
+        continue;
       }
-
-      // 4. Intent Patterns
-      if (task.prompt) {
-        const regexes = this.regexCache.get(manifest.metadata.name) || [];
-        let matched = false;
-        for (const regex of regexes) {
-          if (regex.test(task.prompt)) {
-            matches.push({ manifest, matchedBy: 'intent' });
-            matched = true;
-            break;
-          }
-        }
-        if (matched) continue;
+      if (this.matchIntents(manifest, task)) {
+        matches.push({ manifest, matchedBy: 'intent' });
+        continue;
       }
     }
 
     return matches;
+  }
+
+  private matchExecutionEvents(triggers: any, task: DagNode): boolean {
+    return !!(triggers.executionEvents?.includes('TrackInitialization') && (!task.dependsOn || task.dependsOn.length === 0));
+  }
+
+  private matchFileGlobs(triggers: any, task: DagNode): boolean {
+    if (!triggers.fileGlobs || !task.contextFiles || task.contextFiles.length === 0) return false;
+    for (const glob of triggers.fileGlobs) {
+      for (const file of task.contextFiles) {
+        if (minimatch(file, glob)) return true;
+      }
+    }
+    return false;
+  }
+
+  private matchKeywords(triggers: any, task: DagNode): boolean {
+    if (!triggers.keywords || !task.prompt) return false;
+    const promptLower = task.prompt.toLowerCase();
+    for (const kw of triggers.keywords) {
+      if (promptLower.includes(kw.toLowerCase())) return true;
+    }
+    return false;
+  }
+
+  private matchIntents(manifest: SkillManifest, task: DagNode): boolean {
+    if (!task.prompt) return false;
+    const regexes = this.regexCache.get(manifest.metadata.name) || [];
+    for (const regex of regexes) {
+      if (regex.test(task.prompt)) return true;
+    }
+    return false;
   }
 
   public buildSkillContext(matches: SkillMatch[], headLines = 100): string {

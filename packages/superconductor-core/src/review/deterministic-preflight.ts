@@ -15,29 +15,29 @@ export interface PreflightResult {
  * then falls back to the presence of well-known root config files.
  * Returns 'typescript' | 'python' | 'go' | 'rust' | 'unknown'.
  */
-export function detectProjectLanguage(projectDir: string): string {
-  const techStackPath = path.join(projectDir, 'superconductor', 'tech-stack.md');
+function detectFromTechStack(content: string): string | null {
+  if (content.includes('typescript') || content.includes('tsconfig')) return 'typescript';
+  if (content.includes('python') || content.includes('pyproject') || content.includes('requirements.txt')) return 'python';
+  if (content.includes('go.mod') || content.includes('golang') || content.includes(' go ')) return 'go';
+  if (content.includes('cargo.toml') || content.includes('rust')) return 'rust';
+  return null;
+}
 
-  if (fs.existsSync(techStackPath)) {
-    const content = fs.readFileSync(techStackPath, 'utf-8').toLowerCase();
-    if (content.includes('typescript') || content.includes('tsconfig')) return 'typescript';
-    if (content.includes('python') || content.includes('pyproject') || content.includes('requirements.txt')) return 'python';
-    if (content.includes('go.mod') || content.includes('golang') || content.includes(' go ')) return 'go';
-    if (content.includes('cargo.toml') || content.includes('rust')) return 'rust';
-    // tech-stack.md exists but lists no recognised language — skip root heuristic
-    return 'unknown';
-  }
-
-  // Fallback heuristic: check file markers in project root if no tech-stack.md was found
-  if (fs.existsSync(path.join(projectDir, 'tsconfig.json')) || fs.existsSync(path.join(projectDir, 'package.json'))) {
-    return 'typescript';
-  }
+function detectFromFiles(projectDir: string): string {
+  if (fs.existsSync(path.join(projectDir, 'tsconfig.json')) || fs.existsSync(path.join(projectDir, 'package.json'))) return 'typescript';
   if (fs.existsSync(path.join(projectDir, 'go.mod'))) return 'go';
   if (fs.existsSync(path.join(projectDir, 'Cargo.toml'))) return 'rust';
-  if (fs.existsSync(path.join(projectDir, 'pyproject.toml')) || fs.existsSync(path.join(projectDir, 'requirements.txt'))) {
-    return 'python';
-  }
+  if (fs.existsSync(path.join(projectDir, 'pyproject.toml')) || fs.existsSync(path.join(projectDir, 'requirements.txt'))) return 'python';
   return 'unknown';
+}
+
+export function detectProjectLanguage(projectDir: string): string {
+  const techStackPath = path.join(projectDir, 'superconductor', 'tech-stack.md');
+  if (fs.existsSync(techStackPath)) {
+    const content = fs.readFileSync(techStackPath, 'utf-8').toLowerCase();
+    return detectFromTechStack(content) || 'unknown';
+  }
+  return detectFromFiles(projectDir);
 }
 
 /**

@@ -46,6 +46,17 @@ export function parseSemgrepOutput(jsonStr: string): SastFinding[] {
   }
 }
 
+function mapTrivyVulnerability(v: any, target: string): SastFinding {
+  return {
+    tool: 'trivy',
+    severity: v.Severity ?? 'unknown',
+    ruleId: v.VulnerabilityID ?? '',
+    file: target ?? '',
+    line: 0,
+    message: v.Title ?? v.Description ?? ''
+  };
+}
+
 export function parseTrivyOutput(jsonStr: string): SastFinding[] {
   try {
     const data = JSON.parse(jsonStr);
@@ -54,14 +65,7 @@ export function parseTrivyOutput(jsonStr: string): SastFinding[] {
     for (const res of data.Results) {
       if (!res.Vulnerabilities) continue;
       for (const v of res.Vulnerabilities) {
-        findings.push({
-          tool: 'trivy',
-          severity: v.Severity ?? 'unknown',
-          ruleId: v.VulnerabilityID ?? '',
-          file: res.Target ?? '',
-          line: 0,
-          message: v.Title ?? v.Description ?? ''
-        });
+        findings.push(mapTrivyVulnerability(v, res.Target));
       }
     }
     return findings;
