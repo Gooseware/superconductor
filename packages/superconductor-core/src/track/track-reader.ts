@@ -61,6 +61,7 @@ export function readTrackRegistry(projectRoot: string): TrackEntry[] {
 }
 
 export function readPlan(projectRoot: string, trackId: string): PlanTask[] {
+  if (!trackId || trackId.includes('/') || trackId.includes('\\') || trackId.includes('..')) return [];
   const planPath = path.join(projectRoot, 'superconductor', 'tracks', trackId, 'plan.md');
   if (!fs.existsSync(planPath)) return [];
 
@@ -105,6 +106,7 @@ export function readPlan(projectRoot: string, trackId: string): PlanTask[] {
 }
 
 export function getAcceptanceCriteria(projectRoot: string, trackId: string): CriterionItem[] {
+  if (!trackId || trackId.includes('/') || trackId.includes('\\') || trackId.includes('..')) return [];
   const specPath = path.join(projectRoot, 'superconductor', 'tracks', trackId, 'spec.md');
   if (!fs.existsSync(specPath)) return [];
 

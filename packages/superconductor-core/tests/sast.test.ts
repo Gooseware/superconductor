@@ -241,4 +241,20 @@ describe('runSast', () => {
     expect(Array.isArray(written)).toBe(true);
     expect(written[0].tool).toBe('semgrep');
   });
+
+  it('returns {status: "ok"} when clean scan yields zero findings with both tools enabled', () => {
+    vi.mocked(execSync).mockReturnValueOnce(JSON.stringify({ results: [] }));
+    vi.mocked(execSync).mockReturnValueOnce(JSON.stringify({ Results: [] }));
+    const cap = { status: 'available', tool: 'semgrep' };
+    const scaCap = { status: 'available', tool: 'trivy' };
+    const result = runSast('/project', tmpDir, cap, scaCap);
+    expect(result).toEqual({ status: 'ok' });
+  });
+
+  it('returns {status: "degraded"} when tool execution throws error (single-tool failure)', () => {
+    vi.mocked(execSync).mockImplementation(() => { throw new Error('Command failed'); });
+    const cap = { status: 'available', tool: 'semgrep' };
+    const result = runSast('/project', tmpDir, cap, null);
+    expect(result).toEqual({ status: 'degraded' });
+  });
 });

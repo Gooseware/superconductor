@@ -147,24 +147,7 @@ export function handleCheckPlanGap(projectRoot: string, args: any): object {
   };
 }
 
-export function handleRunAbiRetrospective(): object {
-  return {
-    content: [
-      {
-        type: "text",
-        text: JSON.stringify({
-          status: "NOT_IMPLEMENTED",
-          message: "This tool is scheduled for implementation in a future track..."
-        }, null, 2)
-      }
-    ]
-  };
-}
-
-/** Wraps a handler result in the MCP content envelope. */
-function mkResult(result: object): object {
-  return result;
-}
+// Removed mkResult identity wrapper per adversarial review
 
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const { name, arguments: args } = request.params;
@@ -172,22 +155,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
   switch (name) {
     case "superconductor_get_agent_context":
-      return mkResult(handleGetAgentContext(projectRoot));
+      return handleGetAgentContext(projectRoot);
 
     case "superconductor_get_track_status":
-      return mkResult(handleGetTrackStatus(projectRoot, args ?? {}));
+      return handleGetTrackStatus(projectRoot, args ?? {});
 
     case "superconductor_run_intelligence":
-      return mkResult(handleRunIntelligence(projectRoot));
+      return handleRunIntelligence(projectRoot);
 
     case "superconductor_run_review":
-      return mkResult(handleRunReview(projectRoot, args ?? {}));
+      return handleRunReview(projectRoot, args ?? {});
 
     case "superconductor_check_plan_gap":
-      return mkResult(handleCheckPlanGap(projectRoot, args ?? {}));
-
-    case "superconductor_run_abi_retrospective":
-      return mkResult(handleRunAbiRetrospective());
+      return handleCheckPlanGap(projectRoot, args ?? {});
 
     default:
       throw new Error(`Unknown tool: ${name}`);

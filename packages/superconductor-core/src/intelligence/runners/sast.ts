@@ -78,9 +78,9 @@ export function parseTrivyOutput(jsonStr: string): SastFinding[] {
 // Tool scan runners
 // ---------------------------------------------------------------------------
 
-function runSemgrepScan(projectRoot: string, capability: any): SastFinding[] {
+function runSemgrepScan(projectRoot: string, capability: any): { findings: SastFinding[], success: boolean } {
   if (!capability || capability.status === 'unavailable' || capability.tool !== 'semgrep') {
-    return [];
+    return { findings: [], success: true };
   }
   const quotedRoot = JSON.stringify(projectRoot);
   try {
@@ -88,19 +88,19 @@ function runSemgrepScan(projectRoot: string, capability: any): SastFinding[] {
       `semgrep scan ${quotedRoot} --config=auto --json 2>/dev/null`,
       { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
     );
-    return parseSemgrepOutput(out);
+    return { findings: parseSemgrepOutput(out), success: true };
   } catch (rawError: unknown) {
     const e = rawError as { stdout?: Buffer };
     if (e.stdout) {
-      return parseSemgrepOutput(e.stdout.toString());
+      return { findings: parseSemgrepOutput(e.stdout.toString()), success: true };
     }
-    return [];
+    return { findings: [], success: false };
   }
 }
 
-function runTrivyScan(projectRoot: string, scaCapability: any): SastFinding[] {
+function runTrivyScan(projectRoot: string, scaCapability: any): { findings: SastFinding[], success: boolean } {
   if (!scaCapability || scaCapability.status === 'unavailable' || scaCapability.tool !== 'trivy') {
-    return [];
+    return { findings: [], success: true };
   }
   const quotedRoot = JSON.stringify(projectRoot);
   try {
@@ -108,13 +108,13 @@ function runTrivyScan(projectRoot: string, scaCapability: any): SastFinding[] {
       `trivy fs ${quotedRoot} --scanners vuln --format json --quiet 2>/dev/null`,
       { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
     );
-    return parseTrivyOutput(out);
+    return { findings: parseTrivyOutput(out), success: true };
   } catch (rawError: unknown) {
     const e = rawError as { stdout?: Buffer };
     if (e.stdout) {
-      return parseTrivyOutput(e.stdout.toString());
+      return { findings: parseTrivyOutput(e.stdout.toString()), success: true };
     }
-    return [];
+    return { findings: [], success: false };
   }
 }
 
@@ -134,13 +134,16 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
     return { status: 'degraded' };
   }
 
+  const semgrepRes = runSemgrepScan(projectRoot, capability);
+  const trivyRes = runTrivyScan(projectRoot, scaCapability);
+
   const findings: SastFinding[] = [
-    ...runSemgrepScan(projectRoot, capability),
-    ...runTrivyScan(projectRoot, scaCapability)
+    ...semgrepRes.findings,
+    ...trivyRes.findings
   ];
 
   fs.writeFileSync(outFile, JSON.stringify(findings, null, 2));
 
-  const degraded = findings.length === 0 && semgrepAvailable && trivyAvailable;
+  const degraded = (!semgrepRes.success && semgrepAvailable) || (!trivyRes.success && trivyAvailable);
   return { status: degraded ? 'degraded' : 'ok' };
 }
