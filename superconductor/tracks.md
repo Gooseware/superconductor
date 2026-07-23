@@ -87,3 +87,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: ABI Retrospective Protocol Formalization**
 *Link: [./tracks/abi_retrospective_20260723/](./tracks/abi_retrospective_20260723/)*
+
+---
+
+- [ ] **Track: Review Self-Verification Gate**
+*Link: [./tracks/review_self_verification_20260723/](./tracks/review_self_verification_20260723/)*

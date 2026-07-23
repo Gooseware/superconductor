@@ -1,0 +1,10 @@
+{
+  "track_id": "review_self_verification_20260723",
+  "name": "Review Self-Verification Gate",
+  "type": "Feature",
+  "status": "planned",
+  "created_at": "2026-07-23T05:55:00Z",
+  "target_branch": "main",
+  "inducted_from": "review_panel_20260722",
+  "description": "Enforces the §9 Mandatory Execution Verification Protocol by blocking verdicts that lack the §9.4 Verdict Certification Block. Prevents grade inflation (Shenanigan #11) mechanically."
+}
