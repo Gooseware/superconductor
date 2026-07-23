@@ -457,7 +457,8 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 
 ### 2.7 Finalization
 1. **Generate Index File**: Create `superconductor/index.md` linking definition, workflow, and track management files.
-2. **Summarize & Transition**: Report setup summary and transition to initial plan generation.
+2. **Install Worktrunk (Setup Hook)**: Ensure the `worktrunk` backend is available by executing `./scripts/install-worktrunk.sh`.
+3. **Summarize & Transition**: Report setup summary and transition to initial plan generation.
 
 
 ---
