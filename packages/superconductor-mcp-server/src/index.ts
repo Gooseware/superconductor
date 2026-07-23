@@ -45,10 +45,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const allowedRoot = path.resolve(process.env.SUPERCONDUCTOR_WORKSPACE_ROOT || process.cwd());
   let projectRoot = path.resolve(rawProjectRoot);
   try {
-    const rel = path.relative(allowedRoot, projectRoot);
+    // Resolve symlinks BEFORE the containment check — a symlink inside the
+    // workspace pointing to /etc would otherwise pass the lexical path.relative check
+    const realProjectRoot = fs.realpathSync(projectRoot);
+    const rel = path.relative(allowedRoot, realProjectRoot);
     const isWithinAllowed = !rel.startsWith('..') && !path.isAbsolute(rel);
-    if (!isWithinAllowed || !fs.existsSync(projectRoot) || !fs.statSync(projectRoot).isDirectory()) {
+    if (!isWithinAllowed || !fs.statSync(realProjectRoot).isDirectory()) {
       projectRoot = allowedRoot;
+    } else {
+      projectRoot = realProjectRoot;
     }
   } catch {
     projectRoot = allowedRoot;

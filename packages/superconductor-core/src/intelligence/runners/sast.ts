@@ -3,10 +3,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getSuperconductorHome } from '../tool-registry.js';
 
+interface SastFinding {
+  tool: string;
+  severity: string;
+  ruleId: string;
+  file: string;
+  line: number;
+  message: string;
+}
+
 export function runSast(projectRoot: string, outputDir: string, capability: any, scaCapability: any) {
   const outFile = path.join(outputDir, '05_sast.json');
   const home = getSuperconductorHome();
-  let result: { findings: any[] } = { findings: [] };
+  let result: { findings: SastFinding[] } = { findings: [] };
   let degraded = true;
 
   if (capability && capability.status !== 'unavailable' && capability.tool === 'semgrep') {
@@ -26,8 +35,8 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
         }
       }
       degraded = false;
-    } catch (e: any) {
-      // semgrep might exit 1 if findings
+    } catch (rawError: unknown) {
+      const e = rawError as { stdout?: Buffer };
       try {
         if (e.stdout) {
           const data = JSON.parse(e.stdout.toString());
@@ -45,7 +54,7 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
           }
           degraded = false;
         }
-      } catch (e2) {}
+      } catch { }
     }
   }
 
@@ -70,14 +79,14 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
         }
       }
       degraded = false;
-    } catch (e: any) {
+    } catch (rawError: unknown) {
+      const e = rawError as { stdout?: Buffer };
       try {
         if (e.stdout) {
-          const data = JSON.parse(e.stdout.toString());
-          // process
+          JSON.parse(e.stdout.toString());
           degraded = false;
         }
-      } catch (e2) {}
+      } catch { }
     }
   }
 

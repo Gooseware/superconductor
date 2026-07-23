@@ -29,7 +29,8 @@ function isValidFinding(f: any): boolean {
     VALID_SEVERITIES.has(f.severity) &&
     typeof f.category === 'string' &&
     VALID_CATEGORIES.has(f.category) &&
-    typeof f.file === 'string'
+    typeof f.file === 'string' &&
+    typeof f.line_range === 'string'
   );
 }
 
@@ -46,10 +47,8 @@ export function aggregateFindings(
     if (item.raw_text) {
       const parsed = extractFencedBlock<ReviewFinding[]>(item.raw_text, 'review-findings');
       if (Array.isArray(parsed)) {
-        const valid = parsed.filter(isValidFinding);
-        if (valid.length > 0) {
-          findings = valid;
-        }
+        // Empty array = clean pass (zero findings) — NOT a parse failure
+        findings = parsed.filter(isValidFinding);
       }
     }
 
@@ -61,10 +60,8 @@ export function aggregateFindings(
           const content = fs.readFileSync(artifactPath, 'utf-8');
           const parsed = JSON.parse(content);
           if (Array.isArray(parsed)) {
-            const valid = parsed.filter(isValidFinding);
-            if (valid.length > 0) {
-              findings = valid;
-            }
+            // Empty array = clean pass — NOT a parse failure
+            findings = parsed.filter(isValidFinding);
           }
         } catch (e) {
           findings = null;
