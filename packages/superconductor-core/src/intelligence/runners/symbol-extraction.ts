@@ -2,35 +2,52 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export function runSymbolExtraction(projectRoot: string, outputDir: string, capability: any) {
+export function runSymbolExtraction(projectRoot: string, outputDir: string, capability: any, scopedFiles?: string[]) {
   const outFile = path.join(outputDir, '06_api_surface.toon');
   
   if (!capability || capability.status === 'unavailable') {
+    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: null };
     fs.writeFileSync(outFile, JSON.stringify(null));
     return { status: 'degraded' };
   }
 
   try {
     if (capability.tool === 'universal-ctags' || capability.tool === 'ctags') {
+      let targets = projectRoot;
+      if (scopedFiles && scopedFiles.length > 0) {
+        targets = scopedFiles.filter(f => fs.existsSync(path.join(projectRoot, f))).map(f => JSON.stringify(path.join(projectRoot, f))).join(' ');
+      }
+      
+      if (scopedFiles && scopedFiles.length > 0 && !targets) {
+        return { status: 'ok', entries: '' };
+      }
+
       const out = execSync(
         `ctags --output-format=json -R \
           --exclude=node_modules --exclude=dist --exclude=.git --exclude=coverage \
           --exclude='*.min.js' --exclude='*.bundle.js' \
           --languages=TypeScript,JavaScript \
-          ${projectRoot}`,
+          ${targets}`,
         { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024, stdio: ['pipe', 'pipe', 'ignore'] }
       );
+      
+      if (scopedFiles && scopedFiles.length > 0) {
+        return { status: 'ok', entries: out };
+      }
       fs.writeFileSync(outFile, out);
       return { status: 'ok' };
     } else if (capability.tool === 'tree-sitter-analyzer') {
       // not implemented fully, mock
+      if (scopedFiles && scopedFiles.length > 0) return { status: 'ok', entries: null };
       fs.writeFileSync(outFile, JSON.stringify(null));
       return { status: 'ok' };
     }
     
+    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: null };
     fs.writeFileSync(outFile, JSON.stringify(null));
     return { status: 'degraded' };
   } catch (e) {
+    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: null };
     fs.writeFileSync(outFile, JSON.stringify(null));
     return { status: 'degraded' };
   }

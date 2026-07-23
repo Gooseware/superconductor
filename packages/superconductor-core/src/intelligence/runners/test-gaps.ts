@@ -22,7 +22,7 @@ function walkDir(dir: string, callback: (file: string) => void) {
   } catch (e) {}
 }
 
-export function runTestGaps(projectRoot: string, outputDir: string) {
+export function runTestGaps(projectRoot: string, outputDir: string, scopedFiles?: string[]) {
   const outFile = path.join(outputDir, '07_test_gaps.json');
   const couplingFile = path.join(outputDir, '04_coupling.json');
   
@@ -39,11 +39,31 @@ export function runTestGaps(projectRoot: string, outputDir: string) {
   }
 
   const allFiles: string[] = [];
-  walkDir(projectRoot, (f) => {
-    if (f.endsWith('.ts') || f.endsWith('.js')) {
-      allFiles.push(f);
+  
+  if (scopedFiles && scopedFiles.length > 0) {
+    for (const f of scopedFiles) {
+      const p = path.join(projectRoot, f);
+      if (fs.existsSync(p) && !allFiles.includes(p)) allFiles.push(p);
+      const ext = path.extname(p);
+      const base = p.slice(0, -ext.length);
+      const testCandidates = [
+        `${base}.test${ext}`,
+        `${base}.spec${ext}`,
+        path.join(path.dirname(p), '__tests__', path.basename(p)),
+      ];
+      for (const tc of testCandidates) {
+        if (fs.existsSync(tc) && !allFiles.includes(tc)) {
+          allFiles.push(tc);
+        }
+      }
     }
-  });
+  } else {
+    walkDir(projectRoot, (f) => {
+      if (f.endsWith('.ts') || f.endsWith('.js')) {
+        allFiles.push(f);
+      }
+    });
+  }
 
   const testFiles = allFiles.filter(f => 
     f.includes('.test.') || f.includes('.spec.') || 
@@ -57,7 +77,7 @@ export function runTestGaps(projectRoot: string, outputDir: string) {
   for (const tf of testFiles) {
     try {
       const content = fs.readFileSync(tf, 'utf8');
-      const importRegex = /import.*from\\s+['"]([^'"]+)['"]/g;
+      const importRegex = /import.*from\s+['"]([^'"]+)['"]/g;
       let match;
       while ((match = importRegex.exec(content)) !== null) {
         const importPath = match[1];
@@ -97,6 +117,11 @@ export function runTestGaps(projectRoot: string, outputDir: string) {
   }
 
   gaps.sort((a, b) => b.gitChurnScore - a.gitChurnScore);
+  
+  if (scopedFiles && scopedFiles.length > 0) {
+    return { status: 'ok', entries: gaps };
+  }
+  
   fs.writeFileSync(outFile, JSON.stringify(gaps, null, 2));
   return { status: 'ok' };
 }
