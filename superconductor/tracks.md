@@ -39,6 +39,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+
+
 - [x] **Track: Workspace Pooling for Job Dispatcher**
 *Link: [./tracks/workspace_pooling_20260712/](./tracks/workspace_pooling_20260712/)*
 
@@ -127,3 +129,13 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Token Estimation and Open Source Package Recommender**
 *Link: [./tracks/token_estimation_20260723/](./tracks/token_estimation_20260723/)*
+
+---
+
+- [x] **Track: Adopt Worktrunk for Workspaces Workflow**
+*Link: [./tracks/worktrunk_20260723/](./tracks/worktrunk_20260723/)*
+
+---
+
+- [~] **Track: Swarm Protocol Uplift — Review Gate, ABI Self-Improvement & Plugin UX Audit**
+*Link: [./tracks/swarm_protocol_uplift_20260724/](./tracks/swarm_protocol_uplift_20260724/)*
