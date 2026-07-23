@@ -176,7 +176,7 @@ if (typeof require !== 'undefined' && require.main === module) {
   const findings = scanArtifacts(artifactsDir);
   console.log(`✅ Extracted ${findings.length} findings`);
 
-  const auditFile = path.join('/home/gooseware/repos/hippos/caduceus/packages/caduceus-plugin/skills/code-review-skill/reference/cross-cutting/adversarial-audit.md');
+  const auditFile = path.join(__dirname, '..', 'skills', 'code-review-skill', 'reference', 'cross-cutting', 'adversarial-audit.md');
   const date = new Date().toISOString().split('T')[0];
   
   const inductedCount = appendShenanigan(auditFile, findings, trackId, date);
