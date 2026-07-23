@@ -9,7 +9,7 @@ import { runSymbolExtraction } from './runners/symbol-extraction.js';
 import { runTestGaps } from './runners/test-gaps.js';
 import { runPackageSurface } from './runners/package-surface.js';
 import { getSuperconductorHome, resolveRegistry } from './tool-registry.js';
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 
 export const PHASE_INVALIDATION: Record<string, (file: string) => boolean> = {
   complexity:          (f) => /\.(ts|js|tsx|jsx)$/.test(f) && !f.includes('.test.') && !f.includes('.spec.'),
@@ -70,13 +70,24 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   const { projectRoot, changedFiles, outputDir } = options;
   const manifestPath = path.join(outputDir, '00_manifest.json');
 
+  let headSha = 'unknown';
+  try {
+    headSha = execSync('git rev-parse HEAD', { cwd: projectRoot, encoding: 'utf-8' }).trim();
+  } catch(e) {}
+
   if (!fs.existsSync(manifestPath)) {
     runPipeline([], projectRoot, options.outputDir);
+    try {
+      const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      m.incrementalRuns = 0;
+      m.lastCommitSha = headSha;
+      fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2));
+    } catch (e) {}
     return {
       phasesRun: ['full-scan'],
       filesUpdated: changedFiles.length,
       durationMs: Date.now() - start,
-      snapshotSha: 'unknown'
+      snapshotSha: headSha
     };
   }
 
@@ -85,23 +96,37 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
   } catch (err) {
     runPipeline([], projectRoot, options.outputDir);
+    try {
+      const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      m.incrementalRuns = 0;
+      m.lastCommitSha = headSha;
+      fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2));
+    } catch (e) {}
     return {
       phasesRun: ['full-scan'],
       filesUpdated: changedFiles.length,
       durationMs: Date.now() - start,
-      snapshotSha: 'unknown'
+      snapshotSha: headSha
     };
   }
 
   if (manifest.incrementalRuns >= 50) {
     manifest.incrementalRuns = 0;
-    runPipeline([], projectRoot, options.outputDir);
-    return {
-      phasesRun: ['full-scan'],
-      filesUpdated: changedFiles.length,
-      durationMs: Date.now() - start,
-      snapshotSha: 'unknown'
-    };
+    manifest.lastCommitSha = headSha; // use the already-resolved headSha
+    manifest.timestamp = Date.now();
+    // Write manifest BEFORE runPipeline so it persists even if pipeline crashes
+    fs.writeFileSync(
+      manifestPath,
+      JSON.stringify(manifest, null, 2)
+    );
+    runPipeline([], projectRoot, options.outputDir); // full rescan overwrites all data
+    try {
+      const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      m.incrementalRuns = 0;
+      m.lastCommitSha = headSha;
+      fs.writeFileSync(manifestPath, JSON.stringify(m, null, 2));
+    } catch (e) {}
+    return { phasesRun: ['full-scan'], filesUpdated: 0, durationMs: Date.now() - start, snapshotSha: headSha };
   }
 
   const registry = resolveRegistry(getSuperconductorHome());
@@ -157,10 +182,22 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   // coupling (always update incrementally)
   phasesRun.push('coupling');
   try {
-    const lastSha = manifest.lastCommitSha || 'HEAD~1';
+    const SHA_RE = /^[0-9a-f]{40}$/i;
+    const lastSha = manifest.lastCommitSha && SHA_RE.test(manifest.lastCommitSha)
+      ? manifest.lastCommitSha
+      : null;
     let newCommits = '';
     try {
-      newCommits = execSync(`git log ${lastSha}..HEAD --name-only --format=format:`, { cwd: projectRoot, encoding: 'utf-8' });
+      const gitArgs = lastSha
+        ? ['log', `${lastSha}..HEAD`, '--name-only', '--format=format:']
+        : ['log', '-1', '--name-only', '--format=format:'];
+
+      const gitResult = spawnSync('git', gitArgs, { cwd: projectRoot, encoding: 'utf8' });
+      newCommits = gitResult.stdout || '';
+
+      if (gitResult.error || gitResult.status !== 0) {
+        process.stderr.write(`[superconductor:intelligence] coupling git log failed: ${gitResult.stderr}\n`);
+      }
     } catch(e) {}
     
     const commitFiles = newCommits.split('\n').filter(Boolean);
@@ -170,15 +207,9 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     }
     const churnEntries = Object.entries(churnCounts).map(([file, churn]) => ({ file, churn }));
     if (churnEntries.length > 0) {
-      // For coupling we just merge but actually the coupling might be more complex. Let's just follow mergeIntoJson
       mergeIntoJson(path.join(outputDir, '04_coupling.json'), churnEntries);
     }
   } catch (err) {}
-
-  let headSha = 'unknown';
-  try {
-    headSha = execSync('git rev-parse HEAD', { cwd: projectRoot, encoding: 'utf-8' }).trim();
-  } catch(e) {}
 
   manifest.lastCommitSha = headSha;
   manifest.incrementalRuns = (manifest.incrementalRuns || 0) + 1;
