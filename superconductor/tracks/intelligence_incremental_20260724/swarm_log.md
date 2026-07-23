@@ -809,3 +809,17 @@ Added explicit JSDoc `## Required surfacing contract` block to `IntelligenceDrif
 
 #### Advisory §3 — `SwarmBlueprintGenerator` is prose-only ✅ NOTED
 `swarm-orchestrate §1.1` references TCS scoring via `SwarmBlueprintGenerator`, but no TypeScript class exists. This is agent-interpreted intent (not a compiled module). No action taken in Phase 5 — this is deferred to `swarm_planner_20260724` which is the appropriate track for implementing it as a concrete artifact. The skill prose is intentionally declarative.
+
+### [Remediation] Phase 4 Advisory Fixes
+
+**Timestamp:** 2026-07-24T03:48:00+04:00
+**Commit:** `6bd0332`
+**Tests:** 165 passed (22 test files, 0 failures)
+
+| Advisory | Status | Change |
+|----------|--------|--------|
+| ADV-1 (NONE banner not emitted) | ✅ FIXED | Added `NONE_BANNER` static to `IntelligenceSnapshotReader`; added null-guard instruction to all 5 skill files |
+| ADV-2 (outputDir resolution undocumented) | ✅ FIXED | Added `getSuperconductorHome()` resolution step before `load()` in all 5 skill files |
+| ADV-3 (inline `require('child_process')`) | ✅ N/A | No inline `require` found — `drift-monitor.ts` already uses ESM `import { spawnSync } from 'child_process'` at top level |
+| ADV-4 (days unit missing from age string) | ✅ FIXED | LIVE banner now uses `_formatAge()` (which has days tier) instead of the old hours-only ternary |
+| ADV-5 (spawnSync errors swallowed) | ✅ FIXED | Added `result.error` check with `process.stderr.write` after `spawnSync` call in `drift-monitor.ts` |
