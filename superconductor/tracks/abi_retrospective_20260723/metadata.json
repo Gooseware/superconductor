@@ -1,0 +1,10 @@
+{
+  "track_id": "abi_retrospective_20260723",
+  "name": "ABI Retrospective Protocol Formalization",
+  "type": "Feature",
+  "status": "planned",
+  "created_at": "2026-07-23T05:55:00Z",
+  "target_branch": "main",
+  "inducted_from": "review_panel_20260722",
+  "description": "Automates the Always-Be-Improving retrospective loop: scans review artifacts, extracts new failure patterns, and inductively grows the shenanigan checklist in adversarial-audit.md."
+}

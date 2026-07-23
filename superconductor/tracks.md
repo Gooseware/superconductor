@@ -82,3 +82,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Review Panel Mode with Coverage-Aware Residual Passes**
 *Link: [./tracks/review_panel_20260722/](./tracks/review_panel_20260722/)*
+
+---
+
+- [ ] **Track: ABI Retrospective Protocol Formalization**
+*Link: [./tracks/abi_retrospective_20260723/](./tracks/abi_retrospective_20260723/)*
