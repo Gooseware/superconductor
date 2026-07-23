@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 
 // We will implement these functions in scripts/abi-retrospective.ts
-import { scanArtifacts, extractFindings, checkShenaniganExists, appendShenanigan } from '../scripts/abi-retrospective';
+import { scanArtifacts, extractFindings, checkShenaniganExists, appendShenanigan, syncStandaloneReviewSkill, writeRetrospectiveReport } from '../scripts/abi-retrospective';
 
 console.log('Running ABI Retrospective Tests...\n');
 
@@ -108,4 +108,75 @@ console.log('Running ABI Retrospective Tests...\n');
   console.log('✅ Phase 2: Induction Engine tests passed');
 }
 
-console.log('\n🎉 ALL ABI RETROSPECTIVE PHASE 1 & 2 TESTS PASSED!');
+{
+  // Phase 3: syncStandaloneReviewSkill test
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'abi-test-3-'));
+  const skillFile = path.join(tmpDir, 'SKILL.md');
+  const initialSkillContent = `Some intro text\n\n§4.1 Embedded Shenanigan Checklist\n- Existing Pattern (A description)\n\nMore text`;
+  fs.writeFileSync(skillFile, initialSkillContent);
+
+  const findings = [
+    { title: 'Existing Pattern', description: 'A description', sourceTrack: 't1', severity: '🔴' },
+    { title: 'New Pattern', description: 'New description', sourceTrack: 't1', severity: '🔴' }
+  ];
+
+  const added = syncStandaloneReviewSkill(skillFile, findings);
+  assert.strictEqual(added, 1, 'Should only add the new pattern');
+
+  const afterContent = fs.readFileSync(skillFile, 'utf-8');
+  assert.match(afterContent, /- New Pattern \(New description\)/, 'Should append the new pattern to the list');
+  assert.strictEqual(afterContent.split('New Pattern').length, 2, 'Should only exist once');
+
+  // Second run should add 0
+  const addedAgain = syncStandaloneReviewSkill(skillFile, findings);
+  assert.strictEqual(addedAgain, 0, 'Should be idempotent');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  console.log('✅ Phase 3: syncStandaloneReviewSkill tests passed');
+}
+
+{
+  // Phase 4: writeRetrospectiveReport test
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'abi-test-4-'));
+  
+  const findings = [
+    { title: 'Phase omission', description: 'Implementation skips plan phases', sourceTrack: 't1', severity: '🔴' }
+  ];
+  
+  writeRetrospectiveReport(tmpDir, 'track_1', '2026-07-23', findings, 1);
+  const reportPath = path.join(tmpDir, 'retrospective-track_1-2026-07-23.md');
+  
+  assert.ok(fs.existsSync(reportPath), 'Report file should be created');
+  const content = fs.readFileSync(reportPath, 'utf-8');
+  assert.match(content, /# Retrospective Report: track_1 \(2026-07-23\)/, 'Title should match');
+  assert.match(content, /New Shenanigans Inducted: 1/, 'Inducted count should match');
+  assert.match(content, /\[🔴\] \*\*Phase omission\*\*/, 'Extracted findings should be listed');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  console.log('✅ Phase 4: writeRetrospectiveReport tests passed');
+}
+
+{
+  // Smoke test for already-inducted shenanigans
+  const auditContent = `
+| 1 | **Pattern One** | desc |
+| 2 | **Pattern Two** | desc |
+| 3 | **Pattern Three** | desc |
+| 4 | **Pattern Four** | desc |
+| 5 | **Pattern Five** | desc |
+| 6 | **Pattern Six** | desc |
+`;
+  const findings = [
+    { title: 'Pattern One', description: '', sourceTrack: 't', severity: '🔴' },
+    { title: 'Pattern Two', description: '', sourceTrack: 't', severity: '🔴' },
+    { title: 'Pattern Three', description: '', sourceTrack: 't', severity: '🔴' },
+    { title: 'Pattern Four', description: '', sourceTrack: 't', severity: '🔴' },
+    { title: 'Pattern Five', description: '', sourceTrack: 't', severity: '🔴' },
+    { title: 'Pattern Six', description: '', sourceTrack: 't', severity: '🔴' }
+  ];
+  const allExist = findings.every(f => checkShenaniganExists(auditContent, f));
+  assert.strictEqual(allExist, true, 'Smoke test: all 6 shenanigans identified as already-inducted');
+  console.log('✅ Smoke test: already-inducted check works');
+}
+
+console.log('\n🎉 ALL ABI RETROSPECTIVE TESTS PASSED!');

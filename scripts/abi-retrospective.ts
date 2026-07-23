@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as os from 'node:os';
 
 export interface ReviewFinding {
   title: string;
@@ -75,3 +76,118 @@ export function appendShenanigan(auditFile: string, findings: ReviewFinding[], t
   }
   return added;
 }
+
+export function syncStandaloneReviewSkill(skillFilePath: string, inductedFindings: ReviewFinding[]): number {
+  if (!fs.existsSync(skillFilePath) || inductedFindings.length === 0) return 0;
+  
+  let content = fs.readFileSync(skillFilePath, 'utf-8');
+  let added = 0;
+  
+  const sectionHeader = '§4.1 Embedded Shenanigan Checklist';
+  const headerIdx = content.indexOf(sectionHeader);
+  if (headerIdx === -1) return 0;
+  
+  const lines = content.split('\n');
+  const headerLineIdx = lines.findIndex(l => l.includes(sectionHeader));
+  
+  let insertIdx = headerLineIdx + 1;
+  while (insertIdx < lines.length && lines[insertIdx].trim() === '') {
+    insertIdx++;
+  }
+  
+  while (insertIdx < lines.length && lines[insertIdx].trim().startsWith('-')) {
+    insertIdx++;
+  }
+  
+  for (const finding of inductedFindings) {
+    if (!content.includes(finding.title)) {
+      lines.splice(insertIdx, 0, `- ${finding.title} (${finding.description})`);
+      insertIdx++;
+      added++;
+    }
+  }
+  
+  if (added > 0) {
+    fs.writeFileSync(skillFilePath, lines.join('\n'), 'utf-8');
+  }
+  return added;
+}
+
+export function writeRetrospectiveReport(trackDir: string, trackId: string, date: string, findings: ReviewFinding[], inductedCount: number): void {
+  const reportPath = path.join(trackDir, `retrospective-${trackId}-${date}.md`);
+  
+  const content = `# Retrospective Report: ${trackId} (${date})
+
+## Summary
+- Findings Extracted: ${findings.length}
+- New Shenanigans Inducted: ${inductedCount}
+- Skills Updated: ${inductedCount > 0 ? 1 : 0}
+
+## Extracted Findings
+${findings.map(f => `- [${f.severity}] **${f.title}**: ${f.description}`).join('\n')}
+`;
+  fs.writeFileSync(reportPath, content, 'utf-8');
+}
+
+if (typeof require !== 'undefined' && require.main === module) {
+  const args = process.argv.slice(2);
+  let trackId = '';
+  let artifactsDir = '';
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--track') trackId = args[i + 1];
+    if (args[i] === '--artifacts-dir') artifactsDir = args[i + 1];
+  }
+
+  if (!trackId) {
+    console.error('❌ --track is required');
+    process.exit(1);
+  }
+
+  if (!artifactsDir) {
+    const brainDir = path.join(os.homedir(), '.gemini/antigravity-cli/brain');
+    if (fs.existsSync(brainDir)) {
+      const convos = fs.readdirSync(brainDir).filter(f => fs.statSync(path.join(brainDir, f)).isDirectory());
+      convos.sort((a, b) => fs.statSync(path.join(brainDir, b)).mtimeMs - fs.statSync(path.join(brainDir, a)).mtimeMs);
+      if (convos.length > 0) {
+        artifactsDir = path.join(brainDir, convos[0]);
+      }
+    }
+  }
+
+  if (!artifactsDir) {
+    console.error('❌ Could not determine artifacts directory');
+    process.exit(1);
+  }
+
+  console.log(`✅ Scanning artifacts directory: ${artifactsDir}`);
+  const findings = scanArtifacts(artifactsDir);
+  console.log(`✅ Extracted ${findings.length} findings`);
+
+  const auditFile = path.join('/home/gooseware/repos/hippos/caduceus/packages/caduceus-plugin/skills/code-review-skill/reference/cross-cutting/adversarial-audit.md');
+  const date = new Date().toISOString().split('T')[0];
+  
+  const inductedCount = appendShenanigan(auditFile, findings, trackId, date);
+  if (inductedCount > 0) {
+    console.log(`✅ ${inductedCount} new pattern(s) inducted`);
+  } else {
+    console.log(`⚠️ 0 new patterns inducted`);
+  }
+
+  const skillFilePath = path.join(os.homedir(), '.gemini/config/plugins/superconductor/skills/standalone-review/SKILL.md');
+  const skillUpdated = syncStandaloneReviewSkill(skillFilePath, findings);
+  if (skillUpdated > 0) {
+    console.log(`✅ Updated standalone-review skill with ${skillUpdated} new pattern(s)`);
+  } else {
+    console.log(`✅ Standalone-review skill up to date`);
+  }
+
+  const trackDir = path.join(__dirname, '..', 'superconductor', 'tracks', trackId);
+  if (!fs.existsSync(trackDir)) {
+    fs.mkdirSync(trackDir, { recursive: true });
+  }
+  
+  writeRetrospectiveReport(trackDir, trackId, date, findings, inductedCount);
+  console.log(`✅ Retrospective report written to ${trackDir}`);
+}
+
