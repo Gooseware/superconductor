@@ -32,6 +32,7 @@ Gemini CLI Extension
 - **Bundled Skills Suite:** 14 bundled Design OS skills (orchestrator, vision, roadmap, data model, setup, theme manager, i18n, etc.) located in `skills/` for out-of-the-box workflow capabilities.
 
 ## Advanced Capabilities
+- **Workspaces:** Uses `worktrunk` (`wt`) as the standard backend for parallel AI agent workspace management, replacing native git worktrees.
 - **Superpowers:** Integration with agent skills.
 - **Skill Management:** Support for **symlinked superpower skills**, allowing for centralized skill management across multiple projects.
 - **Git Context:** Direct utilization of Git metadata for track and history management.
