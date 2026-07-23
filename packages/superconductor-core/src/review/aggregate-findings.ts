@@ -34,41 +34,50 @@ function isValidFinding(f: any): boolean {
   );
 }
 
-/**
- * 3-tier resolution for a single reviewer's findings:
- * fenced block → disk JSON → raw text fail-safe.
- * Also applies isValidFinding filtering and reviewer_id backfill.
- */
+export function mapReviewerIssue(issue: any, reviewerId: string, options?: any): ReviewFinding | null {
+  if (!isValidFinding(issue)) return null;
+  const f = { ...issue };
+  if (!f.reviewer_id) {
+    f.reviewer_id = reviewerId;
+  }
+  return f as ReviewFinding;
+}
+
 export function extractReviewerFindings(
   item: { reviewer_id: string; raw_text?: string },
   manifestsDir?: string
 ): ReviewFinding[] {
-  let findings: ReviewFinding[] | null = null;
+  let parsedArray: any[] | null = null;
 
   // Tier 1 Extraction
   if (item.raw_text) {
-    const parsed = extractFencedBlock<ReviewFinding[]>(item.raw_text, 'review-findings');
+    const parsed = extractFencedBlock<any[]>(item.raw_text, 'review-findings');
     if (Array.isArray(parsed)) {
-      // Empty array = clean pass (zero findings) — NOT a parse failure
-      findings = parsed.filter(isValidFinding);
+      parsedArray = parsed;
     }
   }
 
   // Tier 2 Extraction
-  if (!findings && manifestsDir) {
+  if (!parsedArray && manifestsDir) {
     const artifactPath = path.join(manifestsDir, `${item.reviewer_id}-findings.json`);
     if (fs.existsSync(artifactPath)) {
       try {
         const content = fs.readFileSync(artifactPath, 'utf-8');
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
-          // Empty array = clean pass — NOT a parse failure
-          findings = parsed.filter(isValidFinding);
+          parsedArray = parsed;
         }
       } catch (e) {
-        findings = null;
+        // parsing failed
       }
     }
+  }
+
+  let findings: ReviewFinding[] | null = null;
+  if (parsedArray) {
+    findings = parsedArray
+      .map(issue => mapReviewerIssue(issue, item.reviewer_id))
+      .filter((f): f is ReviewFinding => f !== null);
   }
 
   // Tier 3 Fail-Safe: Create a generic finding from raw text if parsing failed
@@ -88,16 +97,7 @@ export function extractReviewerFindings(
     ];
   }
 
-  if (findings) {
-    for (const f of findings) {
-      if (!f.reviewer_id) {
-        f.reviewer_id = item.reviewer_id;
-      }
-    }
-    return findings;
-  }
-
-  return [];
+  return findings || [];
 }
 
 /** Deduplicates findings using isLineRangeClose, merging agreement counts. */

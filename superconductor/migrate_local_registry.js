@@ -6,7 +6,7 @@ import { RegistryClientRouter } from './registry_client_router.js';
  * Script to migrate local project registries to the centralized Design OS registry.
  */
 export async function migrateLocalRegistry(registryRoot, clientExecutor, options = {}) {
-  const client = new RegistryClientRouter({ executor: clientExecutor, ...options });
+  const client = new RegistryClientRouter(clientExecutor, options.libraryPath);
   const results = { migrated: [], failed: [] };
 
   async function scanDirectory(dir) {
@@ -27,59 +27,76 @@ export async function migrateLocalRegistry(registryRoot, clientExecutor, options
     }
   }
 
+  async function readComponentMetadata(srcDir, cName) {
+    const registryJsonPath = path.join(srcDir, 'registry.json');
+    const config = JSON.parse(await fs.readFile(registryJsonPath, 'utf-8'));
+    const isBlock = config.type?.includes('block') || srcDir.includes('/blocks/');
+    const family = config.name;
+    const variant = config.variant || 'base';
+
+    return {
+      name: config.name,
+      family: family,
+      variant: variant,
+      type: isBlock ? 'organism' : (config.type || 'molecule'),
+      description: config.description || `Migrated ${family} ${variant}`,
+      intent: config.intent || 'migration',
+      tags: config.tags || [],
+      dependencies: config.dependencies || [],
+      comments: ['Migrated from local registry'],
+      _config: config
+    };
+  }
+
+  async function copyComponentFiles(cName, srcDir, destDir) {
+    const config = destDir;
+    const files = [];
+    if (config.files && Array.isArray(config.files)) {
+      for (const fileDef of config.files) {
+        const filePath = typeof fileDef === 'string' ? fileDef : fileDef.path;
+        const absoluteFilePath = path.join(srcDir, filePath);
+        const content = await fs.readFile(absoluteFilePath, 'utf-8');
+        files.push({
+          path: filePath,
+          content: content
+        });
+      }
+    } else {
+      const srcDirInner = path.join(srcDir, 'src');
+      const srcExists = await fs.access(srcDirInner).then(() => true).catch(() => false);
+      if (srcExists) {
+         await addFilesFromDir(srcDirInner, 'src', files);
+      }
+    }
+    return files;
+  }
+
+  async function writeDogmaFile(cName, destDir, data) {
+    console.log(`[Migrate] Publishing ${cName}...`);
+    await client.publishComponent(data);
+  }
+
   async function migrateComponent(componentDir, registryJsonPath) {
     console.log(`[Migrate] Found component at ${componentDir}`);
     try {
-      const config = JSON.parse(await fs.readFile(registryJsonPath, 'utf-8'));
-      
-      // Determine if it's a block or a component
-      const isBlock = config.type?.includes('block') || componentDir.includes('/blocks/');
-      const family = config.name;
-      const variant = config.variant || 'base';
+      const metadata = await readComponentMetadata(componentDir, 'registry.json');
+      const config = metadata._config;
+      delete metadata._config;
 
-      const payload = {
-        files: [],
-        metadata: {
-          name: config.name,
-          family: family,
-          variant: variant,
-          type: isBlock ? 'organism' : (config.type || 'molecule'),
-          description: config.description || `Migrated ${family} ${variant}`,
-          intent: config.intent || 'migration',
-          tags: config.tags || [],
-          dependencies: config.dependencies || [],
-          comments: ['Migrated from local registry']
-        }
-      };
+      const files = await copyComponentFiles(metadata.family, componentDir, config);
 
-      // Read files defined in registry.json
-      if (config.files && Array.isArray(config.files)) {
-        for (const fileDef of config.files) {
-          const filePath = typeof fileDef === 'string' ? fileDef : fileDef.path;
-          const absoluteFilePath = path.join(componentDir, filePath);
-          const content = await fs.readFile(absoluteFilePath, 'utf-8');
-          payload.files.push({
-            path: filePath,
-            content: content
-          });
-        }
-      } else {
-        // Fallback: Read all files in src/ if files not specified
-        const srcDir = path.join(componentDir, 'src');
-        const srcExists = await fs.access(srcDir).then(() => true).catch(() => false);
-        if (srcExists) {
-           await addFilesFromDir(srcDir, 'src', payload.files);
-        }
-      }
-
-      if (payload.files.length === 0) {
-        console.warn(`[Migrate] No files found for ${family}/${variant}, skipping.`);
+      if (files.length === 0) {
+        console.warn(`[Migrate] No files found for ${metadata.family}/${metadata.variant}, skipping.`);
         return;
       }
 
-      console.log(`[Migrate] Publishing ${family}/${variant}...`);
-      await client.publishComponent(payload);
-      results.migrated.push(`${family}/${variant}`);
+      const payload = {
+        files,
+        metadata
+      };
+
+      await writeDogmaFile(`${metadata.family}/${metadata.variant}`, null, payload);
+      results.migrated.push(`${metadata.family}/${metadata.variant}`);
     } catch (error) {
       console.error(`[Migrate] Failed to migrate ${componentDir}:`, error.message);
       results.failed.push({ path: componentDir, error: error.message });

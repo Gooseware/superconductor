@@ -115,5 +115,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Engine Complexity Refactor**
+- [x] **Track: Engine Complexity Refactor**
 *Link: [./tracks/engine_complexity_refactor_20260723/](./tracks/engine_complexity_refactor_20260723/)*
+
+---
+
+- [ ] **Track: Complexity Refactor Round 3**
+*Link: [./tracks/complexity_refactor_round3_20260723/](./tracks/complexity_refactor_round3_20260723/)*

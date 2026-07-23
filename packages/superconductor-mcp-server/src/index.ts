@@ -101,6 +101,66 @@ function handleRunReview(projectRoot: string, args: Record<string, unknown>): ob
   };
 }
 
+export function handleGetAgentContext(projectRoot: string): object {
+  const context = getAgentContext(projectRoot);
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(context, null, 2)
+      }
+    ]
+  };
+}
+
+export function handleRunIntelligence(projectRoot: string): object {
+  const outputDir = path.join(projectRoot, "superconductor");
+  let outData;
+  try {
+    runPipeline([], projectRoot, outputDir);
+    const manifest = JSON.parse(fs.readFileSync(path.join(outputDir, "intelligence", "00_manifest.json"), "utf8"));
+    outData = manifest;
+  } catch (e: any) {
+    outData = { error: e.message };
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(outData, null, 2)
+      }
+    ]
+  };
+}
+
+export function handleCheckPlanGap(projectRoot: string, args: any): object {
+  const trackId = (args && typeof args.trackId === 'string') ? args.trackId : '';
+  const changedFiles = (args && Array.isArray(args.changedFiles)) ? (args.changedFiles as string[]) : [];
+  const report = checkPlanGap(projectRoot, trackId, changedFiles);
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(report, null, 2)
+      }
+    ]
+  };
+}
+
+export function handleRunAbiRetrospective(): object {
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({
+          status: "NOT_IMPLEMENTED",
+          message: "This tool is scheduled for implementation in a future track..."
+        }, null, 2)
+      }
+    ]
+  };
+}
+
 /** Wraps a handler result in the MCP content envelope. */
 function mkResult(result: object): object {
   return result;
@@ -111,71 +171,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const projectRoot = validateProjectRoot((args && typeof args.projectRoot === 'string') ? args.projectRoot : undefined);
 
   switch (name) {
-    case "superconductor_get_agent_context": {
-      const context = getAgentContext(projectRoot);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(context, null, 2)
-          }
-        ]
-      };
-    }
+    case "superconductor_get_agent_context":
+      return mkResult(handleGetAgentContext(projectRoot));
 
     case "superconductor_get_track_status":
       return mkResult(handleGetTrackStatus(projectRoot, args ?? {}));
 
-    case "superconductor_run_intelligence": {
-      const outputDir = path.join(projectRoot, "superconductor");
-      let outData;
-      try {
-        runPipeline([], projectRoot, outputDir);
-        const manifest = JSON.parse(fs.readFileSync(path.join(outputDir, "intelligence", "00_manifest.json"), "utf8"));
-        outData = manifest;
-      } catch (e: any) {
-        outData = { error: e.message };
-      }
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(outData, null, 2)
-          }
-        ]
-      };
-    }
+    case "superconductor_run_intelligence":
+      return mkResult(handleRunIntelligence(projectRoot));
 
     case "superconductor_run_review":
       return mkResult(handleRunReview(projectRoot, args ?? {}));
 
-    case "superconductor_check_plan_gap": {
-      const trackId = (args && typeof args.trackId === 'string') ? args.trackId : '';
-      const changedFiles = (args && Array.isArray(args.changedFiles)) ? (args.changedFiles as string[]) : [];
-      const report = checkPlanGap(projectRoot, trackId, changedFiles);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(report, null, 2)
-          }
-        ]
-      };
-    }
+    case "superconductor_check_plan_gap":
+      return mkResult(handleCheckPlanGap(projectRoot, args ?? {}));
 
-    case "superconductor_run_abi_retrospective": {
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              status: "NOT_IMPLEMENTED",
-              message: "This tool is scheduled for implementation in a future track..."
-            }, null, 2)
-          }
-        ]
-      };
-    }
+    case "superconductor_run_abi_retrospective":
+      return mkResult(handleRunAbiRetrospective());
 
     default:
       throw new Error(`Unknown tool: ${name}`);
