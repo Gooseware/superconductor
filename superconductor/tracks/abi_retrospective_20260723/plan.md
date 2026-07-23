@@ -6,10 +6,10 @@
 ---
 
 ## Phase 0: Swarm Preflight
-- [ ] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:caduceus-triage]
-    - [ ] Check skills/swarm-orchestrate/SKILL.md exists
-    - [ ] Confirm adversarial-audit.md is accessible for read/write
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:caduceus-triage]
+    - [x] Check skills/swarm-orchestrate/SKILL.md exists
+    - [x] Confirm adversarial-audit.md is accessible for read/write
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ## Phase 1: Artifact Scanner
 - [ ] Task: Write failing tests for review artifact file discovery and finding extraction [TIER-2] [AGENT:caduceus-processor]
