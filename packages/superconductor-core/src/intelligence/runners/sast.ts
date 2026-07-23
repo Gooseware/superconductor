@@ -1,4 +1,5 @@
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
+import { RunnerResult } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getSuperconductorHome } from '../tool-registry.js';
@@ -82,19 +83,30 @@ function runSemgrepScan(projectRoot: string, capability: any, scopedFiles?: stri
   if (!capability || capability.status === 'unavailable' || capability.tool !== 'semgrep') {
     return { findings: [], success: true };
   }
-  let targetArgs = JSON.stringify(projectRoot);
-  if (scopedFiles && scopedFiles.length > 0) {
-    targetArgs = scopedFiles.map(f => `--include ${JSON.stringify(f)}`).join(' ') + ' ' + targetArgs;
-  }
   
   try {
-    const out = execSync(
-      `semgrep scan ${targetArgs} --config=auto --json 2>/dev/null`,
-      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
-    );
+    let out;
+    if (scopedFiles && scopedFiles.length > 0) {
+      const validFiles = scopedFiles
+        .map(f => path.resolve(projectRoot, f))
+        .filter(abs => abs.startsWith(path.resolve(projectRoot)) && fs.existsSync(abs));
+        
+      if (validFiles.length === 0) return { findings: [], success: true };
+      
+      const result = spawnSync('semgrep', ['scan', '--config=auto', '--json', ...validFiles], {
+        cwd: projectRoot, encoding: 'utf8', maxBuffer: 20 * 1024 * 1024
+      });
+      out = result.stdout || '{}';
+      if (result.status !== 0 && !result.stdout) throw new Error('semgrep failed');
+    } else {
+      out = execSync(
+        `semgrep scan ${JSON.stringify(projectRoot)} --config=auto --json 2>/dev/null`,
+        { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
+      );
+    }
     return { findings: parseSemgrepOutput(out), success: true };
   } catch (rawError: unknown) {
-    const e = rawError as { stdout?: Buffer };
+    const e = rawError as { stdout?: Buffer | string };
     if (e.stdout) {
       return { findings: parseSemgrepOutput(e.stdout.toString()), success: true };
     }
@@ -151,7 +163,7 @@ function runTrivyScan(projectRoot: string, scaCapability: any, scopedFiles?: str
 // Main entry point
 // ---------------------------------------------------------------------------
 
-export function runSast(projectRoot: string, outputDir: string, capability: any, scaCapability: any, scopedFiles?: string[]) {
+export function runSast(projectRoot: string, outputDir: string, capability: any, scaCapability: any, scopedFiles?: string[]): RunnerResult<SastFinding> {
   const outFile = path.join(outputDir, '05_sast.json');
   void getSuperconductorHome(); // preserved side-effect / future use
 
@@ -161,7 +173,7 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
   if (!semgrepAvailable && !trivyAvailable) {
     if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: [] };
     fs.writeFileSync(outFile, JSON.stringify(null));
-    return { status: 'degraded' };
+    return { status: 'degraded', entries: null };
   }
 
   const semgrepRes = runSemgrepScan(projectRoot, capability, scopedFiles);
@@ -179,5 +191,5 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
   }
 
   fs.writeFileSync(outFile, JSON.stringify(findings, null, 2));
-  return { status: degraded ? 'degraded' : 'ok' };
+  return { status: degraded ? 'degraded' : 'ok', entries: null };
 }

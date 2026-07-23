@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { RunnerResult } from './types.js';
 
 interface PackageUsage {
   version: string;
@@ -67,7 +68,7 @@ function extractImportedApis(content: string): Map<string, string[]> {
   return pkgApis;
 }
 
-export function runPackageSurface(projectRoot: string, outputDir: string, scopedFiles?: string[]) {
+export function runPackageSurface(projectRoot: string, outputDir: string, scopedFiles?: string[]): RunnerResult<any> {
   const outFile = path.join(outputDir, '08_package_surface.json');
 
   try {
@@ -154,10 +155,10 @@ export function runPackageSurface(projectRoot: string, outputDir: string, scoped
       console.log(`  ${pkg}@${usage.version} — ${usage.usedApis.slice(0, 5).join(', ')} (${usage.importedBy.length} files)`);
     }
 
-    return { status: 'ok' };
+    return { status: 'ok', entries: null };
   } catch (e) {
-    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: {} };
+    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: [] };
     fs.writeFileSync(outFile, JSON.stringify({}));
-    return { status: 'degraded' };
+    return { status: 'degraded', entries: null };
   }
 }

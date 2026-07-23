@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import { RunnerResult } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -6,12 +7,19 @@ import * as path from 'path';
 //   NLOC  CCN  token  PARAM  length  funcName@startLine-endLine@filepath
 const LIZARD_LINE_RE = /^\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+.+?@\d+-\d+@(.+)$/;
 
-export function runComplexity(projectRoot: string, outputDir: string, capability: any, scopedFiles?: string[]) {
+export function runComplexity(projectRoot: string, outputDir: string, capability: any, scopedFiles?: string[]): RunnerResult<any> {
   const outFile = path.join(outputDir, '03_complexity.json');
 
   if (scopedFiles && scopedFiles.length > 0) {
     try {
       const existingChurn: Record<string, number> = {};
+      /**
+       * STATEFUL: Reads existing 03_complexity.json to backfill churn data for
+       * files not in scopedFiles. Results differ if no prior full scan exists.
+       * In CI environments without a prior scan, churn scores will be 0 for
+       * non-scoped files. This is acceptable — the incremental updater always
+       * runs after at least one full scan (guarded in update()).
+       */
       if (fs.existsSync(outFile)) {
         try {
           const data = JSON.parse(fs.readFileSync(outFile, 'utf8'));
@@ -38,10 +46,10 @@ export function runComplexity(projectRoot: string, outputDir: string, capability
 
     fs.writeFileSync(outFile, JSON.stringify(hotspots, null, 2));
 
-    return { status: lizardOk ? 'ok' : 'degraded' };
+    return { status: lizardOk ? 'ok' : 'degraded', entries: null };
   } catch (e) {
     fs.writeFileSync(outFile, JSON.stringify([]));
-    return { status: 'degraded' };
+    return { status: 'degraded', entries: null };
   }
 }
 

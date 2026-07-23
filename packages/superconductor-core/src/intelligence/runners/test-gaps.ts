@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { RunnerResult } from './types.js';
 
 function walkDir(dir: string, callback: (file: string) => void) {
   if (!fs.existsSync(dir)) return;
@@ -22,7 +23,7 @@ function walkDir(dir: string, callback: (file: string) => void) {
   } catch (e) {}
 }
 
-export function runTestGaps(projectRoot: string, outputDir: string, scopedFiles?: string[]) {
+export function runTestGaps(projectRoot: string, outputDir: string, scopedFiles?: string[]): RunnerResult<any> {
   const outFile = path.join(outputDir, '07_test_gaps.json');
   const couplingFile = path.join(outputDir, '04_coupling.json');
   
@@ -123,5 +124,5 @@ export function runTestGaps(projectRoot: string, outputDir: string, scopedFiles?
   }
   
   fs.writeFileSync(outFile, JSON.stringify(gaps, null, 2));
-  return { status: 'ok' };
+  return { status: 'ok', entries: null };
 }
