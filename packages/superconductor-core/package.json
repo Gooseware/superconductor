@@ -19,6 +19,7 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@superconductor/engine": "workspace:*"
+    "@superconductor/engine": "workspace:*",
+    "zod": "^3.25.76"
   }
 }

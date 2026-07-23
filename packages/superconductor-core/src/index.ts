@@ -4,3 +4,4 @@ export * from './track/index.js';
 export * from './protocol/index.js';
 export * from './cli/index.js';
 export * from './intelligence/index.js';
+export * from './telemetry/index.js';

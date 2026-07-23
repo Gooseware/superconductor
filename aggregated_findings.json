@@ -1,0 +1,202 @@
+[
+  {
+    "finding_id": "SEC-001",
+    "reviewer_id": "security-reviewer",
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "line_range": "65-72",
+    "severity": "medium",
+    "category": "security",
+    "description": "Unvalidated _meta parameters in CallToolRequestSchema handler allows arbitrary numeric payload additions to token accumulators without schema validation or bounds checking.",
+    "recommendation": "Validate _meta object fields (promptTokens, completionTokens) with strict type and boundary checks before accumulating.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "security-reviewer",
+      "adversarial-reviewer"
+    ],
+    "agreement_count": 2,
+    "categories": [
+      "security",
+      "adversarial"
+    ]
+  },
+  {
+    "finding_id": "SEC-002",
+    "reviewer_id": "security-reviewer",
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "line_range": "189-204",
+    "severity": "low",
+    "category": "security",
+    "description": "Environment variable fallback values (SUPERCONDUCTOR_TRACK_ID, SUPERCONDUCTOR_SUBAGENT_ID) default to untracked 'unknown' strings without sanitization when constructing telemetry log paths.",
+    "recommendation": "Sanitize and validate trackId and subagentId inputs before writing telemetry records to ensure log integrity.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "security-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "security"
+    ]
+  },
+  {
+    "finding_id": "CORR-001",
+    "reviewer_id": "correctness-reviewer",
+    "file": "packages/superconductor-core/src/index.ts",
+    "line_range": "30",
+    "severity": "critical",
+    "category": "correctness",
+    "description": "Re-export of non-existent module './telemetry/index.js'. The directory and file 'packages/superconductor-core/src/telemetry/index.ts' do not exist in the codebase or git diff, causing a TS2307 TypeScript compilation failure upon build.",
+    "recommendation": "Add the missing 'src/telemetry/index.ts' implementation file to the patch or remove the export line until the module is implemented.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "correctness-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "correctness"
+    ]
+  },
+  {
+    "finding_id": "CORR-002",
+    "reviewer_id": "correctness-reviewer",
+    "file": "packages/superconductor-core/src/intelligence/index.ts",
+    "line_range": "4",
+    "severity": "critical",
+    "category": "correctness",
+    "description": "Re-export of non-existent module './prompt-generator.js'. The file 'packages/superconductor-core/src/intelligence/prompt-generator.ts' does not exist in the codebase or git diff, causing a TS2307 TypeScript compilation failure upon build.",
+    "recommendation": "Add the missing 'src/intelligence/prompt-generator.ts' implementation file to the patch or remove the export line until the module is implemented.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "correctness-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "correctness"
+    ]
+  },
+  {
+    "finding_id": "CORR-003",
+    "reviewer_id": "correctness-reviewer",
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "line_range": "18-22",
+    "severity": "high",
+    "category": "correctness",
+    "description": "Import of non-existent named exports 'FileTelemetryStore' and 'TokenUsageReport' from '@superconductor/core'. Because the telemetry module was not committed, attempting to import or construct 'FileTelemetryStore' causes runtime or compile-time failure.",
+    "recommendation": "Ensure 'FileTelemetryStore' and 'TokenUsageReport' are exported by '@superconductor/core' before importing them in the MCP server package.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "correctness-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "correctness"
+    ]
+  },
+  {
+    "finding_id": "CORR-004",
+    "reviewer_id": "correctness-reviewer",
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "line_range": "181-183",
+    "severity": "medium",
+    "category": "correctness",
+    "description": "Premature mutation of 'hasFlushed = true' prior to awaiting 'store.recordUsage(...)'. If recording usage fails (e.g. non-existent directory or I/O error), 'hasFlushed' remains true, permanently preventing retry attempts during process shutdown signals.",
+    "recommendation": "Only set 'hasFlushed = true' after 'store.recordUsage(...)' resolves successfully.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "correctness-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "correctness"
+    ]
+  },
+  {
+    "finding_id": "ADV-001",
+    "reviewer_id": "adversarial-reviewer",
+    "file": "packages/superconductor-core/package.json",
+    "line_range": "19-20",
+    "severity": "medium",
+    "category": "adversarial",
+    "description": "Dependency Laundering: 'zod' version '^3.25.76' added to dependencies without being imported or used anywhere in the codebase or diff.",
+    "recommendation": "Remove unused 'zod' dependency from package.json unless it is actually required and imported by implementation files.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "adversarial-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "adversarial"
+    ]
+  },
+  {
+    "finding_id": "ADV-002",
+    "reviewer_id": "adversarial-reviewer",
+    "file": "superconductor/tech-stack.md",
+    "line_range": "44-45",
+    "severity": "high",
+    "category": "adversarial",
+    "description": "Phantom Implementation / Confidence Washing: Documentation asserts addition of 'DependencyContextManager' for dynamically parsing workspace manifests to inject context into 'GenerateResearchPrompt' artifacts, but no such class or generator exists in the diff or codebase.",
+    "recommendation": "Remove un-implemented claims from tech-stack.md until 'DependencyContextManager' and 'GenerateResearchPrompt' are implemented with unit tests.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "adversarial-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "adversarial"
+    ]
+  },
+  {
+    "finding_id": "ADV-003",
+    "reviewer_id": "adversarial-reviewer",
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "line_range": "51-54",
+    "severity": "high",
+    "category": "adversarial",
+    "description": "Semantic Drift: Telemetry state uses global scalars ('promptTokens', 'completionTokens', 'stepIndex') and a single-use boolean flag ('hasFlushed'). Once 'flushTelemetry()' is executed, 'hasFlushed' remains true forever, preventing telemetry recording for any subsequent lifecycle events or reused server instances. Furthermore, stepIndex increments unconditionally on every request regardless of tool success or failure.",
+    "recommendation": "Refactor telemetry collection into a proper class instance associated with the active transport/connection session rather than module-level globals, and allow periodic or per-subagent flushing without permanently disabling flush functionality.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "adversarial-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "adversarial"
+    ]
+  },
+  {
+    "finding_id": "ADV-005",
+    "reviewer_id": "adversarial-reviewer",
+    "file": "packages/superconductor-core/node_modules/.vite/vitest/da39a3ee5e6b4b0d3255bfef95601890afd80709/results.json",
+    "line_range": "1-1",
+    "severity": "low",
+    "category": "adversarial",
+    "description": "Scope Creep Injection: Internal 'node_modules/.vite/vitest' cache result file deletion included in git diff.",
+    "recommendation": "Ensure '.vite' and 'node_modules' are in .gitignore and revert deletion of internal cache files from git tracked state.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "adversarial-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "adversarial"
+    ]
+  },
+  {
+    "finding_id": "ADV-006",
+    "reviewer_id": "adversarial-reviewer",
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "line_range": "93-95",
+    "severity": "low",
+    "category": "adversarial",
+    "description": "Silent Degradation: 'flushTelemetry' catches file write errors and logs via console.error without reporting failure status to calling process or retrying, causing silent telemetry loss.",
+    "recommendation": "Handle file write errors with retry mechanisms or structured error propagation during process teardown.",
+    "is_security_critical": false,
+    "reviewer_ids": [
+      "adversarial-reviewer"
+    ],
+    "agreement_count": 1,
+    "categories": [
+      "adversarial"
+    ]
+  }
+]

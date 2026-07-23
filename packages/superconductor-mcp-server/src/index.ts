@@ -18,8 +18,15 @@ import {
   generateTokenReport,
   checkPlanGap,
   resolveReviewInput,
-  runPipeline
+  runPipeline,
+  FileTelemetryStore,
+  TokenUsageReport
 } from "@superconductor/core";
+
+let promptTokens = 0;
+let completionTokens = 0;
+let stepIndex = 0;
+let hasFlushed = false;
 
 const server = new Server(
   {
@@ -150,6 +157,13 @@ export function handleCheckPlanGap(projectRoot: string, args: any): object {
 // Removed mkResult identity wrapper per adversarial review
 
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
+  const meta = request.params?._meta;
+  if (meta) {
+    if (typeof meta.promptTokens === 'number') promptTokens += meta.promptTokens;
+    if (typeof meta.completionTokens === 'number') completionTokens += meta.completionTokens;
+  }
+  stepIndex++;
+
   const { name, arguments: args } = request.params;
   const projectRoot = validateProjectRoot((args && typeof args.projectRoot === 'string') ? args.projectRoot : undefined);
 
@@ -175,10 +189,41 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 });
 
 
+async function flushTelemetry() {
+  if (hasFlushed) return;
+  hasFlushed = true;
+  try {
+    const store = new FileTelemetryStore(path.join(workspaceRoot, "superconductor", "telemetry.log"));
+    await store.recordUsage({
+      trackId: process.env.SUPERCONDUCTOR_TRACK_ID || "unknown",
+      subagentId: process.env.SUPERCONDUCTOR_SUBAGENT_ID || "unknown",
+      stepIndex,
+      promptTokens: Math.max(0, Math.round(promptTokens)),
+      completionTokens: Math.max(0, Math.round(completionTokens)),
+      timestamp: Date.now()
+    });
+  } catch (e) {
+    console.error("Telemetry flush failed:", e);
+  }
+}
+
 async function run() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  
+  // The MCP SDK Transport calls onclose when the connection ends (e.g. parent exits)
+  transport.onclose = async () => {
+    await flushTelemetry();
+    process.exit(0);
+  };
 }
+
+['SIGINT', 'SIGTERM'].forEach((signal) => {
+  process.on(signal, async () => {
+    await flushTelemetry();
+    process.exit(0);
+  });
+});
 
 run().catch((error) => {
   console.error("Superconductor MCP Server error:", error);
