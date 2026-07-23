@@ -105,7 +105,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Project Intelligence Layer & Brownfield Repository Analysis** *(requires core abstraction)*
+- [x] **Track: Project Intelligence Layer & Brownfield Repository Analysis** *(requires core abstraction)*
 *Link: [./tracks/intelligence_layer_20260723/](./tracks/intelligence_layer_20260723/)*
 
 ---
@@ -122,3 +122,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Complexity Refactor Round 3**
 *Link: [./tracks/complexity_refactor_round3_20260723/](./tracks/complexity_refactor_round3_20260723/)*
+
+---
+
+- [ ] **Track: Token Estimation and Open Source Package Recommender**
+*Link: [./tracks/token_estimation_20260723/](./tracks/token_estimation_20260723/)*
