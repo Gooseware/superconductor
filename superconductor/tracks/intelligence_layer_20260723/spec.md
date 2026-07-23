@@ -1,9 +1,17 @@
 # Spec: Project Intelligence Layer & Brownfield Repository Analysis
 
+> **PREREQUISITE:** This track MUST be implemented after
+> `core_harness_abstraction_20260723` completes. All implementation targets
+> `packages/superconductor-core/src/intelligence/` (not `scripts/`).
+> The `scripts/intelligence-*.ts` files in the AGY harness are **thin shims only**.
+> See [core_harness_abstraction_20260723](../core_harness_abstraction_20260723/)
+
 ## Overview
 
 A privacy-first, fully offline codebase intelligence pipeline that orchestrates
 existing static analysis CLI tools to produce a set of structured JSON artifacts.
+All pipeline logic lives in `@superconductor/core` — harness-agnostic and
+invokable from any harness (AGY, Claude Desktop, OpenCode) via MCP or CLI.
 These artifacts serve two purposes:
 
 1. **Greenfield mode:** A living ecosystem map (`superconductor/intelligence/`)
@@ -12,9 +20,10 @@ These artifacts serve two purposes:
    files, reducing context token load by an estimated 10–15×.
 
 2. **Brownfield mode:** A one-shot analysis of any unknown codebase. Invoked via
-   `npx tsx scripts/intelligence-pipeline.ts --brownfield --target <path>`. No
-   Superconductor setup required in the target repository. Produces a Repository
-   Health Report suitable for stakeholder and developer audiences.
+   `npx superconductor intelligence --brownfield --target <path>` (harness-agnostic
+   CLI) or via the `superconductor_run_intelligence` MCP tool. No Superconductor
+   setup required in the target repository. Produces a Repository Health Report
+   suitable for stakeholder and developer audiences.
 
 ## Research Foundation
 
@@ -181,17 +190,22 @@ For each unavailable capability, the registry script prints:
 ```
 
 ### FR-1: Tool Availability Matrix
-- Script `scripts/intelligence-preflight.ts` reads the Tool Capability Registry
-  (FR-0) and runs quick-verification on all installed tools
+- Module `packages/superconductor-core/src/intelligence/preflight.ts` reads the
+  Tool Capability Registry (FR-0) and runs quick-verification on all installed tools
+- AGY shim: `scripts/intelligence-preflight.ts` (calls core module, no logic)
 - Reports a per-capability status: ✅ preferred / ⚠️ alternative / ❌ unavailable
 - Required capabilities: `fingerprint`, `complexity`, `coupling` (git fallback always
   available). All others are degraded-mode optional.
 - Degraded mode: unavailable capabilities produce a `null` output file; pipeline continues
 - Prints installation guidance for each unavailable capability
 
-### FR-2: Core Intelligence Pipeline Script
-- Script `scripts/intelligence-pipeline.ts` is the single entry point
-- Runs all tools sequentially in the correct dependency order
+### FR-2: Core Intelligence Pipeline
+- Module `packages/superconductor-core/src/intelligence/pipeline.ts` is the
+  single orchestration entry point — **no harness coupling**
+- Exposed as MCP tool `superconductor_run_intelligence` via `@superconductor/mcp-server`
+- Exposed as CLI command `npx superconductor intelligence` via core CLI adapter
+- AGY shim: `scripts/intelligence-pipeline.ts` (calls core, no logic)
+- Runs all capability runners sequentially in the correct dependency order
 - Writes all outputs to `<output-dir>/intelligence/` with filenames:
   - `01_fingerprint.json` — tokei language breakdown
   - `02_dependencies.json` — dependency graph (DOT converted to JSON)
@@ -202,12 +216,13 @@ For each unavailable capability, the registry script prints:
   - `07_test_gaps.json` — static test gap analysis
   - `00_manifest.json` — pipeline run metadata (tools used, versions, timestamp,
     degraded-mode flags, total elapsed time)
-- Each tool invocation logs to stdout with ✅/⚠️/❌ prefix and elapsed time
+- Each runner logs to stdout with ✅/⚠️/❌ prefix and elapsed time
 - Total pipeline target: <60 seconds on a 100k LOC TypeScript codebase
 
 ### FR-3: Static Test Gap Analyzer (Ecosystem Gap Filler)
-- Script `scripts/static-test-gap-analyzer.ts` fills the one confirmed ecosystem
-  gap — no offline CLI tool exists for this
+- Module `packages/superconductor-core/src/intelligence/runners/test-gaps.ts`
+  fills the one confirmed ecosystem gap — no offline CLI tool exists for this
+- AGY shim: `scripts/static-test-gap-analyzer.ts` (calls core, no logic)
 - Algorithm:
   1. Read `06_api_surface.toon` to get all exported symbols + their source file
   2. Scan `tests/`, `test/`, `__tests__/`, `spec/` directories for all import
@@ -221,7 +236,7 @@ For each unavailable capability, the registry script prints:
 
 ### FR-4: Greenfield Post-Track Hook
 - `workflow.md` gains a new mandatory step after every phase completion:
-  "Run Intelligence Pipeline" — `npx tsx scripts/intelligence-pipeline.ts`
+  "Run Intelligence Pipeline" — `npx superconductor intelligence`
 - Output directory defaults to `superconductor/intelligence/` (project root)
 - The manifest `00_manifest.json` includes the track ID and phase that triggered
   the run, enabling a timeline of how the ecosystem evolved across tracks
@@ -229,6 +244,10 @@ For each unavailable capability, the registry script prints:
   — if the snapshot is older than the last git commit, emit a ⚠️ staleness warning
 
 ### FR-5: Brownfield CLI Mode
+- All flags handled by `packages/superconductor-core/src/intelligence/pipeline.ts`
+  and exposed via `npx superconductor intelligence` (CLI adapter) and
+  `superconductor_run_intelligence` MCP tool (any MCP harness)
+- AGY shim: `scripts/intelligence-pipeline.ts --brownfield` calls core
 - Flag `--brownfield` enables standalone analysis of any repository path
 - Flag `--target <path>` specifies the repository root (default: `./`)
 - Flag `--output <path>` specifies output directory (default: `./<target>/intelligence/`)
@@ -247,13 +266,17 @@ For each unavailable capability, the registry script prints:
   - **Recommendations** (prioritised remediation list)
 
 ### FR-6: Agent Context Protocol
+- This FR extends the `protocol.getAgentContext()` function defined in
+  `core_harness_abstraction_20260723` (Phase 4 of that track)
+- `packages/superconductor-core/src/protocol/agent-context.ts` already provides
+  the framework; this track adds the intelligence snapshot into the context bundle
 - Standardised `superconductor/intelligence/README.md` generated by the pipeline
   explaining what each output file contains and how agents should read it
 - All agents (planner, producer, reviewer) updated in their respective skills to
-  check `superconductor/intelligence/00_manifest.json` before reading source files
+  call `getAgentContext()` (or read `00_manifest.json` directly) before reading source
 - If intelligence layer exists and is fresh: agent reads JSON outputs first,
   falls back to source files only for specific function-level detail
-- Skill updates required:
+- AGY skill updates required:
   - `skills/implement/SKILL.md` — producer reads `06_api_surface.toon` before
     implementing to discover reusable symbols
   - `skills/new-track/SKILL.md` — planner reads `01_fingerprint.json` +
@@ -262,8 +285,10 @@ For each unavailable capability, the registry script prints:
     for blast-radius analysis + `07_test_gaps.json` for coverage risk
 
 ### FR-7: TOON-to-Markdown Bridge
-- Script `scripts/toon-to-summary.ts` converts `06_api_surface.toon` to a
-  compressed markdown summary suitable for agent system prompts
+- Module `packages/superconductor-core/src/intelligence/runners/toon-summary.ts`
+  converts `06_api_surface.toon` to a compressed markdown summary suitable
+  for agent system prompts
+- AGY shim: `scripts/toon-to-summary.ts` (calls core, no logic)
 - Output: `06_api_surface_summary.md` — one line per exported symbol:
   `[type] [file]:[line] [name]([params]) — [docstring first line or "undocumented"]`
 - This bridge is used when an agent has tight context budget and cannot consume

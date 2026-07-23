@@ -4,6 +4,26 @@
 **Target Branch:** `main`
 **Estimated Complexity:** High (but tooling-reduced — orchestration, not parsing)
 
+> ⚠️ **PREREQUISITE GATE:** Do not begin implementation until
+> `core_harness_abstraction_20260723` is complete and merged.
+> All implementation MUST target `packages/superconductor-core/src/intelligence/`.
+> Any code written to `scripts/*.ts` is **shim-only** (no business logic).
+
+---
+
+## Phase -1: Prerequisite Verification
+
+- [ ] Task: Verify `core_harness_abstraction_20260723` is complete [TIER-1] [AGENT:caduceus-triage]
+    - [ ] Check `packages/superconductor-core/` exists and builds (`npm run build` in that package)
+    - [ ] Check `packages/superconductor-mcp-server/` exists and builds
+    - [ ] Check `packages/superconductor-core/src/intelligence/` directory exists (created by core track)
+    - [ ] Check `packages/superconductor-core/src/protocol/agent-context.ts` exists
+    - [ ] If any check fails: STOP — implement `core_harness_abstraction_20260723` first
+- [ ] Task: Verify `SUPERCONDUCTOR_HOME` resolves correctly [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `node -e "console.log(require('os').homedir() + '/.superconductor')"` should print a valid path
+    - [ ] `~/.superconductor/` writable (core track Phase 0 should have created it)
+- [ ] Task: Superconductor - User Manual Verification 'Phase -1: Prerequisite Verification' (Protocol in workflow.md)
+
 ---
 
 ## Phase 0: Swarm Preflight
@@ -37,7 +57,7 @@
     - [ ] Test: `--setup-only` flag → registry written, pipeline does NOT run
     - [ ] Test: `git-log-raw` fallback → coupling slot resolved with zero external tools
     - [ ] Test: two different projects share same `~/.superconductor/tool-registry.json` (harness-agnostic)
-- [ ] Task: Implement `scripts/tool-registry.ts` — registry read/write/verify [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/tool-registry.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] `getSuperconductorHome(): string` — reads `SUPERCONDUCTOR_HOME` env var, falls back to `~/.superconductor/`
     - [ ] `ensureHomeDir(home: string): void` — creates `~/.superconductor/bin/`, `semgrep-rules/`, `trivy-db/` if absent
     - [ ] Define `CAPABILITY_SLOTS` constant with preferred + alternatives + paths relative to home dir
@@ -52,9 +72,12 @@
     - [ ] Print installation guidance + `--reset-registry` reminder for each unavailable capability
     - [ ] `git-log-raw` fallback always populates `coupling` slot — built-in, never unavailable
     - [ ] Registry `superconductor_home` field records resolved home path for debugging
-- [ ] Task: Implement `--reset-registry` and `--setup-only` CLI flags [TIER-1] [AGENT:caduceus-triage]
-    - [ ] `--reset-registry`: delete `$SUPERCONDUCTOR_HOME/tool-registry.json`, call `setupRegistry()`
-    - [ ] `--setup-only`: call `resolveRegistry()`, print summary table, exit 0
+    - [ ] Export from `packages/superconductor-core/src/intelligence/index.ts`
+- [ ] Task: Create AGY shim `scripts/tool-registry.ts` (no logic) [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `import { resolveRegistry } from '@superconductor/core'; resolveRegistry(...process.argv.slice(2));`
+- [ ] Task: Implement `--reset-registry` and `--setup-only` flags in core CLI adapter [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `npx superconductor setup --reset-registry`: deletes registry, calls `setupRegistry()`
+    - [ ] `npx superconductor setup`: calls `resolveRegistry()`, prints summary table, exits 0
 - [ ] Task: Download `code-maat.jar` to `$SUPERCONDUCTOR_HOME/bin/` during setup [TIER-1] [AGENT:caduceus-triage]
     - [ ] Download from GitHub releases to `~/.superconductor/bin/code-maat.jar`
     - [ ] Verify JAR executes: `java -jar ~/.superconductor/bin/code-maat.jar --help`
@@ -75,12 +98,15 @@
     - [ ] Test: tokei missing → `01_fingerprint.json` is null, pipeline continues
     - [ ] Test: all optional tools missing → pipeline completes with 5 null files
     - [ ] Test: `lizard` missing but tokei present → manifest `degraded: ["lizard"]`
-- [ ] Task: Implement `scripts/intelligence-preflight.ts` [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Check each tool via `which`/`command -v` + version invocation
-    - [ ] Classify each tool as required/optional
-    - [ ] Print ✅/⚠️/❌ availability matrix to stdout
-    - [ ] Return structured object: `{ available: string[], missing: string[], degraded: string[] }`
-    - [ ] Print install guidance for each missing tool
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/preflight.ts` [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Reads Tool Capability Registry from `~/.superconductor/tool-registry.json`
+    - [ ] Runs quick-verification on each `installed` tool entry
+    - [ ] Prints ✅/⚠️/❌ availability matrix to stdout
+    - [ ] Returns structured object: `{ available: string[], degraded: string[], unavailable: string[] }`
+    - [ ] Prints install guidance for each unavailable capability
+    - [ ] Export from `packages/superconductor-core/src/intelligence/index.ts`
+- [ ] Task: Create AGY shim `scripts/intelligence-preflight.ts` (no logic) [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `import { runPreflight } from '@superconductor/core/intelligence'; runPreflight();`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Preflight & Tool Availability' (Protocol in workflow.md)
 
 ---
@@ -92,11 +118,12 @@
     - [ ] Test: `02_dependencies.json` contains nodes and edges arrays
     - [ ] Test: circular dependency in fixture repo → circular flag in output
     - [ ] Test: non-JS/TS repo → `auto-uml` used as polyglot fallback
-- [ ] Task: Implement fingerprint runner (`tokei` integration) [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/fingerprint.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] Invoke `tokei <target> --output json`
     - [ ] Normalise output to canonical schema: `{ languages: {}, totalLines, totalFiles, primaryLanguage }`
     - [ ] Write to `01_fingerprint.json`
-- [ ] Task: Implement dependency graph runner [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Export from `runners/index.ts`
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/dependency-graph.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] Detect primary language from `01_fingerprint.json`
     - [ ] Route to language-specific tool:
         - TS/JS → `dependency-cruiser`: `npx depcruise src -T json`
@@ -105,6 +132,7 @@
         - Polyglot fallback → `auto-uml --source-code <target> --no-mermaid`
     - [ ] Normalise all outputs to canonical schema: `{ nodes: [], edges: [], circularDeps: [] }`
     - [ ] Write to `02_dependencies.json`
+    - [ ] Export from `runners/index.ts`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Fingerprint + Dependency Graph' (Protocol in workflow.md)
 
 ---
@@ -117,17 +145,14 @@
     - [ ] Test: hotspot formula: `score = cyclomatic_complexity × log(1 + churn)`
     - [ ] Test: `-w` flag applied — only over-threshold functions in output
     - [ ] Test: top-10 hotspots printed to stdout on pipeline completion
-- [ ] Task: Implement complexity runner (`lizard` integration) [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/complexity.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] Invoke `lizard <target> -w -f json` (hotspot-only output)
     - [ ] Parse JSON output, extract file-level aggregates
-    - [ ] Write intermediate `03_complexity_raw.json`
-- [ ] Task: Implement Hotspot Index computation [TIER-2] [AGENT:caduceus-processor]
     - [ ] Read git churn: `git log --all --name-only --format='format:' | sort | uniq -c`
-    - [ ] Parse churn into `{ file: string, churnCount: number }[]`
-    - [ ] Join complexity + churn on filename
     - [ ] Compute `hotspot_score = cyclomatic_complexity × Math.log(1 + churnCount)`
     - [ ] Sort descending, write `03_complexity.json` with `hotspot_score` field
     - [ ] Print top-10 to stdout with ✅/⚠️/❌ risk ratings
+    - [ ] Export from `runners/index.ts`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 3: Complexity Hotspot Map' (Protocol in workflow.md)
 
 ---
@@ -139,11 +164,13 @@
     - [ ] Test: fixture repo with known coupling → coupling detected correctly
     - [ ] Test: code-maat missing → `04_coupling.csv` is null, manifest records degraded
     - [ ] Test: raw git fallback (no code-maat JAR) → simplified churn-only CSV
-- [ ] Task: Implement git coupling runner (`code-maat` integration) [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/coupling.ts` [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Read JAR path from tool registry: `$SUPERCONDUCTOR_HOME/bin/code-maat.jar`
     - [ ] Generate git log: `git log --all --numstat --format=format: > /tmp/gitlog.txt`
-    - [ ] Invoke code-maat: `java -jar scripts/bin/code-maat.jar -l /tmp/gitlog.txt -c git2 -a coupling`
+    - [ ] Invoke code-maat: `java -jar $SUPERCONDUCTOR_HOME/bin/code-maat.jar -l /tmp/gitlog.txt -c git2 -a coupling`
     - [ ] Write output to `04_coupling.csv`
     - [ ] Fallback (no JAR): produce simplified `{ file, churnCount }[]` JSON from raw git log
+    - [ ] Export from `runners/index.ts`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: Git Coupling Matrix' (Protocol in workflow.md)
 
 ---
@@ -156,15 +183,15 @@
     - [ ] Test: trivy invoked with `--skip-db-update --offline-scan` flags always present
     - [ ] Test: mock invocation log — zero network calls during pipeline run
     - [ ] Test: semgrep missing → `05_sast.json` is null, pipeline continues
-- [ ] Task: Implement semgrep SAST runner (local rules only) [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Verify local rules dir `scripts/semgrep-rules/` exists before invoking
-    - [ ] Invoke: `semgrep scan --config ./scripts/semgrep-rules --json -o 05_sast_semgrep.json`
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/sast.ts` [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Read rules dir from tool registry: `$SUPERCONDUCTOR_HOME/semgrep-rules/`
+    - [ ] Invoke: `semgrep scan --config $SUPERCONDUCTOR_HOME/semgrep-rules --json -o 05_sast_semgrep.json`
     - [ ] Guard: if `--config=auto` would be used, abort and log ❌ privacy violation
-- [ ] Task: Implement trivy SCA runner (offline DB only) [TIER-2] [AGENT:caduceus-processor]
-    - [ ] Verify trivy DB cache dir exists before invoking
-    - [ ] Invoke: `trivy fs <target> --format json --skip-db-update --offline-scan --cache-dir scripts/trivy-db`
+    - [ ] Read trivy DB from tool registry: `$SUPERCONDUCTOR_HOME/trivy-db/`
+    - [ ] Invoke: `trivy fs <target> --format json --skip-db-update --offline-scan --cache-dir $SUPERCONDUCTOR_HOME/trivy-db`
     - [ ] Merge semgrep + trivy outputs into unified `05_sast.json`
     - [ ] Schema: `{ findings: [{ tool, severity, ruleId, file, line, message }] }`
+    - [ ] Export from `runners/index.ts`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 5: Security Surface' (Protocol in workflow.md)
 
 ---
@@ -176,15 +203,18 @@
     - [ ] Test: `06_api_surface_summary.md` produced by TOON bridge — one line per symbol
     - [ ] Test: undocumented exported symbol → marked "undocumented" in summary
     - [ ] Test: TSA missing → `06_api_surface.toon` is null, bridge skipped
-- [ ] Task: Implement TSA runner (`tree-sitter-analyzer` integration) [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] Invoke: `tree-sitter-analyzer search --project-root <target> --output_format toon > 06_api_surface.toon`
     - [ ] Fallback: if TSA missing → use `universal-ctags --output-format=json -R`
     - [ ] Write raw output to `06_api_surface.toon`
-- [ ] Task: Implement `scripts/toon-to-summary.ts` TOON bridge [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Export from `runners/index.ts`
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/toon-summary.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] Parse TOON format into structured symbol records
     - [ ] Format each record: `[type] [file]:[line] [name]([params]) — [docstring|"undocumented"]`
     - [ ] Write `06_api_surface_summary.md`
     - [ ] Emit count of undocumented public exports to stdout
+    - [ ] Export from `runners/index.ts`
+- [ ] Task: Create AGY shim `scripts/toon-to-summary.ts` (no logic) [TIER-1] [AGENT:caduceus-triage]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 6: Symbol Extraction + API Surface' (Protocol in workflow.md)
 
 ---
@@ -197,7 +227,7 @@
     - [ ] Test: idempotency — two runs produce identical `07_test_gaps.json`
     - [ ] Test: empty tests/ directory → all exported symbols flagged as uncovered
     - [ ] Test: symbol in test file but as indirect import → counts as covered
-- [ ] Task: Implement `scripts/static-test-gap-analyzer.ts` [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/runners/test-gaps.ts` [TIER-2] [AGENT:caduceus-processor]
     - [ ] Read `06_api_surface.toon` → extract exported symbols + source files
     - [ ] Scan `tests/`, `test/`, `__tests__/`, `spec/`, `*.test.*`, `*.spec.*` for imports
     - [ ] Build import graph: `{ testFile → Set<importedSourceFiles> }`
@@ -206,6 +236,8 @@
     - [ ] Assign risk: `critical` = uncovered + churn ≥ 5, `high` = uncovered + churn ≥ 2,
           `medium` = uncovered + churn ≥ 1, `low` = uncovered, no churn
     - [ ] Write `07_test_gaps.json`: `{ file, exportedSymbols[], gitChurnScore, riskLevel }`
+    - [ ] Export from `runners/index.ts`
+- [ ] Task: Create AGY shim `scripts/static-test-gap-analyzer.ts` (no logic) [TIER-1] [AGENT:caduceus-triage]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 7: Static Test Gap Analyzer' (Protocol in workflow.md)
 
 ---
@@ -219,13 +251,19 @@
     - [ ] Test: `--report` flag generates `repository-health-report.md` with all 8 sections
     - [ ] Test: `--skip-sast` flag skips phases 5 entirely, manifest records skip
     - [ ] Test: staleness warning emitted when manifest timestamp < last git commit
-- [ ] Task: Implement `scripts/intelligence-pipeline.ts` orchestrator [TIER-2] [AGENT:caduceus-processor]
+- [ ] Task: Implement `packages/superconductor-core/src/intelligence/pipeline.ts` orchestrator [TIER-2] [AGENT:caduceus-processor]
     - [ ] Parse CLI flags: `--brownfield`, `--target`, `--output`, `--skip-sast`, `--report`, `--track`
     - [ ] Run preflight, then phases 1→7 sequentially with elapsed time logging
     - [ ] Write `00_manifest.json` at completion with full run metadata
     - [ ] Emit top-10 hotspots summary to stdout
     - [ ] Handle degraded mode: continue on missing tools, record in manifest
+    - [ ] Export `runPipeline()` from `packages/superconductor-core/src/intelligence/index.ts`
+    - [ ] Register as `superconductor_run_intelligence` MCP tool in `@superconductor/mcp-server`
+    - [ ] Register as `npx superconductor intelligence` in core CLI adapter
+- [ ] Task: Create AGY shim `scripts/intelligence-pipeline.ts` (no logic) [TIER-1] [AGENT:caduceus-triage]
+    - [ ] `import { runPipeline } from '@superconductor/core/intelligence'; runPipeline(process.argv.slice(2));`
 - [ ] Task: Implement `--report` brownfield health report generator [TIER-2] [AGENT:caduceus-processor]
+    - [ ] Implement in `packages/superconductor-core/src/intelligence/report.ts`
     - [ ] Read all 7 output files
     - [ ] Generate `repository-health-report.md` with 8 sections:
           Executive Summary, Stack Fingerprint, Dependency Health, Complexity Hotspot Map,
