@@ -9,6 +9,12 @@
       "args": [
         "${extensionPath}/packages/design-os-kernel/dist/index.js"
       ]
+    },
+    "superconductor": {
+      "command": "node",
+      "args": [
+        "${extensionPath}/packages/superconductor-mcp-server/dist/index.js"
+      ]
     }
   }
 }

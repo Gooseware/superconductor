@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "superconductor": {
+      "command": "node",
+      "args": [
+        "${SUPERCONDUCTOR_PATH}/packages/superconductor-mcp-server/dist/index.js"
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@superconductor/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Superconductor Framework",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "superconductor-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "@superconductor/core": "file:../superconductor-core",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

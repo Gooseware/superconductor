@@ -100,7 +100,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Harness-Agnostic Core Abstraction** *(prerequisite for intelligence layer)*
+- [x] **Track: Harness-Agnostic Core Abstraction** *(prerequisite for intelligence layer)*
 *Link: [./tracks/core_harness_abstraction_20260723/](./tracks/core_harness_abstraction_20260723/)*
 
 ---
