@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import { RunnerResult } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -6,8 +7,37 @@ import * as path from 'path';
 //   NLOC  CCN  token  PARAM  length  funcName@startLine-endLine@filepath
 const LIZARD_LINE_RE = /^\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+.+?@\d+-\d+@(.+)$/;
 
-export function runComplexity(projectRoot: string, outputDir: string, capability: any) {
+export function runComplexity(projectRoot: string, outputDir: string, capability: any, scopedFiles?: string[]): RunnerResult<any> {
   const outFile = path.join(outputDir, '03_complexity.json');
+
+  if (scopedFiles && scopedFiles.length > 0) {
+    try {
+      const existingChurn: Record<string, number> = {};
+      /**
+       * STATEFUL: Reads existing 03_complexity.json to backfill churn data for
+       * files not in scopedFiles. Results differ if no prior full scan exists.
+       * In CI environments without a prior scan, churn scores will be 0 for
+       * non-scoped files. This is acceptable — the incremental updater always
+       * runs after at least one full scan (guarded in update()).
+       */
+      if (fs.existsSync(outFile)) {
+        try {
+          const data = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+          for (const item of data) {
+             if (item.file && item.churnCount !== undefined) {
+               existingChurn[item.file] = item.churnCount;
+             }
+          }
+        } catch(e) {}
+      }
+      
+      const { fileStats, lizardOk } = runLizardScan(projectRoot, capability, scopedFiles);
+      const hotspots = mergeComplexityAndChurn(fileStats, existingChurn, lizardOk, scopedFiles);
+      return { status: lizardOk || Object.keys(fileStats).length === 0 ? 'ok' : 'degraded', entries: hotspots };
+    } catch (e) {
+      return { status: 'degraded', entries: [] };
+    }
+  }
 
   try {
     const churn = calculateGitChurn(projectRoot);
@@ -16,10 +46,10 @@ export function runComplexity(projectRoot: string, outputDir: string, capability
 
     fs.writeFileSync(outFile, JSON.stringify(hotspots, null, 2));
 
-    return { status: lizardOk ? 'ok' : 'degraded' };
+    return { status: lizardOk ? 'ok' : 'degraded', entries: null };
   } catch (e) {
     fs.writeFileSync(outFile, JSON.stringify([]));
-    return { status: 'degraded' };
+    return { status: 'degraded', entries: null };
   }
 }
 
@@ -40,7 +70,7 @@ function calculateGitChurn(projectRoot: string): Record<string, number> {
   return churn;
 }
 
-function runLizardScan(projectRoot: string, capability: any): { fileStats: Record<string, {maxCcn: number, nloc: number}>, lizardOk: boolean } {
+function runLizardScan(projectRoot: string, capability: any, scopedFiles?: string[]): { fileStats: Record<string, {maxCcn: number, nloc: number}>, lizardOk: boolean } {
   const fileStats: Record<string, { maxCcn: number; nloc: number }> = {};
   let lizardOk = false;
 
@@ -48,10 +78,27 @@ function runLizardScan(projectRoot: string, capability: any): { fileStats: Recor
     // lizard exits 1 when warnings found — capture stdout from the thrown error
     let lizardOut = '';
     try {
-      lizardOut = execSync(
-        `lizard ${JSON.stringify(projectRoot)} -x "*/node_modules/*" -x "*/dist/*" -x "*/.git/*" -x "*/coverage/*"`,
-        { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
-      );
+      if (scopedFiles && scopedFiles.length > 0) {
+        const outs: string[] = [];
+        for (const file of scopedFiles) {
+          const fullPath = path.join(projectRoot, file);
+          if (!fs.existsSync(fullPath)) continue;
+          try {
+            outs.push(execSync(
+              `lizard ${JSON.stringify(fullPath)} -x "*/node_modules/*" -x "*/dist/*" -x "*/.git/*" -x "*/coverage/*"`,
+              { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
+            ));
+          } catch (e: any) {
+            outs.push((e as any).stdout || '');
+          }
+        }
+        lizardOut = outs.join('\n');
+      } else {
+        lizardOut = execSync(
+          `lizard ${JSON.stringify(projectRoot)} -x "*/node_modules/*" -x "*/dist/*" -x "*/.git/*" -x "*/coverage/*"`,
+          { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
+        );
+      }
     } catch (e: any) {
       // exit 1 on warnings is normal — stdout still has the data
       lizardOut = (e as any).stdout || '';
@@ -71,12 +118,29 @@ function runLizardScan(projectRoot: string, capability: any): { fileStats: Recor
   return { fileStats, lizardOk };
 }
 
-function mergeComplexityAndChurn(fileStats: Record<string, {maxCcn: number, nloc: number}>, churn: Record<string, number>, lizardOk: boolean): any[] {
+function mergeComplexityAndChurn(fileStats: Record<string, {maxCcn: number, nloc: number}>, churn: Record<string, number>, lizardOk: boolean, scopedFiles?: string[]): any[] {
   const hotspots: any[] = [];
+  
+  const filesToProcess = scopedFiles && scopedFiles.length > 0 
+    ? scopedFiles 
+    : Object.keys(lizardOk ? fileStats : churn);
 
   if (lizardOk) {
     // Merge lizard CCN with git churn
-    for (const [file, stats] of Object.entries(fileStats)) {
+    for (const file of filesToProcess) {
+      const stats = fileStats[file];
+      if (!stats && scopedFiles) {
+        // If scoped but no CCN found (e.g. no functions), fallback to just churn
+        const churnCount = churn[file] || 0;
+        hotspots.push({
+          file,
+          cyclomatic_complexity: null,
+          churnCount,
+          hotspot_score: Math.log(1 + churnCount)
+        });
+        continue;
+      }
+      if (!stats) continue;
       const churnCount = churn[file] || 0;
       hotspots.push({
         file,
@@ -88,13 +152,16 @@ function mergeComplexityAndChurn(fileStats: Record<string, {maxCcn: number, nloc
     }
   } else {
     // git-only fallback
-    for (const [file, churnCount] of Object.entries(churn)) {
-      hotspots.push({
-        file,
-        cyclomatic_complexity: null,
-        churnCount,
-        hotspot_score: Math.log(1 + churnCount)
-      });
+    for (const file of filesToProcess) {
+      const churnCount = churn[file] || 0;
+      if (churnCount > 0 || scopedFiles) {
+        hotspots.push({
+          file,
+          cyclomatic_complexity: null,
+          churnCount,
+          hotspot_score: Math.log(1 + churnCount)
+        });
+      }
     }
   }
 

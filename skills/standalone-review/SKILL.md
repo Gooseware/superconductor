@@ -212,6 +212,15 @@ As default, plus after step 8:
 
 ### 5.2 Reviewer Context for Zero-Track Mode
 
+**Intelligence Context Injection (before fan-out):**
+- Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
+- Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)`
+- If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)` and proceed with keyword heuristics only.
+- Emit degradation banner
+- For each changed file with SAST findings in `RepoContext.sastFindings`:
+  - Inject finding summary into the `security-reviewer` context: `"LIVE SAST: <rule_id> at <file> — verify fix or document exception"`
+- Pass `crossCuttingRisk` (files with hotspot_score > 15 AND SAST findings) to Arbiter briefing
+
 Each reviewer receives:
 - The resolved diff/code target
 - Deterministic preflight output (or `"preflight: skipped - no tool detected"`)

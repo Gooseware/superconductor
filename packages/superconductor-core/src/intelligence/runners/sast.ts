@@ -1,4 +1,5 @@
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
+import { RunnerResult } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getSuperconductorHome } from '../tool-registry.js';
@@ -78,19 +79,34 @@ export function parseTrivyOutput(jsonStr: string): SastFinding[] {
 // Tool scan runners
 // ---------------------------------------------------------------------------
 
-function runSemgrepScan(projectRoot: string, capability: any): { findings: SastFinding[], success: boolean } {
+function runSemgrepScan(projectRoot: string, capability: any, scopedFiles?: string[]): { findings: SastFinding[], success: boolean } {
   if (!capability || capability.status === 'unavailable' || capability.tool !== 'semgrep') {
     return { findings: [], success: true };
   }
-  const quotedRoot = JSON.stringify(projectRoot);
+  
   try {
-    const out = execSync(
-      `semgrep scan ${quotedRoot} --config=auto --json 2>/dev/null`,
-      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
-    );
+    let out;
+    if (scopedFiles && scopedFiles.length > 0) {
+      const validFiles = scopedFiles
+        .map(f => path.resolve(projectRoot, f))
+        .filter(abs => abs.startsWith(path.resolve(projectRoot)) && fs.existsSync(abs));
+        
+      if (validFiles.length === 0) return { findings: [], success: true };
+      
+      const result = spawnSync('semgrep', ['scan', '--config=auto', '--json', ...validFiles], {
+        cwd: projectRoot, encoding: 'utf8', maxBuffer: 20 * 1024 * 1024
+      });
+      out = result.stdout || '{}';
+      if (result.status !== 0 && !result.stdout) throw new Error('semgrep failed');
+    } else {
+      out = execSync(
+        `semgrep scan ${JSON.stringify(projectRoot)} --config=auto --json 2>/dev/null`,
+        { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 }
+      );
+    }
     return { findings: parseSemgrepOutput(out), success: true };
   } catch (rawError: unknown) {
-    const e = rawError as { stdout?: Buffer };
+    const e = rawError as { stdout?: Buffer | string };
     if (e.stdout) {
       return { findings: parseSemgrepOutput(e.stdout.toString()), success: true };
     }
@@ -98,17 +114,48 @@ function runSemgrepScan(projectRoot: string, capability: any): { findings: SastF
   }
 }
 
-function runTrivyScan(projectRoot: string, scaCapability: any): { findings: SastFinding[], success: boolean } {
+function runTrivyScan(projectRoot: string, scaCapability: any, scopedFiles?: string[]): { findings: SastFinding[], success: boolean } {
   if (!scaCapability || scaCapability.status === 'unavailable' || scaCapability.tool !== 'trivy') {
     return { findings: [], success: true };
   }
-  const quotedRoot = JSON.stringify(projectRoot);
+  
   try {
-    const out = execSync(
-      `trivy fs ${quotedRoot} --scanners vuln --format json --quiet 2>/dev/null`,
-      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
-    );
-    return { findings: parseTrivyOutput(out), success: true };
+    if (scopedFiles && scopedFiles.length > 0) {
+      const findings: SastFinding[] = [];
+      let success = true;
+      for (const file of scopedFiles) {
+        const resolvedRoot = path.resolve(projectRoot);
+        const fullPath = path.resolve(resolvedRoot, file);
+        if (!fullPath.startsWith(resolvedRoot + path.sep)) {
+          process.stderr.write(`[superconductor:intelligence] Path traversal blocked: ${file}\n`);
+          continue;
+        }
+        if (!fs.existsSync(fullPath)) continue;
+        try {
+          const result = spawnSync('trivy', ['fs', fullPath, '--scanners', 'vuln', '--format', 'json', '--quiet'], {
+            cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024
+          });
+          if (result.error) throw result.error;
+          const out = result.stdout || '{}';
+          findings.push(...parseTrivyOutput(out));
+        } catch (rawError: unknown) {
+          const e = rawError as { stdout?: Buffer };
+          if (e.stdout) {
+            findings.push(...parseTrivyOutput(e.stdout.toString()));
+          } else {
+            success = false;
+          }
+        }
+      }
+      return { findings, success };
+    } else {
+      const result = spawnSync('trivy', ['fs', projectRoot, '--scanners', 'vuln', '--format', 'json', '--quiet'], {
+        cwd: projectRoot, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024
+      });
+      if (result.error) throw result.error;
+      const out = result.stdout || '{}';
+      return { findings: parseTrivyOutput(out), success: true };
+    }
   } catch (rawError: unknown) {
     const e = rawError as { stdout?: Buffer };
     if (e.stdout) {
@@ -122,7 +169,7 @@ function runTrivyScan(projectRoot: string, scaCapability: any): { findings: Sast
 // Main entry point
 // ---------------------------------------------------------------------------
 
-export function runSast(projectRoot: string, outputDir: string, capability: any, scaCapability: any) {
+export function runSast(projectRoot: string, outputDir: string, capability: any, scaCapability: any, scopedFiles?: string[]): RunnerResult<SastFinding> {
   const outFile = path.join(outputDir, '05_sast.json');
   void getSuperconductorHome(); // preserved side-effect / future use
 
@@ -130,20 +177,25 @@ export function runSast(projectRoot: string, outputDir: string, capability: any,
   const trivyAvailable = scaCapability && scaCapability.status !== 'unavailable' && scaCapability.tool === 'trivy';
 
   if (!semgrepAvailable && !trivyAvailable) {
+    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: [] };
     fs.writeFileSync(outFile, JSON.stringify(null));
-    return { status: 'degraded' };
+    return { status: 'degraded', entries: null };
   }
 
-  const semgrepRes = runSemgrepScan(projectRoot, capability);
-  const trivyRes = runTrivyScan(projectRoot, scaCapability);
+  const semgrepRes = runSemgrepScan(projectRoot, capability, scopedFiles);
+  const trivyRes = runTrivyScan(projectRoot, scaCapability, scopedFiles);
 
   const findings: SastFinding[] = [
     ...semgrepRes.findings,
     ...trivyRes.findings
   ];
 
-  fs.writeFileSync(outFile, JSON.stringify(findings, null, 2));
-
   const degraded = (!semgrepRes.success && semgrepAvailable) || (!trivyRes.success && trivyAvailable);
-  return { status: degraded ? 'degraded' : 'ok' };
+  
+  if (scopedFiles && scopedFiles.length > 0) {
+    return { status: degraded ? 'degraded' : 'ok', entries: findings };
+  }
+
+  fs.writeFileSync(outFile, JSON.stringify(findings, null, 2));
+  return { status: degraded ? 'degraded' : 'ok', entries: null };
 }

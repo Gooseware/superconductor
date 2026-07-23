@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { RunnerResult } from './types.js';
 
 interface PackageUsage {
   version: string;
@@ -67,7 +68,7 @@ function extractImportedApis(content: string): Map<string, string[]> {
   return pkgApis;
 }
 
-export function runPackageSurface(projectRoot: string, outputDir: string) {
+export function runPackageSurface(projectRoot: string, outputDir: string, scopedFiles?: string[]): RunnerResult<any> {
   const outFile = path.join(outputDir, '08_package_surface.json');
 
   try {
@@ -94,9 +95,13 @@ export function runPackageSurface(projectRoot: string, outputDir: string) {
     }
 
     // Collect source files (not node_modules/dist)
-    const srcDirs = ['packages', 'scripts'].map(d => path.join(projectRoot, d));
-    const sourceFiles: string[] = [];
-    for (const d of srcDirs) collectSourceFiles(d, sourceFiles);
+    let sourceFiles: string[] = [];
+    if (scopedFiles && scopedFiles.length > 0) {
+      sourceFiles = scopedFiles.map(f => path.join(projectRoot, f)).filter(f => fs.existsSync(f));
+    } else {
+      const srcDirs = ['packages', 'scripts'].map(d => path.join(projectRoot, d));
+      for (const d of srcDirs) collectSourceFiles(d, sourceFiles);
+    }
 
     // Extract import surface
     const surface: Record<string, PackageUsage> = {};
@@ -137,6 +142,10 @@ export function runPackageSurface(projectRoot: string, outputDir: string) {
     )) {
       sorted[key] = surface[key];
     }
+    
+    if (scopedFiles && scopedFiles.length > 0) {
+      return { status: 'ok', entries: Object.entries(sorted).map(([pkg, usage]) => ({ file: pkg, ...usage })) as any };
+    }
 
     fs.writeFileSync(outFile, JSON.stringify(sorted, null, 2));
 
@@ -146,9 +155,10 @@ export function runPackageSurface(projectRoot: string, outputDir: string) {
       console.log(`  ${pkg}@${usage.version} — ${usage.usedApis.slice(0, 5).join(', ')} (${usage.importedBy.length} files)`);
     }
 
-    return { status: 'ok' };
+    return { status: 'ok', entries: null };
   } catch (e) {
+    if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: [] };
     fs.writeFileSync(outFile, JSON.stringify({}));
-    return { status: 'degraded' };
+    return { status: 'degraded', entries: null };
   }
 }
