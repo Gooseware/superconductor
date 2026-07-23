@@ -92,3 +92,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: Review Self-Verification Gate**
 *Link: [./tracks/review_self_verification_20260723/](./tracks/review_self_verification_20260723/)*
+
+---
+
+- [ ] **Track: Coverage Stats Deduplication & Category Preservation**
+*Link: [./tracks/coverage_stats_dedup_20260723/](./tracks/coverage_stats_dedup_20260723/)*
+
