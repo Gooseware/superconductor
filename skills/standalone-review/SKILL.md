@@ -96,7 +96,9 @@ Include this directly in the adversarial reviewer prompt when `adversarial-audit
 
 ### Adversarial Edge Case Execution Protocol
 
-For every non-trivial function in the diff, mentally execute it against the worst-input set **before** declaring it clean:
+> **CRITICAL — Shenanigan #11:** A clean-pass verdict issued without executed code is grade inflation by definition. Every review MUST produce terminal output, computed values, or inline traces as evidence. A reading-only pass is automatically rejected.
+
+For every non-trivial function in the diff, **execute** it (not just read it) against the worst-input set **before** declaring it clean:
 
 | Input class | Examples | What typically breaks |
 |---|---|---|
@@ -104,7 +106,19 @@ For every non-trivial function in the diff, mentally execute it against the wors
 | Non-numeric string where number expected | `"all"`, `"N/A"`, `""` | `parseInt` → `NaN` → silent comparison failure |
 | Zero / falsy number | `0`, `0.0` | Gate conditions that conflate 0 with false |
 | Null / undefined | `null`, `undefined` | Dereference, optional chaining gaps |
+| **Zero reviewer/count** | `N=0`, `totalReviewersCount=0` | `agreement < 0` always false → phantom unanimous gate |
+| Negative numeric input | `-1`, `-9999` | Cost/savings formulas produce absurd positive output |
 | Concurrent call | Two calls simultaneously | Race conditions, double-write |
+
+**Mandatory boundary execution template:**
+```bash
+cat > /tmp/edge_test.ts << 'EOF'
+// import the function under review
+// run each boundary: N=0, N=1, N=-1, N=MAX
+EOF
+npx -y tsx /tmp/edge_test.ts
+```
+Paste the output into the review body. This is the execution evidence required by `adversarial-audit.md §9.4`.
 
 **Logic Inversion Test** — for every boolean gate, ask: *does the else-path (the off-path) do the right thing?* Specifically look for inverted semantics where the common/clean case triggers the expensive path:
 ```
@@ -178,8 +192,41 @@ find . -name '*.test.*' -o -name '*.spec.*' | xargs grep -c 'assert\|expect\|tes
 ```
 Coverage < 50% of planned test surface: 🔴 `[blocking]`. 50–80%: 🟡 `[important]`.
 
-**Step 4 — Named Test Case Verification:**
-For each `Test:` line in `plan.md`, verify a test exercising that specific path exists. A matching test count is not sufficient — the specific edge case must be covered.
+**Step 4 — Named Test Case Verification (Shenanigan #12):**
+
+This step is **execution-required** — not a reading step.
+
+```bash
+# Extract every named test case from the plan
+grep -n 'Test:' plan.md
+
+# For each Test: line, search test files for a test exercising that specific path
+# Do NOT just check counts match — check each named path is explicitly covered
+grep -rn '<key term from Test: line>' tests/
+```
+
+For each named test case NOT found: write a 5-line scratch script to verify the actual implementation behavior matches plan intent. If behavior diverges from the plan's stated expectation — this is a spec violation regardless of whether tests pass.
+
+**Failure pattern to prevent (Shenanigan #12 + #11 combined):** Plan names `Test: N=1 reviewer → not unanimous`. All existing tests use N=3. Reviewer reads the count (14 tests = "sufficient") and declares clean pass. N=1 path never run. Spec violation survives all reviews.
+
+**Step 5 — Boundary Value Execution (Shenanigan #13):**
+
+For every function accepting a numeric count, ratio, divisor, or cost:
+- Execute with `N=0` — confirm gate logic does not produce false confidence
+- Execute with negative value — confirm formulas do not produce absurd output
+- Execute with `N=1` — confirm single-item edge cases are semantically correct
+
+**Step 6 — Verdict Certification Block (mandatory):**
+
+Your final report MUST include:
+```
+## Execution Evidence
+- [x] §8.1 Worst-input set executed for: <functions>
+- [x] §9.2 Boundary values executed for: <numeric params>
+- [x] Named test cases from plan.md: <N> planned, <N> found, <N> missing
+- Terminal output: [pasted inline above]
+```
+A report without this block is a reading-only review. Its verdict is voided under Shenanigan #11.
 
 ---
 
