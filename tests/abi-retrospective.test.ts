@@ -36,10 +36,11 @@ console.log('Running ABI Retrospective Tests...\n');
 }
 
 {
-  // Test: extract findings from mock review artifact markdown
   const mockMarkdown = `
 ## Critical Findings
 - 🔴 \`[blocking]\` **Phase omission**: Implementation skips entire plan phases.
+This is a multiline description.
+It should be captured.
 
 ## High Findings
 - 🟡 \`[important]\` **Zero guard omission**: Functions accept counts without guards.
@@ -50,6 +51,7 @@ console.log('Running ABI Retrospective Tests...\n');
   const findings = extractFindings(mockMarkdown, 'track_1');
   assert.strictEqual(findings.length, 2, 'Should only extract Medium or higher findings');
   assert.strictEqual(findings[0].title, 'Phase omission');
+  assert.strictEqual(findings[0].description, 'Implementation skips entire plan phases.\nThis is a multiline description.\nIt should be captured.');
   assert.strictEqual(findings[1].title, 'Zero guard omission');
   console.log('✅ Test 2: Extract findings works');
 }
@@ -106,6 +108,32 @@ console.log('Running ABI Retrospective Tests...\n');
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
   console.log('✅ Phase 2: Induction Engine tests passed');
+}
+
+{
+  // Test: EOF append edge cases
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'abi-test-append-'));
+  const artifactsDir = path.join(tmpDir, 'brain');
+  fs.mkdirSync(artifactsDir, { recursive: true });
+
+  const auditFile = path.join(tmpDir, 'adversarial-audit.md');
+  const initialAuditContent = `Some intro text\n| # | Check | What it catches |\n|---|---|---|\n| 1 | **Existing** | existing desc |\n\nSome trailing text that should not be after the table if we just append to EOF.`;
+  fs.writeFileSync(auditFile, initialAuditContent);
+
+  const mockReviewFile = path.join(artifactsDir, 'adversarial_code_review_v1.md');
+  fs.writeFileSync(mockReviewFile, `## Critical Findings\n- 🔴 \`[blocking]\` **New Pattern**: Multiline\ndesc here.`);
+
+  const findings = scanArtifacts(artifactsDir);
+  const inducted = appendShenanigan(auditFile, findings, 'track_1', '2026-07-23');
+  assert.strictEqual(inducted, 1, 'Should induct 1 pattern');
+
+  const afterContent = fs.readFileSync(auditFile, 'utf-8');
+  
+  // The new row should be placed immediately after the table, before the trailing text
+  assert.match(afterContent, /\| 2 \| \*\*New Pattern\*\* \| Multiline desc here\. \| <!-- Inducted:.*-->\n\nSome trailing text/, 'Row should be appended immediately after the table');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  console.log('✅ Test: EOF append edge cases passed');
 }
 
 {

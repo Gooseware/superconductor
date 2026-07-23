@@ -25,23 +25,23 @@ export function scanArtifacts(artifactsDir: string): ReviewFinding[] {
 
 export function extractFindings(markdown: string, trackId: string): ReviewFinding[] {
   const findings: ReviewFinding[] = [];
-  const lines = markdown.split('\n');
-  for (const line of lines) {
-    const match = line.match(/-\s*(🔴|🟡)\s*(?:`\[.*?\]`\s*)?\*\*([^*]+)\*\*:\s*(.*)/);
-    if (match) {
-      findings.push({
-        severity: match[1],
-        title: match[2].trim(),
-        description: match[3].trim(),
-        sourceTrack: trackId
-      });
-    }
+  const regex = /(?:^|\n)-\s*(🔴|🟡)\s*(?:`\[.*?\]`\s*)?\*\*([^*]+)\*\*:\s*([\s\S]*?)(?=\n-\s|\n##\s|$)/g;
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    findings.push({
+      severity: match[1],
+      title: match[2].trim(),
+      description: match[3].trim(),
+      sourceTrack: trackId
+    });
   }
   return findings;
 }
 
 export function checkShenaniganExists(auditContent: string, finding: ReviewFinding): boolean {
-  return auditContent.includes(`**${finding.title}**`);
+  const tableLines = auditContent.split('\n').filter(line => /^\s*\|/.test(line));
+  const tableText = tableLines.join('\n').toLowerCase();
+  return tableText.includes(`**${finding.title.toLowerCase()}**`);
 }
 
 export function appendShenanigan(auditFile: string, findings: ReviewFinding[], trackId: string, date: string): number {
@@ -51,12 +51,17 @@ export function appendShenanigan(auditFile: string, findings: ReviewFinding[], t
   let added = 0;
   
   let maxN = 0;
+  let lastTableLineIndex = -1;
   const lines = content.split('\n');
-  for (const line of lines) {
-    const match = line.match(/^\|\s*(\d+)\s*\|/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const match = line.match(/^\s*\|\s*(\d+)\s*\|/);
     if (match) {
       const n = parseInt(match[1], 10);
       if (n > maxN) maxN = n;
+    }
+    if (line.trim().startsWith('|')) {
+      lastTableLineIndex = i;
     }
   }
 
@@ -64,15 +69,22 @@ export function appendShenanigan(auditFile: string, findings: ReviewFinding[], t
     if (!checkShenaniganExists(content, finding)) {
       maxN++;
       const trigger = `${finding.severity} finding`;
-      const row = `| ${maxN} | **${finding.title}** | ${finding.description} | <!-- Inducted: ${trackId} — ${date} — ${trigger} -->`;
-      if (!content.endsWith('\n')) content += '\n';
-      content += row + '\n';
+      const flatDesc = finding.description.replace(/\s*\n\s*/g, ' ');
+      const row = `| ${maxN} | **${finding.title}** | ${flatDesc} | <!-- Inducted: ${trackId} — ${date} — ${trigger} -->`;
+      
+      if (lastTableLineIndex !== -1) {
+        lines.splice(lastTableLineIndex + 1, 0, row);
+        lastTableLineIndex++;
+      } else {
+        lines.push(row);
+        lastTableLineIndex = lines.length - 1;
+      }
       added++;
     }
   }
   
   if (added > 0) {
-    fs.writeFileSync(auditFile, content, 'utf-8');
+    fs.writeFileSync(auditFile, lines.join('\n'), 'utf-8');
   }
   return added;
 }
