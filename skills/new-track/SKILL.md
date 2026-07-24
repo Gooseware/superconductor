@@ -135,12 +135,12 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
 ### 2.3a Swarm Blueprint Generation
 After generating the plan draft:
-1. Call `SwarmBlueprintGenerator.generate(planMarkdown, { outputDir: getSuperconductorHome(), projectRoot })` to produce the `SwarmBlueprint`.
-2. Annotate the plan with live TCS scores: `annotatePlan = SwarmBlueprintGenerator.annotatePlan(planMarkdown, blueprint)` — this replaces static `[TIER-N]` annotations with dynamic `[TIER-N:TCS=<score>]`.
-3. Inject the blueprint section: append `SwarmBlueprintGenerator.formatBlueprintSection(blueprint)` to the annotated plan before the user confirmation message.
-4. Surface the token budget estimate in the confirmation message:
-   `"Estimated track cost: ${blueprint.costSummary} · ${blueprint.waves.waves.length} waves · Oracle every ${blueprint.oracleCadence} tasks"`
-5. Show user the annotated plan + blueprint for approval before writing to disk.
+1. Ensure `plan.md` is saved to disk in the track directory.
+2. Run the blueprint CLI script to inject the Swarm Blueprint and annotate the plan:
+   `node ~/.gemini/config/plugins/superconductor/packages/superconductor-core/dist/intelligence/cli-blueprint.js superconductor/tracks/<track_id>/plan.md`
+3. The script will output a JSON summary to stdout. Parse it to surface the token budget estimate to the user in the confirmation message:
+   `"Estimated track cost: ${costSummary} · ${waves} waves · Oracle every ${oracleCadence} tasks"`
+4. Show the user the updated plan (now containing the `## Swarm Blueprint` section) for approval.
 
 4.  **User Confirmation:**
     -   **Headless Mode:** Automatically approve the plan.

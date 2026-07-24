@@ -1,7 +1,7 @@
 import { IntelligenceSnapshotReader, RepoContext } from './snapshot-reader.js';
 import { TaskComplexityScorer } from './task-complexity-scorer.js';
 import { ModelTierRouter } from './model-tier-router.js';
-import { ParallelismOptimiser, PlanTask, SwarmWaveSchedule } from './parallelism-optimiser.js';
+import { ParallelismOptimiser, PlannerTask, SwarmWaveSchedule } from './parallelism-optimiser.js';
 import { TokenBudgetEstimator, TrackTokenBudget } from '../telemetry/token-budget-estimator.js';
 import { OracleCadenceOptimiser } from './oracle-cadence-optimiser.js';
 
@@ -37,7 +37,7 @@ export class SwarmBlueprintGenerator {
     
     let totalTCS = 0;
     const updatedTasks = tasks.map(task => {
-      const tcs = TaskComplexityScorer.score(task.description, repoContext || undefined);
+      const tcs = TaskComplexityScorer.score(task.description, repoContext || null);
       const tierAnnotation = ModelTierRouter.route(tcs);
       totalTCS += tcs.total;
       return {
@@ -107,7 +107,7 @@ export class SwarmBlueprintGenerator {
     let taskIndex = 0;
     
     const allTasks = ParallelismOptimiser.parsePlan(planMarkdown);
-    const waveTaskMap = new Map<string, PlanTask>();
+    const waveTaskMap = new Map<string, PlannerTask>();
     blueprint.waves.waves.forEach(w => w.tasks.forEach(t => waveTaskMap.set(t.id, t)));
 
     return lines.map(line => {

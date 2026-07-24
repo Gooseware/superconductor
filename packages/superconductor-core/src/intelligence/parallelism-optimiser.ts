@@ -1,7 +1,7 @@
 import { ModelTier } from './model-tier-router.js';
 import { TaskComplexityScore } from './task-complexity-scorer.js';
 
-export interface PlanTask {
+export interface PlannerTask {
   id: string;             // e.g. "phase1-task1"
   description: string;    // the task text from plan.md
   phase: string;          // phase identifier ("Phase 1", "Phase 2", etc.)
@@ -12,7 +12,7 @@ export interface PlanTask {
 
 export interface SwarmWave {
   waveIndex: number;
-  tasks: PlanTask[];
+  tasks: PlannerTask[];
   models: ModelTier[];
   estimatedTokens: number;
   estimatedMinutes: number;
@@ -31,7 +31,7 @@ export class ParallelismOptimiser {
    * Tasks with no unmet dependencies go into the earliest possible wave.
    * maxConcurrent limits how many tasks can share a wave.
    */
-  static schedule(tasks: PlanTask[], maxConcurrent: number = 6): SwarmWaveSchedule {
+  static schedule(tasks: PlannerTask[], maxConcurrent: number = 6): SwarmWaveSchedule {
     // 1. Build adjacency graph and in-degrees
     const inDegree = new Map<string, number>();
     const adj = new Map<string, string[]>();
@@ -143,9 +143,9 @@ export class ParallelismOptimiser {
    * Tasks within the same phase are assumed parallel (no intra-phase deps).
    * Tasks in later phases depend on all tasks in the immediately preceding phase.
    */
-  static parsePlan(planMarkdown: string): PlanTask[] {
+  static parsePlan(planMarkdown: string): PlannerTask[] {
     const lines = planMarkdown.split('\n');
-    const tasks: PlanTask[] = [];
+    const tasks: PlannerTask[] = [];
     
     let currentPhaseStr = '';
     let currentPhaseNum = 0;
@@ -187,7 +187,7 @@ export class ParallelismOptimiser {
           else if (tierNum === 4) tier = 'pro-thinking';
         }
         
-        const task: PlanTask = {
+        const task: PlannerTask = {
           id,
           description: desc,
           phase: currentPhaseStr,
