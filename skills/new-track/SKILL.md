@@ -117,7 +117,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 3.  **Generate Plan:**
     *   Read the confirmed `spec.md` content for this track.
     *   Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
-    *   Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)` and pass it to annotate task complexity scores with real hotspot data.
+    *   Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)` and pass it to annotate task complexity scores with real hotspot data. If non-null, the generated Swarm Blueprint will be labeled `source: 'intelligence'` (surgical precision mode).
     *   If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)` and proceed with keyword heuristics only.
     *   Resolve and read the **Workflow** file (via the **Universal File Resolution Protocol** using the project's index file).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
@@ -132,6 +132,15 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         - `- [ ] Task: Generate database models [TIER-3] [AGENT:caduceus-processor]`
         - `- [ ] Task: Run security validation [TIER-4] [AGENT:caduceus-oracle]`
     *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`. This meta-task does not need a tier hint.
+
+### 2.3a Swarm Blueprint Generation
+After generating the plan draft:
+1. Call `SwarmBlueprintGenerator.generate(planMarkdown, { outputDir: getSuperconductorHome(), projectRoot })` to produce the `SwarmBlueprint`.
+2. Annotate the plan with live TCS scores: `annotatePlan = SwarmBlueprintGenerator.annotatePlan(planMarkdown, blueprint)` — this replaces static `[TIER-N]` annotations with dynamic `[TIER-N:TCS=<score>]`.
+3. Inject the blueprint section: append `SwarmBlueprintGenerator.formatBlueprintSection(blueprint)` to the annotated plan before the user confirmation message.
+4. Surface the token budget estimate in the confirmation message:
+   `"Estimated track cost: ${blueprint.costSummary} · ${blueprint.waves.waves.length} waves · Oracle every ${blueprint.oracleCadence} tasks"`
+5. Show user the annotated plan + blueprint for approval before writing to disk.
 
 4.  **User Confirmation:**
     -   **Headless Mode:** Automatically approve the plan.

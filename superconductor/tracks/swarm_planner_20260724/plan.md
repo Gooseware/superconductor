@@ -111,14 +111,14 @@
 - [ ] Task: Superconductor - User Manual Verification 'Phase 6: Swarm Blueprint Generator' (Protocol in workflow.md)
 
 ## Phase 7: Skill Integration
-- [ ] Task: Update `skills/new-track/SKILL.md` §2.3 to invoke `SwarmBlueprintGenerator.generate()` after plan generation and inject `## Swarm Blueprint` before user confirmation. [TIER-4] [AGENT:caduceus-oracle]
-    - [ ] Surface the token budget estimate in the plan confirmation message: `"Estimated track cost: ~X.XM tokens (~$X.XX)"`
-    - [ ] Replace static `[TIER-N]` annotation step with dynamic annotation via `SwarmBlueprintGenerator.annotatePlan()`
-- [ ] Task: Update `skills/swarm-orchestrate/SKILL.md` §1.1 SWARM ROLES and §2.0 MODE AUTO-DETECTION to read `## Swarm Blueprint` from `plan.md` at execution time. [TIER-4] [AGENT:caduceus-oracle]
-    - [ ] If blueprint is present: use wave schedule for dispatch (override static TIER annotations)
-    - [ ] If blueprint is absent: fall back to existing static `[TIER-N]` routing (backward compatibility)
-    - [ ] Use adaptive `oracleCadence` from blueprint instead of hardcoded default of 3
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Skill Integration' (Protocol in workflow.md)
+- [x] Task: Update `skills/new-track/SKILL.md` §2.3 to invoke `SwarmBlueprintGenerator.generate()` after plan generation and inject `## Swarm Blueprint` before user confirmation. [TIER-4] [AGENT:caduceus-oracle]
+    - [x] Surface the token budget estimate in the plan confirmation message: `"Estimated track cost: ~X.XM tokens (~$X.XX)"`
+    - [x] Replace static `[TIER-N]` annotation step with dynamic annotation via `SwarmBlueprintGenerator.annotatePlan()`
+- [x] Task: Update `skills/swarm-orchestrate/SKILL.md` §1.1 SWARM ROLES and §2.0 MODE AUTO-DETECTION to read `## Swarm Blueprint` from `plan.md` at execution time. [TIER-4] [AGENT:caduceus-oracle]
+    - [x] If blueprint is present: use wave schedule for dispatch (override static TIER annotations)
+    - [x] If blueprint is absent: fall back to existing static `[TIER-N]` routing (backward compatibility)
+    - [x] Use adaptive `oracleCadence` from blueprint instead of hardcoded default of 3
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Skill Integration' (Protocol in workflow.md)
 
 ## Phase X: Integration & Finalization
 - [ ] Task: Integrate track 'swarm_planner_20260724' into main branch. [TIER-2] [AGENT:caduceus-processor]

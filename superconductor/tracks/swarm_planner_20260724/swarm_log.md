@@ -196,6 +196,85 @@ export class TokenBudgetEstimator {
 }
 ```
 
+### [Phase 3] ParallelismOptimiser
 
+**Status:** Completed
+**Commit Hash:** `bc913c3`
+**Test Count:** 197 tests passing (5 new unit tests added for ParallelismOptimiser)
 
+#### Overview
+Implemented `ParallelismOptimiser` at `packages/superconductor-core/src/intelligence/parallelism-optimiser.ts` which handles wave scheduling and plan parsing for swarm execution:
+1. **`schedule()`**: Builds an adjacency graph from task dependencies and uses a topological sort to group tasks into concurrent execution waves. It enforces a maximum concurrency limit (`maxConcurrent`, defaults to 6) and computes `estimatedTokens` and `estimatedMinutes` per wave based on the model tier assignments.
+2. **`parsePlan()`**: Parses markdown plans (`plan.md`) into a `PlanTask[]` format, grouping tasks by phase headers (`## Phase N:`) and establishing dependencies such that tasks in a subsequent phase depend on all tasks in the immediately preceding phase. It also extracts model tiers and Task Complexity Scores (TCS) from annotation strings like `[TIER-3:TCS=12]`.
+
+#### Public Interface
+```typescript
+export interface PlanTask {
+  id: string;
+  description: string;
+  phase: string;
+  tier: ModelTier;
+  tcs: TaskComplexityScore;
+  dependencies: string[];
+}
+
+export interface SwarmWave {
+  waveIndex: number;
+  tasks: PlanTask[];
+  models: ModelTier[];
+  estimatedTokens: number;
+  estimatedMinutes: number;
+}
+
+export interface SwarmWaveSchedule {
+  waves: SwarmWave[];
+  totalTasks: number;
+  totalEstimatedTokens: number;
+  maxConcurrent: number;
+}
+
+export class ParallelismOptimiser {
+  static schedule(tasks: PlanTask[], maxConcurrent?: number): SwarmWaveSchedule;
+  static parsePlan(planMarkdown: string): PlanTask[];
+}
+```
+
+### [Review Phases 3+4+5] Joint Review
+
+**Verdict:** PASS
+
+#### Phase Verdicts
+- **Phase 3 (`ParallelismOptimiser` — `bc913c3`):** PASS
+- **Phase 4 (`TokenBudgetEstimator` — `7057861`):** PASS
+- **Phase 5 (`OracleCadenceOptimiser` — `97c628f`):** PASS
+
+#### Spec Compliance Verification
+
+##### Phase 3 Review (`ParallelismOptimiser`)
+- [x] Kahn's topological sort correctly dispatches tasks only after dependencies complete.
+- [x] `parsePlan()` correctly assigns Phase N tasks as dependencies on all Phase N-1 tasks.
+- [x] `maxConcurrent` cap enforced (8 tasks with cap=3 → 3 waves: 3, 3, 2).
+- [x] `estimatedTokens` per tier correct (`flash-lite=80K, flash=200K, pro=600K, pro-thinking=1.5M`).
+- [x] `estimatedMinutes` computed as max across parallel tasks (not sum).
+- [x] Unit tests cover flat DAG, linear chain, mixed graph, maxConcurrent cap, and `parsePlan`.
+
+##### Phase 4 Review (`TokenBudgetEstimator`)
+- [x] `contextTokens = tcs.contextLoad * 8000`.
+- [x] Reasoning tokens per tier match: `flash-lite=500, flash=1500, pro=4000, pro-thinking=8000`.
+- [x] `outputTokens = tcs.testSurface * 200 + tcs.reasoningDepth * 500`.
+- [x] `reviewTokens = outputTokens * 0.3`.
+- [x] Cost rates per tier match: `flash-lite=$0.075/1M, flash=$0.15/1M, pro=$3.50/1M, pro-thinking=$10/1M`.
+- [x] `formatCostEstimate` uses `"at blended rates"` for mixed tiers, `"at Flash rates"` for all-flash.
+- [x] Empty plan (0 tasks) returns `"~0.0M tokens · ~$0.00"`.
+
+##### Phase 5 Review (`OracleCadenceOptimiser`)
+- [x] Base cadence calculated as `Math.ceil(taskCount / 4)`.
+- [x] TCS modifier reduces cadence by `Math.floor(avgTCS / 5)` (floored at 1).
+- [x] Retry modifier applied only if `historicalRetryRate > 0.3`, reducing cadence by 1 (floored at 1).
+- [x] `taskCount = 0` returns 1 (not 0).
+- [x] 6 unit tests cover all specified edge cases and parameter combinations.
+
+#### Blockers & Advisories
+- **Blockers:** None.
+- **Advisories:** None.
 

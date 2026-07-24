@@ -27,6 +27,21 @@ All intermediate implementation, testing, bug-fixing, and reviews must happen in
 ---
 
 ## 1.1 SWARM ROLES
+
+### Blueprint-Aware Dispatch (§1.1 Preamble)
+Before dispatching Wave 1:
+1. Check if `plan.md` contains a `## Swarm Blueprint` section.
+2. **If blueprint present (preferred path):**
+   - Parse the wave schedule table from `## Swarm Blueprint`
+   - Use the wave assignments for dispatch order and model selection
+   - Use `oracleCadence` from the blueprint header instead of the hardcoded default of 3
+   - Tasks in the same wave are dispatched concurrently
+   - Tasks in different waves are dispatched sequentially (wait for wave N before dispatching wave N+1)
+3. **If no blueprint (fallback path):**
+   - Fall back to existing static `[TIER-N]` routing logic
+   - Use default oracle cadence of 3
+   - Tasks within the same phase are dispatched concurrently
+
 The swarm consists of the following specialized roles (configured as subagents or using tier-appropriate routing):
 
 1. **Dreamer (Tier 4 - Architecture & Task Decomposition):**
@@ -54,6 +69,8 @@ The swarm consists of the following specialized roles (configured as subagents o
 ---
 
 ## 2.0 MODE AUTO-DETECTION
+
+**Blueprint Mode:** If `## Swarm Blueprint` is present in `plan.md`, automatically use wave-based dispatch regardless of headless/interactive setting. Blueprint mode is always preferred when available.
 
 The Dreamer automatically selects the scheduling mode based on the structure of `plan.md`:
 
