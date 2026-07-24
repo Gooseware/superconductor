@@ -4,7 +4,7 @@ import * as path from 'path';
 import { runDependencySurface } from '../../../src/intelligence/runners/dependency-surface';
 
 describe('Dependency Surface Runner', () => {
-  it('should generate usage heatmap and serialize to 08_dependency_surface.json', () => {
+  it('should generate usage heatmap and serialize to 08_dependency_surface.json', async () => {
     // Setup test scenario
     const projectRoot = path.join(__dirname, 'fixtures', 'mock-project');
     const outputDir = path.join(__dirname, 'output-tmp');
@@ -22,7 +22,7 @@ describe('Dependency Surface Runner', () => {
     fs.writeFileSync(path.join(projectRoot, 'src', 'd.ts'), 'export const d = 2;');
     
     // Run the runner
-    runDependencySurface(projectRoot, outputDir);
+    await runDependencySurface(projectRoot, outputDir);
     
     const outFile = path.join(outputDir, '08_dependency_surface.json');
     expect(fs.existsSync(outFile)).toBe(true);

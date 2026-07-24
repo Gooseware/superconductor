@@ -5,10 +5,20 @@ import { RunnerResult } from './types.js';
 
 function getFiles(dir: string, ext: string[]): string[] {
   let results: string[] = [];
-  const list = fs.readdirSync(dir);
+  let list: string[];
+  try {
+    list = fs.readdirSync(dir);
+  } catch (e) {
+    return results;
+  }
   list.forEach(file => {
     file = path.join(dir, file);
-    const stat = fs.statSync(file);
+    let stat;
+    try {
+      stat = fs.statSync(file);
+    } catch (e) {
+      return;
+    }
     const pathParts = file.split(path.sep);
     if (stat && stat.isDirectory() && !pathParts.includes('node_modules') && !pathParts.includes('.git')) {
       results = results.concat(getFiles(file, ext));
@@ -21,7 +31,7 @@ function getFiles(dir: string, ext: string[]): string[] {
   return results;
 }
 
-export function runDependencySurface(projectRoot: string, outputDir: string, scopedFiles?: string[]): RunnerResult<any> {
+export async function runDependencySurface(projectRoot: string, outputDir: string, scopedFiles?: string[]): Promise<RunnerResult<any>> {
   const outFile = path.join(outputDir, '08_dependency_surface.json');
   
   const files = scopedFiles || getFiles(projectRoot, ['.ts', '.tsx', '.js', '.jsx']);
@@ -36,7 +46,7 @@ export function runDependencySurface(projectRoot: string, outputDir: string, sco
     }
   });
   
-  const heatmap = analyzer.generateUsageHeatmap(files) as Record<string, number>;
+  const heatmap = await analyzer.generateUsageHeatmap(files);
   
   const relativeHeatmap: Record<string, number> = {};
   for (const [key, val] of Object.entries(heatmap)) {
