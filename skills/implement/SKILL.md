@@ -205,7 +205,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
             - **questions:**
                 - **header:** "Registry Proposal"
                 - **question:**
-                    If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                    If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                     `[✓] Spec Analyzed`
                     `[✓] Registry Candidates Identified`
 
@@ -230,7 +230,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "Product"
                     - **question:**
-                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                         `[✓] Spec Analyzed`
                         `[✓] Product Definition Impacts Determined`
 
@@ -248,7 +248,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "Tech Stack"
                     - **question:**
-                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                         `[✓] Spec Analyzed`
                         `[✓] Tech Stack Impacts Determined`
 
@@ -267,7 +267,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "Product"
                     - **question:**
-                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                         `[✓] Spec Analyzed`
                         `[✓] Product Guidelines Impacts Determined`
 
@@ -285,7 +285,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "README.md"
                     - **question:**
-                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                         `[✓] Spec Analyzed`
                         `[✓] Operational Impacts Determined`
 
@@ -303,7 +303,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "AGENTS.md"
                     - **question:**
-                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                         `[✓] Spec Analyzed`
                         `[✓] Agent Directive Impacts Determined`
 
