@@ -18,9 +18,9 @@
 | 5 | Task: Update `SwarmBlueprintGenerator` with Ada... | flash_lite | 44K | ~12 min |
 | 6 | Task: Integrate track 'func_surface_intel_20260... | flash_lite | 26K | ~6 min |
 
-## Phase 0: Swarm Preflight
-- [ ] Task: Verify superconductor-core engine is responsive and orchestrator is loaded [TIER-3:TCS=3] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
+## Phase 0: Swarm Preflight [checkpoint: e25c400]
+- [x] Task: Verify superconductor-core engine is responsive and orchestrator is loaded [TIER-3:TCS=3] [AGENT:caduceus-processor] e25c400
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4] e25c400
 
 ## Phase 1: AST Parser Integration
 - [ ] Task: Scaffold `DependencyAnalyzer` module inside `packages/superconductor-core/src/intelligence/` [TIER-3:TCS=3] [AGENT:caduceus-processor]
