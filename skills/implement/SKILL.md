@@ -8,6 +8,8 @@ You are an AI agent assistant for the Superconductor spec-driven development fra
 
 CRITICAL: You must validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
 
+If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip explicit rendering of checklists during user prompts.
+
 ---
 
 ## 0.5 Intelligence Preflight
@@ -202,7 +204,12 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         -   **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the registry publication proposal.
             - **questions:**
                 - **header:** "Registry Proposal"
-                - **question:** "I've identified '<component_name>' as a potential candidate for the Caduceus Golden Registry (or fallback Design OS kernel). Would you like me to publish it?"
+                - **question:**
+                    If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                    `[✓] Spec Analyzed`
+                    `[✓] Registry Candidates Identified`
+
+                    I've identified '<component_name>' as a potential candidate for the Caduceus Golden Registry (or fallback Design OS kernel). Would you like me to publish it?
                 - **type:** "yesno"
         -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (local Caduceus repo if available, else Design OS kernel MCP).
 
@@ -223,6 +230,10 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **questions:**
                     - **header:** "Product"
                     - **question:**
+                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        `[✓] Spec Analyzed`
+                        `[✓] Product Definition Impacts Determined`
+
                         Please review the proposed updates to the Product Definition below. Do you approve?
 
                         ---
@@ -237,6 +248,10 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **questions:**
                     - **header:** "Tech Stack"
                     - **question:**
+                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        `[✓] Spec Analyzed`
+                        `[✓] Tech Stack Impacts Determined`
+
                         Please review the proposed updates to the Tech Stack below. Do you approve?
 
                         ---
@@ -252,6 +267,10 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **questions:**
                     - **header:** "Product"
                     - **question:**
+                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        `[✓] Spec Analyzed`
+                        `[✓] Product Guidelines Impacts Determined`
+
                         WARNING: This is a sensitive action as it impacts core product guidelines. Please review the proposed changes below. Do you approve these critical changes?
 
                         ---
@@ -266,6 +285,10 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **questions:**
                     - **header:** "README.md"
                     - **question:**
+                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        `[✓] Spec Analyzed`
+                        `[✓] Operational Impacts Determined`
+
                         Please review the proposed updates to the README.md below. Do you approve?
 
                         ---
@@ -280,6 +303,10 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **questions:**
                     - **header:** "AGENTS.md"
                     - **question:**
+                        If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                        `[✓] Spec Analyzed`
+                        `[✓] Agent Directive Impacts Determined`
+
                         Please review the proposed updates to the AGENTS.md below. Do you approve?
 
                         ---
