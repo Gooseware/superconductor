@@ -109,9 +109,10 @@ graph TD
 3. **Autonomous Execution:** Processors run the standard TDD cycle autonomously.
 
 ### 3.2 Critique & Remediation Loop
-1. **Merge & Diff:** Processors merge to the track branch. Reviewer critiques diffs. To avoid text-parsing drift, Reviewers MUST use a rigid `json:review-findings` schema to categorize severity (e.g. `{"severity": "CRITICAL"}`).
+1. **Merge & Diff:** Processors merge to the track branch. Reviewer critiques diffs. To avoid text-parsing drift, Reviewers MUST use a rigid `json:review-findings` schema to categorize severity. **Schema State-Machine Race Condition:** Ensure mutual exclusivity in the JSON schema. A payload with `"status": "RESOLVED"` must strictly have no findings/severity, and any payload with findings (e.g. `"severity": "CRITICAL"`) must NOT contain `"status": "RESOLVED"`.
 2. **Fix Cycle & Mandatory Re-Review:** Processors apply fixes. After applying fixes, the code MUST be submitted back to the Reviewer (or Review Swarm). The mandatory re-review MUST evaluate the *entire* branch diff (e.g. `git diff main...HEAD`), not just previously flagged lines. 
-3. **Hard-Blocking & Escalation:** The Orchestrator MUST hard-block on a structured programmatic artifact—the pipeline halts until the Reviewer outputs a `json:review-findings` block with `{"status": "RESOLVED"}`. If the maximum 3-iteration cap is hit, the swarm MUST physically yield control by using the `ask_question` (or equivalent interactive) tool to explicitly halt execution and ask the human for help.
+3. **Hard-Blocking & Escalation:** The Orchestrator MUST hard-block on a structured programmatic artifact. **Identity Spoofing:** The Orchestrator must not parse JSON out of shared text files (`swarm_log.md`), as Processors could forge approvals. It MUST parse review findings strictly through the secured agent-to-agent messaging protocol (verifying `SenderID` matches the Reviewer). The pipeline halts until the Reviewer outputs a `json:review-findings` block with `"status": "RESOLVED"` over the secured channel.
+4. **Escalation Theatre (Soft Bypass):** If the maximum 3-iteration cap is hit, the swarm MUST physically yield control by using the `ask_question` tool. This tool must ONLY provide terminal options (e.g. `["Acknowledge & Abort", "Acknowledge & Revert"]`). It must NEVER provide an "Ignore and Continue" option.
 
 ---
 
@@ -148,15 +149,16 @@ Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ─
    *(Note: At Task 1, the Reviewer has no prior task to review and remains idle; the sliding window opens concurrently from Task 2 onward.)*
 2. **Concurrent Review:** Concurrently, Reviewer reviews the diff and tests for Task N-1.
 3. **Advisory Feedback Injection:** 
-   - Reviewer outputs critique to `swarm_log.md`. To avoid text-parsing drift, Reviewers MUST use a rigid `json:review-findings` schema to categorize severity (e.g. `{"severity": "ADVISORY"}`).
+   - **Identity Spoofing:** The Orchestrator must not parse JSON out of shared text files (`swarm_log.md`), as Processors could forge approvals. It MUST parse review findings strictly through the secured agent-to-agent messaging protocol (verifying `SenderID` matches the Reviewer).
+   - Reviewers MUST use a rigid `json:review-findings` schema. **Schema State-Machine Race Condition:** Ensure mutual exclusivity in the JSON schema. A payload with `"status": "RESOLVED"` must strictly have no findings/severity, and any payload with findings (e.g. `"severity": "ADVISORY"`) must NOT contain `"status": "RESOLVED"`.
    - The critique is injected into Processor's prompt for Task N+1 as an `--- Advisory Review ---` block.
    - Feedback is advisory: Processor reads it for context/awareness but is not blocked by non-critical suggestions.
 4. **Critical Escalation & Remediation Loop:**
-   - If Reviewer marks a finding with `{"severity": "CRITICAL"}` in their `json:review-findings`, the sliding window pauses.
+   - If Reviewer marks a finding with `"severity": "CRITICAL"` in their `json:review-findings` (received via secured agent-to-agent message), the sliding window pauses.
    - Processor is paused for Task N, and a remediation Processor is spawned immediately to resolve the critical defect in Task N-1.
    - **MANDATORY RE-REVIEW:** Once the remediation Processor completes its fix, the code MUST be fed back into the Reviewer. The re-review MUST evaluate the *entire* branch diff (e.g. `git diff main...HEAD`), not just previously flagged lines.
-   - **HARD-BLOCK ON APPROVAL:** The pipeline cannot unpause and resume Task N until the Reviewer explicitly outputs a `json:review-findings` block with `{"status": "RESOLVED"}`. 
-   - **ESCALATION THEATRE:** If the maximum 3-iteration cap is hit, the swarm MUST physically yield control by using the `ask_question` (or equivalent interactive) tool to explicitly halt execution and ask the human for help.
+   - **HARD-BLOCK ON APPROVAL:** The pipeline cannot unpause and resume Task N until the Reviewer explicitly outputs a `json:review-findings` block with `"status": "RESOLVED"` via the secured channel.
+   - **ESCALATION THEATRE (Soft Bypass):** If the maximum 3-iteration cap is hit, the swarm MUST physically yield control by using the `ask_question` tool. The `ask_question` tool must ONLY provide terminal options (e.g. `["Acknowledge & Abort", "Acknowledge & Revert"]`). It must NEVER provide an "Ignore and Continue" option.
 
 ### 4.2 Periodic Oracle Cadence
 1. **Cadence Trigger:** Every `oracleCadence` tasks (default: `3`), the Oracle agent fires concurrently alongside Processor N and Reviewer N-1.
