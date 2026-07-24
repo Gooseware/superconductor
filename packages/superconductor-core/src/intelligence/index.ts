@@ -11,3 +11,4 @@ export * from './task-complexity-scorer.js';
 export * from './model-tier-router.js';
 export * from './parallelism-optimiser.js';
 export * from './oracle-cadence-optimiser.js';
+export * from './swarm-blueprint-generator.js';
