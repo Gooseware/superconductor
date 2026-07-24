@@ -9,7 +9,8 @@ function getFiles(dir: string, ext: string[]): string[] {
   list.forEach(file => {
     file = path.join(dir, file);
     const stat = fs.statSync(file);
-    if (stat && stat.isDirectory() && !file.includes('node_modules') && !file.includes('.git')) {
+    const pathParts = file.split(path.sep);
+    if (stat && stat.isDirectory() && !pathParts.includes('node_modules') && !pathParts.includes('.git')) {
       results = results.concat(getFiles(file, ext));
     } else {
       if (ext.some(e => file.endsWith(e))) {
@@ -27,10 +28,15 @@ export function runDependencySurface(projectRoot: string, outputDir: string, sco
   
   const analyzer = new DependencyAnalyzer();
   analyzer.setFileReader((filePath: string) => {
-    return fs.readFileSync(filePath, 'utf8');
+    try {
+      return fs.readFileSync(filePath, 'utf8');
+    } catch (e) {
+      console.warn(`Failed to read file ${filePath}`, e);
+      return '';
+    }
   });
   
-  const heatmap = analyzer.generateUsageHeatmap(files);
+  const heatmap = analyzer.generateUsageHeatmap(files) as Record<string, number>;
   
   const relativeHeatmap: Record<string, number> = {};
   for (const [key, val] of Object.entries(heatmap)) {
@@ -42,5 +48,5 @@ export function runDependencySurface(projectRoot: string, outputDir: string, sco
   const data = { heatmap: relativeHeatmap };
   fs.writeFileSync(outFile, JSON.stringify(data, null, 2));
   
-  return { status: 'ok', entries: data };
+  return { status: 'ok', entries: [data] };
 }

@@ -15,12 +15,18 @@ export class DependencyAnalyzer {
   }
 
   public parseImports(sourceCode: string): string[] {
-    const ast = swc.parseSync(sourceCode, {
-      syntax: 'typescript',
-      tsx: true,
-      target: 'es2022',
-      comments: false,
-    });
+    let ast;
+    try {
+      ast = swc.parseSync(sourceCode, {
+        syntax: 'typescript',
+        tsx: true,
+        target: 'es2022',
+        comments: false,
+      });
+    } catch (e) {
+      console.warn('Failed to parse source code:', e);
+      return [];
+    }
 
     const imports: string[] = [];
 
@@ -51,8 +57,16 @@ export class DependencyAnalyzer {
     return imports;
   }
 
-  public getDependenciesFor(filePath: string): string[] {
-    const sourceCode = this.fileReader(filePath) as string;
+  public getDependenciesFor(filePath: string): string[] | Promise<string[]> {
+    const sourceCode = this.fileReader(filePath);
+    if (sourceCode instanceof Promise) {
+      return sourceCode
+        .then(code => this.parseImports(code))
+        .catch(e => {
+          console.warn(`Failed to read file ${filePath}:`, e);
+          return [];
+        });
+    }
     return this.parseImports(sourceCode);
   }
 
@@ -61,7 +75,10 @@ export class DependencyAnalyzer {
       return null; // External package
     }
     
-    let joined = path.posix.join(path.posix.dirname(currentFile), importPath);
+    // Normalize path separators to avoid posix/win32 issues
+    let joined = path.join(path.dirname(currentFile), importPath);
+    // Convert to posix style as expected by heatmap downstream
+    joined = joined.split(path.sep).join(path.posix.sep);
     
     // Simplistic extension resolution for TS/JS
     if (!joined.endsWith('.ts') && !joined.endsWith('.tsx') && !joined.endsWith('.js') && !joined.endsWith('.jsx')) {
@@ -70,17 +87,33 @@ export class DependencyAnalyzer {
     return joined;
   }
 
-  public generateUsageHeatmap(files: string[]): Record<string, number> {
+  public generateUsageHeatmap(files: string[]): Record<string, number> | Promise<Record<string, number>> {
     const heatmap: Record<string, number> = {};
+    const promises: Promise<void>[] = [];
+
     for (const file of files) {
-      const deps = this.getDependenciesFor(file);
-      for (const dep of deps) {
-        const resolved = this.resolveImportPath(dep, file);
-        if (resolved) {
-          heatmap[resolved] = (heatmap[resolved] || 0) + 1;
+      const depsResult = this.getDependenciesFor(file);
+      
+      const processDeps = (deps: string[]) => {
+        for (const dep of deps) {
+          const resolved = this.resolveImportPath(dep, file);
+          if (resolved) {
+            heatmap[resolved] = (heatmap[resolved] || 0) + 1;
+          }
         }
+      };
+
+      if (depsResult instanceof Promise) {
+        promises.push(depsResult.then(processDeps));
+      } else {
+        processDeps(depsResult);
       }
     }
+    
+    if (promises.length > 0) {
+      return Promise.all(promises).then(() => heatmap);
+    }
+    
     return heatmap;
   }
 }
