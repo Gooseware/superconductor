@@ -10,6 +10,8 @@ export interface RepoContext {
   driftBanner: string; // the formatted banner string
   snapshotAge?: number; // ms
   commitsBehind?: number;
+  fanOutMap?: Map<string, number>;
+  couplingMap?: Map<string, string[]>;
 }
 
 export class IntelligenceSnapshotReader {

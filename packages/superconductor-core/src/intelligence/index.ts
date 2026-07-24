@@ -6,3 +6,5 @@ export * from './prompt-generator.js';
 export * from './pair-programming.js';
 export * from './incremental-updater.js';
 export * from './drift-monitor.js';
+export * from './snapshot-reader.js';
+export * from './task-complexity-scorer.js';
