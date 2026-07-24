@@ -151,5 +151,51 @@ export class OracleCadenceOptimiser {
 }
 ```
 
+### [Phase 4] TokenBudgetEstimator
+
+**Status:** Completed
+**Commit Hash:** `7057861`
+**Test Count:** 210 tests passing (13 new unit tests for TokenBudgetEstimator)
+
+#### Overview
+Implemented `TokenBudgetEstimator` at `packages/superconductor-core/src/telemetry/token-budget-estimator.ts` which estimates token budget usage and financial costs for tasks and tracks based on Task Complexity Scores (TCS) and model tiers:
+1. **Single Task Estimation (`estimate`):**
+   - `contextTokens = tcs.contextLoad * 8000`
+   - `reasoningTokens = flash-lite: 500, flash: 1500, pro: 4000, pro-thinking: 8000`
+   - `outputTokens = tcs.testSurface * 200 + tcs.reasoningDepth * 500`
+   - `reviewTokens = outputTokens * 0.3`
+   - `totalEstimate = contextTokens + reasoningTokens + outputTokens + reviewTokens`
+2. **Track-Level Budgeting (`estimateTrack`):** Aggregates token usage across all tasks in a track and applies per-tier cost rates:
+   - `flash-lite`: $0.075 / 1M tokens
+   - `flash`: $0.15 / 1M tokens
+   - `pro`: $3.50 / 1M tokens
+   - `pro-thinking`: $10.00 / 1M tokens
+3. **Cost Formatting (`formatCostEstimate`):** Formats token and cost estimates into human-readable strings (e.g. `"~4.2M tokens · ~$0.84 at blended rates"` or `"~4.2M tokens · ~$0.63 at Flash rates"`), with special handling for empty plans (`"~0.0M tokens · ~$0.00"`).
+
+#### Public Interface
+```typescript
+export interface TokenBudgetEstimate {
+  contextTokens: number;
+  reasoningTokens: number;
+  outputTokens: number;
+  reviewTokens: number;
+  totalEstimate: number;
+}
+
+export interface TrackTokenBudget {
+  perTask: TokenBudgetEstimate[];
+  totalTokens: number;
+  estimatedCostUSD: number;
+  summary: string;
+}
+
+export class TokenBudgetEstimator {
+  static estimate(tcs: TaskComplexityScore, tier: ModelTier): TokenBudgetEstimate;
+  static estimateTrack(tasks: Array<{tcs: TaskComplexityScore, tier: ModelTier}>): TrackTokenBudget;
+  static formatCostEstimate(budget: TrackTokenBudget, tiers?: ModelTier[]): string;
+}
+```
+
+
 
 
