@@ -149,3 +149,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: Incremental Intelligence Layer — Always-Current, Basically-Free Repo Awareness**
 *Link: [./tracks/intelligence_incremental_20260724/](./tracks/intelligence_incremental_20260724/)*
+
+---
+
+- [ ] **Track: Synchronize Operational Documentation (README & AGENTS)**
+*Link: [./tracks/sync_ops_docs_20260724/](./tracks/sync_ops_docs_20260724/)*
