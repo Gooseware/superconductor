@@ -47,7 +47,8 @@
 - [ ] Task: Superconductor - User Manual Verification 'Update implement SKILL.md' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 3: Update swarm-orchestrate SKILL.md
-- [ ] Task: Update `skills/swarm-orchestrate/SKILL.md` to force Review Panel Mode unless `--fast` is used. [TIER-3:TCS=4] [AGENT:caduceus-coder]
+- [ ] Task: Update `skills/swarm-orchestrate/SKILL.md` to force Review Panel Mode for **both** periodic and final Oracle cycles unless `--fast` is used. [TIER-3:TCS=4] [AGENT:caduceus-coder]
+    - [ ] Update Section 4.2 (Periodic Oracle Cadence) to specify the Review Panel execution. [TIER-1:TCS=3]
     - [ ] Update Section 8.0 Mode Selection logic based on `--fast`. [TIER-1:TCS=3]
 - [ ] Task: Superconductor - User Manual Verification 'Update swarm-orchestrate SKILL.md' (Protocol in workflow.md) [TIER-1:TCS=4]
 
