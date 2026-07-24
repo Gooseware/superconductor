@@ -258,12 +258,40 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
                         <Insert Proposed product-guidelines.md Updates/Diff Here>
                     - **type:** "yesno"
-        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
+        iv. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
+    e. **Update README.md (Operational Changes):**
+        i. **Condition for Update:** Based on your analysis, you MUST determine if the completed track introduced new build steps, environment variables, or other human-facing operational requirements.
+        ii. **Propose and Confirm Changes:** If an update is needed:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
+                - **questions:**
+                    - **header:** "README.md"
+                    - **question:**
+                        Please review the proposed updates to the README.md below. Do you approve?
+
+                        ---
+
+                        <Insert Proposed README.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **README.md** file. Keep a record of whether this file was changed.
+    f. **Update superconductor/AGENTS.md (Agent Directives):**
+        i. **Condition for Update:** Similarly, you MUST determine if the track introduced changes to build processes, architecture, or project invariants that future agents need to be aware of (e.g., new build commands, agent-specific setup steps).
+        ii. **Propose and Confirm Changes:** If an update is needed:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
+                - **questions:**
+                    - **header:** "AGENTS.md"
+                    - **question:**
+                        Please review the proposed updates to the AGENTS.md below. Do you approve?
+
+                        ---
+
+                        <Insert Proposed AGENTS.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **superconductor/AGENTS.md** file. Keep a record of whether this file was changed.
 
 7.  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
     - **Commit Changes:**
-        - If any files were changed (**Product Definition**, **Tech Stack**, or **Product Guidelines**), you MUST stage them and commit them.
+        - If any files were changed (**Product Definition**, **Tech Stack**, **Product Guidelines**, **README.md**, or **AGENTS.md**), you MUST stage them and commit them.
         - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
 
 ---
