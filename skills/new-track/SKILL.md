@@ -97,7 +97,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         - **questions:**
             - **header:** "Confirm Spec"
             - **question:**
-                If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                 [✓] Best Practices Researched
                 [✓] Architecture Committee Convened
 
