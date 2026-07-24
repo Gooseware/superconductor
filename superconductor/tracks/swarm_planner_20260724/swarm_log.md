@@ -127,5 +127,29 @@ export class ModelTierRouter {
 2. **Fix 2 (ADVISORY):** Added `fanOutMap` (from `02_dependency_graph.json`) and `couplingMap` (from `04_coupling.json`) parsing to `IntelligenceSnapshotReader.load()` (`snapshot-reader.ts`) and added unit tests in `snapshot-reader.test.ts`.
 3. **Fix 3 (ADVISORY):** Added unit test in `task-complexity-scorer.test.ts` verifying that `total=11` marks the Flash->Pro model tier boundary.
 
+### [Phase 5] OracleCadenceOptimiser
+
+**Status:** Completed
+**Commit Hash:** `45d6ddad6694fea64a6531f42cdbb7b84d435e6b`
+**Test Count:** 192 tests passing (6 new unit tests for OracleCadenceOptimiser)
+
+#### Overview
+Implemented `OracleCadenceOptimiser` at `packages/superconductor-core/src/intelligence/oracle-cadence-optimiser.ts` which computes the optimal firing cadence for oracle checks during swarm plan execution. The algorithm:
+1. **Base Cadence:** Oracle fires every ~25% of tasks (`Math.ceil(taskCount / 4)`).
+2. **TCS Complexity Modifier:** Higher average task complexity increases firing frequency by subtracting `Math.floor(avgTCS / 5)`, clamped to a minimum of 1.
+3. **Retry Rate Modifier:** If `historicalRetryRate > 0.3`, cadence is decreased by 1 (clamped to a minimum of 1).
+4. **Safety Bounds:** Cadence is guaranteed to be at least 1 (even when `taskCount = 0`).
+
+#### Public Interface
+```typescript
+export class OracleCadenceOptimiser {
+  static compute(
+    taskCount: number,
+    avgTCS: number,
+    historicalRetryRate?: number
+  ): number;
+}
+```
+
 
 
