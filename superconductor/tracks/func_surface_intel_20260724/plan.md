@@ -29,11 +29,11 @@
     - [x] Ensure lazy evaluation only maps explicitly requested target files. [TIER-1:TCS=3]
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: AST Parser Integration' (Protocol in workflow.md) [TIER-1:TCS=4] a188531
 
-## Phase 2: Usage Heatmap Generation
+## Phase 2: Usage Heatmap Generation [checkpoint: 8c011c6]
 - [x] Task: Extend intelligence pipeline to generate Usage Heatmap [TIER-3:TCS=3] [AGENT:caduceus-processor] c076aad
-    - [ ] Write tests for heatmap generation logic. [TIER-1:TCS=2]
-    - [ ] Implement serialization of `08_dependency_surface.json`. [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Usage Heatmap Generation' (Protocol in workflow.md) [TIER-1:TCS=4]
+    - [x] Write tests for heatmap generation logic. [TIER-1:TCS=2]
+    - [x] Implement serialization of `08_dependency_surface.json`. [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Usage Heatmap Generation' (Protocol in workflow.md) [TIER-1:TCS=4] 8c011c6
 
 ## Phase 3: Agent MCP Tooling & Oracle Recommendations
 - [ ] Task: Create MCP Tool `get_dependency_surface` [TIER-3:TCS=3] [AGENT:caduceus-processor]
