@@ -117,5 +117,22 @@ export const SUPERCONDUCTOR_MCP_TOOLS: McpToolDeclaration[] = [
       },
       required: ['trackId']
     }
+  },
+  {
+    name: 'superconductor_get_dependency_surface',
+    description: 'Reads the usage heatmap from 08_dependency_surface.json to determine function surface and coupling. Can query the entire surface or a specific dependency.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectRoot: {
+          type: 'string'
+        },
+        depName: {
+          type: 'string',
+          description: 'Optional dependency file path to query a specific score.'
+        }
+      },
+      required: ['projectRoot']
+    }
   }
 ];

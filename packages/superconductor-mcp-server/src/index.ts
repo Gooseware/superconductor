@@ -20,7 +20,8 @@ import {
   resolveReviewInput,
   runPipeline,
   FileTelemetryStore,
-  TokenUsageReport
+  TokenUsageReport,
+  getDependencySurface
 } from "@superconductor/core";
 
 let promptTokens = 0;
@@ -154,6 +155,19 @@ export function handleCheckPlanGap(projectRoot: string, args: any): object {
   };
 }
 
+export function handleGetDependencySurface(projectRoot: string, args: any): object {
+  const depName = (args && typeof args.depName === 'string') ? args.depName : undefined;
+  const surface = getDependencySurface(projectRoot, depName);
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(surface, null, 2)
+      }
+    ]
+  };
+}
+
 // Removed mkResult identity wrapper per adversarial review
 
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
@@ -182,6 +196,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
     case "superconductor_check_plan_gap":
       return handleCheckPlanGap(projectRoot, args ?? {});
+
+    case "superconductor_get_dependency_surface":
+      return handleGetDependencySurface(projectRoot, args ?? {});
 
     default:
       throw new Error(`Unknown tool: ${name}`);
