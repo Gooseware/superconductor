@@ -154,3 +154,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Synchronize Operational Documentation (README & AGENTS)**
 *Link: [./tracks/sync_ops_docs_20260724/](./tracks/sync_ops_docs_20260724/)*
+
+---
+
+- [ ] **Track: Protocol Checkpoints & Legalized Fast-Paths**
+*Link: [./tracks/protocol_fast_paths_20260724/](./tracks/protocol_fast_paths_20260724/)*
