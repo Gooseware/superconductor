@@ -46,15 +46,6 @@ export class IntelligenceSnapshotReader {
         incrementalRuns: raw.incrementalRuns ?? raw.incremental_runs ?? 0,
       };
 
-      const cached = this.cache.get(outputDir);
-      if (
-        cached &&
-        cached.timestamp === manifest.timestamp &&
-        cached.lastCommitSha === manifest.lastCommitSha
-      ) {
-        return cached.context;
-      }
-
       // Derive projectRoot: fall back to the directory two levels above outputDir when
       // not supplied (best-effort; caller should always pass it explicitly).
       const root = projectRoot ?? path.resolve(outputDir, '..', '..');
@@ -66,6 +57,21 @@ export class IntelligenceSnapshotReader {
       const commitsBehind = report.commitsBehind === Infinity
         ? Number.POSITIVE_INFINITY
         : report.commitsBehind;
+
+      const cached = this.cache.get(outputDir);
+      if (
+        cached &&
+        cached.timestamp === manifest.timestamp &&
+        cached.lastCommitSha === manifest.lastCommitSha
+      ) {
+        return {
+          ...cached.context,
+          driftState,
+          driftBanner,
+          snapshotAge: report.snapshotAgeMs,
+          commitsBehind
+        };
+      }
 
       const hotspotMap = new Map<string, { hotspot_score: number; cyclomatic_complexity: number; }>();
       const complexityPath = path.join(outputDir, '03_complexity.json');

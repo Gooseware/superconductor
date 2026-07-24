@@ -140,7 +140,7 @@ describe('IntelligenceSnapshotReader', () => {
   });
 
   describe('Shared Caching', () => {
-    it('caches the RepoContext on subsequent calls with the same manifest', () => {
+    it('reuses cached maps but updates drift metrics on subsequent calls with the same manifest', () => {
       fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
         timestamp: new Date().toISOString(),
         last_commit: 'abcdef1234567890'
@@ -149,13 +149,26 @@ describe('IntelligenceSnapshotReader', () => {
         { file: 'a.ts', hotspot_score: 25, cyclomatic_complexity: 10 }
       ]));
 
+      // 1. Initial load, let's say 0 commits behind
+      vi.mocked(childProcess.spawnSync).mockReturnValue(makeSpawnResult('0\n'));
       const result1 = IntelligenceSnapshotReader.load(tempDir);
       
-      // Delete the complexity file to prove it's using the cache
+      // Delete the complexity file to prove it's using the cache for the heavy maps
       fs.rmSync(path.join(tempDir, '03_complexity.json'));
 
+      // 2. Second load, simulate that time passed and git now reports 15 commits behind
+      vi.mocked(childProcess.spawnSync).mockReturnValue(makeSpawnResult('15\n'));
       const result2 = IntelligenceSnapshotReader.load(tempDir);
-      expect(result2).toBe(result1); // Reference equality
+      
+      // Should NOT be strictly the same object...
+      expect(result2).not.toBe(result1); 
+      // ...but the heavy parsed maps should be identical references
+      expect(result2?.hotspotMap).toBe(result1?.hotspotMap);
+      expect(result2?.testGapMap).toBe(result1?.testGapMap);
+      
+      // And the new drift state should be reflected
+      expect(result2?.commitsBehind).toBe(15);
+      expect(result2?.driftState).toBe('STALE');
       expect(result2?.hotspotMap.get('a.ts')).toBeDefined();
     });
 
