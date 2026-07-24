@@ -157,5 +157,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Protocol Checkpoints & Legalized Fast-Paths**
+- [x] **Track: Protocol Checkpoints & Legalized Fast-Paths**
 *Link: [./tracks/protocol_fast_paths_20260724/](./tracks/protocol_fast_paths_20260724/)*
