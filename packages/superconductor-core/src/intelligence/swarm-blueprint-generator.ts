@@ -31,6 +31,9 @@ export class SwarmBlueprintGenerator {
     }
 
     const tasks = ParallelismOptimiser.parsePlan(planMarkdown);
+    if (tasks.length === 0) {
+      process.stderr.write('[superconductor:planner] SwarmBlueprintGenerator: parsePlan() returned 0 tasks — returning empty blueprint\n');
+    }
     
     let totalTCS = 0;
     const updatedTasks = tasks.map(task => {

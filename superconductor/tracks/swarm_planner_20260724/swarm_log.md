@@ -239,6 +239,7 @@ export class ParallelismOptimiser {
 }
 ```
 
+
 ### [Review Phases 3+4+5] Joint Review
 
 **Verdict:** PASS
@@ -278,3 +279,22 @@ export class ParallelismOptimiser {
 - **Blockers:** None.
 - **Advisories:** None.
 
+### [Phase 7] Skill Integration
+
+**Status:** Completed
+**Commit Hash:** `37af64d`
+**Test Count:** 214 tests passing
+
+#### Overview
+Updated `new-track` and `swarm-orchestrate` skills to integrate the newly implemented Swarm Blueprint generator.
+
+1. **`new-track` Skill Updates:**
+   - Modified `§2.3` to invoke `SwarmBlueprintGenerator.generate()` right after drafting the base plan.
+   - Introduced dynamic plan annotation (`annotatePlan()`) mapping task complexities to adaptive tiers.
+   - Injected the human-readable `## Swarm Blueprint` table and token cost summary into the UI before requiring user confirmation.
+   - Added logic to inform the user if the blueprint operates in 'intelligence' mode vs 'heuristic' mode.
+
+2. **`swarm-orchestrate` Skill Updates:**
+   - Added **Blueprint-Aware Dispatch** to `§1.1 SWARM ROLES` instructing the swarm orchestrator to read wave schedules if available, overriding the static `[TIER-N]` markers.
+   - Switched `oracleCadence` reading to be adaptive (based on the blueprint value instead of hardcoded to 3).
+   - Updated `§2.0 MODE AUTO-DETECTION` to prioritize Blueprint wave-based scheduling regardless of headless or interactive modes, falling back to legacy processing if missing.
