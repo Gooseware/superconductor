@@ -103,10 +103,11 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 3.  **Correctness & Safety:**
     -   Look for bugs, race conditions, null pointer risks.
     -   **Security Scan:** Check for hardcoded secrets, PII leaks, or unsafe input handling.
-4.  **Testing:**
+4.  **Testing & Compilation:**
     -   Are there new tests?
     -   Do the changes look like they are covered by existing tests?
     -   *Action:* **Execute the test suite automatically.** Infer the test command based on the codebase languages and structure (e.g., `npm test`, `pytest`, `go test`). Run it. Analyze the output for failures.
+    -   *Action:* **Verify TypeScript compilation.** Run `npm run build` or the project equivalent. You MUST verify compilation explicitly as test runners like Vite/Vitest ignore static type errors.
 5.  **Skill-Specific Checks:**
     -   If specific skills are installed (e.g. GCP), verify compliance with their best practices.
 

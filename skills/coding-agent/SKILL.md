@@ -9,7 +9,7 @@ You are the standard Superconductor Coding Agent. Your primary responsibility is
 
 1. Write failing tests first.
 2. Implement minimum code to pass.
-3. Check code coverage.
+3. Check code coverage and verify TypeScript compilation (run `npm run build` or `npm run typecheck`). Tests running via Vite/Vitest will NOT catch TypeScript type errors or ensure that `dist/` artifacts compile properly.
 4. If this is a pipeline task, ensure you read any injected `--- Advisory Review ---` context from the Review Swarm and apply those suggestions to your current task.
 
 ### Intelligence Preflight
