@@ -93,7 +93,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   }
 
   if (!fs.existsSync(manifestPath)) {
-    runPipeline([], projectRoot, options.outputDir);
+    await runPipeline([], projectRoot, options.outputDir);
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
@@ -119,7 +119,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   try {
     manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
   } catch (err) {
-    runPipeline([], projectRoot, options.outputDir);
+    await runPipeline([], projectRoot, options.outputDir);
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
@@ -153,7 +153,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       try { fs.unlinkSync(tmpManifest); } catch {}
       throw e;
     }
-    runPipeline([], projectRoot, options.outputDir); // full rescan overwrites all data
+    await runPipeline([], projectRoot, options.outputDir); // full rescan overwrites all data
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;

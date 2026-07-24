@@ -12,7 +12,7 @@ import { runTestGaps } from './runners/test-gaps.js';
 import { runPackageSurface } from './runners/package-surface.js';
 import { runDependencySurface } from './runners/dependency-surface.js';
 import { generateReport } from './report.js';
-export function runPipeline(args: string[], projectRoot: string, baseOutputDir: string) {
+export async function runPipeline(args: string[], projectRoot: string, baseOutputDir: string) {
   const skipSast = args.includes('--skip-sast');
   const generateRep = args.includes('--report');
   const setupOnly = args.includes('--setup-only');
@@ -38,10 +38,10 @@ export function runPipeline(args: string[], projectRoot: string, baseOutputDir: 
   };
 
   // Resilient measure: phase failures are caught and recorded — pipeline always continues
-  const measure = (name: string, fn: () => { status: string }) => {
+  const measure = async (name: string, fn: () => Promise<{ status: string }> | { status: string }) => {
     const start = Date.now();
     try {
-      const result = fn();
+      const result = await fn();
       const elapsed = Date.now() - start;
       manifest.phases[name] = { elapsed, output: result.status };
       if (result.status === 'degraded' || result.status === 'unavailable') {
@@ -55,24 +55,24 @@ export function runPipeline(args: string[], projectRoot: string, baseOutputDir: 
     }
   };
 
-  measure('p1_fingerprint', () => runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint));
-  measure('p2_dependency_graph', () => runDependencyGraph(projectRoot, outputDir, registry.capabilities.dependency_graph));
-  measure('p3_complexity', () => runComplexity(projectRoot, outputDir, registry.capabilities.complexity));
-  measure('p4_coupling', () => runCoupling(projectRoot, outputDir, registry.capabilities.coupling));
+  await measure('p1_fingerprint', () => runFingerprint(projectRoot, outputDir, registry.capabilities.fingerprint));
+  await measure('p2_dependency_graph', () => runDependencyGraph(projectRoot, outputDir, registry.capabilities.dependency_graph));
+  await measure('p3_complexity', () => runComplexity(projectRoot, outputDir, registry.capabilities.complexity));
+  await measure('p4_coupling', () => runCoupling(projectRoot, outputDir, registry.capabilities.coupling));
 
   if (!skipSast) {
-    measure('p5_sast', () => runSast(projectRoot, outputDir, registry.capabilities.sast, registry.capabilities.sca));
+    await measure('p5_sast', () => runSast(projectRoot, outputDir, registry.capabilities.sast, registry.capabilities.sca));
   }
 
-  measure('p6_symbol_extraction', () => {
-    const res = runSymbolExtraction(projectRoot, outputDir, registry.capabilities.symbol_extraction);
+  await measure('p6_symbol_extraction', async () => {
+    const res = await runSymbolExtraction(projectRoot, outputDir, registry.capabilities.symbol_extraction);
     runToonSummary(projectRoot, outputDir);
     return res;
   });
 
-  measure('p7_test_gaps', () => runTestGaps(projectRoot, outputDir));
-  measure('p8_package_surface', () => runPackageSurface(projectRoot, outputDir));
-  measure('p8_dependency_surface', () => runDependencySurface(projectRoot, outputDir));
+  await measure('p7_test_gaps', () => runTestGaps(projectRoot, outputDir));
+  await measure('p8_package_surface', () => runPackageSurface(projectRoot, outputDir));
+  await measure('p8_dependency_surface', () => runDependencySurface(projectRoot, outputDir));
 
   // Always write manifest — even on partial failure
   fs.writeFileSync(path.join(outputDir, '00_manifest.json'), JSON.stringify(manifest, null, 2));

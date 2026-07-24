@@ -31,7 +31,7 @@ function getFiles(dir: string, ext: string[]): string[] {
   return results;
 }
 
-export function runDependencySurface(projectRoot: string, outputDir: string, scopedFiles?: string[]): RunnerResult<any> {
+export async function runDependencySurface(projectRoot: string, outputDir: string, scopedFiles?: string[]): Promise<RunnerResult<any>> {
   const outFile = path.join(outputDir, '08_dependency_surface.json');
   
   const files = scopedFiles || getFiles(projectRoot, ['.ts', '.tsx', '.js', '.jsx']);
@@ -46,7 +46,7 @@ export function runDependencySurface(projectRoot: string, outputDir: string, sco
     }
   });
   
-  const heatmap = analyzer.generateUsageHeatmap(files) as Record<string, number>;
+  const heatmap = await analyzer.generateUsageHeatmap(files);
   
   const relativeHeatmap: Record<string, number> = {};
   for (const [key, val] of Object.entries(heatmap)) {
