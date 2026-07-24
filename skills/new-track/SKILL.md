@@ -10,6 +10,8 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as they will be blocked by Plan Mode security policies. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.**
 
+**FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Best Practices Research Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
+
 ---
 
 ## 1.1 SETUP CHECK
@@ -53,7 +55,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 3.  **Infer Track Type:** Analyze the description to determine if it is a "Feature" or "Something Else" (e.g., Bug, Chore, Refactor). Do NOT ask the user to classify it.
 
 ### 2.0.3 Best Practices Research Phase (NEW)
-1. **Trigger:** This phase runs automatically before spec generation for any new track.
+1. **Trigger:** This phase runs automatically before spec generation for any new track, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
 2. **Action:**
    - Automatically extract key architectural keywords from the track description (e.g., "authentication", "dashboard", "caching").
    - Execute a web search query for current state-of-the-art best practices and common pitfalls regarding those keywords (e.g., "modern Next.js auth patterns 2026").
@@ -61,7 +63,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
 
 ### 2.0.5 Architecture Committee Phase (NEW)
-1. **Trigger:** This phase runs automatically before spec generation.
+1. **Trigger:** This phase runs automatically before spec generation, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
 2. **Action:**
    - Spin up a background "Architecture Committee" debate using two specialized agent roles:
      - Load `RepoContext` and pass snapshot data as context to both roles.
@@ -95,6 +97,10 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         - **questions:**
             - **header:** "Confirm Spec"
             - **question:**
+                If `--fast` was NOT used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                [✓] Best Practices Researched
+                [✓] Architecture Committee Convened
+
                 Please review the drafted Specification below. Does this accurately capture the requirements?
                 ---
                 <Insert Drafted spec.md Content Here>
