@@ -1,5 +1,5 @@
 import * as swc from '@swc/core';
-
+import * as path from 'path';
 export class DependencyAnalyzer {
   private fileReader: (filePath: string) => string | Promise<string>;
 
@@ -14,8 +14,8 @@ export class DependencyAnalyzer {
     this.fileReader = reader;
   }
 
-  public async parseImports(sourceCode: string): Promise<string[]> {
-    const ast = await swc.parse(sourceCode, {
+  public parseImports(sourceCode: string): string[] {
+    const ast = swc.parseSync(sourceCode, {
       syntax: 'typescript',
       tsx: true,
       target: 'es2022',
@@ -51,8 +51,36 @@ export class DependencyAnalyzer {
     return imports;
   }
 
-  public async getDependenciesFor(filePath: string): Promise<string[]> {
-    const sourceCode = await this.fileReader(filePath);
+  public getDependenciesFor(filePath: string): string[] {
+    const sourceCode = this.fileReader(filePath) as string;
     return this.parseImports(sourceCode);
+  }
+
+  public resolveImportPath(importPath: string, currentFile: string): string | null {
+    if (!importPath.startsWith('.')) {
+      return null; // External package
+    }
+    
+    let joined = path.posix.join(path.posix.dirname(currentFile), importPath);
+    
+    // Simplistic extension resolution for TS/JS
+    if (!joined.endsWith('.ts') && !joined.endsWith('.tsx') && !joined.endsWith('.js') && !joined.endsWith('.jsx')) {
+      joined += '.ts';
+    }
+    return joined;
+  }
+
+  public generateUsageHeatmap(files: string[]): Record<string, number> {
+    const heatmap: Record<string, number> = {};
+    for (const file of files) {
+      const deps = this.getDependenciesFor(file);
+      for (const dep of deps) {
+        const resolved = this.resolveImportPath(dep, file);
+        if (resolved) {
+          heatmap[resolved] = (heatmap[resolved] || 0) + 1;
+        }
+      }
+    }
+    return heatmap;
   }
 }

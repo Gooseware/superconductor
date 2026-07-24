@@ -16,7 +16,7 @@ describe('DependencyAnalyzer', () => {
     // We mock fs or we provide the source code directly.
     // Let's assume analyzer has a method parseImports(sourceCode) or we mock a file read.
     // Given the description, it's better to test parsing logic directly if we can.
-    const imports = await analyzer.parseImports(sourceCode);
+    const imports = analyzer.parseImports(sourceCode);
     
     expect(imports).toContain('./foo');
     expect(imports).toContain('../bar');
@@ -41,7 +41,7 @@ describe('DependencyAnalyzer', () => {
     analyzer.setFileReader(mockReadFile);
     
     // Request dependencies for main.ts
-    const deps = await analyzer.getDependenciesFor('main.ts');
+    const deps = analyzer.getDependenciesFor('main.ts');
     
     expect(deps).toContain('a.ts');
     // It should have read 'main.ts'
@@ -57,7 +57,7 @@ describe('DependencyAnalyzer', () => {
       
       export const App = () => <Button />;
     `;
-    const imports = await analyzer.parseImports(sourceCode);
+    const imports = analyzer.parseImports(sourceCode);
     expect(imports).toContain('react');
     expect(imports).toContain('./components/Button');
   });
@@ -70,7 +70,7 @@ describe('DependencyAnalyzer', () => {
       
       const a = import('./dynamic-import');
     `;
-    const imports = await analyzer.parseImports(sourceCode);
+    const imports = analyzer.parseImports(sourceCode);
     expect(imports).toContain('./all-reexport');
     expect(imports).toContain('./named-reexport');
     expect(imports).toContain('./dynamic-import');
@@ -82,7 +82,32 @@ describe('DependencyAnalyzer', () => {
       import { init } from './init';
       await init();
     `;
-    const imports = await analyzer.parseImports(sourceCode);
+    const imports = analyzer.parseImports(sourceCode);
     expect(imports).toContain('./init');
+  });
+
+  it('should generate a usage heatmap for multiple files', async () => {
+    const analyzer = new DependencyAnalyzer();
+    
+    // Mock the file system
+    const mockReadFile = vi.fn().mockImplementation((filePath: string) => {
+      if (filePath === 'src/a.ts') {
+        return `import { b } from "./b";`;
+      }
+      if (filePath === 'src/c.ts') {
+        return `import { b } from "./b";\nimport { d } from "./d";`;
+      }
+      return '';
+    });
+    
+    analyzer.setFileReader(mockReadFile);
+    
+    // Pass in the list of files to analyze
+    const files = ['src/a.ts', 'src/c.ts'];
+    const heatmap = analyzer.generateUsageHeatmap(files);
+    
+    // "src/a.ts" imports "./b" -> resolves to "src/b.ts" (or we expect the analyzer to do basic resolution)
+    expect(heatmap['src/b.ts']).toBe(2);
+    expect(heatmap['src/d.ts']).toBe(1);
   });
 });
