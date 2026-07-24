@@ -21,7 +21,8 @@ import {
   runPipeline,
   FileTelemetryStore,
   TokenUsageReport,
-  getDependencySurface
+  getDependencySurface,
+  IntelligenceSnapshotReader
 } from "@superconductor/core";
 
 let promptTokens = 0;
@@ -126,8 +127,24 @@ export async function handleRunIntelligence(projectRoot: string): Promise<object
   let outData;
   try {
     await runPipeline([], projectRoot, outputDir);
-    const manifest = JSON.parse(fs.readFileSync(path.join(outputDir, "intelligence", "00_manifest.json"), "utf8"));
-    outData = manifest;
+    const intelDir = path.join(outputDir, "intelligence");
+    const loaded = IntelligenceSnapshotReader.load(intelDir, projectRoot);
+    if (!loaded) {
+      throw new Error("Failed to load intelligence snapshot");
+    }
+    
+    // Convert maps to objects or arrays before returning for JSON serialization
+    outData = {
+      driftState: loaded.driftState,
+      driftBanner: loaded.driftBanner,
+      snapshotAge: loaded.snapshotAge,
+      commitsBehind: loaded.commitsBehind,
+      hotspotMap: Object.fromEntries(loaded.hotspotMap.entries()),
+      testGapMap: Object.fromEntries(loaded.testGapMap.entries()),
+      sastFindings: Object.fromEntries(loaded.sastFindings.entries()),
+      fanOutMap: loaded.fanOutMap ? Object.fromEntries(loaded.fanOutMap.entries()) : {},
+      couplingMap: loaded.couplingMap ? Object.fromEntries(loaded.couplingMap.entries()) : {}
+    };
   } catch (e: any) {
     outData = { error: e.message };
   }

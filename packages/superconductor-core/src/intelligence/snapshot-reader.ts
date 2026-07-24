@@ -17,6 +17,16 @@ export interface RepoContext {
 export class IntelligenceSnapshotReader {
   public static readonly NONE_BANNER = '\u274c  Intelligence: NONE (keyword heuristics active \u00b7 run /superconductor:setup for surgical precision)';
 
+  private static cache = new Map<string, {
+    context: RepoContext;
+    timestamp: number;
+    lastCommitSha: string;
+  }>();
+
+  public static clearCache() {
+    this.cache.clear();
+  }
+
   static load(outputDir: string, projectRoot?: string): RepoContext | null {
     const manifestPath = path.join(outputDir, '00_manifest.json');
     if (!fs.existsSync(manifestPath)) {
@@ -35,6 +45,15 @@ export class IntelligenceSnapshotReader {
           : new Date(raw.timestamp).getTime(),
         incrementalRuns: raw.incrementalRuns ?? raw.incremental_runs ?? 0,
       };
+
+      const cached = this.cache.get(outputDir);
+      if (
+        cached &&
+        cached.timestamp === manifest.timestamp &&
+        cached.lastCommitSha === manifest.lastCommitSha
+      ) {
+        return cached.context;
+      }
 
       // Derive projectRoot: fall back to the directory two levels above outputDir when
       // not supplied (best-effort; caller should always pass it explicitly).
@@ -123,7 +142,7 @@ export class IntelligenceSnapshotReader {
         }
       } catch { /* degrade gracefully */ }
 
-      return {
+      const context: RepoContext = {
         hotspotMap,
         testGapMap,
         sastFindings,
@@ -134,6 +153,14 @@ export class IntelligenceSnapshotReader {
         fanOutMap,
         couplingMap
       };
+
+      this.cache.set(outputDir, {
+        context,
+        timestamp: manifest.timestamp,
+        lastCommitSha: manifest.lastCommitSha
+      });
+
+      return context;
     } catch (e) {
       return null;
     }
