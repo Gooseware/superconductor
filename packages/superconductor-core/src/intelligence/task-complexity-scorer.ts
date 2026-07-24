@@ -64,27 +64,17 @@ export class TaskComplexityScorer {
       contextLoad = 1;
     }
 
-    // 2. reasoningDepth: max hotspotMap.get(file)?.cyclomatic_complexity ?? 0 across mentioned files.
-    // Scale: 0 -> 1, 1-5 -> 2, 6-10 -> 3, 11-15 -> 4, 16+ -> 5. Cap at 5.
-    let maxComplexity = 0;
-    for (const file of mentionedFiles) {
-      const complexity = this.getMapValue(repoContext.hotspotMap, file)?.cyclomatic_complexity ?? 0;
-      if (complexity > maxComplexity) {
-        maxComplexity = complexity;
-      }
-    }
-
+    // 2. reasoningDepth: max hotspot_score / cyclomatic_complexity signal across mentioned files.
+    // Spec thresholds: >=20 -> 5, >=15 -> 4, >=10 -> 3, >=5 -> 2, else 1
     let reasoningDepth = 1;
-    if (maxComplexity >= 16) {
-      reasoningDepth = 5;
-    } else if (maxComplexity >= 11) {
-      reasoningDepth = 4;
-    } else if (maxComplexity >= 6) {
-      reasoningDepth = 3;
-    } else if (maxComplexity >= 1) {
-      reasoningDepth = 2;
-    } else {
-      reasoningDepth = 1;
+    for (const file of mentionedFiles) {
+      const hotspot = this.getMapValue(repoContext.hotspotMap, file);
+      const maxSignal = Math.max(
+        hotspot?.hotspot_score ?? 0,
+        hotspot?.cyclomatic_complexity ?? 0
+      );
+      const depth = maxSignal >= 20 ? 5 : maxSignal >= 15 ? 4 : maxSignal >= 10 ? 3 : maxSignal >= 5 ? 2 : 1;
+      reasoningDepth = Math.max(reasoningDepth, depth);
     }
 
     // 3. crossCuttingRisk: count total SAST findings for mentioned files (sastFindings.get(file)?.length ?? 0).

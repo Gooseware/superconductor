@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TaskComplexityScorer } from '../../src/intelligence/task-complexity-scorer.js';
 import { RepoContext } from '../../src/intelligence/snapshot-reader.js';
+import { ModelTierRouter } from '../../src/intelligence/model-tier-router.js';
 
 describe('TaskComplexityScorer', () => {
   const createMockRepoContext = (overrides?: Partial<RepoContext>): RepoContext => {
@@ -17,7 +18,7 @@ describe('TaskComplexityScorer', () => {
   };
 
   it('should score via intelligence path with mock RepoContext and verify sub-scores', () => {
-    const hotspotMap = new Map([['file1.ts', { hotspot_score: 10, cyclomatic_complexity: 12 }]]);
+    const hotspotMap = new Map([['file1.ts', { hotspot_score: 10, cyclomatic_complexity: 16 }]]);
     const testGapMap = new Map([['file1.ts', { risk: 'HIGH' as const, gitChurnScore: 25 }]]);
     const sastFindings = new Map([
       [
@@ -46,7 +47,7 @@ describe('TaskComplexityScorer', () => {
 
     expect(score.source).toBe('intelligence');
     expect(score.contextLoad).toBe(4); // raw: fanOut (3) + coupling (6) = 9 -> scale 9-15 is 4
-    expect(score.reasoningDepth).toBe(4); // complexity 12 -> scale 11-15 is 4
+    expect(score.reasoningDepth).toBe(4); // maxSignal 16 -> scale >= 15 is 4
     expect(score.crossCuttingRisk).toBe(5); // sast 5 findings -> 3 + high coupling bonus (+2) = 5 (capped at 5)
     expect(score.testSurface).toBe(5); // risk HIGH (4) + churn floor(25/20) (1) = 5
     expect(score.total).toBe(18);
@@ -139,5 +140,21 @@ describe('TaskComplexityScorer', () => {
     expect(s20.crossCuttingRisk).toBe(5);
     expect(s20.testSurface).toBe(5);
     expect(s20.total).toBe(20);
+  });
+
+  it('total=11 is the Flash->Pro boundary', () => {
+    // 3 files -> contextLoad = 3
+    // 2 depth keywords ('complex', 'algorithm') -> reasoningDepth = 2
+    // 2 risk keywords ('auth', 'sql') -> crossCuttingRisk = 4
+    // 2 test keywords ('test', 'spec') -> testSurface = 2
+    // 3 + 2 + 4 + 2 = 11
+    const taskDesc = 'Algorithm complex auth sql test spec f1.ts f2.ts f3.ts';
+    const score = TaskComplexityScorer.score(taskDesc, null);
+
+    expect(score.source).toBe('heuristic');
+    expect(score.total).toBe(11);
+
+    const tierInfo = ModelTierRouter.route(score);
+    expect(tierInfo.tier).toBe('pro');
   });
 });
