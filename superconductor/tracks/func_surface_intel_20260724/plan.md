@@ -22,12 +22,12 @@
 - [x] Task: Verify superconductor-core engine is responsive and orchestrator is loaded [TIER-3:TCS=3] [AGENT:caduceus-processor] e25c400
 - [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4] e25c400
 
-## Phase 1: AST Parser Integration
-- [ ] Task: Scaffold `DependencyAnalyzer` module inside `packages/superconductor-core/src/intelligence/` [TIER-3:TCS=3] [AGENT:caduceus-processor]
-    - [ ] Write unit tests for `DependencyAnalyzer` to parse explicit imports using `swc` or IDE LSP data. [TIER-1:TCS=2]
-    - [ ] Implement `DependencyAnalyzer` core module. [TIER-1:TCS=3]
-    - [ ] Ensure lazy evaluation only maps explicitly requested target files. [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: AST Parser Integration' (Protocol in workflow.md) [TIER-1:TCS=4]
+## Phase 1: AST Parser Integration [checkpoint: a188531]
+- [x] Task: Scaffold `DependencyAnalyzer` module inside `packages/superconductor-core/src/intelligence/` [TIER-3:TCS=3] [AGENT:caduceus-processor] 90d5a2b
+    - [x] Write unit tests for `DependencyAnalyzer` to parse explicit imports using `swc` or IDE LSP data. [TIER-1:TCS=2]
+    - [x] Implement `DependencyAnalyzer` core module. [TIER-1:TCS=3]
+    - [x] Ensure lazy evaluation only maps explicitly requested target files. [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: AST Parser Integration' (Protocol in workflow.md) [TIER-1:TCS=4] a188531
 
 ## Phase 2: Usage Heatmap Generation
 - [ ] Task: Extend intelligence pipeline to generate Usage Heatmap [TIER-3:TCS=3] [AGENT:caduceus-processor]
