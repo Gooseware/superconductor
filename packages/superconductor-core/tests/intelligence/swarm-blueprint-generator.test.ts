@@ -1,5 +1,6 @@
-import { test, expect, describe } from 'vitest';
+import { test, expect, describe, vi } from 'vitest';
 import { SwarmBlueprintGenerator } from '../../src/intelligence/swarm-blueprint-generator.js';
+import { IntelligenceSnapshotReader } from '../../src/intelligence/snapshot-reader.js';
 
 describe('SwarmBlueprintGenerator', () => {
   const planMarkdown = `
@@ -44,5 +45,56 @@ describe('SwarmBlueprintGenerator', () => {
     expect(blueprint.waves.waves.length).toBe(0);
     expect(blueprint.oracleCadence).toBe(1);
     expect(blueprint.avgTCS).toBe(0);
+  });
+  test('suggests Adapters as technical debt when token economics are favorable based on dependency surface size', () => {
+    const smallPlan = `
+## Phase 1
+- [ ] Task: Small task [TIER-1]
+    `;
+    
+    // Simulate a small dependency surface size (< 50)
+    const mockRepoContext = {
+      hotspotMap: new Map(),
+      testGapMap: new Map(),
+      sastFindings: new Map(),
+      driftState: 'NONE' as const,
+      driftBanner: '',
+      dependencySurfaceMap: new Map([['src/a.ts', 10], ['src/b.ts', 20]])
+    };
+    
+    const spy = vi.spyOn(IntelligenceSnapshotReader, 'load').mockReturnValue(mockRepoContext);
+
+    const blueprint = SwarmBlueprintGenerator.generate(smallPlan, { outputDir: '/tmp/dummy' });
+    expect(blueprint.adapterSuggestions).toBeDefined();
+    expect(blueprint.adapterSuggestions!.length).toBeGreaterThan(0);
+    expect(blueprint.adapterSuggestions![0].isTechDebt).toBe(true);
+    expect(blueprint.adapterSuggestions![0].name).toContain('Adapter');
+    
+    spy.mockRestore();
+  });
+
+  test('does not suggest Adapters when dependency surface size is large', () => {
+    const plan = `
+## Phase 1
+- [ ] Task: another task [TIER-4]
+    `;
+
+    // Simulate a large dependency surface size (>= 50)
+    const mockRepoContext = {
+      hotspotMap: new Map(),
+      testGapMap: new Map(),
+      sastFindings: new Map(),
+      driftState: 'NONE' as const,
+      driftBanner: '',
+      dependencySurfaceMap: new Map([['src/a.ts', 40], ['src/b.ts', 20]])
+    };
+    
+    const spy = vi.spyOn(IntelligenceSnapshotReader, 'load').mockReturnValue(mockRepoContext);
+
+    const blueprint = SwarmBlueprintGenerator.generate(plan, { outputDir: '/tmp/dummy' });
+    expect(blueprint.adapterSuggestions).toBeDefined();
+    expect(blueprint.adapterSuggestions!.length).toBe(0);
+    
+    spy.mockRestore();
   });
 });

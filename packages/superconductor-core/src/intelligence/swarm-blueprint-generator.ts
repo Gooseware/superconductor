@@ -5,6 +5,12 @@ import { ParallelismOptimiser, PlannerTask, SwarmWaveSchedule } from './parallel
 import { TokenBudgetEstimator, TrackTokenBudget } from '../telemetry/token-budget-estimator.js';
 import { OracleCadenceOptimiser } from './oracle-cadence-optimiser.js';
 
+export interface AdapterSuggestion {
+  name: string;
+  reason: string;
+  isTechDebt: boolean;
+}
+
 export interface SwarmBlueprint {
   waves: SwarmWaveSchedule;
   budget: TrackTokenBudget;
@@ -12,6 +18,7 @@ export interface SwarmBlueprint {
   avgTCS: number;
   costSummary: string;
   repoContextSource: 'intelligence' | 'heuristic';
+  adapterSuggestions: AdapterSuggestion[];
 }
 
 export class SwarmBlueprintGenerator {
@@ -58,13 +65,33 @@ export class SwarmBlueprintGenerator {
     
     const costSummary = TokenBudgetEstimator.formatCostEstimate(budget);
 
+    // Heuristics logic: suggest Adapters when token economics are favorable based on dependency surface size
+    const adapterSuggestions: AdapterSuggestion[] = [];
+    let totalSurfaceSize = 0;
+    
+    if (repoContext && repoContext.dependencySurfaceMap) {
+      for (const size of repoContext.dependencySurfaceMap.values()) {
+        totalSurfaceSize += size;
+      }
+    }
+
+    // Favorable economics: small dependency surface allows us to safely generate an Adapter
+    if (totalSurfaceSize > 0 && totalSurfaceSize < 50 && tasks.length > 0) {
+      adapterSuggestions.push({
+        name: 'ComponentAdapter',
+        reason: `Favorable token economics (dependency surface size ${totalSurfaceSize} < 50) allows generating an Adapter to encapsulate this functionality.`,
+        isTechDebt: true
+      });
+    }
+
     return {
       waves,
       budget,
       oracleCadence,
       avgTCS,
       costSummary,
-      repoContextSource
+      repoContextSource,
+      adapterSuggestions
     };
   }
 

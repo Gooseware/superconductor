@@ -12,6 +12,7 @@ export interface RepoContext {
   commitsBehind?: number;
   fanOutMap?: Map<string, number>;
   couplingMap?: Map<string, string[]>;
+  dependencySurfaceMap?: Map<string, number>;
 }
 
 export class IntelligenceSnapshotReader {
@@ -148,6 +149,21 @@ export class IntelligenceSnapshotReader {
         }
       } catch { /* degrade gracefully */ }
 
+      const dependencySurfaceMap = new Map<string, number>();
+      try {
+        const depSurfacePath = path.join(outputDir, '08_dependency_surface.json');
+        if (fs.existsSync(depSurfacePath)) {
+          const depSurfaceData = JSON.parse(fs.readFileSync(depSurfacePath, 'utf-8'));
+          if (depSurfaceData.heatmap && typeof depSurfaceData.heatmap === 'object') {
+            for (const [key, value] of Object.entries(depSurfaceData.heatmap)) {
+              if (typeof value === 'number') {
+                dependencySurfaceMap.set(key, value);
+              }
+            }
+          }
+        }
+      } catch { /* degrade gracefully */ }
+
       const context: RepoContext = {
         hotspotMap,
         testGapMap,
@@ -157,7 +173,8 @@ export class IntelligenceSnapshotReader {
         snapshotAge: report.snapshotAgeMs,
         commitsBehind,
         fanOutMap,
-        couplingMap
+        couplingMap,
+        dependencySurfaceMap
       };
 
       this.cache.set(outputDir, {
