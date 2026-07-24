@@ -12,6 +12,8 @@ You must orchestrate the execution loop autonomously, minimizing human intervent
 
 All intermediate implementation, testing, bug-fixing, and reviews must happen in an automated loop.
 
+The variable `{{args}}` might contain the `--fast` or `--lite` flags, which alters how the Oracle reviews are performed.
+
 ---
 
 **Intelligence Preflight (before Wave 1):**
@@ -154,7 +156,7 @@ Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ─
 
 ### 4.2 Periodic Oracle Cadence
 1. **Cadence Trigger:** Every `oracleCadence` tasks (default: `3`), the Oracle agent fires concurrently alongside Processor N and Reviewer N-1.
-2. **Advisory Audit:** The Oracle evaluates the overall trajectory across the last N tasks, checking plan adherence, DRY principles, and code quality.
+2. **Advisory Audit:** The periodic Oracle cycle MUST use the heterogeneous Review Panel (Flash swarm) to feed into the Oracle Arbiter to catch drift early, unless the `--fast` (or `--lite`) flag was passed in `{{args}}`, in which case it may use Monolithic mode. The Oracle evaluates the overall trajectory across the last N tasks, checking plan adherence, DRY principles, and code quality.
 3. **Score & Report:** Oracle logs a numeric score (1-10) and brief rationale to `swarm_log.md`. The Oracle score is advisory and does not pause pipeline progression.
 
 ---
@@ -201,12 +203,15 @@ Create and maintain `superconductor/tracks/<track_id>/swarm_log.md` with structu
 
 ## 8.0 THE ORACLE FINAL AUDIT & REVIEW PANEL MODE
 
-### 6.1 Mode Selection: Monolithic Oracle vs. Heterogeneous Review Panel
-When reaching the verification phase, Swarm Orchestration supports two review panel models:
-1. **Monolithic Oracle (Default):** Single Tier-4 model conducts full audit.
-2. **Review Panel Mode (Heterogeneous Flash + Arbiter):** Recommended for tracks touching security-sensitive or complex multi-file changes. Combines parallel Flash-class specialized reviewers with a coverage manifest, residual pass, deferral gate, and Arbiter.
+### 8.1 Mode Selection: Monolithic Oracle vs. Heterogeneous Review Panel
+When reaching the verification phase (or periodic Oracle cadences), Swarm Orchestration supports two review panel models. The branching logic is as follows:
+- **If `--fast` (or `--lite`) is present in `{{args}}`:** Default to **Monolithic Oracle Mode**.
+- **If `--fast` (or `--lite`) is NOT present:** Default to **Review Panel Mode** for ALL Oracle cycles (both periodic and final). You must invoke the review panel by executing the 10-Step Review Panel Pipeline Protocol (dispatching parallel Flash reviewers, coverage manifest, residual pass, and Arbiter).
 
-### 6.2 Review Panel Pipeline Protocol (10-Step Sequence)
+1. **Monolithic Oracle Mode:** Single Tier-4 model conducts full audit.
+2. **Review Panel Mode (Heterogeneous Flash + Arbiter):** Combines parallel Flash-class specialized reviewers with a coverage manifest, residual pass, deferral gate, and Arbiter. Recommended for catching drift early and auditing security-sensitive or complex multi-file changes.
+
+### 8.2 Review Panel Pipeline Protocol (10-Step Sequence)
 When `Review Panel Mode` is active, execution proceeds through the following 10-step protocol:
 
 1. **Step 1: Deterministic Pre-Filter Stage**
