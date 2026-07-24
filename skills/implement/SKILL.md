@@ -206,7 +206,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **type:** "yesno"
         -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (local Caduceus repo if available, else Design OS kernel MCP).
 
-4.  **Load Track Specification:** Read the track's **Specification**.
+4.  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
 
 5.  **Load Project Documents:**
     -   Resolve and read:
@@ -215,7 +215,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         -   **Product Guidelines**
 
 6.  **Analyze and Update:**
-    a.  **Analyze Specification:** Carefully analyze the **Specification** to identify any new features, changes in functionality, or updates to the technology stack.
+    a.  **Analyze Specification and Plan:** Carefully analyze the **Specification** and **Implementation Plan** to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
         ii. **Propose and Confirm Changes:** If an update is needed:
