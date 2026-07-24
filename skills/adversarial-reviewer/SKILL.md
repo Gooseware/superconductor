@@ -37,6 +37,12 @@ Shenanigan checklist (check ALL):
 10. Grade inflation — clean verdict without execution evidence
 11. N=0 logic inversion — clean case (empty) triggers expensive path
 12. Stub-and-delegate pattern — MCP tool handlers that are no-ops in production
+13. Transient state reset without persistence — in-memory state updated but never written back on all code paths
+
+### Shenanigan #13: Transient State Reset Without Persistence
+**Pattern:** In-memory state is correctly mutated (e.g. `manifest.incrementalRuns = 0`) but the updated object is never written back to disk on all code paths. The state appears correct during the session but is silently lost when the process exits.
+**Check:** For every mutation to a stateful object read from a file, verify that all code paths — including early returns, exception paths, and conditional branches — call the write-back. Grep for the variable name and count `writeFile`/`renameSync` calls relative to mutation sites.
+**Example found:** `incremental-updater.ts` reset `manifest.incrementalRuns = 0` without subsequently writing `00_manifest.json` in the early-return path for the full-rescan trigger.
 
 For each shenanigan found: describe exactly what it is and where.
 

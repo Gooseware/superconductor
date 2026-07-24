@@ -35,3 +35,9 @@ Implications:
 
 If a file does not appear in the snapshot, omit it from the block (no placeholder text).
 If `RepoContext` is null (NONE state), omit the entire block.
+
+### JSON Merge Guard Contract
+When implementing any function that reads JSON from disk and merges new data:
+1. **Validate shape before merge:** If the existing file contains a non-array where an array is expected, log to stderr and return WITHOUT overwriting (never reset to `[]`).
+2. **Backup on corrupt JSON:** If `JSON.parse` throws, copy the corrupt file to `<filename>.corrupt.<timestamp>` before returning. Never silently discard existing data.
+3. **Verify on-disk mutation:** After any merge+write, assert the target file was actually modified by reading it back and checking for the new entry. A test that only checks return values (not disk state) misses silent write failures.

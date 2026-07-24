@@ -10,6 +10,8 @@ export interface RepoContext {
   driftBanner: string; // the formatted banner string
   snapshotAge?: number; // ms
   commitsBehind?: number;
+  fanOutMap?: Map<string, number>;
+  couplingMap?: Map<string, string[]>;
 }
 
 export class IntelligenceSnapshotReader {
@@ -91,6 +93,36 @@ export class IntelligenceSnapshotReader {
         }
       }
 
+      const fanOutMap = new Map<string, number>();
+      try {
+        const depPath = path.join(outputDir, '02_dependency_graph.json');
+        if (fs.existsSync(depPath)) {
+          const depData = JSON.parse(fs.readFileSync(depPath, 'utf-8'));
+          if (depData.edges && Array.isArray(depData.edges)) {
+            for (const edge of depData.edges) {
+              if (edge && edge.from) {
+                fanOutMap.set(edge.from, (fanOutMap.get(edge.from) ?? 0) + 1);
+              }
+            }
+          }
+        }
+      } catch { /* degrade gracefully */ }
+
+      const couplingMap = new Map<string, string[]>();
+      try {
+        const couplingPath = path.join(outputDir, '04_coupling.json');
+        if (fs.existsSync(couplingPath)) {
+          const couplingData = JSON.parse(fs.readFileSync(couplingPath, 'utf-8'));
+          if (Array.isArray(couplingData)) {
+            for (const entry of couplingData) {
+              if (entry.file && Array.isArray(entry.dependents)) {
+                couplingMap.set(entry.file, entry.dependents);
+              }
+            }
+          }
+        }
+      } catch { /* degrade gracefully */ }
+
       return {
         hotspotMap,
         testGapMap,
@@ -98,7 +130,9 @@ export class IntelligenceSnapshotReader {
         driftState,
         driftBanner,
         snapshotAge: report.snapshotAgeMs,
-        commitsBehind
+        commitsBehind,
+        fanOutMap,
+        couplingMap
       };
     } catch (e) {
       return null;

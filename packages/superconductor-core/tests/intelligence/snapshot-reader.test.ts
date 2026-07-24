@@ -107,4 +107,34 @@ describe('IntelligenceSnapshotReader', () => {
     const result = IntelligenceSnapshotReader.load(tempDir);
     expect(result?.testGapMap.get('c.ts')).toEqual({ risk: 'HIGH', gitChurnScore: 50 });
   });
+
+  it('populates fanOutMap from 02_dependency_graph.json', () => {
+    fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+      timestamp: new Date().toISOString()
+    }));
+    fs.writeFileSync(path.join(tempDir, '02_dependency_graph.json'), JSON.stringify({
+      nodes: ['a.ts', 'b.ts', 'c.ts'],
+      edges: [
+        { from: 'a.ts', to: 'b.ts' },
+        { from: 'a.ts', to: 'c.ts' },
+        { from: 'b.ts', to: 'c.ts' }
+      ]
+    }));
+
+    const result = IntelligenceSnapshotReader.load(tempDir);
+    expect(result?.fanOutMap?.get('a.ts')).toBe(2);
+    expect(result?.fanOutMap?.get('b.ts')).toBe(1);
+  });
+
+  it('populates couplingMap from 04_coupling.json', () => {
+    fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+      timestamp: new Date().toISOString()
+    }));
+    fs.writeFileSync(path.join(tempDir, '04_coupling.json'), JSON.stringify([
+      { file: 'a.ts', dependents: ['b.ts', 'c.ts'] }
+    ]));
+
+    const result = IntelligenceSnapshotReader.load(tempDir);
+    expect(result?.couplingMap?.get('a.ts')).toEqual(['b.ts', 'c.ts']);
+  });
 });

@@ -1,0 +1,300 @@
+# Swarm Log - track/swarm_planner_20260724
+
+### [Phase 1] TaskComplexityScorer
+
+**Status:** Completed
+**Commit Hash:** `e76f786`
+**Test Count:** 170 tests passing (5 new unit tests added for TaskComplexityScorer)
+
+#### Overview
+Implemented `TaskComplexityScorer` at `packages/superconductor-core/src/intelligence/task-complexity-scorer.ts` which evaluates task complexity based on two execution paths:
+1. **Intelligence path (`repoContext` non-null):** Leverages `hotspotMap`, `testGapMap`, `sastFindings`, `fanOutMap`, and `couplingMap` from `RepoContext` to calculate surgical precision sub-scores for `contextLoad`, `reasoningDepth`, `crossCuttingRisk`, and `testSurface`.
+2. **Heuristic fallback (`repoContext` is null):** Uses keyword scans and file reference counting to produce fallback estimates.
+
+#### Public Interface
+```typescript
+export interface TaskComplexityScore {
+  contextLoad: number;      // 0-5: how many files/contexts agent must hold
+  reasoningDepth: number;   // 0-5: cyclomatic/hotspot complexity signal
+  crossCuttingRisk: number; // 0-5: SAST findings + high coupling
+  testSurface: number;      // 0-5: test gap risk + churn
+  total: number;            // sum, 0-20
+  source: 'intelligence' | 'heuristic';
+}
+
+export class TaskComplexityScorer {
+  static score(taskDescription: string, repoContext: RepoContext | null): TaskComplexityScore;
+}
+```
+
+### [Phase 2] ModelTierRouter
+
+**Status:** Completed
+**Commit Hash:** `cb7346b`
+**Test Count:** 183 tests passing (13 unit tests for ModelTierRouter)
+
+#### Overview
+Implemented `ModelTierRouter` at `packages/superconductor-core/src/intelligence/model-tier-router.ts` which routes tasks to model tiers based on Task Complexity Score (TCS) total across 4 distinct bands:
+1. **0-5:** `flash-lite` (TIER-1)
+2. **6-10:** `flash` (TIER-2)
+3. **11-15:** `pro` (TIER-3)
+4. **16-20:** `pro-thinking` (TIER-4)
+
+Also implements `formatAnnotation` to generate tier annotation strings formatted as `[TIER-N:TCS=<total>]` for plan injection.
+
+#### Public Interface
+```typescript
+export type ModelTier = 'flash-lite' | 'flash' | 'pro' | 'pro-thinking';
+
+export interface TierAnnotation {
+  tier: ModelTier;
+  tcsTotal: number;
+  annotation: string; // e.g. "[TIER-1:TCS=4]"
+}
+
+export class ModelTierRouter {
+  static route(tcs: TaskComplexityScore): TierAnnotation;
+  static formatAnnotation(tcs: TaskComplexityScore): string;
+}
+```
+
+### [Review Phase 1] Advisory Review
+
+**Verdict:** CRITICAL (Fixes required before proceeding)
+
+#### Spec Compliance Checklist
+- [x] `TaskComplexityScore` interface has all required fields (`contextLoad`, `reasoningDepth`, `crossCuttingRisk`, `testSurface`, `total`, `source`)
+- [x] Intelligence path uses `hotspotMap`, `testGapMap`, `sastFindings` from `RepoContext`
+- [x] Heuristic fallback works cleanly when `repoContext` is `null`
+- [x] All sub-scores capped at 5, total is their sum (0–20)
+- [x] `source` field (`'intelligence'` vs `'heuristic'`) correctly set
+- [x] Missing file in `RepoContext` maps → graceful degradation (no throw)
+- [x] Exported from `packages/superconductor-core/src/intelligence/index.ts`
+- [x] Pure computation, zero `execSync` or shell calls
+
+#### Findings
+
+##### CRITICAL
+1. **High Hotspot Signal & Boundary Scaling Discrepancy in `reasoningDepth`** (`task-complexity-scorer.ts:71-88`):
+   - **Issue:** `TaskComplexityScorer.scoreWithIntelligence` extracts `cyclomatic_complexity` instead of `hotspot_score` (or max of `hotspot_score` and `cyclomatic_complexity`) as required by `spec.md` §FR-1 / `plan.md` Phase 1. Furthermore, it scales using thresholds `>=16 → 5`, `>=11 → 4`, `>=6 → 3`, `>=1 → 2` instead of the specified `>=20 → 5`, `>=15 → 4`, `>=10 → 3`, `>=5 → 2`, `else 1`.
+   - **Impact:** A high-hotspot file (e.g. `hotspot_score: 25`, `cyclomatic_complexity: 4`) yields `reasoningDepth = 2` instead of `5`. This miscalculates the total TCS by up to 3 points, causing tasks that should be routed to `pro` (TIER-3) to be incorrectly routed to `flash` (TIER-2).
+
+##### ADVISORY
+1. **Missing Boundary Unit Test at total=11 (Flash → Pro Boundary)** (`task-complexity-scorer.test.ts`):
+   - Unit tests cover boundary totals 5, 10, 15, and 20, but omit an explicit test for `total=11` (the exact threshold where model routing transitions from Flash to Pro).
+2. **`fanOutMap` & `couplingMap` Added to Interface but Omitted in `IntelligenceSnapshotReader.load()`** (`snapshot-reader.ts` & `snapshot-reader.test.ts`):
+   - `fanOutMap` and `couplingMap` were added to `RepoContext` interface, but `IntelligenceSnapshotReader.load()` in `snapshot-reader.ts` was not updated to read `02_dependencies.json` or `04_coupling.json`. Thus `repoContext.fanOutMap` and `repoContext.couplingMap` are `undefined` when reading real snapshots, causing `contextLoad` to default to 1. `snapshot-reader.test.ts` was also not updated for these maps.
+
+#### Notes for Phase 2 Coder
+1. In `task-complexity-scorer.ts`, update `reasoningDepth` computation to read `hotspot_score` (or `Math.max(hotspot_score, cyclomatic_complexity)`) and apply the spec thresholds (`≥20 → 5`, `≥15 → 4`, `≥10 → 3`, `≥5 → 2`, `else 1`).
+2. In `task-complexity-scorer.test.ts`, add a unit test for `total=11`.
+3. In `snapshot-reader.ts`, update `IntelligenceSnapshotReader.load()` to parse `02_dependencies.json` (into `fanOutMap`) and `04_coupling.json` (into `couplingMap`), and update `snapshot-reader.test.ts` accordingly.
+
+### [Review Phase 2] Advisory Review
+
+**Verdict:** PASS (No critical blockers, advisories noted)
+
+#### Spec Compliance Checklist
+- [x] `ModelTier` type has all 4 values (`flash-lite`, `flash`, `pro`, `pro-thinking`)
+- [x] `route()` returns correct tier for all bands (0-5, 6-10, 11-15, 16-20)
+- [x] Band boundaries are exclusive-lower/inclusive-upper (e.g. total=5 → `flash-lite`, total=6 → `flash`)
+- [x] `formatAnnotation()` produces `[TIER-N:TCS=<total>]` format
+- [x] Tests cover all band boundary values (0, 5, 6, 10, 11, 15, 16, 20)
+- [x] Exported from `packages/superconductor-core/src/intelligence/index.ts`
+
+#### Findings
+
+##### CRITICAL
+- None. Boundary logic is strictly exclusive-lower / inclusive-upper (`<= 5`, `<= 10`, `<= 15`, `else`). No off-by-one errors present at boundary points (0, 5, 6, 10, 11, 15, 16, 20). Out-of-range scores gracefully evaluate without runtime exception (negative scores map to `flash-lite`, >20 scores map to `pro-thinking`).
+
+##### ADVISORY
+1. **Missing Unit Tests for Out-of-Range TCS Totals (`total < 0` and `total > 20`)**:
+   - `model-tier-router.test.ts` thoroughly tests boundaries 0, 5, 6, 10, 11, 15, 16, 20 as well as representative inner-band values (4, 8, 13, 18), but omits explicit test cases for `total = -1` or `total = 21`.
+2. **Annotation Formatting with Out-of-Bounds Totals**:
+   - While `ModelTierRouter.route()` safely handles `total < 0` and `total > 20`, the annotation output reflects the raw `total` score (e.g. `[TIER-1:TCS=-1]` or `[TIER-4:TCS=25]`). Optional bounds clamping (`Math.max(0, Math.min(20, total))`) or explicit handling can be considered if negative/overflow TCS scores should be normalized.
+
+#### Notes for Phase 3+4+5 Coders
+1. Phase 3 (Prompt Generator / Injector) can safely consume `ModelTierRouter.formatAnnotation(tcs)` or `ModelTierRouter.route(tcs)` directly.
+2. Consider adding explicit test coverage for negative or >20 TCS totals when refining the suite in future passes.
+
+### [Remediation] Phase 1 Critical Fix
+
+**Status:** Completed
+**Test Count:** 186 tests passing (3 new unit tests added)
+
+#### Fixes Applied
+1. **Fix 1 (CRITICAL):** Updated `reasoningDepth` calculation in `TaskComplexityScorer.scoreWithIntelligence` (`task-complexity-scorer.ts`) to use `Math.max(hotspot_score, cyclomatic_complexity)` and updated spec thresholds (`>=20 -> 5`, `>=15 -> 4`, `>=10 -> 3`, `>=5 -> 2`, `else 1`).
+2. **Fix 2 (ADVISORY):** Added `fanOutMap` (from `02_dependency_graph.json`) and `couplingMap` (from `04_coupling.json`) parsing to `IntelligenceSnapshotReader.load()` (`snapshot-reader.ts`) and added unit tests in `snapshot-reader.test.ts`.
+3. **Fix 3 (ADVISORY):** Added unit test in `task-complexity-scorer.test.ts` verifying that `total=11` marks the Flash->Pro model tier boundary.
+
+### [Phase 5] OracleCadenceOptimiser
+
+**Status:** Completed
+**Commit Hash:** `45d6ddad6694fea64a6531f42cdbb7b84d435e6b`
+**Test Count:** 192 tests passing (6 new unit tests for OracleCadenceOptimiser)
+
+#### Overview
+Implemented `OracleCadenceOptimiser` at `packages/superconductor-core/src/intelligence/oracle-cadence-optimiser.ts` which computes the optimal firing cadence for oracle checks during swarm plan execution. The algorithm:
+1. **Base Cadence:** Oracle fires every ~25% of tasks (`Math.ceil(taskCount / 4)`).
+2. **TCS Complexity Modifier:** Higher average task complexity increases firing frequency by subtracting `Math.floor(avgTCS / 5)`, clamped to a minimum of 1.
+3. **Retry Rate Modifier:** If `historicalRetryRate > 0.3`, cadence is decreased by 1 (clamped to a minimum of 1).
+4. **Safety Bounds:** Cadence is guaranteed to be at least 1 (even when `taskCount = 0`).
+
+#### Public Interface
+```typescript
+export class OracleCadenceOptimiser {
+  static compute(
+    taskCount: number,
+    avgTCS: number,
+    historicalRetryRate?: number
+  ): number;
+}
+```
+
+### [Phase 4] TokenBudgetEstimator
+
+**Status:** Completed
+**Commit Hash:** `7057861`
+**Test Count:** 210 tests passing (13 new unit tests for TokenBudgetEstimator)
+
+#### Overview
+Implemented `TokenBudgetEstimator` at `packages/superconductor-core/src/telemetry/token-budget-estimator.ts` which estimates token budget usage and financial costs for tasks and tracks based on Task Complexity Scores (TCS) and model tiers:
+1. **Single Task Estimation (`estimate`):**
+   - `contextTokens = tcs.contextLoad * 8000`
+   - `reasoningTokens = flash-lite: 500, flash: 1500, pro: 4000, pro-thinking: 8000`
+   - `outputTokens = tcs.testSurface * 200 + tcs.reasoningDepth * 500`
+   - `reviewTokens = outputTokens * 0.3`
+   - `totalEstimate = contextTokens + reasoningTokens + outputTokens + reviewTokens`
+2. **Track-Level Budgeting (`estimateTrack`):** Aggregates token usage across all tasks in a track and applies per-tier cost rates:
+   - `flash-lite`: $0.075 / 1M tokens
+   - `flash`: $0.15 / 1M tokens
+   - `pro`: $3.50 / 1M tokens
+   - `pro-thinking`: $10.00 / 1M tokens
+3. **Cost Formatting (`formatCostEstimate`):** Formats token and cost estimates into human-readable strings (e.g. `"~4.2M tokens · ~$0.84 at blended rates"` or `"~4.2M tokens · ~$0.63 at Flash rates"`), with special handling for empty plans (`"~0.0M tokens · ~$0.00"`).
+
+#### Public Interface
+```typescript
+export interface TokenBudgetEstimate {
+  contextTokens: number;
+  reasoningTokens: number;
+  outputTokens: number;
+  reviewTokens: number;
+  totalEstimate: number;
+}
+
+export interface TrackTokenBudget {
+  perTask: TokenBudgetEstimate[];
+  totalTokens: number;
+  estimatedCostUSD: number;
+  summary: string;
+}
+
+export class TokenBudgetEstimator {
+  static estimate(tcs: TaskComplexityScore, tier: ModelTier): TokenBudgetEstimate;
+  static estimateTrack(tasks: Array<{tcs: TaskComplexityScore, tier: ModelTier}>): TrackTokenBudget;
+  static formatCostEstimate(budget: TrackTokenBudget, tiers?: ModelTier[]): string;
+}
+```
+
+### [Phase 3] ParallelismOptimiser
+
+**Status:** Completed
+**Commit Hash:** `bc913c3`
+**Test Count:** 197 tests passing (5 new unit tests added for ParallelismOptimiser)
+
+#### Overview
+Implemented `ParallelismOptimiser` at `packages/superconductor-core/src/intelligence/parallelism-optimiser.ts` which handles wave scheduling and plan parsing for swarm execution:
+1. **`schedule()`**: Builds an adjacency graph from task dependencies and uses a topological sort to group tasks into concurrent execution waves. It enforces a maximum concurrency limit (`maxConcurrent`, defaults to 6) and computes `estimatedTokens` and `estimatedMinutes` per wave based on the model tier assignments.
+2. **`parsePlan()`**: Parses markdown plans (`plan.md`) into a `PlanTask[]` format, grouping tasks by phase headers (`## Phase N:`) and establishing dependencies such that tasks in a subsequent phase depend on all tasks in the immediately preceding phase. It also extracts model tiers and Task Complexity Scores (TCS) from annotation strings like `[TIER-3:TCS=12]`.
+
+#### Public Interface
+```typescript
+export interface PlanTask {
+  id: string;
+  description: string;
+  phase: string;
+  tier: ModelTier;
+  tcs: TaskComplexityScore;
+  dependencies: string[];
+}
+
+export interface SwarmWave {
+  waveIndex: number;
+  tasks: PlanTask[];
+  models: ModelTier[];
+  estimatedTokens: number;
+  estimatedMinutes: number;
+}
+
+export interface SwarmWaveSchedule {
+  waves: SwarmWave[];
+  totalTasks: number;
+  totalEstimatedTokens: number;
+  maxConcurrent: number;
+}
+
+export class ParallelismOptimiser {
+  static schedule(tasks: PlanTask[], maxConcurrent?: number): SwarmWaveSchedule;
+  static parsePlan(planMarkdown: string): PlanTask[];
+}
+```
+
+
+### [Review Phases 3+4+5] Joint Review
+
+**Verdict:** PASS
+
+#### Phase Verdicts
+- **Phase 3 (`ParallelismOptimiser` — `bc913c3`):** PASS
+- **Phase 4 (`TokenBudgetEstimator` — `7057861`):** PASS
+- **Phase 5 (`OracleCadenceOptimiser` — `97c628f`):** PASS
+
+#### Spec Compliance Verification
+
+##### Phase 3 Review (`ParallelismOptimiser`)
+- [x] Kahn's topological sort correctly dispatches tasks only after dependencies complete.
+- [x] `parsePlan()` correctly assigns Phase N tasks as dependencies on all Phase N-1 tasks.
+- [x] `maxConcurrent` cap enforced (8 tasks with cap=3 → 3 waves: 3, 3, 2).
+- [x] `estimatedTokens` per tier correct (`flash-lite=80K, flash=200K, pro=600K, pro-thinking=1.5M`).
+- [x] `estimatedMinutes` computed as max across parallel tasks (not sum).
+- [x] Unit tests cover flat DAG, linear chain, mixed graph, maxConcurrent cap, and `parsePlan`.
+
+##### Phase 4 Review (`TokenBudgetEstimator`)
+- [x] `contextTokens = tcs.contextLoad * 8000`.
+- [x] Reasoning tokens per tier match: `flash-lite=500, flash=1500, pro=4000, pro-thinking=8000`.
+- [x] `outputTokens = tcs.testSurface * 200 + tcs.reasoningDepth * 500`.
+- [x] `reviewTokens = outputTokens * 0.3`.
+- [x] Cost rates per tier match: `flash-lite=$0.075/1M, flash=$0.15/1M, pro=$3.50/1M, pro-thinking=$10/1M`.
+- [x] `formatCostEstimate` uses `"at blended rates"` for mixed tiers, `"at Flash rates"` for all-flash.
+- [x] Empty plan (0 tasks) returns `"~0.0M tokens · ~$0.00"`.
+
+##### Phase 5 Review (`OracleCadenceOptimiser`)
+- [x] Base cadence calculated as `Math.ceil(taskCount / 4)`.
+- [x] TCS modifier reduces cadence by `Math.floor(avgTCS / 5)` (floored at 1).
+- [x] Retry modifier applied only if `historicalRetryRate > 0.3`, reducing cadence by 1 (floored at 1).
+- [x] `taskCount = 0` returns 1 (not 0).
+- [x] 6 unit tests cover all specified edge cases and parameter combinations.
+
+#### Blockers & Advisories
+- **Blockers:** None.
+- **Advisories:** None.
+
+### [Phase 7] Skill Integration
+
+**Status:** Completed
+**Commit Hash:** `37af64d`
+**Test Count:** 214 tests passing
+
+#### Overview
+Updated `new-track` and `swarm-orchestrate` skills to integrate the newly implemented Swarm Blueprint generator.
+
+1. **`new-track` Skill Updates:**
+   - Modified `§2.3` to invoke `SwarmBlueprintGenerator.generate()` right after drafting the base plan.
+   - Introduced dynamic plan annotation (`annotatePlan()`) mapping task complexities to adaptive tiers.
+   - Injected the human-readable `## Swarm Blueprint` table and token cost summary into the UI before requiring user confirmation.
+   - Added logic to inform the user if the blueprint operates in 'intelligence' mode vs 'heuristic' mode.
+
+2. **`swarm-orchestrate` Skill Updates:**
+   - Added **Blueprint-Aware Dispatch** to `§1.1 SWARM ROLES` instructing the swarm orchestrator to read wave schedules if available, overriding the static `[TIER-N]` markers.
+   - Switched `oracleCadence` reading to be adaptive (based on the blueprint value instead of hardcoded to 3).
+   - Updated `§2.0 MODE AUTO-DETECTION` to prioritize Blueprint wave-based scheduling regardless of headless or interactive modes, falling back to legacy processing if missing.

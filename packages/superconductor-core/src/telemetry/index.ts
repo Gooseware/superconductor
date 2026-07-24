@@ -61,3 +61,6 @@ export class FileTelemetryStore implements TelemetryStore {
         await task;
     }
 }
+
+export * from './token-budget-estimator.js';
+
