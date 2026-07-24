@@ -206,7 +206,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 - **type:** "yesno"
         -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (local Caduceus repo if available, else Design OS kernel MCP).
 
-4.  **Load Track Specification:** Read the track's **Specification**.
+4.  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
 
 5.  **Load Project Documents:**
     -   Resolve and read:
@@ -215,7 +215,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         -   **Product Guidelines**
 
 6.  **Analyze and Update:**
-    a.  **Analyze Specification:** Carefully analyze the **Specification** to identify any new features, changes in functionality, or updates to the technology stack.
+    a.  **Analyze Specification and Plan:** Carefully analyze the **Specification** and **Implementation Plan** to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
         ii. **Propose and Confirm Changes:** If an update is needed:
@@ -258,12 +258,40 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
                         <Insert Proposed product-guidelines.md Updates/Diff Here>
                     - **type:** "yesno"
-        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
+        iv. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
+    e. **Update README.md (Operational Changes):**
+        i. **Condition for Update:** Based on your analysis, you MUST determine if the completed track introduced new build steps, environment variables, or other human-facing operational requirements.
+        ii. **Propose and Confirm Changes:** If an update is needed:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
+                - **questions:**
+                    - **header:** "README.md"
+                    - **question:**
+                        Please review the proposed updates to the README.md below. Do you approve?
+
+                        ---
+
+                        <Insert Proposed README.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **README.md** file. Keep a record of whether this file was changed.
+    f. **Update superconductor/AGENTS.md (Agent Directives):**
+        i. **Condition for Update:** Similarly, you MUST determine if the track introduced changes to build processes, architecture, or project invariants that future agents need to be aware of (e.g., new build commands, agent-specific setup steps).
+        ii. **Propose and Confirm Changes:** If an update is needed:
+            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
+                - **questions:**
+                    - **header:** "AGENTS.md"
+                    - **question:**
+                        Please review the proposed updates to the AGENTS.md below. Do you approve?
+
+                        ---
+
+                        <Insert Proposed AGENTS.md Updates/Diff Here>
+                    - **type:** "yesno"
+        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **superconductor/AGENTS.md** file. Keep a record of whether this file was changed.
 
 7.  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
     - **Commit Changes:**
-        - If any files were changed (**Product Definition**, **Tech Stack**, or **Product Guidelines**), you MUST stage them and commit them.
+        - If any files were changed (**Product Definition**, **Tech Stack**, **Product Guidelines**, **README.md**, or **AGENTS.md**), you MUST stage them and commit them.
         - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
 
 ---
