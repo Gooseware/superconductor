@@ -110,7 +110,7 @@ graph TD
 
 ### 3.2 Critique & Remediation Loop
 1. **Merge & Diff:** Processors merge to the track branch. Reviewer critiques diffs.
-2. **Fix Cycle:** Processors apply fixes up to a maximum of 3 iterations before escalating.
+2. **Fix Cycle & Mandatory Re-Review:** Processors apply fixes. After applying fixes, the code MUST be submitted back to the Reviewer (or Review Swarm). The loop continues until the Reviewer confirms all flagged issues are fixed, up to a maximum of 3 iterations before escalating to human intervention.
 
 ---
 
@@ -150,9 +150,10 @@ Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ─
    - Reviewer outputs critique to `swarm_log.md`.
    - The critique is injected into Processor's prompt for Task N+1 as an `--- Advisory Review ---` block.
    - Feedback is advisory: Processor reads it for context/awareness but is not blocked by non-critical suggestions.
-4. **Critical Escalation:**
+4. **Critical Escalation & Remediation Loop:**
    - If Reviewer marks a finding with `CRITICAL` severity, the sliding window pauses.
    - Processor is paused for Task N, and a remediation Processor is spawned immediately to resolve the critical defect in Task N-1.
+   - **MANDATORY RE-REVIEW:** Once the remediation Processor completes its fix, the code MUST be fed back into the Reviewer. The pipeline cannot unpause and resume Task N until the Reviewer confirms all CRITICAL findings are fully resolved (up to a maximum of 3 iterations).
 
 ### 4.2 Periodic Oracle Cadence
 1. **Cadence Trigger:** Every `oracleCadence` tasks (default: `3`), the Oracle agent fires concurrently alongside Processor N and Reviewer N-1.
