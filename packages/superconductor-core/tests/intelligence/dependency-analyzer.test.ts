@@ -49,4 +49,40 @@ describe('DependencyAnalyzer', () => {
     // It should NOT have eagerly evaluated 'a.ts'
     expect(mockReadFile).not.toHaveBeenCalledWith('a.ts');
   });
+  it('should parse imports from a tsx file successfully', async () => {
+    const analyzer = new DependencyAnalyzer();
+    const sourceCode = `
+      import React from 'react';
+      import { Button } from './components/Button';
+      
+      export const App = () => <Button />;
+    `;
+    const imports = await analyzer.parseImports(sourceCode);
+    expect(imports).toContain('react');
+    expect(imports).toContain('./components/Button');
+  });
+
+  it('should parse dynamic imports and re-exports', async () => {
+    const analyzer = new DependencyAnalyzer();
+    const sourceCode = `
+      export * from './all-reexport';
+      export { named } from './named-reexport';
+      
+      const a = import('./dynamic-import');
+    `;
+    const imports = await analyzer.parseImports(sourceCode);
+    expect(imports).toContain('./all-reexport');
+    expect(imports).toContain('./named-reexport');
+    expect(imports).toContain('./dynamic-import');
+  });
+
+  it('should support top-level await', async () => {
+    const analyzer = new DependencyAnalyzer();
+    const sourceCode = `
+      import { init } from './init';
+      await init();
+    `;
+    const imports = await analyzer.parseImports(sourceCode);
+    expect(imports).toContain('./init');
+  });
 });
