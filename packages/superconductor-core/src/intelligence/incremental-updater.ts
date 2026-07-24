@@ -8,6 +8,7 @@ import { runSast } from './runners/sast.js';
 import { runSymbolExtraction } from './runners/symbol-extraction.js';
 import { runTestGaps } from './runners/test-gaps.js';
 import { runPackageSurface } from './runners/package-surface.js';
+import { runDependencySurface } from './runners/dependency-surface.js';
 import { getSuperconductorHome, resolveRegistry } from './tool-registry.js';
 import { spawnSync } from 'child_process';
 
@@ -18,6 +19,7 @@ export const PHASE_INVALIDATION: Record<string, (file: string) => boolean> = {
   'symbol-extraction': (f) => /\.(ts|js|tsx|jsx)$/.test(f),
   'test-gaps':         (f) => /\.(ts|js|tsx|jsx)$/.test(f),
   'package-surface':   (f) => /\.(ts|js|tsx|jsx)$/.test(f),
+  'dependency-surface':(f) => /\.(ts|js|tsx|jsx)$/.test(f),
   fingerprint:         (f) => f.endsWith('package.json'),
   coupling:            (_) => true,  // always update coupling incrementally
 };
@@ -224,6 +226,12 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     // It does not produce { file: string }[] output, so mergeIntoJson is not applicable.
     // Always runs as a full re-scan when package.json changes trigger this phase.
     runPackageSurface(projectRoot, outputDir);
+  }
+
+  // dependency-surface
+  if (changedFiles.some(PHASE_INVALIDATION['dependency-surface'])) {
+    phasesRun.push('dependency-surface');
+    await runDependencySurface(projectRoot, outputDir);
   }
 
   // coupling (always update incrementally)

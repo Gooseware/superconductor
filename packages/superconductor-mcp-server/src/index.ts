@@ -121,11 +121,11 @@ export function handleGetAgentContext(projectRoot: string): object {
   };
 }
 
-export function handleRunIntelligence(projectRoot: string): object {
+export async function handleRunIntelligence(projectRoot: string): Promise<object> {
   const outputDir = path.join(projectRoot, "superconductor");
   let outData;
   try {
-    runPipeline([], projectRoot, outputDir);
+    await runPipeline([], projectRoot, outputDir);
     const manifest = JSON.parse(fs.readFileSync(path.join(outputDir, "intelligence", "00_manifest.json"), "utf8"));
     outData = manifest;
   } catch (e: any) {
@@ -189,7 +189,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       return handleGetTrackStatus(projectRoot, args ?? {});
 
     case "superconductor_run_intelligence":
-      return handleRunIntelligence(projectRoot);
+      return await handleRunIntelligence(projectRoot);
 
     case "superconductor_run_review":
       return handleRunReview(projectRoot, args ?? {});

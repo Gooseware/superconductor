@@ -6,7 +6,7 @@ import { readTrackRegistry, getCompletionStats } from '../track/index.js';
 import { runDeterministicPreflight } from '../review/deterministic-preflight.js';
 import { resolveReviewInput } from '../review/input-resolution.js';
 
-export function runCli(args: string[] = process.argv.slice(2)): void {
+export async function runCli(args: string[] = process.argv.slice(2)): Promise<void> {
   const command = args[0] || 'context';
 
   switch (command) {
@@ -60,9 +60,8 @@ export function runCli(args: string[] = process.argv.slice(2)): void {
     }
 
     case 'intelligence': {
-      import('../intelligence/index.js').then((m) => {
-        m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
-      });
+      const m = await import('../intelligence/index.js');
+      await m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
       break;
     }
 
@@ -82,5 +81,8 @@ Usage:
 
 // Auto-run if executed as main CLI binary
 if (import.meta.url === `file://${process.argv[1]}`) {
-  runCli();
+  runCli().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
 }
