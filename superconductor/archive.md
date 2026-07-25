@@ -164,3 +164,11 @@ This file contains a registry of all completed and archived tracks.
 
 ---
 
+## [x] Track: cli_enhancements_20260725
+- **Status:** in progress
+- **Description:** Implement mode selection, multi-track execution, execution planner, and track metadata splicing for CLI.
+- **Artifacts:**
+  - [spec.md](tracks/cli_enhancements_20260725/spec.md)
+  - [plan.md](tracks/cli_enhancements_20260725/plan.md)
+
+
