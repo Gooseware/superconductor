@@ -13,3 +13,4 @@ export * from './parallelism-optimiser.js';
 export * from './oracle-cadence-optimiser.js';
 export * from './swarm-blueprint-generator.js';
 export * from './dependency-surface-tool.js';
+export * from './dag-resolver.js';
