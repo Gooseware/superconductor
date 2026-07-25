@@ -30,15 +30,27 @@ export class ArchiveManager {
     }
 
     const registryContent = fs.readFileSync(this.tracksRegistryPath, 'utf8');
-    const trackEntryRegex = new RegExp(`^\\s*-\\s*\\[([x \\-~])\\]\\s*(.*${trackId}.*)$`, 'm');
-    const match = registryContent.match(trackEntryRegex);
+    
+    // Split the registry into blocks that start with a track heading
+    const blockRegex = /^(?:\s*-\s*|##\s*)\[[x \-~]\].*$/m;
+    const blocks = registryContent.split(new RegExp(`(?=^(?:\\s*-\\s*|##\\s*)\\[[x \\-~]\\])`, 'm'));
+    
+    let targetBlock = '';
+    let status = '';
+    for (const block of blocks) {
+      if (block.includes(trackId) && blockRegex.test(block)) {
+        targetBlock = block;
+        const match = block.match(/^(?:\s*-\s*|##\s*)\[([x \-~])\]/);
+        if (match) status = match[1];
+        break;
+      }
+    }
 
-    if (!match) {
+    if (!targetBlock) {
       throw new Error(`Track ${trackId} not found in tracks.md`);
     }
 
-    const status = match[1];
-    const fullEntryLine = match[0];
+    const fullEntryLine = targetBlock;
     
     if (status !== 'x') {
       throw new Error(`Cannot archive track ${trackId}: status is [${status}]. Only [x] completed tracks can be archived.`);
