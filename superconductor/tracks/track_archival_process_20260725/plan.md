@@ -29,11 +29,12 @@
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Regression Reviewer Implementation' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 2: ArchiveManager Implementation
-- [ ] Task: Scaffold `superconductor/tracks/archive/` directory structure and initialize an empty `archive.md` registry if they do not exist [TIER-1:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Create `tests/context/archive-manager.test.ts` with unit tests for file moving, relative path rewriting, and state idempotency [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Implement `ArchiveManager` in `src/context/archive-manager.ts` that strictly follows the transactional pattern (copy -> append -> remove -> delete), rewrites relative links in `.md` files, and mitigates path traversal [TIER-4:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Update `/superconductor:implement` Finalize step to automatically call `ArchiveManager` when a track reaches `[x]` complete state [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Run security validation on path traversal and transaction idempotency [TIER-4:TCS=3] [AGENT:superconductor-reviewer]
+- [x] Task: Scaffold `superconductor/tracks/archive/` and update `superconductor/archive.md` (MUST initialize during scaffolding to prevent missing registry issues) [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Create `ArchiveManager` in `packages/superconductor-core/src/track/archive-manager.ts` [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement transactional safety (Copy -> Append -> Remove -> Delete -> Commit) with Rollback on Error [TIER-4:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement filtering constraints to strictly abort if track is not `[x]` [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Update `/superconductor:implement` Finalize step to automatically call `ArchiveManager` when a track reaches `[x]` complete state [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Run security validation on path traversal and transaction idempotency [TIER-4:TCS=3] [AGENT:superconductor-reviewer]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: ArchiveManager Implementation' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase X: Integration & Finalization

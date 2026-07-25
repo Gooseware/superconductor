@@ -226,11 +226,17 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 3.  **Handle User Response:**
     *   **If "Archive":**
-        i.   **Setup:** Ensure `superconductor/archive/` exists.
-        ii.  **Move:** Move track folder to `superconductor/archive/<track_id>`.
-        iii. **Update Registry:** Remove track section from **Tracks Registry**.
-        iv.  **Commit:** Stage registry and archive. Commit: `chore(superconductor): Archive track '<track_name>'`.
-        v.   **Announce:** "Track '<track_name>' archived."
+        a.  If the user chooses "Archive":
+            i.   **Run ArchiveManager:** Run the archival process via the Node script.
+            ```bash
+            cd packages/superconductor-core && npx tsx archive-track.ts <track_id>
+            ```
+            ii.  **Commit the Archive:** Stage the changes from `archive.md`, `tracks.md`, and the `archive/` folder.
+            ```bash
+            git add superconductor/tracks.md superconductor/archive.md superconductor/tracks/archive/<track_id> superconductor/tracks/<track_id>
+            git commit -m "chore(superconductor): Archive completed track '<track_id>'"
+            ```
+            iii. **Announce Success:** Announce: "Track '<track_description>' has been successfully archived via ArchiveManager."
     *   **If "Delete":**
         i.   **Confirm:** Immediately call the `ask_user` tool to ask for final confirmation (do not repeat the warning in the chat):
             - **questions:**

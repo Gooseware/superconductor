@@ -364,12 +364,17 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
         - **Post-Merge:** Transition to **Deployment Suggestion**.
     *   **If user chooses "Archive" or "Delete":**
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.
-        - **Action (Archive):**
-            i.   **Create Archive Directory:** Check for the existence of `superconductor/archive/`. If it does not exist, create it.
-            ii.  **Archive Track Folder:** Move the track's folder to `superconductor/archive/<track_id>`.
-            iii. **Remove from Tracks File:** Remove the track entry from the **Tracks Registry**.
-            iv.  **Commit Changes:** Stage and commit with `chore(superconductor): Archive track '<track_description>'`.
-            v.   **Announce Success:** Announce: "Track '<track_description>' has been successfully archived."
+        b.  If the user chooses "Archive":
+            i.   **Run ArchiveManager:** Run the archival process via the Node script.
+            ```bash
+            cd packages/superconductor-core && npx tsx archive-track.ts <track_id>
+            ```
+            ii.  **Commit the Archive:** Stage the changes from `archive.md`, `tracks.md`, and the `archive/` folder.
+            ```bash
+            git add superconductor/tracks.md superconductor/archive.md superconductor/tracks/archive/<track_id> superconductor/tracks/<track_id>
+            git commit -m "chore(superconductor): Archive completed track '<track_id>'"
+            ```
+            iii. **Announce Success:** Announce: "Track '<track_description>' has been successfully archived via ArchiveManager."
         - **Action (Delete):**
             i. **CRITICAL WARNING:** Ask for final confirmation via `ask_user` (yesno).
             ii. **If 'yes'**: Delete track folder, remove from registry, commit with `chore(superconductor): Delete track '<track_description>'`, and announce success.
