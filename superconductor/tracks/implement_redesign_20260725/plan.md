@@ -25,7 +25,7 @@
 - [x] Task: Superconductor - User Manual Verification 'Context & Intelligence Foundation' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 2: DAG Resolution & Migration Utilities
-- [ ] Task: Implement `DAGResolver` utility with Kahn's Algorithm and robust cycle detection [TIER-4:TCS=4] [AGENT:caduceus-oracle]
+- [x] Task: Implement `DAGResolver` utility with Kahn's Algorithm and robust cycle detection [TIER-4:TCS=4] [AGENT:caduceus-oracle]
 - [ ] Task: Create CLI migration script to parse legacy `tracks.md` tables and output `tracks.yaml` [TIER-3:TCS=4] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'DAG Resolution & Migration Utilities' (Protocol in workflow.md) [TIER-1:TCS=4]
 
