@@ -7,7 +7,7 @@ Additionally, because the archival function was previously an existing feature t
 
 ## Architectural Committee Recommendations
 *   **Path Traversal Prevention:** The `track_id` must be strictly sanitized (`^[a-zA-Z0-9_-]+$`) before any filesystem operations.
-*   **Transactional Safety:** The archival process must be idempotent and transaction-safe to prevent desyncs (copy folder -> append to archive -> remove from active registry -> delete original folder).
+*   **Transactional Safety:** The archival process must be idempotent and transaction-safe to prevent desyncs (copy folder -> append to archive -> remove from active registry -> delete original folder). It must include a rollback mechanism to revert partial changes (e.g., deleting the copied folder) if any step fails before completion.
 *   **Trigger Timing:** The automatic archival must happen at the very end of the `implement` skill's Finalize step, ensuring all prior reviews are fully resolved.
 *   **Relative Link Preservation:** The archival script must either rewrite relative markdown links inside the track files to account for the extra `archive/` directory level, or we must mandate absolute repo paths in track plans.
 *   **Regression Detection Intelligence:** The Regression Reviewer must be provided with Git diff context that highlights deleted or modified code, allowing it to specifically query the product guidelines, previous commits, and specs to deduce intent.
@@ -34,5 +34,5 @@ Additionally, because the archival function was previously an existing feature t
 *   The `regression-reviewer` is part of the standard review quorum and successfully flags unintended capability regressions.
 
 ## Out of Scope
-*   Archiving of tracks that are still `[ ]` or `[~]`.
+*   Archiving of tracks that are still `[ ]`, `[~]`, or `[-]` (cancelled tracks). Only `[x]` (completed) tracks should be automatically archived.
 *   Retroactive archiving of previously completed tracks (this will be done manually or via a separate batch migration).

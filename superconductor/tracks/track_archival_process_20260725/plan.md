@@ -22,16 +22,16 @@
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 1: Regression Reviewer Implementation
-- [ ] Task: Define the `regression-reviewer` agent persona and system prompt in `superconductor-core` or `.agents/` [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Add intelligence tooling to pass detailed deletion diffs and historical intent context to the regression reviewer [TIER-4:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Add the `regression-reviewer` to the standard review quorum pipeline in `src/skills/review.ts` or the orchestration engine [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Write tests to ensure the review quorum invokes the regression reviewer properly [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Define the `regression-reviewer` agent persona and system prompt in `superconductor-core` or `.agents/` [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Add intelligence tooling to pass detailed deletion diffs and historical intent context to the regression reviewer [TIER-4:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Add the `regression-reviewer` to the standard review quorum pipeline in `src/skills/review.ts` or the orchestration engine [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Write tests to ensure the review quorum invokes the regression reviewer properly [TIER-3:TCS=3] [AGENT:superconductor-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Regression Reviewer Implementation' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 2: ArchiveManager Implementation
-- [ ] Task: Scaffold `superconductor/tracks/archive/` directory structure if not exists [TIER-1:TCS=3] [AGENT:superconductor-processor]
+- [ ] Task: Scaffold `superconductor/tracks/archive/` directory structure and initialize an empty `archive.md` registry if they do not exist [TIER-1:TCS=3] [AGENT:superconductor-processor]
 - [ ] Task: Create `tests/context/archive-manager.test.ts` with unit tests for file moving, relative path rewriting, and state idempotency [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Implement `ArchiveManager` in `src/context/archive-manager.ts` that safely moves folders, updates `archive.md`, removes from `tracks.md`, and mitigates path traversal [TIER-4:TCS=3] [AGENT:superconductor-processor]
+- [ ] Task: Implement `ArchiveManager` in `src/context/archive-manager.ts` that strictly follows the transactional pattern (copy -> append -> remove -> delete), rewrites relative links in `.md` files, and mitigates path traversal [TIER-4:TCS=3] [AGENT:superconductor-processor]
 - [ ] Task: Update `/superconductor:implement` Finalize step to automatically call `ArchiveManager` when a track reaches `[x]` complete state [TIER-3:TCS=3] [AGENT:superconductor-processor]
 - [ ] Task: Run security validation on path traversal and transaction idempotency [TIER-4:TCS=3] [AGENT:superconductor-reviewer]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: ArchiveManager Implementation' (Protocol in workflow.md) [TIER-1:TCS=3]

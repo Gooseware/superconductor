@@ -97,4 +97,34 @@ describe('SwarmPhaseGate', () => {
     expect(result.next_action).toBe('MANUAL_ESCALATION');
     expect(result.critical_findings.length).toBe(1);
   });
+
+  it('should REJECT and AUTO_REMEDIATE if a CRITICAL regression finding is found by regression-reviewer', () => {
+    const raw_text = `
+\`\`\`review-findings
+[
+  {
+    "finding_id": "REG-1",
+    "reviewer_id": "regression-reviewer",
+    "file": "archive-manager.ts",
+    "line_range": "L10-L15",
+    "severity": "critical",
+    "category": "regression",
+    "description": "Unintended deletion of archive function",
+    "recommendation": "Restore function",
+    "is_security_critical": false
+  }
+]
+\`\`\`
+    `;
+
+    const result = evaluatePhaseGate({
+      reviewerOutputs: [{ reviewer_id: 'regression-reviewer', raw_text }],
+      retryCount: 0
+    });
+
+    expect(result.status).toBe('REJECT');
+    expect(result.next_action).toBe('AUTO_REMEDIATE');
+    expect(result.critical_findings.length).toBe(1);
+    expect(result.critical_findings[0].reviewer_id).toBe('regression-reviewer');
+  });
 });

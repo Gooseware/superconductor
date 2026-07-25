@@ -224,7 +224,7 @@ When `Review Panel Mode` is active, execution proceeds through the following 10-
    - Run `npx ts-node scripts/deterministic-preflight.ts`.
    - Result written to `.manifests/preflight.json`. If `short_circuit: true`, halt immediately with `Needs Fixes` (skip LLM calls).
 2. **Step 2: Specialized Flash Reviewer Fan-Out**
-   - Dispatch 3 parallel isolated reviewers (`security-reviewer`, `correctness-reviewer`, `adversarial-reviewer`). Load reviewer skills from `$HOME/.superconductor/skills/` with fallback to plugin defaults.
+   - Dispatch 4 parallel isolated reviewers (`security-reviewer`, `correctness-reviewer`, `adversarial-reviewer`, `regression-reviewer`). Load reviewer skills from `$HOME/.superconductor/skills/` with fallback to plugin defaults.
    - Each reviewer runs with context isolation and emits mandatory ````json:coverage-manifest```` and ````json:review-findings```` blocks.
    - Record stage token usage via `recordTokenUsage`.
 3. **Step 3: Coverage Manifest Aggregation**

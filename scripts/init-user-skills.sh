@@ -14,7 +14,7 @@ fi
 
 mkdir -p "$USER_SKILLS_DIR"
 
-declare -a SKILLS=("security-reviewer" "correctness-reviewer" "adversarial-reviewer" "coding-agent")
+declare -a SKILLS=("security-reviewer" "correctness-reviewer" "adversarial-reviewer" "regression-reviewer" "coding-agent")
 
 CHANGES_MADE=0
 
