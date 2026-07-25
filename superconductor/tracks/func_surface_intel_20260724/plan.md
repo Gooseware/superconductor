@@ -43,12 +43,11 @@
     - [x] Refactor `IntelligenceSnapshotReader` and MCP Tool to use shared caching for memory efficiency. [TIER-1:TCS=3]
 - [x] Task: Superconductor - User Manual Verification 'Phase 3: Agent MCP Tooling & Oracle Recommendations' (Protocol in workflow.md) [TIER-1:TCS=4]
 
-
 ## Phase 4: Adapter Generation Heuristics
-- [ ] Task: Update `SwarmBlueprintGenerator` with Adapter generation rules [TIER-4:TCS=3] [AGENT:caduceus-oracle]
-    - [ ] Write tests to verify the planner suggests Adapters when token economics are favorable. [TIER-1:TCS=2]
-    - [ ] Implement heuristics logic and mark generated Adapters as technical debt for future upstream tracking. [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Adapter Generation Heuristics' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Update `SwarmBlueprintGenerator` with Adapter generation rules [TIER-4:TCS=3] [AGENT:caduceus-oracle]
+    - [x] Write tests to verify the planner suggests Adapters when token economics are favorable. [TIER-1:TCS=2]
+    - [x] Implement heuristics logic and mark generated Adapters as technical debt for future upstream tracking. [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Adapter Generation Heuristics' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 5: Integration & Finalization
 - [ ] Task: Integrate track 'func_surface_intel_20260724' into main branch. [TIER-3:TCS=3] [AGENT:caduceus-processor]
