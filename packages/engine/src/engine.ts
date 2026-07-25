@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import { TaskGraph, DagNode } from './types/dag.types.js';
 import { Scheduler } from './scheduler/scheduler.js';
 import { Dispatcher } from './dispatcher/dispatcher.js';
+import { ParallelDispatcher } from './dispatcher/parallel-dispatcher.js';
 import { StormController } from './concurrency/storm.js';
 import { buildContext } from './context/builder.js';
 import { DispatcherEvent } from './types/dispatcher.types.js';
@@ -16,7 +17,7 @@ import { SkillTriggerEngine } from './skills/skill-trigger-engine.js';
 
 export class Engine extends EventEmitter {
   public scheduler: Scheduler;
-  public dispatcher: Dispatcher;
+  public dispatcher: ParallelDispatcher;
   public storm: StormController;
   public escalationRouter: EscalationRouter;
   public cacheManager: CacheManager;
@@ -40,7 +41,7 @@ export class Engine extends EventEmitter {
     this.config = config;
     this.commonContext = config.commonContext || '';
     this.scheduler = new Scheduler(graph, this.handleSchedulerEvent.bind(this));
-    this.dispatcher = new Dispatcher();
+    this.dispatcher = new ParallelDispatcher(config.maxConcurrentAgents || 5);
     this.storm = new StormController();
     this.escalationRouter = new EscalationRouter(this);
     this.cacheManager = new CacheManager({ maxTokenBudget: config.disableCache ? 0 : 50000 });

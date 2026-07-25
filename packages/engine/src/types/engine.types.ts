@@ -4,6 +4,7 @@ export interface EngineConfig {
   disableCache?: boolean;
   dbPath?: string;
   skillsDir?: string;
+  maxConcurrentAgents?: number;
 }
 
 export interface ReviewComment {
