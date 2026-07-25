@@ -6,9 +6,9 @@
 - [x] Task: Implement `ParallelDispatcher` inside the core engine state machine to handle concurrent agent pooling [TIER-3] [AGENT:caduceus-processor]
 - [x] Task: Superconductor - User Manual Verification 'Concurrency Dispatcher' (Protocol in workflow.md)
 
-## Phase 2: State Conflict Resolution
+## Phase 2: State Conflict Resolution [checkpoint: 6d36c5b]
 - [x] Task: Implement AST-aware file merging utility for parallel agent git-conflict prevention [TIER-4] [AGENT:caduceus-oracle]
 - [x] Task: Superconductor - User Manual Verification 'State Conflict Resolution' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Finalization
-- [ ] Task: Integrate track 'parallel_execution_model_20260725' into main branch. [TIER-2] [AGENT:caduceus-processor]
+- [~] Task: Integrate track 'parallel_execution_model_20260725' into main branch. [TIER-2] [AGENT:caduceus-processor]
