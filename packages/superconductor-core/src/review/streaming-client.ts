@@ -39,16 +39,18 @@ export async function invokeReviewerStream(
   const decoder = new TextDecoder();
   let fullText = '';
   let insideFindingsBlock = false;
+  let buffer = '';
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunkStr = decoder.decode(value, { stream: true });
+      buffer += decoder.decode(value, { stream: true });
       
       // Basic SSE parsing: extract data payloads
-      const lines = chunkStr.split('\n');
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const dataStr = line.slice(6).trim();
@@ -60,13 +62,15 @@ export async function invokeReviewerStream(
             fullText += content;
 
             // Check if we entered the findings block
-            if (fullText.includes('```json:review-findings')) {
+            const markerIndex = fullText.indexOf('```json:review-findings');
+            if (markerIndex !== -1) {
               insideFindingsBlock = true;
             }
 
             if (insideFindingsBlock) {
               // Quick check for critical severity
-              if (/["']severity["']\s*:\s*["']critical["']/i.test(fullText)) {
+              const findingsContent = fullText.slice(markerIndex);
+              if (/["']severity["']\s*:\s*["']critical["']/i.test(findingsContent)) {
                 abortController.abort();
                 throw new EarlyAbortError('Critical vulnerability detected during streaming');
               }

@@ -21,6 +21,7 @@ describe('PlaywrightHarness', () => {
       setContent: vi.fn().mockResolvedValue(null),
       screenshot: vi.fn().mockResolvedValue(Buffer.from('fake-screenshot-data')),
       close: vi.fn().mockResolvedValue(null),
+      setViewportSize: vi.fn().mockResolvedValue(null),
     };
 
     mockBrowser = {

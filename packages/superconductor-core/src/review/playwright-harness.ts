@@ -20,6 +20,8 @@ export class PlaywrightHarness {
       this.page = await this.browser.newPage({
         viewport: { width, height },
       });
+    } else {
+      await this.page.setViewportSize({ width, height });
     }
   }
 
