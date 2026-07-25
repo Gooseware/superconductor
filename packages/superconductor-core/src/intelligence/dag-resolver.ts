@@ -194,7 +194,7 @@ export class DAGResolver<T = any> {
       state.set(node, 1);
       path.push(node);
 
-      const nextNodes = Array.from(dependents.get(node) || new Set())
+      const nextNodes: string[] = Array.from(dependents.get(node) || new Set<string>())
         .filter(next => remainingSet.has(next))
         .sort();
 

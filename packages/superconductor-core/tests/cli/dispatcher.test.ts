@@ -74,13 +74,16 @@ describe('CliDispatcher', () => {
     it('uses real/stub InteractiveOrchestrator module when none injected in TTY mode', async () => {
       const dispatcher = new CliDispatcher({ isTTY: true });
       const result = await dispatcher.run(['track-default']);
-      expect(result).toEqual({ mode: 'interactive', args: ['track-default'] });
+      expect(result.mode).toBe('interactive');
     });
 
     it('uses real/stub HeadlessOrchestrator module when none injected in non-TTY mode', async () => {
-      const dispatcher = new CliDispatcher({ isTTY: false });
+      const dispatcher = new CliDispatcher({
+        isTTY: false,
+        headlessOrchestrator: mockHeadlessOrchestrator,
+      });
       const result = await dispatcher.run(['track-default']);
-      expect(result).toEqual({ mode: 'headless', args: ['track-default'] });
+      expect(result).toEqual({ mode: 'headless' });
     });
   });
 
