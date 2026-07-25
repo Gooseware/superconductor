@@ -21,7 +21,7 @@ describe('audit-swarm-compliance', () => {
   it('correctly identifies compliant commits', () => {
     vi.mocked(child_process.execSync).mockImplementation((cmd: string | Buffer | URL) => {
       const command = cmd.toString();
-      if (command.includes('-- "packages/*/src/**"')) {
+      if (command.includes('-- ":/packages/*/src/**"')) {
         return 'hash123\n';
       }
       if (command.includes('format="%B" hash123')) {
@@ -46,7 +46,7 @@ describe('audit-swarm-compliance', () => {
   it('correctly flags non-compliant commits', () => {
     vi.mocked(child_process.execSync).mockImplementation((cmd: string | Buffer | URL) => {
       const command = cmd.toString();
-      if (command.includes('-- "packages/*/src/**"')) {
+      if (command.includes('-- ":/packages/*/src/**"')) {
         return 'hash123\nhash456\n';
       }
       if (command.includes('format="%B" hash123')) {
@@ -77,7 +77,7 @@ describe('audit-swarm-compliance', () => {
   it('correctly surfaces bypass log entries', () => {
     vi.mocked(child_process.execSync).mockImplementation((cmd: string | Buffer | URL) => {
       const command = cmd.toString();
-      if (command.includes('-- "packages/*/src/**"')) {
+      if (command.includes('-- ":/packages/*/src/**"')) {
         return '';
       }
       if (command.includes('rev-parse --show-toplevel')) {

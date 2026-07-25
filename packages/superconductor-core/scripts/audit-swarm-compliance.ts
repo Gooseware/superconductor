@@ -6,7 +6,7 @@ export function runAudit() {
   console.log('--- Swarm Compliance Audit ---');
   let commits: string[] = [];
   try {
-    const output = execSync('git log --format="%H" -- "packages/*/src/**"', { encoding: 'utf-8' });
+    const output = execSync('git log --format="%H" -- ":/packages/*/src/**"', { encoding: 'utf-8' });
     commits = output.split('\n').map(l => l.trim()).filter(Boolean);
   } catch (error) {
     console.error('Failed to get git log');
