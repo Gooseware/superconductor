@@ -17,10 +17,14 @@ export class ArchiveManager {
     this.tracksRegistryPath = path.join(this.projectRoot, 'superconductor', 'tracks.md');
     this.archiveRegistryPath = path.join(this.projectRoot, 'superconductor', 'archive.md');
     this.tracksDir = path.join(this.projectRoot, 'superconductor', 'tracks');
-    this.archiveDir = path.join(this.projectRoot, 'superconductor', 'tracks', 'archive');
+    this.archiveDir = path.join(this.projectRoot, 'superconductor', 'archive');
   }
 
   public async archiveTrack(trackId: string): Promise<boolean> {
+    if (!/^[a-zA-Z0-9_-]+$/.test(trackId) || trackId.toLowerCase() === 'archive') {
+      throw new Error(`Invalid track ID: ${trackId}`);
+    }
+
     const trackDirPath = path.join(this.tracksDir, trackId);
     const archiveDirPath = path.join(this.archiveDir, trackId);
 
@@ -32,16 +36,17 @@ export class ArchiveManager {
     const registryContent = fs.readFileSync(this.tracksRegistryPath, 'utf8');
     
     // Split the registry into blocks that start with a track heading
-    const blockRegex = /^(?:\s*-\s*|##\s*)\[[x \-~]\].*$/m;
-    const blocks = registryContent.split(new RegExp(`(?=^(?:\\s*-\\s*|##\\s*)\\[[x \\-~]\\])`, 'm'));
+    const blockRegex = /^(?:\s*-\s*|##\s*)\[[xX \-~]\].*$/m;
+    const blocks = registryContent.split(new RegExp(`(?=^(?:\\s*-\\s*|##\\s*)\\[[xX \\-~]\\])`, 'm'));
     
     let targetBlock = '';
     let status = '';
     for (const block of blocks) {
-      if (block.includes(trackId) && blockRegex.test(block)) {
+      const firstLine = block.split('\n')[0] || '';
+      if (firstLine.includes(trackId) && new RegExp(`\\b${trackId}\\b`).test(firstLine) && blockRegex.test(block)) {
         targetBlock = block;
-        const match = block.match(/^(?:\s*-\s*|##\s*)\[([x \-~])\]/);
-        if (match) status = match[1];
+        const match = block.match(/^(?:\s*-\s*|##\s*)\[([xX \-~])\]/);
+        if (match) status = match[1].toLowerCase();
         break;
       }
     }
@@ -65,21 +70,23 @@ export class ArchiveManager {
       fs.mkdirSync(this.archiveDir, { recursive: true });
     }
 
+    let originalArchiveContent = '# Archived Tracks Registry\n\n## Index\n\n';
     if (!fs.existsSync(this.archiveRegistryPath)) {
-      fs.writeFileSync(this.archiveRegistryPath, '# Archived Tracks Registry\n\n## Index\n\n', 'utf8');
+      fs.writeFileSync(this.archiveRegistryPath, originalArchiveContent, 'utf8');
+    } else {
+      originalArchiveContent = fs.readFileSync(this.archiveRegistryPath, 'utf8');
     }
 
     // Transactional Implementation
-    let state: 'INIT' | 'COPIED' | 'APPENDED' | 'REMOVED_FROM_REGISTRY' | 'DELETED' = 'INIT';
+    let state: 'INIT' | 'MOVED' | 'APPENDED' | 'REMOVED_FROM_REGISTRY' = 'INIT';
     
     try {
-      // Step A: Copy track folder to archive location
-      this.copyRecursiveSync(trackDirPath, archiveDirPath);
-      state = 'COPIED';
+      // Step A: Move track folder to archive location
+      fs.renameSync(trackDirPath, archiveDirPath);
+      state = 'MOVED';
 
       // Step B: Append entry to archive.md
-      const archiveContent = fs.readFileSync(this.archiveRegistryPath, 'utf8');
-      fs.writeFileSync(this.archiveRegistryPath, archiveContent + fullEntryLine + '\n', 'utf8');
+      fs.writeFileSync(this.archiveRegistryPath, originalArchiveContent + (originalArchiveContent.endsWith('\n') ? '' : '\n') + fullEntryLine + '\n', 'utf8');
       state = 'APPENDED';
 
       // Step C: Remove entry from tracks.md
@@ -87,57 +94,48 @@ export class ArchiveManager {
       fs.writeFileSync(this.tracksRegistryPath, updatedRegistry, 'utf8');
       state = 'REMOVED_FROM_REGISTRY';
 
-      // Step D: Delete old track folder
-      fs.rmSync(trackDirPath, { recursive: true, force: true });
-      state = 'DELETED';
-
       return true;
     } catch (error) {
       // Rollback Mechanism
-      this.rollback(trackId, state, fullEntryLine, registryContent);
+      this.rollback(trackId, state, archiveDirPath, trackDirPath, registryContent, originalArchiveContent);
       throw error;
     }
   }
 
-  private rollback(trackId: string, state: string, entryLine: string, originalRegistry: string) {
+  private rollback(
+    trackId: string, 
+    state: string, 
+    archiveDirPath: string, 
+    trackDirPath: string, 
+    originalRegistry: string,
+    originalArchiveContent: string
+  ) {
     console.warn(`[ArchiveManager] Rollback initiated for ${trackId} from state: ${state}`);
-    const archiveDirPath = path.join(this.archiveDir, trackId);
     
-    if (state === 'DELETED') {
-      // Nothing to rollback, process finished. Should not happen if error occurred
-      return;
-    }
-
     if (state === 'REMOVED_FROM_REGISTRY') {
-      fs.writeFileSync(this.tracksRegistryPath, originalRegistry, 'utf8');
+      try {
+        fs.writeFileSync(this.tracksRegistryPath, originalRegistry, 'utf8');
+      } catch (e) {
+        console.error(`Rollback failed to restore tracks.md:`, e);
+      }
     }
 
     if (state === 'APPENDED' || state === 'REMOVED_FROM_REGISTRY') {
-      if (fs.existsSync(this.archiveRegistryPath)) {
-        const archiveContent = fs.readFileSync(this.archiveRegistryPath, 'utf8');
-        const rolledBack = archiveContent.replace(entryLine + '\n', '');
-        fs.writeFileSync(this.archiveRegistryPath, rolledBack, 'utf8');
+      try {
+        fs.writeFileSync(this.archiveRegistryPath, originalArchiveContent, 'utf8');
+      } catch (e) {
+        console.error(`Rollback failed to restore archive.md:`, e);
       }
     }
 
-    if (state === 'COPIED' || state === 'APPENDED' || state === 'REMOVED_FROM_REGISTRY') {
-      if (fs.existsSync(archiveDirPath)) {
-        fs.rmSync(archiveDirPath, { recursive: true, force: true });
+    if (state === 'MOVED' || state === 'APPENDED' || state === 'REMOVED_FROM_REGISTRY') {
+      try {
+        if (fs.existsSync(archiveDirPath)) {
+          fs.renameSync(archiveDirPath, trackDirPath);
+        }
+      } catch (e) {
+        console.error(`Rollback failed to restore track directory:`, e);
       }
-    }
-  }
-
-  private copyRecursiveSync(src: string, dest: string) {
-    const exists = fs.existsSync(src);
-    const stats = exists && fs.statSync(src);
-    const isDirectory = exists && stats && stats.isDirectory();
-    if (isDirectory) {
-      fs.mkdirSync(dest, { recursive: true });
-      fs.readdirSync(src).forEach((childItemName) => {
-        this.copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
-      });
-    } else {
-      fs.copyFileSync(src, dest);
     }
   }
 }

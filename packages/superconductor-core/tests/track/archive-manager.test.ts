@@ -35,7 +35,7 @@ describe('ArchiveManager', () => {
     // Assert old track removed
     expect(fs.existsSync(path.join(tmpDir, 'superconductor', 'tracks', 'track_one'))).toBe(false);
     // Assert archive created
-    expect(fs.existsSync(path.join(tmpDir, 'superconductor', 'tracks', 'archive', 'track_one', 'spec.md'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, 'superconductor', 'archive', 'track_one', 'spec.md'))).toBe(true);
     
     const registry = fs.readFileSync(path.join(tmpDir, 'superconductor', 'tracks.md'), 'utf8');
     expect(registry).not.toContain('track_one');
@@ -69,7 +69,7 @@ describe('ArchiveManager', () => {
       // Old track still exists
       expect(fs.existsSync(trackDirPath)).toBe(true);
       // Archive folder removed
-      expect(fs.existsSync(path.join(tmpDir, 'superconductor', 'tracks', 'archive', 'track_one'))).toBe(false);
+      expect(fs.existsSync(path.join(tmpDir, 'superconductor', 'archive', 'track_one'))).toBe(false);
 
       const registry = fs.readFileSync(path.join(tmpDir, 'superconductor', 'tracks.md'), 'utf8');
       expect(registry).toContain('track_one');
