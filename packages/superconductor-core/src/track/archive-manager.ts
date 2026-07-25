@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as lockfile from 'proper-lockfile';
 
 export interface ArchiveManagerConfig {
   projectRoot: string;
@@ -31,6 +32,15 @@ export class ArchiveManager {
     // 1. Filtering Constraint: Strictly abort if track is not completed
     if (!fs.existsSync(this.tracksRegistryPath)) {
       throw new Error(`Registry not found at ${this.tracksRegistryPath}`);
+    }
+
+    let releaseTracksLock: () => Promise<void>;
+    let releaseArchiveLock: () => Promise<void>;
+    
+    try {
+      releaseTracksLock = await lockfile.lock(this.tracksRegistryPath, { retries: 5 });
+    } catch (err) {
+      throw new Error(`Failed to acquire lock on ${this.tracksRegistryPath}: ${err}`);
     }
 
     const registryContent = fs.readFileSync(this.tracksRegistryPath, 'utf8');
@@ -77,6 +87,13 @@ export class ArchiveManager {
       originalArchiveContent = fs.readFileSync(this.archiveRegistryPath, 'utf8');
     }
 
+    try {
+      releaseArchiveLock = await lockfile.lock(this.archiveRegistryPath, { retries: 5 });
+    } catch (err) {
+      await releaseTracksLock();
+      throw new Error(`Failed to acquire lock on ${this.archiveRegistryPath}: ${err}`);
+    }
+
     // Transactional Implementation
     let state: 'INIT' | 'MOVED' | 'APPENDED' | 'REMOVED_FROM_REGISTRY' = 'INIT';
     
@@ -94,10 +111,14 @@ export class ArchiveManager {
       fs.writeFileSync(this.tracksRegistryPath, updatedRegistry, 'utf8');
       state = 'REMOVED_FROM_REGISTRY';
 
+      await releaseArchiveLock();
+      await releaseTracksLock();
       return true;
     } catch (error) {
       // Rollback Mechanism
       this.rollback(trackId, state, archiveDirPath, trackDirPath, registryContent, originalArchiveContent);
+      await releaseArchiveLock?.();
+      await releaseTracksLock();
       throw error;
     }
   }
