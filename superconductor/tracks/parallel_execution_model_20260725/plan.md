@@ -3,8 +3,8 @@
 - [x] Task: Superconductor - User Manual Verification 'Swarm Preflight' (Protocol in workflow.md)
 
 ## Phase 1: Concurrency Dispatcher
-- [ ] Task: Implement `ParallelDispatcher` inside the core engine state machine to handle concurrent agent pooling [TIER-3] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Concurrency Dispatcher' (Protocol in workflow.md)
+- [x] Task: Implement `ParallelDispatcher` inside the core engine state machine to handle concurrent agent pooling [TIER-3] [AGENT:caduceus-processor]
+- [x] Task: Superconductor - User Manual Verification 'Concurrency Dispatcher' (Protocol in workflow.md)
 
 ## Phase 2: State Conflict Resolution
 - [ ] Task: Implement AST-aware file merging utility for parallel agent git-conflict prevention [TIER-4] [AGENT:caduceus-oracle]
