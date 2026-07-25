@@ -273,6 +273,7 @@ Before requesting review:
 
 - Sequential mode and swarm mode both require the Quorum → Remediate → Quorum loop to complete before the finalization commit step.
 - The finalization commit (`chore(superconductor): Mark track X as complete`) is explicitly gated — it MUST NOT run until all 4 reviewers report `RESOLVED`.
+- After the Quorum loop completes and all reviewers are `RESOLVED`, the Orchestrator MUST invoke `SwarmAuthorizer.generateTrailer(reviewerConvIds)` (via `packages/superconductor-core/src/track/swarm-authorizer.ts` or equivalent execution) and append the authorization trailer to the commit message before the finalization commit.
 
 ## Commit Guidelines
 

@@ -250,8 +250,18 @@ When `Review Panel Mode` is active, execution proceeds through the following 10-
 
 ---
 
-## 9.0 HEADLESS COMPATIBILITY
+## 9.0 FINALIZATION & AUTHORIZATION STAMPING
+
+Before running `git commit` to finalize a track phase or completion:
+1. Ensure a unanimous `RESOLVED` status has been achieved from all required reviewers (Quorum).
+2. The Orchestrator MUST invoke `SwarmAuthorizer.generateTrailer(reviewerConvIds)` (via `packages/superconductor-core/src/track/swarm-authorizer.ts` or equivalent execution).
+3. Append the generated authorization trailer (e.g., `Swarm-Authorized: true | reviewers: <id1>,<id2>`) to the commit message.
+4. Execute `git commit` with the modified message containing the authorization trailer.
+
+---
+
+## 10.0 HEADLESS COMPATIBILITY
 1. If the `--headless` flag is active:
    - All human-in-the-loop checks are skipped.
-   - The final output is automatically merged to the target branch upon Oracle/Review Panel approval.
+   - The final output is automatically merged to the target branch upon Oracle/Review Panel approval (with the Authorization Stamp applied).
    - In Pipeline Mode, any unresolvable critical escalation is logged to `swarm_log.md` and causes a non-zero exit status for CI integration.
