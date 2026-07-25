@@ -196,3 +196,9 @@ This file contains a registry of all completed and archived tracks.
 
 ---
 
+- [x] **Track: Streaming & Multi-Modal Oracle Review Panel**
+*Link: [./tracks/multimodal_oracle_review_20260725/](./tracks/multimodal_oracle_review_20260725/)*
+
+---
+
+
