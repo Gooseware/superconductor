@@ -32,7 +32,7 @@
 ## Phase 3: Interactive CLI Orchestration
 - [x] Task: Implement `CliDispatcher` to detect TTY vs headless environments and route to the appropriate orchestrator [TIER-2:TCS=3] [AGENT:caduceus-processor]
 - [ ] Task: Implement `InteractiveOrchestrator` using TUI checklists for multi-track selection and DAG sorting [TIER-3:TCS=3] [AGENT:caduceus-processor]
-- [ ] Task: Implement `HeadlessOrchestrator` strictly handling argument-based execution and applying DAG sorting to the provided tracks [TIER-2:TCS=3] [AGENT:caduceus-processor]
+- [x] Task: Implement `HeadlessOrchestrator` strictly handling argument-based execution and applying DAG sorting to the provided tracks [TIER-2:TCS=3] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Interactive CLI Orchestration' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 4: Integration & Finalization
