@@ -63,3 +63,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Streaming & Multi-Modal Oracle Review Panel**
 *Link: [./tracks/multimodal_oracle_review_20260725/](./tracks/multimodal_oracle_review_20260725/)*
 
+---
+
+- [ ] **Track: Swarm Protocol Strict Guardrails & Anti-Rogue Agent Enforcement**
+*Link: [./tracks/swarm_enforcement_20260725/](./tracks/swarm_enforcement_20260725/)*
+
