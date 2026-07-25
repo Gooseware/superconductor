@@ -2,7 +2,7 @@
 - [x] Task: Verify `swarm-orchestrate` skill is active [TIER-1] [AGENT:caduceus-processor]
 - [x] Task: Superconductor - User Manual Verification 'Swarm Preflight' (Protocol in workflow.md)
 
-## Phase 1: Concurrency Dispatcher
+## Phase 1: Concurrency Dispatcher [checkpoint: f78355c]
 - [x] Task: Implement `ParallelDispatcher` inside the core engine state machine to handle concurrent agent pooling [TIER-3] [AGENT:caduceus-processor]
 - [x] Task: Superconductor - User Manual Verification 'Concurrency Dispatcher' (Protocol in workflow.md)
 
