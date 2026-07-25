@@ -169,3 +169,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Astryx Agent Skills & Design Orchestrator**
 *Link: [./tracks/astryx_skills_20260725/](./tracks/astryx_skills_20260725/)*
+
+---
+
+- [ ] **Track: Implement Redesign & Dense YAML DAG**
+*Link: [./tracks/implement_redesign_20260725/](./tracks/implement_redesign_20260725/)*
