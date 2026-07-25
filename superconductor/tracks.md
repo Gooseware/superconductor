@@ -167,5 +167,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Astryx Agent Skills & Design Orchestrator**
+- [x] **Track: Astryx Agent Skills & Design Orchestrator**
 *Link: [./tracks/astryx_skills_20260725/](./tracks/astryx_skills_20260725/)*
