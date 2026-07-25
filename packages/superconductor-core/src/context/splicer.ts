@@ -19,6 +19,10 @@ export class TrackSplicer {
     const spliced: SplicedTrackContent[] = [];
 
     for (const trackId of trackIds) {
+      if (!/^[a-zA-Z0-9_-]+$/.test(trackId)) {
+        console.warn(`Warning: invalid trackId format: ${trackId}`);
+        continue;
+      }
       const trackDir = path.join(this.projectRoot, 'superconductor', 'tracks', trackId);
       
       let metadata = {};
@@ -27,7 +31,7 @@ export class TrackSplicer {
         try {
           metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
         } catch (e) {
-          // ignore
+          console.warn(`Warning: failed to parse metadata.json for track ${trackId}`);
         }
       }
 
@@ -55,9 +59,13 @@ export class TrackSplicer {
   }
 
   private compressMarkdown(markdown: string): string {
-    return markdown
+    let compressed = markdown
       .replace(/<!--[\s\S]*?-->/g, '') // remove HTML comments
-      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\s+/g, ' ')
       .trim();
+    if (compressed.length > 2000) {
+      compressed = compressed.substring(0, 2000) + '...';
+    }
+    return compressed;
   }
 }

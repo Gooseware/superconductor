@@ -42,5 +42,5 @@
 - [ ] Task: Superconductor - User Manual Verification 'Track Metadata Splicing Tool' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 4: Integration & Finalization
-- [ ] Task: Integrate track 'cli_enhancements_20260725' into main branch. [TIER-1:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Integrate track 'cli_enhancements_20260725' into main branch. [TIER-1:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Superconductor - User Manual Verification 'Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]

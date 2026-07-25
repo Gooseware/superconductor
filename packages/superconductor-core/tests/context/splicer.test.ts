@@ -14,7 +14,7 @@ describe('TrackSplicer', () => {
     vi.resetAllMocks();
   });
 
-  it('splices tracks and outputs valid JSON', () => {
+  it('splices tracks and outputs valid JSON with compression and truncation', () => {
     const trackId = 'test_track';
     const trackDir = path.join(projectRoot, 'superconductor', 'tracks', trackId);
 
@@ -25,9 +25,11 @@ describe('TrackSplicer', () => {
       return false;
     });
 
+    const hugeContent = 'word '.repeat(1000); // 5000 characters
+
     (fs.readFileSync as any).mockImplementation((p: string) => {
       if (p === path.join(trackDir, 'metadata.json')) return JSON.stringify({ key: 'val' });
-      if (p === path.join(trackDir, 'spec.md')) return '# Spec\n\nContent';
+      if (p === path.join(trackDir, 'spec.md')) return '# Spec\n\nContent\n\n' + hugeContent;
       if (p === path.join(trackDir, 'plan.md')) return '# Plan\n\n<!-- ignore -->\nContent';
       return '';
     });
@@ -38,7 +40,19 @@ describe('TrackSplicer', () => {
     expect(parsed).toHaveLength(1);
     expect(parsed[0].trackId).toBe(trackId);
     expect(parsed[0].metadata).toEqual({ key: 'val' });
-    expect(parsed[0].specSummary).toBe('# Spec\n\nContent');
-    expect(parsed[0].planSummary).toBe('# Plan\n\nContent');
+    
+    // Assert token size bounds
+    expect(parsed[0].specSummary.length).toBeLessThanOrEqual(2003); // 2000 + '...'
+    expect(parsed[0].specSummary.endsWith('...')).toBe(true);
+    
+    // Assert correct compression of whitespace and comments
+    expect(parsed[0].planSummary).toBe('# Plan Content');
+  });
+
+  it('rejects invalid trackIds (SEC-1)', () => {
+    const trackId = '../escaped_track';
+    const resultStr = splicer.spliceTracks([trackId]);
+    const parsed = JSON.parse(resultStr);
+    expect(parsed).toHaveLength(0);
   });
 });
