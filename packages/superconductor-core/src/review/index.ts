@@ -8,3 +8,4 @@ export * from './input-resolution.js';
 export * from './swarm-phase-gate.js';
 export * from './abi.js';
 export * from './streaming-client.js';
+export * from './playwright-harness.js';

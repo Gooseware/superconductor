@@ -22,7 +22,8 @@
     "@types/proper-lockfile": "^4.1.4",
     "@vitest/coverage-v8": "^1.6.1",
     "typescript": "^5.0.0",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "playwright": "^1.40.0"
   },
   "dependencies": {
     "@superconductor/engine": "workspace:*",
