@@ -91,8 +91,10 @@ export class ArchiveManager {
 
       let originalArchiveContent = '# Archived Tracks Registry\n\n## Index\n\n';
       
-      if (!fs.existsSync(this.archiveRegistryPath)) {
-        fs.writeFileSync(this.archiveRegistryPath, originalArchiveContent, 'utf8');
+      try {
+        fs.writeFileSync(this.archiveRegistryPath, originalArchiveContent, { encoding: 'utf8', flag: 'wx' });
+      } catch (e: any) {
+        if (e.code !== 'EEXIST') throw e;
       }
       
       try {
