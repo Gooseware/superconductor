@@ -86,7 +86,7 @@ describe('SwarmBlueprintGenerator', () => {
       sastFindings: new Map(),
       driftState: 'NONE' as const,
       driftBanner: '',
-      dependencySurfaceMap: new Map([['src/a.ts', 40], ['src/b.ts', 20]])
+      dependencySurfaceMap: new Map([['src/a.ts', 60], ['src/b.ts', 80]])
     };
     
     const spy = vi.spyOn(IntelligenceSnapshotReader, 'load').mockReturnValue(mockRepoContext);

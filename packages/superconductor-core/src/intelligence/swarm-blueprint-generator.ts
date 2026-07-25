@@ -67,21 +67,17 @@ export class SwarmBlueprintGenerator {
 
     // Heuristics logic: suggest Adapters when token economics are favorable based on dependency surface size
     const adapterSuggestions: AdapterSuggestion[] = [];
-    let totalSurfaceSize = 0;
     
     if (repoContext && repoContext.dependencySurfaceMap) {
-      for (const size of repoContext.dependencySurfaceMap.values()) {
-        totalSurfaceSize += size;
+      for (const [moduleName, size] of repoContext.dependencySurfaceMap.entries()) {
+        if (size > 0 && size < 50 && tasks.length > 0) {
+          adapterSuggestions.push({
+            name: `${moduleName.split('/').pop()?.replace(/\.[^/.]+$/, '')}Adapter`,
+            reason: `Favorable token economics (dependency surface size ${size} < 50 for ${moduleName}) allows generating an Adapter to encapsulate this functionality.`,
+            isTechDebt: true
+          });
+        }
       }
-    }
-
-    // Favorable economics: small dependency surface allows us to safely generate an Adapter
-    if (totalSurfaceSize > 0 && totalSurfaceSize < 50 && tasks.length > 0) {
-      adapterSuggestions.push({
-        name: 'ComponentAdapter',
-        reason: `Favorable token economics (dependency surface size ${totalSurfaceSize} < 50) allows generating an Adapter to encapsulate this functionality.`,
-        isTechDebt: true
-      });
     }
 
     return {
@@ -106,6 +102,14 @@ export class SwarmBlueprintGenerator {
     }
     md += `**Oracle Cadence:** ${cadenceStr}\n`;
     md += `**Estimated Track Token Budget:** ${blueprint.costSummary}\n\n`;
+    
+    if (blueprint.adapterSuggestions && blueprint.adapterSuggestions.length > 0) {
+      md += `### Adapter Suggestions\n\n`;
+      blueprint.adapterSuggestions.forEach(suggestion => {
+        md += `- **${suggestion.name}**: ${suggestion.reason}\n`;
+      });
+      md += `\n`;
+    }
     
     md += `### Wave Schedule\n\n`;
     md += `| Wave | Tasks | Models | Est. Tokens | Est. Duration |\n`;
