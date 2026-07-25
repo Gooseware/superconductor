@@ -23,8 +23,8 @@ Acts as the central nervous system of Design OS, ensuring the user follows the s
 7. **Roadmap** (`design-os-roadmap`) -> `product/product-roadmap.md`
 8. **Data Model** (`design-os-data-model`) -> `product/data-model/data-model.md`
 9. **i18n** (`design-os-i18n`) -> `product/i18n/spec.md`
-10. **Design System** (`design-os-design-system`) -> `theme.json`
-11. **App Shell** (`design-os-app-shell`) -> `product/shell/spec.md`
+10. **Design System** (`design-os-design-system`) -> Use `npx astryx theme` to generate brand themes.
+11. **App Shell** (`design-os-app-shell`) -> Scaffold using `npx astryx template`.
 12. **Sections** -> One folder per roadmap item.
 13. **Enhancement & Refinement** (`design-os-enhance`, `theme-manager-flow`)
 14. **Export** -> `/export-product` (Command reference).

@@ -6,7 +6,7 @@ description: Use when the user needs to define the visual language (colors, typo
 # Design OS Design System
 
 ## Overview
-Guides the selection of semantic design tokens (HSL/OKLCH) for the product, integrated with the SQLite-backed `theme-manager` system.
+Guides the selection of semantic design themes and tokens for the product, integrating with the new Astryx Design System (`@astryxdesign/core`) and the Astryx Theme Builder.
 
 ## When to Use
 - Roadmap and Data Model are defined.
@@ -16,45 +16,38 @@ Guides the selection of semantic design tokens (HSL/OKLCH) for the product, inte
 ## The Process
 
 ### 1. Style Analysis
-Ask the user for the "Vibe" or "Aesthetic" (e.g., Clean/Modern, Brutalist, Playful).
+Ask the user for the "Vibe" or "Aesthetic" (e.g., Clean/Modern, Brutalist, Playful). Determine if one of the pre-built Astryx themes fits (e.g., `neutral`, `butter`, `chocolate`, `gothic`, `matcha`, `stone`, `y2k`).
 
-### 2. Propose Semantic Tokens
-Propose **Semantic HSL values** that align with the `theme-manager` schema, including states and contexts:
-- **Core**: `primary`, `foreground`, `background`, `border`, `radius`.
-- **States**: `primaryHover`, `primaryActive`, `disabled`, `disabledForeground`.
-- **Alerts**: `success`, `warning`, `info`, `destructive`.
-- **Fonts**: `fontSans`, `fontSerif`.
-- **Contexts**: `contextOverrides` for sections like `admin` or `landing`.
-
-Example for overrides:
-```json
-{
-  "contextOverrides": {
-    "admin": {
-      "primary": "217 91% 60%",
-      "background": "240 5% 98%"
-    }
-  }
-}
+### 2. Scaffold Theme
+If a pre-built theme is chosen, instruct the user to install it via npm:
+```bash
+npm install @astryxdesign/theme-{name}
 ```
 
-### 3. Update the Kernel
-Use the **`set_theme`** MCP tool to store these tokens. It will automatically merge with the existing theme.
+If a custom theme is required, instruct the user to use the Astryx Theme Builder CLI:
+```bash
+npx astryx theme
+```
+This interactive wizard will generate the semantic color scale tokens (e.g., `--color-background-{hue}`, `--color-border-{hue}`) and output the required theme variables.
 
-### 4. Create Files
-Write to `product/design-system/theme.json`:
-```json
-{
-  "primary": "142 71% 45%",
-  "foreground": "20 14% 4%",
-  "background": "0 0% 100%",
-  "radius": "0.5rem",
-  "fontSans": "Inter",
-  "fontSerif": "Montserrat"
+### 3. Update the Application Provider
+Ensure the main app entry wraps the application in the Astryx `<Theme>` provider and imports the CSS resets:
+```tsx
+import "@astryxdesign/core/reset.css";
+import "@astryxdesign/core/astryx.css";
+import { Theme } from '@astryxdesign/core/theme';
+import { customTheme } from './theme.ts'; // or from @astryxdesign/theme-{name}
+
+function App() {
+  return (
+    <Theme theme={customTheme} mode="system">
+      <YourApp />
+    </Theme>
+  );
 }
 ```
 
 ## Common Mistakes
-- Using Tailwind utility names (e.g., `bg-lime-400`) instead of raw HSL/OKLCH values for tokens.
-- Forgetting to call `set_theme` to persist changes for the AI agent.
-- Choosing fonts that aren't available on Google Fonts.
+- Using Tailwind utility names (e.g., `bg-lime-400`) instead of Astryx component props or semantic token variables (`var(--color-*)`).
+- Manually overriding CSS variables like `--color-*` in `:root` instead of using `npx astryx theme`.
+- Setting manual font sizes instead of relying on the Astryx type scale (e.g., `<Text type="large">`).

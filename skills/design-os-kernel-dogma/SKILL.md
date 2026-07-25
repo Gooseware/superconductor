@@ -12,7 +12,8 @@ This skill ensures all code meets the rigorous standards required for inclusion 
 
 ### 1. Component Extraction & Analysis
 - Scan for components using `grep` or `ts-morph`.
-- Verify the component uses Tailwind CSS and Design OS tokens.
+- Verify the component uses Astryx Design System components (`@astryxdesign/core`) and Astryx tokens.
+- Ensure the component adheres to the Astryx frame-first layout (no raw `<div>` or Tailwind utility classes).
 - Ensure named exports are used.
 
 ### 2. Dogma Validation
