@@ -134,6 +134,7 @@ The Superconductor engine operates in either Interactive or Headless mode.
 7.  **Swarm Phase Gate Review (Mandatory):**
     -   Execute the Swarm Phase Gate using a 3-reviewer Flash panel.
     -   Provide only the minimized context (task spec, git diff, modified files) to the panel.
+    -   **Streaming Review Protocol:** The Reviewer panel must stream its diagnostic output via Server-Sent Events (SSE). If a `CRITICAL` finding is detected dynamically during the stream, the orchestrator MUST trigger an early abort (halting immediately to save time and tokens) and initiate remediation.
     -   The checkpointing process is blocked until the Phase Gate returns a PASS (zero CRITICAL findings).
     -   If CRITICAL findings are found, auto-remediate up to 2 times. If it still fails, escalate to manual intervention.
 

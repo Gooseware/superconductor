@@ -1,9 +1,9 @@
 ## Phase 0: Swarm Preflight
-- [ ] Task: Verify `swarm-orchestrate` skill is active [TIER-1] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify `swarm-orchestrate` skill is active [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Superconductor - User Manual Verification 'Swarm Preflight' (Protocol in workflow.md)
 
 ## Phase 1: Streaming Review Protocol
-- [ ] Task: Refactor `superconductor-reviewer` to utilize SSE (Server-Sent Events) for real-time critique streaming [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Refactor `superconductor-reviewer` to utilize SSE (Server-Sent Events) for real-time critique streaming [TIER-3] [AGENT:superconductor-processor] [60bc319]
 - [ ] Task: Superconductor - User Manual Verification 'Streaming Review Protocol' (Protocol in workflow.md)
 
 ## Phase 2: Multi-Modal Vision Oracle
