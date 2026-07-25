@@ -50,6 +50,11 @@ describe('parseHeadlessArgs', () => {
     const res = parseHeadlessArgs(['--headless', '--json']);
     expect(res.trackIds).toEqual([]);
   });
+
+  it('filters out known subcommands like implement and orchestrate from trackIds', () => {
+    const res = parseHeadlessArgs(['implement', 't1', 'orchestrate', 't2']);
+    expect(res.trackIds).toEqual(['t1', 't2']);
+  });
 });
 
 describe('HeadlessOrchestrator', () => {

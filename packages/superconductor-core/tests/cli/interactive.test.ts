@@ -168,4 +168,16 @@ describe('InteractiveOrchestrator', () => {
 
     expect(result.sortedTrackIds).toEqual(['track-a', 'track-b']);
   });
+
+  it('extracts --project-root and --output-dir from args before loading snapshot', async () => {
+    const orchestrator = new InteractiveOrchestrator({
+      snapshotReader: mockSnapshotReader as any,
+      promptFn: mockPromptFn,
+      logger: mockLogger,
+    });
+
+    await orchestrator.run(['--project-root', '/custom/proj', '--output-dir', '/custom/out']);
+
+    expect(mockSnapshotReader.load).toHaveBeenCalledWith('/custom/out', '/custom/proj');
+  });
 });

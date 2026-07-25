@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CliDispatcher } from '../../src/cli/dispatcher.js';
+import { IntelligenceSnapshotReader } from '../../src/intelligence/snapshot-reader.js';
 
 describe('CliDispatcher', () => {
   let mockInteractiveOrchestrator: { run: ReturnType<typeof vi.fn> };
@@ -78,12 +79,17 @@ describe('CliDispatcher', () => {
     });
 
     it('uses real/stub HeadlessOrchestrator module when none injected in non-TTY mode', async () => {
-      const dispatcher = new CliDispatcher({
-        isTTY: false,
-        headlessOrchestrator: mockHeadlessOrchestrator,
+      vi.spyOn(IntelligenceSnapshotReader, 'load').mockReturnValue({
+        tracks: [{ trackId: 'track-default', deps: [], name: 'Default Track', status: 'planned' }],
+        hotspotMap: new Map(),
+        testGapMap: new Map(),
+        sastFindings: new Map(),
+        driftState: 'LIVE',
+        driftBanner: 'LIVE',
       });
+      const dispatcher = new CliDispatcher({ isTTY: false });
       const result = await dispatcher.run(['track-default']);
-      expect(result).toEqual({ mode: 'headless' });
+      expect(result.mode).toBe('headless');
     });
   });
 

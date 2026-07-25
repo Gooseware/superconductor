@@ -33,5 +33,12 @@
 ### [Task 1] Implement `CliDispatcher`
 - **Processor:** subagent-8877b528 — STATUS: `COMPLETED`
 
+### [Task 2] Implement `InteractiveOrchestrator`
+- **Processor:** subagent-cbe4e552 — STATUS: `COMPLETED`
+
 ### [Task 3] Implement `HeadlessOrchestrator`
 - **Processor:** subagent-2fa9aca5 — STATUS: `COMPLETED`
+
+### [Phase 3 Checkpoint] Phase Gate Review
+- **Reviewers:** Correctness (CRITICAL), Security (RESOLVED), Adversarial (CRITICAL)
+- **Advisory Context Injected:** ADV-1/COR-3 (Headless outputDir mismatch), ADV-2 (Test Theatre), ADV-3/COR-1 (Phantom CLI wiring in index.ts), ADV-4/COR-2 (Flawed argument parsing), COR-4 (Manifest-gated tracks loading), COR-5 (Ignored CLI args in interactive)

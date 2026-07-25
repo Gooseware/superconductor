@@ -35,9 +35,21 @@ describe('IntelligenceSnapshotReader', () => {
     }
   });
 
-  it('returns null for NONE state (no manifest)', () => {
+  it('returns null for NONE state (no manifest and no tracks.yaml)', () => {
     const result = IntelligenceSnapshotReader.load(tempDir);
     expect(result).toBeNull();
+  });
+
+  it('returns RepoContext with driftState NONE when manifest is missing but tracks.yaml exists', () => {
+    const scDir = path.join(tempDir, 'superconductor');
+    fs.mkdirSync(scDir, { recursive: true });
+    fs.writeFileSync(path.join(scDir, 'tracks.yaml'), 'version: 1\ntracks:\n  - id: t1\n    name: Test Track\n    status: planned\n');
+
+    const result = IntelligenceSnapshotReader.load(path.join(scDir, '.intelligence'), tempDir);
+    expect(result).not.toBeNull();
+    expect(result?.driftState).toBe('NONE');
+    expect(result?.tracks).toHaveLength(1);
+    expect(result?.tracks?.[0].trackId).toBe('t1');
   });
 
   it('loads LIVE state correctly', () => {

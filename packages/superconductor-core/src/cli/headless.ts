@@ -59,7 +59,11 @@ export function parseHeadlessArgs(args: string[]): ParsedHeadlessArgs {
       continue;
     }
 
-    const splitTracks = arg.split(',').map(s => s.trim()).filter(Boolean);
+    if (arg === 'implement' || arg === 'orchestrate') {
+      continue;
+    }
+
+    const splitTracks = arg.split(',').map(s => s.trim()).filter(s => Boolean(s) && s !== 'implement' && s !== 'orchestrate');
     trackIds.push(...splitTracks);
   }
 
@@ -100,7 +104,7 @@ export class HeadlessOrchestrator {
     }
 
     const resolvedProjectRoot = parsed.projectRoot ?? this.projectRoot ?? process.cwd();
-    const resolvedOutputDir = parsed.outputDir ?? this.outputDir ?? path.join(resolvedProjectRoot, 'superconductor');
+    const resolvedOutputDir = parsed.outputDir ?? this.outputDir ?? path.join(resolvedProjectRoot, 'superconductor', '.intelligence');
 
     const snapshot = IntelligenceSnapshotReader.load(resolvedOutputDir, resolvedProjectRoot);
     const availableTracks = snapshot?.tracks ?? [];

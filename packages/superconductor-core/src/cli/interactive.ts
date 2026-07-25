@@ -31,8 +31,10 @@ export class InteractiveOrchestrator {
   private snapshotReader: typeof IntelligenceSnapshotReader;
   private dagResolver: typeof DAGResolver;
   private logger: { log: (msg: string) => void; error: (msg: string) => void };
+  private options: InteractiveOrchestratorOptions;
 
   constructor(options: InteractiveOrchestratorOptions = {}) {
+    this.options = options;
     this.projectRoot = options.projectRoot ?? process.cwd();
     this.outputDir = options.outputDir ?? path.join(this.projectRoot, 'superconductor', '.intelligence');
     this.promptFn = options.promptFn ?? prompts;
@@ -42,7 +44,30 @@ export class InteractiveOrchestrator {
   }
 
   public async run(args: string[] = []): Promise<InteractiveResult> {
-    const context: RepoContext | null = this.snapshotReader.load(this.outputDir, this.projectRoot);
+    let parsedProjectRoot: string | undefined;
+    let parsedOutputDir: string | undefined;
+
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      if (arg === '--project-root') {
+        if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
+          parsedProjectRoot = args[++i];
+        }
+      } else if (arg.startsWith('--project-root=')) {
+        parsedProjectRoot = arg.slice('--project-root='.length);
+      } else if (arg === '--output-dir') {
+        if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
+          parsedOutputDir = args[++i];
+        }
+      } else if (arg.startsWith('--output-dir=')) {
+        parsedOutputDir = arg.slice('--output-dir='.length);
+      }
+    }
+
+    const projectRoot = parsedProjectRoot ?? this.projectRoot;
+    const outputDir = parsedOutputDir ?? (parsedProjectRoot && !this.options.outputDir ? path.join(parsedProjectRoot, 'superconductor', '.intelligence') : this.outputDir);
+
+    const context: RepoContext | null = this.snapshotReader.load(outputDir, projectRoot);
 
     if (!context || !context.tracks || context.tracks.length === 0) {
       this.logger.log('⚠️  No tracks found in intelligence snapshot or tracks.yaml.');

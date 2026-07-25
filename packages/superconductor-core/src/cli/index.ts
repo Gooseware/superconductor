@@ -5,6 +5,7 @@ import { getAgentContext } from '../protocol/agent-context.js';
 import { readTrackRegistry, getCompletionStats } from '../track/index.js';
 import { runDeterministicPreflight } from '../review/deterministic-preflight.js';
 import { resolveReviewInput } from '../review/input-resolution.js';
+import { runCliDispatcher } from './dispatcher.js';
 
 export * from './dispatcher.js';
 export * from './interactive.js';
@@ -14,6 +15,12 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
   const command = args[0] || 'context';
 
   switch (command) {
+    case 'implement':
+    case 'orchestrate': {
+      await runCliDispatcher(args.slice(1));
+      break;
+    }
+
     case 'context': {
       const isJson = args.includes('--json');
       const ctx = getAgentContext(process.cwd());

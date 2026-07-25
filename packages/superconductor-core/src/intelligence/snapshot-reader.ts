@@ -49,6 +49,30 @@ export class IntelligenceSnapshotReader {
   static load(outputDir: string, projectRoot?: string): RepoContext | null {
     const manifestPath = path.join(outputDir, '00_manifest.json');
     if (!fs.existsSync(manifestPath)) {
+      const root = projectRoot ?? path.resolve(outputDir, '..', '..');
+      const tracksYamlPath = path.join(root, 'superconductor', 'tracks.yaml');
+      const altTracksYamlPath = path.join(outputDir, 'tracks.yaml');
+      const targetYamlPath = fs.existsSync(tracksYamlPath)
+        ? tracksYamlPath
+        : (fs.existsSync(altTracksYamlPath) ? altTracksYamlPath : null);
+
+      if (targetYamlPath) {
+        let tracks: TrackEntryYaml[] = [];
+        try {
+          const yamlContent = fs.readFileSync(targetYamlPath, 'utf8');
+          tracks = this.parseTracksYaml(yamlContent);
+        } catch {
+          tracks = [];
+        }
+        return {
+          hotspotMap: new Map(),
+          testGapMap: new Map(),
+          sastFindings: new Map(),
+          driftState: 'NONE',
+          driftBanner: IntelligenceSnapshotReader.NONE_BANNER,
+          tracks,
+        };
+      }
       return null; // NONE state
     }
 
