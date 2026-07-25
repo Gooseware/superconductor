@@ -15,15 +15,15 @@
   },
   "devDependencies": {
     "@swc/core": "^1.15.46",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^1.6.1",
     "typescript": "^5.0.0",
-    "vitest": "^1.6.0",
-    "@types/js-yaml": "^4.0.9"
+    "vitest": "^1.6.0"
   },
   "dependencies": {
     "@superconductor/engine": "workspace:*",
-    "zod": "^3.25.76",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.3.0",
+    "zod": "^3.25.76"
   }
 }

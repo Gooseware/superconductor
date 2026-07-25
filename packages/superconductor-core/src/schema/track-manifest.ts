@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const nullToUndefined = (v: unknown) => (v === null ? undefined : v);
+
 export const trackStatusSchema = z.enum([
   'planned',
   'in_progress',
@@ -18,14 +20,14 @@ export const trackStatusSchema = z.enum([
 
 export const trackEntrySchema = z.object({
   id: z.string(),
-  name: z.string().optional(),
-  title: z.string().optional(),
-  status: trackStatusSchema.default('planned'),
-  deps: z.array(z.string()).default([]),
-  link: z.string().optional(),
-  spec: z.string().optional(),
-  plan: z.string().optional(),
-  note: z.string().optional()
+  name: z.preprocess(nullToUndefined, z.string().optional()),
+  title: z.preprocess(nullToUndefined, z.string().optional()),
+  status: z.preprocess(nullToUndefined, trackStatusSchema.default('planned')),
+  deps: z.preprocess(nullToUndefined, z.array(z.string()).default([])),
+  link: z.preprocess(nullToUndefined, z.string().optional()),
+  spec: z.preprocess(nullToUndefined, z.string().optional()),
+  plan: z.preprocess(nullToUndefined, z.string().optional()),
+  note: z.preprocess(nullToUndefined, z.string().optional())
 }).transform((data) => ({
   trackId: data.id,
   name: data.name || data.title || data.id,
@@ -38,12 +40,13 @@ export const trackEntrySchema = z.object({
 }));
 
 export const trackManifestSchema = z.union([
-  z.object({
-    version: z.union([z.number(), z.string()]).optional(),
-    tracks: z.array(trackEntrySchema).default([])
-  }),
-  z.array(trackEntrySchema).transform((tracks) => ({ tracks }))
+  z.preprocess(nullToUndefined, z.object({
+    version: z.preprocess(nullToUndefined, z.union([z.number(), z.string()]).optional()),
+    tracks: z.preprocess(nullToUndefined, z.array(trackEntrySchema).default([]))
+  })),
+  z.preprocess(nullToUndefined, z.array(trackEntrySchema).transform((tracks) => ({ tracks })))
 ]);
 
 export type TrackManifest = z.infer<typeof trackManifestSchema>;
 export type TrackEntryYaml = z.infer<typeof trackEntrySchema>;
+

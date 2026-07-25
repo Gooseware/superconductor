@@ -289,6 +289,76 @@ tracks: 12345
       expect(result).not.toBeNull();
       expect(result?.tracks).toEqual([]);
     });
+
+    it('handles YAML null values for optional/default fields gracefully (ADV-1)', () => {
+      fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+        timestamp: new Date().toISOString()
+      }));
+      const scDir = path.join(tempDir, 'superconductor');
+      fs.mkdirSync(scDir, { recursive: true });
+
+      const yamlWithNulls = `
+version: 1
+tracks:
+  - id: track_null_test
+    status:
+    deps:
+    spec:
+    plan:
+    link:
+`;
+      fs.writeFileSync(path.join(scDir, 'tracks.yaml'), yamlWithNulls);
+
+      const result = IntelligenceSnapshotReader.load(tempDir, tempDir);
+      expect(result).not.toBeNull();
+      expect(result?.tracks).toBeDefined();
+      expect(result?.tracks?.length).toBe(1);
+      expect(result?.tracks?.[0]).toEqual(expect.objectContaining({
+        trackId: 'track_null_test',
+        status: 'planned',
+        deps: []
+      }));
+    });
+
+    it('invalidates cached RepoContext when tracks.yaml is modified (ADV-3)', () => {
+      const now = Date.now();
+      fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+        timestamp: now,
+        last_commit: 'abcdef1234567890'
+      }));
+      const scDir = path.join(tempDir, 'superconductor');
+      fs.mkdirSync(scDir, { recursive: true });
+
+      const initialYaml = `
+version: 1
+tracks:
+  - id: t1
+    status: planned
+`;
+      const yamlPath = path.join(scDir, 'tracks.yaml');
+      fs.writeFileSync(yamlPath, initialYaml);
+
+      // Load initial state
+      const result1 = IntelligenceSnapshotReader.load(tempDir, tempDir);
+      expect(result1?.tracks?.[0].trackId).toBe('t1');
+      expect(result1?.tracks?.[0].status).toBe('planned');
+
+      // Update tracks.yaml with new status and update mtime
+      const updatedYaml = `
+version: 1
+tracks:
+  - id: t1
+    status: completed
+`;
+      fs.writeFileSync(yamlPath, updatedYaml);
+      const newMtime = new Date(now + 5000);
+      fs.utimesSync(yamlPath, newMtime, newMtime);
+
+      // Second load should detect changed mtime and return updated tracks
+      const result2 = IntelligenceSnapshotReader.load(tempDir, tempDir);
+      expect(result2?.tracks?.[0].status).toBe('completed');
+    });
   });
 
 });
+

@@ -21,14 +21,18 @@ export interface RepoContext {
 export class IntelligenceSnapshotReader {
   public static readonly NONE_BANNER = '❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)';
 
+  public static cachedTracksMtime?: number;
+
   private static cache = new Map<string, {
     context: RepoContext;
     timestamp: number;
     lastCommitSha: string;
+    tracksMtime?: number;
   }>();
 
   public static clearCache() {
     this.cache.clear();
+    this.cachedTracksMtime = undefined;
   }
 
   public static parseTracksYaml(yamlContent: string): TrackEntryYaml[] {
@@ -73,28 +77,29 @@ export class IntelligenceSnapshotReader {
         ? Number.POSITIVE_INFINITY
         : report.commitsBehind;
 
-      // Load & validate tracks.yaml if present
-      let tracks: TrackEntryYaml[] | undefined = undefined;
+      // Resolve tracks.yaml & compute tracksMtime for cache validation
       const tracksYamlPath = path.join(root, 'superconductor', 'tracks.yaml');
       const altTracksYamlPath = path.join(outputDir, 'tracks.yaml');
       const targetYamlPath = fs.existsSync(tracksYamlPath)
         ? tracksYamlPath
         : (fs.existsSync(altTracksYamlPath) ? altTracksYamlPath : null);
 
+      let tracksMtime: number | undefined = undefined;
       if (targetYamlPath) {
         try {
-          const yamlContent = fs.readFileSync(targetYamlPath, 'utf8');
-          tracks = this.parseTracksYaml(yamlContent);
+          tracksMtime = fs.statSync(targetYamlPath).mtimeMs;
         } catch {
-          tracks = [];
+          tracksMtime = undefined;
         }
       }
+      this.cachedTracksMtime = tracksMtime;
 
       const cached = this.cache.get(outputDir);
       if (
         cached &&
         cached.timestamp === manifest.timestamp &&
-        cached.lastCommitSha === manifest.lastCommitSha
+        cached.lastCommitSha === manifest.lastCommitSha &&
+        cached.tracksMtime === tracksMtime
       ) {
         return {
           ...cached.context,
@@ -102,8 +107,18 @@ export class IntelligenceSnapshotReader {
           driftBanner,
           snapshotAge: report.snapshotAgeMs,
           commitsBehind,
-          tracks: tracks ?? cached.context.tracks
         };
+      }
+
+      // Load & validate tracks.yaml if present
+      let tracks: TrackEntryYaml[] | undefined = undefined;
+      if (targetYamlPath) {
+        try {
+          const yamlContent = fs.readFileSync(targetYamlPath, 'utf8');
+          tracks = this.parseTracksYaml(yamlContent);
+        } catch {
+          tracks = [];
+        }
       }
 
       const hotspotMap = new Map<string, { hotspot_score: number; cyclomatic_complexity: number; }>();
@@ -213,7 +228,8 @@ export class IntelligenceSnapshotReader {
       this.cache.set(outputDir, {
         context,
         timestamp: manifest.timestamp,
-        lastCommitSha: manifest.lastCommitSha
+        lastCommitSha: manifest.lastCommitSha,
+        tracksMtime
       });
 
       return context;
