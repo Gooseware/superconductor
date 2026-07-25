@@ -6,6 +6,8 @@ import { readTrackRegistry, getCompletionStats } from '../track/index.js';
 import { runDeterministicPreflight } from '../review/deterministic-preflight.js';
 import { resolveReviewInput } from '../review/input-resolution.js';
 
+export * from './dispatcher.js';
+
 export async function runCli(args: string[] = process.argv.slice(2)): Promise<void> {
   const command = args[0] || 'context';
 
