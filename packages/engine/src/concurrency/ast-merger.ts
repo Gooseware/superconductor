@@ -13,13 +13,16 @@ export function mergeFiles(sourceA: string, sourceB: string, fileName: string = 
 
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 
-  const statementsA = new Map<string, ts.Statement>();
-  const statementsB = new Map<string, ts.Statement>();
+  const statementsA = new Map<string, ts.Statement[]>();
+  const statementsB = new Map<string, ts.Statement[]>();
   
-  const getStmtName = (stmt: ts.Statement, sf: ts.SourceFile): string | null => {
+  const getStmtName = (stmt: ts.Statement, sf: ts.SourceFile): string => {
     if (ts.isClassDeclaration(stmt) && stmt.name) return `class:${stmt.name.text}`;
     if (ts.isInterfaceDeclaration(stmt) && stmt.name) return `interface:${stmt.name.text}`;
     if (ts.isFunctionDeclaration(stmt) && stmt.name) return `function:${stmt.name.text}`;
+    if (ts.isTypeAliasDeclaration(stmt)) return `type:${stmt.name.text}`;
+    if (ts.isEnumDeclaration(stmt)) return `enum:${stmt.name.text}`;
+    if (ts.isModuleDeclaration(stmt)) return `module:${stmt.name.text}`;
     if (ts.isVariableStatement(stmt)) {
       const decls = stmt.declarationList.declarations;
       if (decls.length === 1 && ts.isIdentifier(decls[0].name)) {
@@ -34,18 +37,20 @@ export function mergeFiles(sourceA: string, sourceB: string, fileName: string = 
 
   sourceFileA.statements.forEach(stmt => {
     const name = getStmtName(stmt, sourceFileA);
-    if (name) {
-      statementsA.set(name, stmt);
+    if (!statementsA.has(name)) {
+      statementsA.set(name, []);
       keysA.push(name);
     }
+    statementsA.get(name)!.push(stmt);
   });
 
   sourceFileB.statements.forEach(stmt => {
     const name = getStmtName(stmt, sourceFileB);
-    if (name) {
-      statementsB.set(name, stmt);
+    if (!statementsB.has(name)) {
+      statementsB.set(name, []);
       keysB.push(name);
     }
+    statementsB.get(name)!.push(stmt);
   });
 
   const mergeMembers = <T extends ts.Node>(
@@ -53,32 +58,51 @@ export function mergeFiles(sourceA: string, sourceB: string, fileName: string = 
     membersB: ts.NodeArray<T>,
     srcA: ts.SourceFile,
     srcB: ts.SourceFile
-  ): string[] => {
+  ): T[] => {
     const getMemberName = (m: ts.Node, src: ts.SourceFile): string => {
-      if ((ts.isMethodDeclaration(m) || ts.isPropertyDeclaration(m) || ts.isMethodSignature(m) || ts.isPropertySignature(m)) && m.name) {
-        return m.name.getText(src);
+      let isStatic = false;
+      const modifiers = (m as any).modifiers;
+      if (modifiers && Array.isArray(modifiers)) {
+        isStatic = modifiers.some((mod: any) => mod.kind === ts.SyntaxKind.StaticKeyword);
+      }
+      const staticPrefix = isStatic ? 'static:' : '';
+      if (ts.isConstructorDeclaration(m)) {
+        return `constructor`;
+      }
+      if (ts.isMethodDeclaration(m) || ts.isPropertyDeclaration(m) || ts.isMethodSignature(m) || ts.isPropertySignature(m) || ts.isGetAccessor(m) || ts.isSetAccessor(m)) {
+        const nameNode = (m as any).name;
+        if (nameNode) {
+          const kind = ts.isGetAccessor(m) ? 'get:' : ts.isSetAccessor(m) ? 'set:' : '';
+          return `${staticPrefix}${kind}${nameNode.getText(src)}`;
+        }
       }
       return m.getText(src).trim();
     };
 
-    const mapA = new Map<string, T>();
-    const mapB = new Map<string, T>();
+    const mapA = new Map<string, T[]>();
+    const mapB = new Map<string, T[]>();
     const mKeysA: string[] = [];
     const mKeysB: string[] = [];
 
     membersA.forEach(m => {
       const name = getMemberName(m, srcA);
-      mapA.set(name, m);
-      mKeysA.push(name);
+      if (!mapA.has(name)) {
+        mapA.set(name, []);
+        mKeysA.push(name);
+      }
+      mapA.get(name)!.push(m);
     });
 
     membersB.forEach(m => {
       const name = getMemberName(m, srcB);
-      mapB.set(name, m);
-      mKeysB.push(name);
+      if (!mapB.has(name)) {
+        mapB.set(name, []);
+        mKeysB.push(name);
+      }
+      mapB.get(name)!.push(m);
     });
 
-    const mergedM: string[] = [];
+    const mergedM: T[] = [];
     const mProcessed = new Set<string>();
 
     const allKeys = Array.from(new Set([...mKeysA, ...mKeysB]));
@@ -86,18 +110,18 @@ export function mergeFiles(sourceA: string, sourceB: string, fileName: string = 
       if (mProcessed.has(key)) continue;
       mProcessed.add(key);
 
-      const mA = mapA.get(key);
-      const mB = mapB.get(key);
+      const msA = mapA.get(key) || [];
+      const msB = mapB.get(key) || [];
 
-      if (mA && !mB) {
-        mergedM.push(printer.printNode(ts.EmitHint.Unspecified, mA, srcA));
-      } else if (!mA && mB) {
-        mergedM.push(printer.printNode(ts.EmitHint.Unspecified, mB, srcB));
-      } else if (mA && mB) {
-        const textA = mA.getText(srcA);
-        const textB = mB.getText(srcB);
-        if (textA === textB) {
-          mergedM.push(printer.printNode(ts.EmitHint.Unspecified, mA, srcA));
+      if (msA.length > 0 && msB.length === 0) {
+        mergedM.push(...msA);
+      } else if (msA.length === 0 && msB.length > 0) {
+        mergedM.push(...msB);
+      } else if (msA.length > 0 && msB.length > 0) {
+        const textsA = msA.map(m => m.getText(srcA)).join('\n');
+        const textsB = msB.map(m => m.getText(srcB)).join('\n');
+        if (textsA === textsB) {
+          mergedM.push(...msA);
         } else {
           throw new MergeConflictError(`Conflict in member: ${key}`);
         }
@@ -106,7 +130,7 @@ export function mergeFiles(sourceA: string, sourceB: string, fileName: string = 
     return mergedM;
   };
 
-  const output: string[] = [];
+  const outputNodes: ts.Node[] = [];
   const processed = new Set<string>();
   const allKeys = Array.from(new Set([...keysA, ...keysB]));
   
@@ -114,56 +138,109 @@ export function mergeFiles(sourceA: string, sourceB: string, fileName: string = 
     if (processed.has(key)) continue;
     processed.add(key);
 
-    const stmtA = statementsA.get(key);
-    const stmtB = statementsB.get(key);
+    const stmtsA = statementsA.get(key) || [];
+    const stmtsB = statementsB.get(key) || [];
 
-    if (stmtA && !stmtB) {
-      output.push(printer.printNode(ts.EmitHint.Unspecified, stmtA, sourceFileA));
-    } else if (!stmtA && stmtB) {
-      output.push(printer.printNode(ts.EmitHint.Unspecified, stmtB, sourceFileB));
-    } else if (stmtA && stmtB) {
-      const textA = stmtA.getText(sourceFileA);
-      const textB = stmtB.getText(sourceFileB);
+    if (stmtsA.length > 0 && stmtsB.length === 0) {
+      outputNodes.push(...stmtsA);
+    } else if (stmtsA.length === 0 && stmtsB.length > 0) {
+      outputNodes.push(...stmtsB);
+    } else if (stmtsA.length > 0 && stmtsB.length > 0) {
+      const textsA = stmtsA.map(s => s.getText(sourceFileA)).join('\n');
+      const textsB = stmtsB.map(s => s.getText(sourceFileB)).join('\n');
       
-      if (textA === textB) {
-        output.push(printer.printNode(ts.EmitHint.Unspecified, stmtA, sourceFileA));
-      } else if (ts.isClassDeclaration(stmtA) && ts.isClassDeclaration(stmtB)) {
-        const mergedMembers = mergeMembers(stmtA.members, stmtB.members, sourceFileA, sourceFileB);
+      if (textsA === textsB) {
+        outputNodes.push(...stmtsA);
+      } else if (stmtsA.length === 1 && stmtsB.length === 1 && ts.isClassDeclaration(stmtsA[0]) && ts.isClassDeclaration(stmtsB[0])) {
+        const classA = stmtsA[0];
+        const classB = stmtsB[0];
         
-        let classModifiers = '';
-        if (stmtA.modifiers) {
-           classModifiers = stmtA.modifiers.map(m => m.getText(sourceFileA)).join(' ') + ' ';
-        }
+        // Ensure modifiers, typeParameters, heritageClauses match or handle conflicts
+        const modA = classA.modifiers?.map(m => m.getText(sourceFileA)).join(' ') || '';
+        const modB = classB.modifiers?.map(m => m.getText(sourceFileB)).join(' ') || '';
+        if (modA !== modB) throw new MergeConflictError(`Conflict in modifiers for class: ${key}`);
+
+        const tpA = classA.typeParameters?.map(m => m.getText(sourceFileA)).join(' ') || '';
+        const tpB = classB.typeParameters?.map(m => m.getText(sourceFileB)).join(' ') || '';
+        if (tpA !== tpB) throw new MergeConflictError(`Conflict in type parameters for class: ${key}`);
+
+        const hcA = classA.heritageClauses?.map(m => m.getText(sourceFileA)).join(' ') || '';
+        const hcB = classB.heritageClauses?.map(m => m.getText(sourceFileB)).join(' ') || '';
+        if (hcA !== hcB) throw new MergeConflictError(`Conflict in heritage clauses for class: ${key}`);
+
+        const mergedMembers = mergeMembers(classA.members, classB.members, sourceFileA, sourceFileB);
         
-        let heritage = '';
-        if (stmtA.heritageClauses) {
-           heritage = ' ' + stmtA.heritageClauses.map(h => h.getText(sourceFileA)).join(' ');
-        }
+        const newClass = ts.factory.updateClassDeclaration(
+          classA,
+          classA.modifiers,
+          classA.name,
+          classA.typeParameters,
+          classA.heritageClauses,
+          [] as ts.ClassElement[]
+        );
+        const headerAndFooter = printer.printNode(ts.EmitHint.Unspecified, newClass, sourceFileA);
+        const braceIdx = headerAndFooter.indexOf('{');
+        const header = headerAndFooter.substring(0, braceIdx + 1);
+        const footer = headerAndFooter.substring(braceIdx + 1);
+        const body = mergedMembers.map(m => {
+          // Find original source file for member
+          return m.getText(m.parent === classA ? sourceFileA : sourceFileB);
+        }).join('\n  ');
         
-        const className = stmtA.name ? stmtA.name.text : 'default';
-        const classOutput = `${classModifiers}class ${className}${heritage} {\n  ${mergedMembers.join('\n  ')}\n}`;
-        output.push(classOutput);
-      } else if (ts.isInterfaceDeclaration(stmtA) && ts.isInterfaceDeclaration(stmtB)) {
-        const mergedMembers = mergeMembers(stmtA.members, stmtB.members, sourceFileA, sourceFileB);
+        outputNodes.push({ __syntheticText: `${header}\n  ${body}${footer}` } as any);
+      } else if (stmtsA.length === 1 && stmtsB.length === 1 && ts.isInterfaceDeclaration(stmtsA[0]) && ts.isInterfaceDeclaration(stmtsB[0])) {
+        const intA = stmtsA[0];
+        const intB = stmtsB[0];
+
+        const modA = intA.modifiers?.map(m => m.getText(sourceFileA)).join(' ') || '';
+        const modB = intB.modifiers?.map(m => m.getText(sourceFileB)).join(' ') || '';
+        if (modA !== modB) throw new MergeConflictError(`Conflict in modifiers for interface: ${key}`);
+
+        const tpA = intA.typeParameters?.map(m => m.getText(sourceFileA)).join(' ') || '';
+        const tpB = intB.typeParameters?.map(m => m.getText(sourceFileB)).join(' ') || '';
+        if (tpA !== tpB) throw new MergeConflictError(`Conflict in type parameters for interface: ${key}`);
+
+        const hcA = intA.heritageClauses?.map(m => m.getText(sourceFileA)).join(' ') || '';
+        const hcB = intB.heritageClauses?.map(m => m.getText(sourceFileB)).join(' ') || '';
+        if (hcA !== hcB) throw new MergeConflictError(`Conflict in heritage clauses for interface: ${key}`);
+
+        const mergedMembers = mergeMembers(intA.members, intB.members, sourceFileA, sourceFileB);
+
+        const newInt = ts.factory.updateInterfaceDeclaration(
+          intA,
+          intA.modifiers,
+          intA.name,
+          intA.typeParameters,
+          intA.heritageClauses,
+          [] as ts.TypeElement[]
+        );
         
-        let modifiers = '';
-        if (stmtA.modifiers) {
-           modifiers = stmtA.modifiers.map(m => m.getText(sourceFileA)).join(' ') + ' ';
-        }
+        const headerAndFooter = printer.printNode(ts.EmitHint.Unspecified, newInt, sourceFileA);
+        const braceIdx = headerAndFooter.indexOf('{');
+        const header = headerAndFooter.substring(0, braceIdx + 1);
+        const footer = headerAndFooter.substring(braceIdx + 1);
+        const body = mergedMembers.map(m => {
+          return m.getText(m.parent === intA ? sourceFileA : sourceFileB);
+        }).join('\n  ');
         
-        let heritage = '';
-        if (stmtA.heritageClauses) {
-           heritage = ' ' + stmtA.heritageClauses.map(h => h.getText(sourceFileA)).join(' ');
-        }
-        
-        const name = stmtA.name.text;
-        const out = `${modifiers}interface ${name}${heritage} {\n  ${mergedMembers.join('\n  ')}\n}`;
-        output.push(out);
+        outputNodes.push({ __syntheticText: `${header}\n  ${body}${footer}` } as any);
       } else {
         throw new MergeConflictError(`Conflict in statement: ${key}`);
       }
     }
   }
 
-  return output.join('\n\n') + '\n';
+  const outputStrings = outputNodes.map(node => {
+    if ((node as any).__syntheticText) {
+      return (node as any).__syntheticText;
+    } else {
+      let src = sourceFileA;
+      if (keysB.includes(getStmtName(node as ts.Statement, sourceFileB)) && !keysA.includes(getStmtName(node as ts.Statement, sourceFileB))) {
+        src = sourceFileB;
+      }
+      return printer.printNode(ts.EmitHint.Unspecified, node, src);
+    }
+  });
+
+  return outputStrings.join('\n\n') + '\n';
 }
