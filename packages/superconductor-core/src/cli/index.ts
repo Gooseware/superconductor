@@ -17,7 +17,74 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
   switch (command) {
     case 'implement':
     case 'orchestrate': {
-      await runCliDispatcher(args.slice(1));
+      const { runCliDispatcher } = await import('./dispatcher.js');
+      const { ExecutionPlanner } = await import('../track/execution-planner.js');
+      const { Engine } = await import('@superconductor/engine');
+      const { readPlan } = await import('../track/index.js');
+      
+      let projectRoot = process.cwd();
+      const subArgs = args.slice(1);
+      for (let i = 0; i < subArgs.length; i++) {
+        if (subArgs[i] === '--project-root') {
+          if (i + 1 < subArgs.length && !subArgs[i + 1].startsWith('-')) {
+            projectRoot = path.resolve(process.cwd(), subArgs[++i]);
+          }
+        } else if (subArgs[i].startsWith('--project-root=')) {
+          projectRoot = path.resolve(process.cwd(), subArgs[i].slice('--project-root='.length));
+        }
+      }
+
+      const result = await runCliDispatcher(subArgs);
+      if (result && !result.cancelled) {
+        let trackIds = result.sortedTrackIds || result.trackIds || [];
+        
+        const planData = await Promise.all(trackIds.map((id: string) => ExecutionPlanner.loadTrackData(projectRoot, id)));
+        const planned = ExecutionPlanner.plan(planData);
+        
+        const nodes: Record<string, any> = {};
+        const edges: { from: string; to: string }[] = [];
+        
+        console.log(`\n🚀 Orchestrating ${planned.length} tracks via Engine...`);
+        
+        planned.forEach(p => {
+          const plan = readPlan(projectRoot, p.trackId);
+          let lastTaskId: string | null = null;
+          
+          plan.forEach((task: any, i: number) => {
+            const id = `${p.trackId}_task_${i}`;
+            nodes[id] = {
+              id,
+              role: task.agent || 'processor',
+              tier: task.tier ? parseInt(task.tier.replace(/[^0-9]/g, ''), 10) : 3,
+              status: 'pending',
+              prompt: task.title,
+              contextFiles: [],
+              dependsOn: []
+            };
+            
+            if (lastTaskId) {
+              edges.push({ from: lastTaskId, to: id });
+            }
+            lastTaskId = id;
+          });
+          
+          p.dependencies.forEach(dep => {
+            const planDep = readPlan(projectRoot, dep);
+            if (planDep.length > 0 && plan.length > 0) {
+              const fromId = `${dep}_task_${planDep.length - 1}`;
+              const toId = `${p.trackId}_task_0`;
+              edges.push({ from: fromId, to: toId });
+            }
+          });
+        });
+
+        const { TrackSplicer } = await import('../context/splicer.js');
+        const splicer = new TrackSplicer(projectRoot);
+        const payload = splicer.spliceTracks(trackIds);
+
+        const engine = new Engine({ nodes, edges }, { commonContext: payload });
+        await engine.execute();
+      }
       break;
     }
 

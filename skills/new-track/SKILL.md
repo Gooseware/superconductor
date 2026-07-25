@@ -134,9 +134,11 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     *   Include status markers `[ ]` for **EVERY** task and sub-task. The format must be:
         - Parent Task: `- [ ] Task: ...`
         - Sub-task: `    - [ ] ...`
-    *   **Model Routing & Agent Role Annotations:** You MUST append a routing tier hint `[TIER-N]` and a Caduceus agent role suggestion `[AGENT:caduceus-<role>]` to the end of every parent task line. Example:
-        - `- [ ] Task: Generate database models [TIER-3] [AGENT:caduceus-processor]`
-        - `- [ ] Task: Run security validation [TIER-4] [AGENT:caduceus-oracle]`
+    *   **Model Routing & Agent Role Annotations:** You MUST append a routing tier hint `[TIER-N]` and a Superconductor agent role suggestion `[AGENT:superconductor-<role>]` to the end of every parent task line. Example:
+        - `- [ ] Task: Generate database models [TIER-3] [AGENT:superconductor-processor]`
+        - `- [ ] Task: Run security validation [TIER-4] [AGENT:superconductor-oracle]`
+        - `- [ ] Task: Identify path traversal vulnerabilities [TIER-3] [AGENT:superconductor-reviewer]`
+        - `- [ ] Task: Create module architecture [TIER-4] [AGENT:superconductor-dreamer]`
     *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`. This meta-task does not need a tier hint.
 
 ### 2.3a Swarm Blueprint Generation
@@ -170,7 +172,7 @@ After generating the plan draft:
     -   Analyze the confirmed `spec.md` and `plan.md` against the `Detection Signals` in the loaded `skills/catalog.md`.
     -   Identify any relevant skills that are NOT yet installed (check `~/.agents/extensions/superconductor/skills/` and `.agents/skills/`).
 2.  **Recommendation Loop:**
-    -   **Caduceus & Swarm Check:** If the plan has more than 5 tasks, automatically suggest the `swarm-orchestrate` skill. If the track involves code generation, suggest the `caduceus-superconductor` skill.
+    -   **Superconductor Swarm Check:** If the plan has more than 5 tasks, automatically suggest the `swarm-orchestrate` skill. If the track involves code generation, suggest the `superconductor-agents` skill.
     -   **If relevant missing skills are found:**
         -   **Ask:** "Would you like to install these skills now?" using the `ask_user` tool:
             - **questions:**

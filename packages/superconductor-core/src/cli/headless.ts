@@ -111,7 +111,15 @@ export class HeadlessOrchestrator {
 
     const requestedTracks: TrackEntryYaml[] = [];
     for (const trackId of parsed.trackIds) {
-      const found = availableTracks.find(t => t.trackId === trackId || (t as any).id === trackId);
+      let found = availableTracks.find(t => t.trackId === trackId || (t as any).id === trackId);
+      if (!found) {
+        if (/^\d+$/.test(trackId)) {
+          const num = parseInt(trackId, 10);
+          if (num > 0 && num <= availableTracks.length) {
+            found = availableTracks[num - 1];
+          }
+        }
+      }
       if (!found) {
         throw new Error(`Track not found: ${trackId}`);
       }

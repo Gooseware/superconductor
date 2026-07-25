@@ -155,8 +155,8 @@ Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ─
    - Feedback is advisory: Processor reads it for context/awareness but is not blocked by non-critical suggestions.
 4. **Critical Escalation & Remediation Loop:**
    - If Reviewer marks a finding with `"severity": "CRITICAL"` in their `json:review-findings` (received via secured agent-to-agent message), the sliding window pauses.
-   - Processor is paused for Task N, and a remediation Processor is spawned immediately to resolve the critical defect in Task N-1.
-   - **MANDATORY RE-REVIEW:** Once the remediation Processor completes its fix, the code MUST be fed back into the Reviewer. The re-review MUST evaluate the *entire* branch diff (e.g. `git diff main...HEAD`), not just previously flagged lines.
+   - Processor is paused for Task N, and a **Remediation Swarm** is spawned concurrently (one `remediation-processor` or specialized domain remediation agent per distinct critical finding) to resolve the defects in Task N-1 simultaneously.
+   - **MANDATORY RE-REVIEW:** Once the remediation swarm completes its fixes and merges them, the code MUST be fed back into the Reviewer. The re-review MUST evaluate the *entire* branch diff (e.g. `git diff main...HEAD`), not just previously flagged lines.
    - **HARD-BLOCK ON APPROVAL:** The pipeline cannot unpause and resume Task N until the Reviewer explicitly outputs a `json:review-findings` block with `"status": "RESOLVED"` via the secured channel.
    - **ESCALATION THEATRE (Soft Bypass):** If the maximum 3-iteration cap is hit, the swarm MUST physically yield control by using the `ask_question` tool. The `ask_question` tool must ONLY provide terminal options (e.g. `["Acknowledge & Abort", "Acknowledge & Revert"]`). It must NEVER provide an "Ignore and Continue" option.
 
