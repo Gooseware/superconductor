@@ -19,24 +19,51 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
     case 'orchestrate': {
       const { runCliDispatcher } = await import('./dispatcher.js');
       const { ExecutionPlanner } = await import('../track/execution-planner.js');
-      const result = await runCliDispatcher(args.slice(1));
+      let projectRoot = process.cwd();
+      const subArgs = args.slice(1);
+      for (let i = 0; i < subArgs.length; i++) {
+        if (subArgs[i] === '--project-root') {
+          if (i + 1 < subArgs.length && !subArgs[i + 1].startsWith('-')) {
+            projectRoot = path.resolve(process.cwd(), subArgs[++i]);
+          }
+        } else if (subArgs[i].startsWith('--project-root=')) {
+          projectRoot = path.resolve(process.cwd(), subArgs[i].slice('--project-root='.length));
+        }
+      }
+
+      const result = await runCliDispatcher(subArgs);
       if (result && !result.cancelled) {
         let trackIds = result.sortedTrackIds || result.trackIds || [];
         
         // Pass tracks through ExecutionPlanner
-        const planData = await Promise.all(trackIds.map((id: string) => ExecutionPlanner.loadTrackData(process.cwd(), id)));
+        const planData = await Promise.all(trackIds.map((id: string) => ExecutionPlanner.loadTrackData(projectRoot, id)));
         const planned = ExecutionPlanner.plan(planData);
         trackIds = planned.map(p => p.trackId);
 
         for (const trackId of trackIds) {
           console.log(`\n🚀 Executing track: ${trackId}`);
-          // Sequential execution handled by external runner orchestrator plugin in pipeline mode
           
           // Execute actual logic (Resolves Advisory 1: Phantom Implementation)
           // @ts-ignore
-          const { OrchestratorPlugin } = await import('@superconductor/orchestrator').catch(() => ({ OrchestratorPlugin: null }));
-          if (OrchestratorPlugin) {
-            await OrchestratorPlugin.run(process.cwd(), trackId);
+          const { Engine } = await import('@superconductor/engine').catch(() => ({ Engine: null }));
+          if (Engine) {
+            const { readPlan } = await import('../track/index.js');
+            const plan = readPlan(projectRoot, trackId);
+            const nodes: Record<string, any> = {};
+            plan.forEach((task: any, i: number) => {
+               const id = `task_${i}`;
+               nodes[id] = {
+                 id,
+                 role: task.agent || 'processor',
+                 tier: task.tier ? parseInt(task.tier.replace(/[^0-9]/g, ''), 10) : 3,
+                 status: 'pending',
+                 prompt: task.title,
+                 contextFiles: [],
+                 dependsOn: []
+               };
+            });
+            const engine = new Engine({ nodes, edges: [] }, { commonContext: trackId });
+            await engine.execute();
           } else {
              console.log(`[Plugin missing] Triggering external hook for track ${trackId}...`);
           }

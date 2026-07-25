@@ -41,16 +41,31 @@ export class ExecutionPlanner {
 
   public static async loadTrackData(projectRoot: string, trackId: string): Promise<TrackPlanData> {
     const metadataPath = path.join(projectRoot, 'superconductor', 'tracks', trackId, 'metadata.json');
+    const yamlPath = path.join(projectRoot, 'superconductor', 'tracks.yaml');
     let dependencies: string[] = [];
     let benefitScore = 0;
+
+    if (fs.existsSync(yamlPath)) {
+      try {
+        const content = fs.readFileSync(yamlPath, 'utf-8');
+        // Require js-yaml inline to avoid circular or missing imports at module level if not fully configured
+        const yaml = require('js-yaml');
+        const doc = yaml.load(content) as any;
+        if (doc && Array.isArray(doc.tracks)) {
+          const track = doc.tracks.find((t: any) => t.id === trackId);
+          if (track && Array.isArray(track.deps)) {
+            dependencies = track.deps;
+          }
+        }
+      } catch (err) {
+        // ignore parse error
+      }
+    }
 
     if (fs.existsSync(metadataPath)) {
       try {
         const content = fs.readFileSync(metadataPath, 'utf-8');
         const data = JSON.parse(content);
-        if (Array.isArray(data.dependencies)) {
-          dependencies = data.dependencies;
-        }
         if (typeof data.benefitScore === 'number') {
           benefitScore = data.benefitScore;
         } else if (typeof data.benefit_score === 'number') {
@@ -61,8 +76,6 @@ export class ExecutionPlanner {
       }
     }
     
-    // Optionally parse spec.md if we wanted to extract from markdown, but metadata.json is standard.
-
     return {
       trackId,
       dependencies,

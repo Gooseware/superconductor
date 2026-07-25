@@ -60,4 +60,29 @@ describe('ExecutionPlanner', () => {
     const result = ExecutionPlanner.plan(tracks);
     expect(result.map(t => t.trackId)).toEqual(['t1']);
   });
+
+  it('should load track data correctly from yaml and metadata', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const projectRoot = path.join(__dirname, 'tmp-test-planner');
+    fs.mkdirSync(path.join(projectRoot, 'superconductor', 'tracks', 't1'), { recursive: true });
+    
+    fs.writeFileSync(path.join(projectRoot, 'superconductor', 'tracks.yaml'), `
+version: 1
+tracks:
+  - id: t1
+    deps: ['t2']
+`);
+
+    fs.writeFileSync(path.join(projectRoot, 'superconductor', 'tracks', 't1', 'metadata.json'), JSON.stringify({
+      benefitScore: 42
+    }));
+
+    const data = await ExecutionPlanner.loadTrackData(projectRoot, 't1');
+    expect(data.trackId).toBe('t1');
+    expect(data.dependencies).toEqual(['t2']);
+    expect(data.benefitScore).toBe(42);
+    
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
 });
