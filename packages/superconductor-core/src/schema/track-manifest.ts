@@ -1,55 +1,49 @@
 import { z } from 'zod';
 
-export const TrackStatusSchema = z.enum(['planned', 'in_progress', 'completed']);
-export type TrackStatus = z.infer<typeof TrackStatusSchema>;
+export const trackStatusSchema = z.enum([
+  'planned',
+  'in_progress',
+  'completed',
+  'pending',
+  '[ ]',
+  '[~]',
+  '[x]',
+  'x',
+  '~'
+]).transform((val) => {
+  if (val === 'x' || val === '[x]' || val === 'completed') return 'completed';
+  if (val === '~' || val === '[~]' || val === 'in_progress') return 'in_progress';
+  return 'planned';
+});
 
-const TrackManifestInputSchema = z.object({
-  id: z.string().optional(),
-  status: TrackStatusSchema,
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().default(''),
-  link: z.string().default(''),
-  dependencies: z.array(z.string()).optional(),
-  deps: z.array(z.string()).optional(),
+export const trackEntrySchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  title: z.string().optional(),
+  status: trackStatusSchema.default('planned'),
+  deps: z.array(z.string()).default([]),
+  link: z.string().optional(),
+  spec: z.string().optional(),
+  plan: z.string().optional(),
   note: z.string().optional()
-});
+}).transform((data) => ({
+  trackId: data.id,
+  name: data.name || data.title || data.id,
+  status: data.status,
+  deps: data.deps,
+  link: data.link || `./tracks/${data.id}/`,
+  spec: data.spec || `./tracks/${data.id}/spec.md`,
+  plan: data.plan || `./tracks/${data.id}/plan.md`,
+  note: data.note
+}));
 
-export const TrackManifestSchema = TrackManifestInputSchema.transform((data) => {
-  const dependencies = data.dependencies ?? data.deps ?? [];
-  const { deps, ...rest } = data;
-  return {
-    ...rest,
-    description: data.description ?? '',
-    link: data.link ?? '',
-    dependencies
-  };
-});
-
-export type TrackManifest = z.infer<typeof TrackManifestSchema>;
-
-export const TracksManifestSchema = z.union([
-  z.array(TrackManifestSchema),
-  z.record(TrackManifestInputSchema)
+export const trackManifestSchema = z.union([
+  z.object({
+    version: z.union([z.number(), z.string()]).optional(),
+    tracks: z.array(trackEntrySchema).default([])
+  }),
+  z.array(trackEntrySchema).transform((tracks) => ({ tracks }))
 ]);
 
-export function parseTrackManifest(data: unknown): TrackManifest {
-  return TrackManifestSchema.parse(data);
-}
-
-export function parseTracksManifest(data: unknown): TrackManifest[] {
-  if (Array.isArray(data)) {
-    return z.array(TrackManifestSchema).parse(data);
-  }
-
-  if (data && typeof data === 'object') {
-    const record = z.record(TrackManifestInputSchema).parse(data);
-    return Object.entries(record).map(([trackId, item]) => {
-      return TrackManifestSchema.parse({
-        id: item.id ?? trackId,
-        ...item
-      });
-    });
-  }
-
-  throw new Error('Invalid tracks manifest data: expected an array or object dictionary of tracks');
-}
+export type TrackManifest = z.infer<typeof trackManifestSchema>;
+export type TrackEntryYaml = z.infer<typeof trackEntrySchema>;

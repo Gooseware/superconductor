@@ -172,7 +172,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Implement Redesign & Dense YAML DAG**
+- [~] **Track: Implement Redesign & Dense YAML DAG**
 *Link: [./tracks/implement_redesign_20260725/](./tracks/implement_redesign_20260725/)*
 
 ---

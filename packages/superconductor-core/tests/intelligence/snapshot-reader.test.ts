@@ -211,4 +211,84 @@ describe('IntelligenceSnapshotReader', () => {
       expect(result2).not.toBe(result1);
     });
   });
+
+  describe('tracks.yaml parsing & Zod schema validation', () => {
+    it('parses superconductor/tracks.yaml securely and attaches validated tracks to RepoContext', () => {
+      fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+        timestamp: new Date().toISOString()
+      }));
+
+      const scDir = path.join(tempDir, 'superconductor');
+      fs.mkdirSync(scDir, { recursive: true });
+
+      const yamlContent = `
+version: 1
+tracks:
+  - id: core_harness
+    name: Core Harness Abstraction
+    status: completed
+    deps: []
+  - id: implement_redesign
+    name: Implement Redesign
+    status: in_progress
+    deps:
+      - core_harness
+`;
+      fs.writeFileSync(path.join(scDir, 'tracks.yaml'), yamlContent);
+
+      const result = IntelligenceSnapshotReader.load(tempDir, tempDir);
+      expect(result).not.toBeNull();
+      expect(result?.tracks).toBeDefined();
+      expect(result?.tracks?.length).toBe(2);
+      expect(result?.tracks?.[0]).toEqual(expect.objectContaining({
+        trackId: 'core_harness',
+        name: 'Core Harness Abstraction',
+        status: 'completed',
+        deps: []
+      }));
+      expect(result?.tracks?.[1]).toEqual(expect.objectContaining({
+        trackId: 'implement_redesign',
+        name: 'Implement Redesign',
+        status: 'in_progress',
+        deps: ['core_harness']
+      }));
+    });
+
+    it('rejects code execution / custom tags when parsing YAML securely', () => {
+      fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+        timestamp: new Date().toISOString()
+      }));
+      const scDir = path.join(tempDir, 'superconductor');
+      fs.mkdirSync(scDir, { recursive: true });
+
+      const maliciousYaml = `
+version: 1
+tracks: !!js/function "function() { return 'hacked'; }"
+`;
+      fs.writeFileSync(path.join(scDir, 'tracks.yaml'), maliciousYaml);
+
+      const result = IntelligenceSnapshotReader.load(tempDir, tempDir);
+      expect(result).not.toBeNull();
+      expect(result?.tracks).toEqual([]);
+    });
+
+    it('validates Dense YAML structure against track-manifest Zod schema', () => {
+      fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+        timestamp: new Date().toISOString()
+      }));
+      const scDir = path.join(tempDir, 'superconductor');
+      fs.mkdirSync(scDir, { recursive: true });
+
+      const invalidSchemaYaml = `
+version: 1
+tracks: 12345
+`;
+      fs.writeFileSync(path.join(scDir, 'tracks.yaml'), invalidSchemaYaml);
+
+      const result = IntelligenceSnapshotReader.load(tempDir, tempDir);
+      expect(result).not.toBeNull();
+      expect(result?.tracks).toEqual([]);
+    });
+  });
+
 });

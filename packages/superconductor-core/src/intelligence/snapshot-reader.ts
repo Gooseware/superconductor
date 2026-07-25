@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import yaml from 'js-yaml';
 import { IntelligenceDriftMonitor } from './drift-monitor.js';
+import { trackManifestSchema, TrackEntryYaml } from '../schema/track-manifest.js';
 
 export interface RepoContext {
   hotspotMap: Map<string, { hotspot_score: number; cyclomatic_complexity: number; }>;
@@ -13,10 +15,11 @@ export interface RepoContext {
   fanOutMap?: Map<string, number>;
   couplingMap?: Map<string, string[]>;
   dependencySurfaceMap?: Map<string, number>;
+  tracks?: TrackEntryYaml[];
 }
 
 export class IntelligenceSnapshotReader {
-  public static readonly NONE_BANNER = '\u274c  Intelligence: NONE (keyword heuristics active \u00b7 run /superconductor:setup for surgical precision)';
+  public static readonly NONE_BANNER = '❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)';
 
   private static cache = new Map<string, {
     context: RepoContext;
@@ -26,6 +29,17 @@ export class IntelligenceSnapshotReader {
 
   public static clearCache() {
     this.cache.clear();
+  }
+
+  public static parseTracksYaml(yamlContent: string): TrackEntryYaml[] {
+    try {
+      // Secure YAML parsing: JSON_SCHEMA disables code execution and custom tags
+      const parsedRaw = yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA });
+      const validated = trackManifestSchema.safeParse(parsedRaw);
+      return validated.success ? validated.data.tracks : [];
+    } catch {
+      return [];
+    }
   }
 
   static load(outputDir: string, projectRoot?: string): RepoContext | null {
@@ -59,6 +73,23 @@ export class IntelligenceSnapshotReader {
         ? Number.POSITIVE_INFINITY
         : report.commitsBehind;
 
+      // Load & validate tracks.yaml if present
+      let tracks: TrackEntryYaml[] | undefined = undefined;
+      const tracksYamlPath = path.join(root, 'superconductor', 'tracks.yaml');
+      const altTracksYamlPath = path.join(outputDir, 'tracks.yaml');
+      const targetYamlPath = fs.existsSync(tracksYamlPath)
+        ? tracksYamlPath
+        : (fs.existsSync(altTracksYamlPath) ? altTracksYamlPath : null);
+
+      if (targetYamlPath) {
+        try {
+          const yamlContent = fs.readFileSync(targetYamlPath, 'utf8');
+          tracks = this.parseTracksYaml(yamlContent);
+        } catch {
+          tracks = [];
+        }
+      }
+
       const cached = this.cache.get(outputDir);
       if (
         cached &&
@@ -70,7 +101,8 @@ export class IntelligenceSnapshotReader {
           driftState,
           driftBanner,
           snapshotAge: report.snapshotAgeMs,
-          commitsBehind
+          commitsBehind,
+          tracks: tracks ?? cached.context.tracks
         };
       }
 
@@ -174,7 +206,8 @@ export class IntelligenceSnapshotReader {
         commitsBehind,
         fanOutMap,
         couplingMap,
-        dependencySurfaceMap
+        dependencySurfaceMap,
+        tracks
       };
 
       this.cache.set(outputDir, {
