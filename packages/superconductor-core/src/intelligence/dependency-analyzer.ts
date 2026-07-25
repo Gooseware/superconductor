@@ -1,5 +1,7 @@
+import * as fs from 'fs';
 import * as swc from '@swc/core';
 import * as path from 'path';
+
 export class DependencyAnalyzer {
   private fileReader: (filePath: string) => string | Promise<string>;
 
@@ -12,6 +14,26 @@ export class DependencyAnalyzer {
 
   public setFileReader(reader: (filePath: string) => string | Promise<string>) {
     this.fileReader = reader;
+  }
+
+  private checkFileExists(filePath: string, customExists?: (filePath: string) => boolean): boolean {
+    if (customExists) {
+      return customExists(filePath);
+    }
+    try {
+      if (fs.existsSync(filePath)) {
+        return !fs.statSync(filePath).isDirectory();
+      }
+    } catch {}
+    if (this.fileReader) {
+      try {
+        const content = this.fileReader(filePath);
+        if (typeof content === 'string' && content.length >= 0) {
+          return true;
+        }
+      } catch {}
+    }
+    return false;
   }
 
   public parseImports(sourceCode: string): string[] {
@@ -70,19 +92,54 @@ export class DependencyAnalyzer {
     return this.parseImports(sourceCode);
   }
 
-  public resolveImportPath(importPath: string, currentFile: string): string | null {
+  public resolveImportPath(
+    importPath: string,
+    currentFile: string,
+    fileExists?: (filePath: string) => boolean
+  ): string | null {
     if (!importPath.startsWith('.')) {
       return null; // External package
     }
-    
-    // Normalize path separators to avoid posix/win32 issues
+
     let joined = path.join(path.dirname(currentFile), importPath);
-    // Convert to posix style as expected by heatmap downstream
     joined = joined.split(path.sep).join(path.posix.sep);
-    
-    // Simplistic extension resolution for TS/JS
-    if (!joined.endsWith('.ts') && !joined.endsWith('.tsx') && !joined.endsWith('.js') && !joined.endsWith('.jsx')) {
-      joined += '.ts';
+
+    const candidates: string[] = [];
+
+    if (joined.endsWith('.js')) {
+      const stem = joined.slice(0, -3);
+      candidates.push(stem + '.ts', stem + '.tsx', joined);
+    } else if (joined.endsWith('.jsx')) {
+      const stem = joined.slice(0, -4);
+      candidates.push(stem + '.tsx', stem + '.ts', joined);
+    } else if (joined.endsWith('.ts') || joined.endsWith('.tsx')) {
+      candidates.push(joined);
+    } else {
+      candidates.push(
+        joined + '.ts',
+        joined + '.tsx',
+        path.posix.join(joined, 'index.ts'),
+        path.posix.join(joined, 'index.tsx'),
+        joined + '.js',
+        path.posix.join(joined, 'index.js')
+      );
+    }
+
+    for (const cand of candidates) {
+      if (this.checkFileExists(cand, fileExists)) {
+        return cand;
+      }
+    }
+
+    // Default fallback if no file exists matching candidates
+    if (joined.endsWith('.js')) {
+      return joined.slice(0, -3) + '.ts';
+    }
+    if (joined.endsWith('.jsx')) {
+      return joined.slice(0, -4) + '.tsx';
+    }
+    if (!joined.endsWith('.ts') && !joined.endsWith('.tsx')) {
+      return joined + '.ts';
     }
     return joined;
   }

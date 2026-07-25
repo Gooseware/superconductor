@@ -63,12 +63,45 @@ describe('getDependencySurface', () => {
     expect(result).toEqual({ 'src/unknown.ts': 0 });
   });
 
+  it('should normalize depName (stripping ./, absolute paths, backslashes) before querying heatmap', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-intel-'));
+    const intelDir = path.join(tmpDir, 'superconductor', 'intelligence');
+    fs.mkdirSync(intelDir, { recursive: true });
+
+    const mockData = {
+      heatmap: {
+        'src/a.ts': 5,
+        'src/b.ts': 2
+      }
+    };
+    fs.writeFileSync(path.join(intelDir, '08_dependency_surface.json'), JSON.stringify(mockData));
+
+    // Test relative leading ./
+    const res1 = getDependencySurface(tmpDir, './src/a.ts');
+    expect(res1).toEqual({ './src/a.ts': 5 });
+
+    // Test absolute path
+    const absPath = path.join(tmpDir, 'src', 'a.ts');
+    const res2 = getDependencySurface(tmpDir, absPath);
+    expect(res2).toEqual({ [absPath]: 5 });
+
+    // Test backslashes
+    const winPath = 'src\\a.ts';
+    const res3 = getDependencySurface(tmpDir, winPath);
+    expect(res3).toEqual({ [winPath]: 5 });
+  });
+
   describe('Shared Snapshot Caching & Dynamic Query Capability', () => {
     it('should reuse IntelligenceSnapshotReader shared memory cache on consecutive calls', () => {
       IntelligenceSnapshotReader.clearCache();
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-intel-'));
       const intelDir = path.join(tmpDir, 'superconductor', 'intelligence');
       fs.mkdirSync(intelDir, { recursive: true });
+
+      fs.writeFileSync(path.join(intelDir, '00_manifest.json'), JSON.stringify({
+        timestamp: Date.now(),
+        last_commit: 'abc1234'
+      }));
 
       const mockData = {
         heatmap: {
@@ -91,7 +124,7 @@ describe('getDependencySurface', () => {
 
       expect(loadSpy).toHaveBeenCalledTimes(2);
 
-      // Directly verify IntelligenceSnapshotReader shared memory reference equality
+      // Directly verify IntelligenceSnapshotReader shared memory reference equality even when manifest exists
       const context1 = IntelligenceSnapshotReader.load(intelDir, tmpDir);
       const context2 = IntelligenceSnapshotReader.load(intelDir, tmpDir);
       expect(context1).toBe(context2);

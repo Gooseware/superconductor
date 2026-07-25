@@ -15,7 +15,9 @@ export function getDependencySurface(projectRoot: string, depName?: string): Rec
     const map = loaded?.dependencySurfaceMap;
 
     if (depName) {
-      const score = map ? map.get(depName) : undefined;
+      const posixDep = depName.replace(/\\/g, '/');
+      const normalizedDep = path.relative(projectRoot, path.resolve(projectRoot, posixDep)).replace(/\\/g, '/');
+      const score = map ? map.get(normalizedDep) : undefined;
       return { [depName]: score ?? 0 };
     }
 

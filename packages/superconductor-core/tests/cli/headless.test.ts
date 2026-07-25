@@ -155,4 +155,23 @@ tracks:
       })
     ).rejects.toThrow(DAGCycleError);
   });
+
+  it('uses superconductor/intelligence as default outputDir without dot', async () => {
+    const intelDir = path.join(superconductorDir, 'intelligence');
+    fs.mkdirSync(intelDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(intelDir, '00_manifest.json'),
+      JSON.stringify({ lastCommitSha: 'abc1234', timestamp: Date.now() })
+    );
+    fs.writeFileSync(
+      path.join(intelDir, 'tracks.yaml'),
+      'tracks:\n  - id: t_default\n    deps: []\n'
+    );
+
+    const loadSpy = vi.spyOn(IntelligenceSnapshotReader, 'load');
+    const res = await HeadlessOrchestrator.run(['--tracks', 't_default'], { projectRoot: tmpDir });
+    expect(res.trackIds).toEqual(['t_default']);
+    expect(loadSpy).toHaveBeenCalledWith(path.join(tmpDir, 'superconductor', 'intelligence'), tmpDir);
+    loadSpy.mockRestore();
+  });
 });

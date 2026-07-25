@@ -110,4 +110,20 @@ describe('DependencyAnalyzer', () => {
     expect(heatmap['src/b.ts']).toBe(2);
     expect(heatmap['src/d.ts']).toBe(1);
   });
+
+  it('resolves ESM .js imports to .ts or .tsx files', () => {
+    const analyzer = new DependencyAnalyzer();
+    const fileExists = (p: string) => p === 'src/utils.ts' || p === 'src/components/Header.tsx';
+
+    expect(analyzer.resolveImportPath('./utils.js', 'src/main.ts', fileExists)).toBe('src/utils.ts');
+    expect(analyzer.resolveImportPath('./components/Header.jsx', 'src/main.ts', fileExists)).toBe('src/components/Header.tsx');
+  });
+
+  it('resolves directory index imports (/index.ts or /index.tsx)', () => {
+    const analyzer = new DependencyAnalyzer();
+    const fileExists = (p: string) => p === 'src/components/index.ts' || p === 'src/models/index.tsx';
+
+    expect(analyzer.resolveImportPath('./components', 'src/main.ts', fileExists)).toBe('src/components/index.ts');
+    expect(analyzer.resolveImportPath('./models/', 'src/main.ts', fileExists)).toBe('src/models/index.tsx');
+  });
 });

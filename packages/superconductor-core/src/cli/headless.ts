@@ -104,7 +104,7 @@ export class HeadlessOrchestrator {
     }
 
     const resolvedProjectRoot = parsed.projectRoot ?? this.projectRoot ?? process.cwd();
-    const resolvedOutputDir = parsed.outputDir ?? this.outputDir ?? path.join(resolvedProjectRoot, 'superconductor', '.intelligence');
+    const resolvedOutputDir = parsed.outputDir ?? this.outputDir ?? path.join(resolvedProjectRoot, 'superconductor', 'intelligence');
 
     const snapshot = IntelligenceSnapshotReader.load(resolvedOutputDir, resolvedProjectRoot);
     const availableTracks = snapshot?.tracks ?? [];

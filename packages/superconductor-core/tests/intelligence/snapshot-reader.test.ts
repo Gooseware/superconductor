@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as childProcess from 'child_process';
 import { IntelligenceSnapshotReader } from '../../src/intelligence/snapshot-reader';
@@ -152,36 +153,75 @@ describe('IntelligenceSnapshotReader', () => {
   });
 
   describe('Shared Caching', () => {
-    it('reuses cached maps but updates drift metrics on subsequent calls with the same manifest', () => {
+    it('reuses exact cached RepoContext object reference and avoids re-checking drift on consecutive calls with same manifest', () => {
       fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
-        timestamp: new Date().toISOString(),
+        timestamp: 1000,
         last_commit: 'abcdef1234567890'
       }));
       fs.writeFileSync(path.join(tempDir, '03_complexity.json'), JSON.stringify([
         { file: 'a.ts', hotspot_score: 25, cyclomatic_complexity: 10 }
       ]));
 
-      // 1. Initial load, let's say 0 commits behind
+      // 1. Initial load
+      vi.mocked(childProcess.spawnSync).mockClear();
       vi.mocked(childProcess.spawnSync).mockReturnValue(makeSpawnResult('0\n'));
       const result1 = IntelligenceSnapshotReader.load(tempDir);
-      
-      // Delete the complexity file to prove it's using the cache for the heavy maps
+      expect(childProcess.spawnSync).toHaveBeenCalled();
+
+      // Clear mock calls to verify spawnSync is NOT called again on cache hit
+      vi.mocked(childProcess.spawnSync).mockClear();
+
+      // Delete the complexity file to prove it's using the cache
       fs.rmSync(path.join(tempDir, '03_complexity.json'));
 
-      // 2. Second load, simulate that time passed and git now reports 15 commits behind
-      vi.mocked(childProcess.spawnSync).mockReturnValue(makeSpawnResult('15\n'));
+      // 2. Second load with same manifest
       const result2 = IntelligenceSnapshotReader.load(tempDir);
-      
-      // Should NOT be strictly the same object...
-      expect(result2).not.toBe(result1); 
-      // ...but the heavy parsed maps should be identical references
-      expect(result2?.hotspotMap).toBe(result1?.hotspotMap);
-      expect(result2?.testGapMap).toBe(result1?.testGapMap);
-      
-      // And the new drift state should be reflected
-      expect(result2?.commitsBehind).toBe(15);
-      expect(result2?.driftState).toBe('STALE');
+
+      // Should be strictly the same object reference
+      expect(result2).toBe(result1);
+      expect(childProcess.spawnSync).not.toHaveBeenCalled();
       expect(result2?.hotspotMap.get('a.ts')).toBeDefined();
+    });
+
+    it('normalizes outputDir path in cache key', () => {
+      fs.writeFileSync(path.join(tempDir, '00_manifest.json'), JSON.stringify({
+        timestamp: 1000,
+        last_commit: 'abcdef'
+      }));
+
+      const relPath = path.relative(process.cwd(), tempDir);
+      const result1 = IntelligenceSnapshotReader.load(relPath);
+      const result2 = IntelligenceSnapshotReader.load(tempDir);
+
+      expect(result1).not.toBeNull();
+      expect(result2).toBe(result1);
+    });
+
+    it('enforces maximum cache capacity of 10 entries (LRU eviction)', () => {
+      IntelligenceSnapshotReader.clearCache();
+      const createdDirs: string[] = [];
+
+      for (let i = 0; i < 12; i++) {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), `sc-lru-${i}-`));
+        createdDirs.push(dir);
+        fs.writeFileSync(path.join(dir, '00_manifest.json'), JSON.stringify({
+          timestamp: 1000 + i,
+          last_commit: `sha_${i}`
+        }));
+        IntelligenceSnapshotReader.load(dir);
+      }
+
+      // First dir (dir 0) should have been evicted
+      fs.rmSync(path.join(createdDirs[0], '00_manifest.json'));
+      // If cached, load(createdDirs[0]) would hit cache despite missing file.
+      // Since it was evicted, loading without manifest and without tracks.yaml returns null.
+      const resultDir0 = IntelligenceSnapshotReader.load(createdDirs[0]);
+      expect(resultDir0).toBeNull();
+
+      // Clean up temp dirs
+      for (const d of createdDirs) {
+        if (fs.existsSync(d)) fs.rmSync(d, { recursive: true, force: true });
+      }
     });
 
     it('invalidates the cache when manifest timestamp or last_commit changes', () => {

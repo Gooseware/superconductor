@@ -23,6 +23,8 @@ export class IntelligenceSnapshotReader {
 
   public static cachedTracksMtime?: number;
 
+  public static readonly MAX_CACHE_ENTRIES = 10;
+
   private static cache = new Map<string, {
     context: RepoContext;
     timestamp: number;
@@ -30,6 +32,34 @@ export class IntelligenceSnapshotReader {
     tracksMtime?: number;
     depSurfaceMtime?: number;
   }>();
+
+  private static getFromCache(key: string) {
+    const entry = this.cache.get(key);
+    if (entry) {
+      this.cache.delete(key);
+      this.cache.set(key, entry);
+    }
+    return entry;
+  }
+
+  private static setToCache(key: string, entry: {
+    context: RepoContext;
+    timestamp: number;
+    lastCommitSha: string;
+    tracksMtime?: number;
+    depSurfaceMtime?: number;
+  }) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    this.cache.set(key, entry);
+    if (this.cache.size > IntelligenceSnapshotReader.MAX_CACHE_ENTRIES) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
+  }
 
   public static clearCache() {
     this.cache.clear();
@@ -65,16 +95,17 @@ export class IntelligenceSnapshotReader {
   }
 
   static load(outputDir: string, projectRoot?: string): RepoContext | null {
-    const manifestPath = path.join(outputDir, '00_manifest.json');
+    const cacheKey = path.resolve(outputDir);
+    const manifestPath = path.join(cacheKey, '00_manifest.json');
     if (!fs.existsSync(manifestPath)) {
-      const root = projectRoot ?? path.resolve(outputDir, '..', '..');
+      const root = projectRoot ?? path.resolve(cacheKey, '..', '..');
       const tracksYamlPath = path.join(root, 'superconductor', 'tracks.yaml');
-      const altTracksYamlPath = path.join(outputDir, 'tracks.yaml');
+      const altTracksYamlPath = path.join(cacheKey, 'tracks.yaml');
       const targetYamlPath = fs.existsSync(tracksYamlPath)
         ? tracksYamlPath
         : (fs.existsSync(altTracksYamlPath) ? altTracksYamlPath : null);
 
-      const depSurfacePath = path.join(outputDir, '08_dependency_surface.json');
+      const depSurfacePath = path.join(cacheKey, '08_dependency_surface.json');
       let tracksMtime: number | undefined = undefined;
       if (targetYamlPath) {
         try { tracksMtime = fs.statSync(targetYamlPath).mtimeMs; } catch {}
@@ -85,7 +116,7 @@ export class IntelligenceSnapshotReader {
       }
 
       if (targetYamlPath || fs.existsSync(depSurfacePath)) {
-        const cached = this.cache.get(outputDir);
+        const cached = this.getFromCache(cacheKey);
         if (
           cached &&
           cached.timestamp === 0 &&
@@ -117,7 +148,7 @@ export class IntelligenceSnapshotReader {
           dependencySurfaceMap,
         };
 
-        this.cache.set(outputDir, {
+        this.setToCache(cacheKey, {
           context,
           timestamp: 0,
           lastCommitSha: 'NONE',
@@ -145,19 +176,11 @@ export class IntelligenceSnapshotReader {
 
       // Derive projectRoot: fall back to the directory two levels above outputDir when
       // not supplied (best-effort; caller should always pass it explicitly).
-      const root = projectRoot ?? path.resolve(outputDir, '..', '..');
-
-      const report = IntelligenceDriftMonitor.checkDrift(manifest, root);
-
-      const driftState: 'LIVE' | 'STALE' | 'NONE' = report.isDrifted ? 'STALE' : 'LIVE';
-      const driftBanner = report.banner;
-      const commitsBehind = report.commitsBehind === Infinity
-        ? Number.POSITIVE_INFINITY
-        : report.commitsBehind;
+      const root = projectRoot ?? path.resolve(cacheKey, '..', '..');
 
       // Resolve tracks.yaml & compute tracksMtime for cache validation
       const tracksYamlPath = path.join(root, 'superconductor', 'tracks.yaml');
-      const altTracksYamlPath = path.join(outputDir, 'tracks.yaml');
+      const altTracksYamlPath = path.join(cacheKey, 'tracks.yaml');
       const targetYamlPath = fs.existsSync(tracksYamlPath)
         ? tracksYamlPath
         : (fs.existsSync(altTracksYamlPath) ? altTracksYamlPath : null);
@@ -173,7 +196,7 @@ export class IntelligenceSnapshotReader {
       this.cachedTracksMtime = tracksMtime;
 
       let depSurfaceMtime: number | undefined = undefined;
-      const depSurfacePath = path.join(outputDir, '08_dependency_surface.json');
+      const depSurfacePath = path.join(cacheKey, '08_dependency_surface.json');
       if (fs.existsSync(depSurfacePath)) {
         try {
           depSurfaceMtime = fs.statSync(depSurfacePath).mtimeMs;
@@ -182,7 +205,8 @@ export class IntelligenceSnapshotReader {
         }
       }
 
-      const cached = this.cache.get(outputDir);
+      // Check cache BEFORE IntelligenceDriftMonitor.checkDrift() to prevent git overhead
+      const cached = this.getFromCache(cacheKey);
       if (
         cached &&
         cached.timestamp === manifest.timestamp &&
@@ -190,14 +214,16 @@ export class IntelligenceSnapshotReader {
         cached.tracksMtime === tracksMtime &&
         cached.depSurfaceMtime === depSurfaceMtime
       ) {
-        return {
-          ...cached.context,
-          driftState,
-          driftBanner,
-          snapshotAge: report.snapshotAgeMs,
-          commitsBehind,
-        };
+        return cached.context;
       }
+
+      const report = IntelligenceDriftMonitor.checkDrift(manifest, root);
+
+      const driftState: 'LIVE' | 'STALE' | 'NONE' = report.isDrifted ? 'STALE' : 'LIVE';
+      const driftBanner = report.banner;
+      const commitsBehind = report.commitsBehind === Infinity
+        ? Number.POSITIVE_INFINITY
+        : report.commitsBehind;
 
       // Load & validate tracks.yaml if present
       let tracks: TrackEntryYaml[] | undefined = undefined;
@@ -211,7 +237,7 @@ export class IntelligenceSnapshotReader {
       }
 
       const hotspotMap = new Map<string, { hotspot_score: number; cyclomatic_complexity: number; }>();
-      const complexityPath = path.join(outputDir, '03_complexity.json');
+      const complexityPath = path.join(cacheKey, '03_complexity.json');
       if (fs.existsSync(complexityPath)) {
         const complexityData = JSON.parse(fs.readFileSync(complexityPath, 'utf8'));
         if (Array.isArray(complexityData)) {
@@ -227,7 +253,7 @@ export class IntelligenceSnapshotReader {
       }
 
       const sastFindings = new Map<string, Array<{ rule_id: string; severity: string; message: string; }>>();
-      const sastPath = path.join(outputDir, '05_sast.json');
+      const sastPath = path.join(cacheKey, '05_sast.json');
       if (fs.existsSync(sastPath)) {
         const sastData = JSON.parse(fs.readFileSync(sastPath, 'utf8'));
         if (Array.isArray(sastData)) {
@@ -240,7 +266,7 @@ export class IntelligenceSnapshotReader {
       }
 
       const testGapMap = new Map<string, { risk: 'HIGH' | 'MEDIUM' | 'LOW'; gitChurnScore: number; }>();
-      const testGapsPath = path.join(outputDir, '07_test_gaps.json');
+      const testGapsPath = path.join(cacheKey, '07_test_gaps.json');
       if (fs.existsSync(testGapsPath)) {
         const testGapsData = JSON.parse(fs.readFileSync(testGapsPath, 'utf8'));
         if (Array.isArray(testGapsData)) {
@@ -257,7 +283,7 @@ export class IntelligenceSnapshotReader {
 
       const fanOutMap = new Map<string, number>();
       try {
-        const depPath = path.join(outputDir, '02_dependency_graph.json');
+        const depPath = path.join(cacheKey, '02_dependency_graph.json');
         if (fs.existsSync(depPath)) {
           const depData = JSON.parse(fs.readFileSync(depPath, 'utf-8'));
           if (depData.edges && Array.isArray(depData.edges)) {
@@ -272,7 +298,7 @@ export class IntelligenceSnapshotReader {
 
       const couplingMap = new Map<string, string[]>();
       try {
-        const couplingPath = path.join(outputDir, '04_coupling.json');
+        const couplingPath = path.join(cacheKey, '04_coupling.json');
         if (fs.existsSync(couplingPath)) {
           const couplingData = JSON.parse(fs.readFileSync(couplingPath, 'utf-8'));
           if (Array.isArray(couplingData)) {
@@ -301,7 +327,7 @@ export class IntelligenceSnapshotReader {
         tracks
       };
 
-      this.cache.set(outputDir, {
+      this.setToCache(cacheKey, {
         context,
         timestamp: manifest.timestamp,
         lastCommitSha: manifest.lastCommitSha,
