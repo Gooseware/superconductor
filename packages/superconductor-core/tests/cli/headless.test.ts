@@ -139,6 +139,26 @@ tracks:
     expect(result.executionOrder.map(t => t.trackId)).toEqual(['track_1', 'track_2', 'track_3']);
   });
 
+  it('allows specifying track IDs by 1-based index', async () => {
+    setupFixture(`
+tracks:
+  - id: track_a
+    deps: []
+  - id: track_b
+    deps: []
+  - id: track_c
+    deps: []
+`);
+
+    const result = await HeadlessOrchestrator.run(['--tracks', '3,1'], {
+      projectRoot: tmpDir,
+      outputDir: superconductorDir,
+    });
+
+    expect(result.trackIds).toEqual(['track_a', 'track_c']);
+    expect(result.executionOrder.map(t => t.trackId)).toEqual(['track_a', 'track_c']);
+  });
+
   it('propagates DAGCycleError when requested tracks contain circular dependencies', async () => {
     setupFixture(`
 tracks:

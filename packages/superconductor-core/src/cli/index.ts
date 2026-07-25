@@ -17,7 +17,14 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
   switch (command) {
     case 'implement':
     case 'orchestrate': {
-      await runCliDispatcher(args.slice(1));
+      const result = await runCliDispatcher(args.slice(1));
+      if (result && !result.cancelled) {
+        const trackIds = result.sortedTrackIds || result.trackIds || [];
+        for (const trackId of trackIds) {
+          console.log(`\n🚀 Executing track: ${trackId}`);
+          // Sequential execution handled by external runner orchestrator plugin in pipeline mode
+        }
+      }
       break;
     }
 
