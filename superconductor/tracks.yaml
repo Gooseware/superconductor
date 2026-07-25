@@ -171,12 +171,12 @@ tracks:
     deps: []
   - id: implement_redesign_20260725
     name: Implement Redesign & Dense YAML DAG
-    status: in_progress
+    status: completed
     link: ./tracks/implement_redesign_20260725/
     deps: []
   - id: parallel_execution_model_20260725
     name: Parallel Multi-Agent Track Execution Model
-    status: planned
+    status: in_progress
     link: ./tracks/parallel_execution_model_20260725/
     deps: []
   - id: multimodal_oracle_review_20260725
