@@ -1,0 +1,186 @@
+version: 1
+tracks:
+  - id: htn_engine_20260710
+    name: HTN Planning & Multi-Agent Delegation Engine
+    status: completed
+    link: ./tracks/htn_engine_20260710/
+    deps: []
+  - id: token_economics_20260710
+    name: Token Economics & Dynamic Routing
+    status: completed
+    link: ./tracks/token_economics_20260710/
+    deps: []
+  - id: sandboxing_resilience_20260710
+    name: Sandboxing & State Resilience
+    status: completed
+    link: ./tracks/sandboxing_resilience_20260710/
+    deps: []
+  - id: headless_workflow_20260711
+    name: Headless Workflow
+    status: completed
+    link: ./tracks/headless_workflow_20260711/
+    deps: []
+  - id: job_board_integration_20260711
+    name: Job Board Integration
+    status: completed
+    link: ./tracks/job_board_integration_20260711/
+    deps: []
+  - id: setup_enhancements_20260711
+    name: Setup Enhancements & Plan Verification
+    status: completed
+    link: ./tracks/setup_enhancements_20260711/
+    deps: []
+  - id: job_dispatcher_hardening_20260711
+    name: Hardening Improvements for Job Dispatcher
+    status: completed
+    link: ./tracks/job_dispatcher_hardening_20260711/
+    deps: []
+  - id: workspace_pooling_20260712
+    name: Workspace Pooling for Job Dispatcher
+    status: completed
+    link: ./tracks/workspace_pooling_20260712/
+    deps: []
+  - id: model_selector_20260721
+    name: Model Selector Automation
+    status: completed
+    link: ./tracks/model_selector_20260721/
+    deps: []
+  - id: symbiosis_caduceus_20260722
+    name: Model Switcher Integration & Superconductor–Caduceus Symbiosis
+    status: completed
+    link: ./tracks/symbiosis_caduceus_20260722/
+    deps: []
+  - id: swarm_excellence_20260722
+    name: Swarm Excellence Engine
+    status: completed
+    link: ./tracks/swarm_excellence_20260722/
+    deps: []
+  - id: skill_trigger_20260722
+    name: Dynamic Skill Trigger Engine
+    status: completed
+    link: ./tracks/skill_trigger_20260722/
+    deps: []
+  - id: pipeline_swarm_20260722
+    name: Pipeline Swarm Mode
+    status: completed
+    link: ./tracks/pipeline_swarm_20260722/
+    deps: []
+  - id: headless_batch_20260722
+    name: Headless Batch Track Executor
+    status: completed
+    link: ./tracks/headless_batch_20260722/
+    deps: []
+  - id: execution_mode_selector_20260722
+    name: Implement Execution Mode Selector
+    status: completed
+    link: ./tracks/execution_mode_selector_20260722/
+    deps: []
+  - id: review_panel_20260722
+    name: Review Panel Mode with Coverage-Aware Residual Passes
+    status: completed
+    link: ./tracks/review_panel_20260722/
+    deps: []
+  - id: abi_retrospective_20260723
+    name: ABI Retrospective Protocol Formalization
+    status: completed
+    link: ./tracks/abi_retrospective_20260723/
+    deps: []
+  - id: review_self_verification_20260723
+    name: Review Self-Verification Gate
+    status: completed
+    link: ./tracks/review_self_verification_20260723/
+    deps: []
+  - id: coverage_stats_dedup_20260723
+    name: Coverage Stats Deduplication & Category Preservation
+    status: completed
+    link: ./tracks/coverage_stats_dedup_20260723/
+    deps: []
+  - id: core_harness_abstraction_20260723
+    name: Harness-Agnostic Core Abstraction
+    status: completed
+    link: ./tracks/core_harness_abstraction_20260723/
+    deps: []
+    note: prerequisite for intelligence layer
+  - id: intelligence_layer_20260723
+    name: Project Intelligence Layer & Brownfield Repository Analysis
+    status: completed
+    link: ./tracks/intelligence_layer_20260723/
+    deps:
+      - core_harness_abstraction_20260723
+    note: requires core abstraction
+  - id: complexity_refactor_20260723
+    name: Complexity Refactor — Hotspot Files
+    status: completed
+    link: ./tracks/complexity_refactor_20260723/
+    deps: []
+  - id: engine_complexity_refactor_20260723
+    name: Engine Complexity Refactor
+    status: completed
+    link: ./tracks/engine_complexity_refactor_20260723/
+    deps: []
+  - id: complexity_refactor_round3_20260723
+    name: Complexity Refactor Round 3
+    status: completed
+    link: ./tracks/complexity_refactor_round3_20260723/
+    deps: []
+  - id: token_estimation_20260723
+    name: Token Estimation and Open Source Package Recommender
+    status: completed
+    link: ./tracks/token_estimation_20260723/
+    deps: []
+  - id: worktrunk_20260723
+    name: Adopt Worktrunk for Workspaces Workflow
+    status: completed
+    link: ./tracks/worktrunk_20260723/
+    deps: []
+  - id: swarm_protocol_uplift_20260724
+    name: Swarm Protocol Uplift — Review Gate, ABI Self-Improvement & Plugin UX Audit
+    status: completed
+    link: ./tracks/swarm_protocol_uplift_20260724/
+    deps: []
+  - id: swarm_planner_20260724
+    name: Swarm-Aware Planner — Throughput & Token Economics Optimizer
+    status: planned
+    link: ./tracks/swarm_planner_20260724/
+    deps: []
+  - id: intelligence_incremental_20260724
+    name: Incremental Intelligence Layer — Always-Current, Basically-Free Repo Awareness
+    status: completed
+    link: ./tracks/intelligence_incremental_20260724/
+    deps:
+      - core_harness_abstraction_20260723
+  - id: sync_ops_docs_20260724
+    name: Synchronize Operational Documentation (README & AGENTS)
+    status: completed
+    link: ./tracks/sync_ops_docs_20260724/
+    deps: []
+  - id: protocol_fast_paths_20260724
+    name: Protocol Checkpoints & Legalized Fast-Paths
+    status: completed
+    link: ./tracks/protocol_fast_paths_20260724/
+    deps: []
+  - id: func_surface_intel_20260724
+    name: Dependency Functional Surface Intelligence
+    status: in_progress
+    link: ./tracks/func_surface_intel_20260724/
+    deps: []
+  - id: astryx_skills_20260725
+    name: Astryx Agent Skills & Design Orchestrator
+    status: completed
+    link: ./tracks/astryx_skills_20260725/
+    deps: []
+  - id: implement_redesign_20260725
+    name: Implement Redesign & Dense YAML DAG
+    status: in_progress
+    link: ./tracks/implement_redesign_20260725/
+    deps: []
+  - id: parallel_execution_model_20260725
+    name: Parallel Multi-Agent Track Execution Model
+    status: planned
+    link: ./tracks/parallel_execution_model_20260725/
+    deps: []
+  - id: multimodal_oracle_review_20260725
+    name: Streaming & Multi-Modal Oracle Review Panel
+    status: planned
+    link: ./tracks/multimodal_oracle_review_20260725/
+    deps: []
