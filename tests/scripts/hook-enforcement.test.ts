@@ -6,8 +6,9 @@ import * as os from 'os';
 
 describe('hook-enforcement', () => {
   let tempRepo: string;
-  let preCommitScript: string;
+  let commitMsgScript: string;
   let installScript: string;
+  let msgFilePath: string;
 
   beforeEach(() => {
     tempRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'superconductor-hook-test-'));
@@ -22,34 +23,37 @@ describe('hook-enforcement', () => {
     fs.mkdirSync(path.join(tempRepo, 'packages', 'core', 'src'), { recursive: true });
     
     const workspaceRoot = path.resolve(__dirname, '../../');
-    preCommitScript = path.join(workspaceRoot, 'scripts', 'hooks', 'pre-commit');
+    commitMsgScript = path.join(workspaceRoot, 'scripts', 'hooks', 'commit-msg');
     installScript = path.join(workspaceRoot, 'scripts', 'hooks', 'install-hooks.sh');
+    msgFilePath = path.join(tempRepo, '.git', 'COMMIT_EDITMSG');
   });
 
   afterEach(() => {
     fs.rmSync(tempRepo, { recursive: true, force: true });
   });
 
-  describe('pre-commit hook logic', () => {
+  describe('commit-msg hook logic', () => {
     it('should exit 0 if no active track found', () => {
       fs.writeFileSync(path.join(tempRepo, 'superconductor', 'tracks.md'), '- [ ] Inactive track\n');
+      fs.writeFileSync(msgFilePath, 'test commit\n');
       
       // Stage a src file
       fs.writeFileSync(path.join(tempRepo, 'packages', 'core', 'src', 'index.ts'), 'console.log("hello");');
       execSync('git add .', { cwd: tempRepo });
       
-      const stdout = execSync(preCommitScript, { cwd: tempRepo }).toString();
+      const stdout = execSync(`"${commitMsgScript}" "${msgFilePath}"`, { cwd: tempRepo }).toString();
       expect(stdout).toBe('');
     });
 
     it('should exit 0 if active track found but no src/ files staged', () => {
       fs.writeFileSync(path.join(tempRepo, 'superconductor', 'tracks.md'), '- [~] Active track\n');
+      fs.writeFileSync(msgFilePath, 'test commit\n');
       
       // Stage a non-src file
       fs.writeFileSync(path.join(tempRepo, 'README.md'), 'updated');
       execSync('git add README.md', { cwd: tempRepo });
       
-      const stdout = execSync(preCommitScript, { cwd: tempRepo }).toString();
+      const stdout = execSync(`"${commitMsgScript}" "${msgFilePath}"`, { cwd: tempRepo }).toString();
       expect(stdout).toBe('');
     });
 
@@ -60,10 +64,9 @@ describe('hook-enforcement', () => {
       execSync('git add .', { cwd: tempRepo });
       
       // Create COMMIT_EDITMSG
-      const gitDir = execSync('git rev-parse --git-dir', { cwd: tempRepo }).toString().trim();
-      fs.writeFileSync(path.join(tempRepo, gitDir, 'COMMIT_EDITMSG'), 'feat: update\n\nSwarm-Authorized: true\n');
+      fs.writeFileSync(msgFilePath, 'feat: update\n\nSwarm-Authorized: true\n');
       
-      const stdout = execSync(preCommitScript, { cwd: tempRepo }).toString();
+      const stdout = execSync(`"${commitMsgScript}" "${msgFilePath}"`, { cwd: tempRepo }).toString();
       expect(stdout).toBe('');
     });
 
@@ -74,9 +77,11 @@ describe('hook-enforcement', () => {
       execSync('git add .', { cwd: tempRepo });
       
       // No COMMIT_EDITMSG or without Swarm-Authorized
+      fs.writeFileSync(msgFilePath, 'feat: update\n');
+
       let error: any;
       try {
-        execSync(preCommitScript, { cwd: tempRepo, stdio: 'pipe' });
+        execSync(`"${commitMsgScript}" "${msgFilePath}"`, { cwd: tempRepo, stdio: 'pipe' });
       } catch (err) {
         error = err;
       }
@@ -88,11 +93,12 @@ describe('hook-enforcement', () => {
 
     it('should exit 0 and log bypass if bypass var is set', () => {
       fs.writeFileSync(path.join(tempRepo, 'superconductor', 'tracks.md'), '- [~] Active track\n');
+      fs.writeFileSync(msgFilePath, 'feat: update\n');
       
       fs.writeFileSync(path.join(tempRepo, 'packages', 'core', 'src', 'index.ts'), 'console.log("hello");');
       execSync('git add .', { cwd: tempRepo });
       
-      execSync(preCommitScript, { 
+      execSync(`"${commitMsgScript}" "${msgFilePath}"`, { 
         cwd: tempRepo, 
         env: { ...process.env, SUPERCONDUCTOR_BYPASS: '1', SUPERCONDUCTOR_BYPASS_REASON: 'emergency fix' }
       });
@@ -111,15 +117,15 @@ describe('hook-enforcement', () => {
       // We will patch the SOURCE_HOOK line.
       const scriptContent = fs.readFileSync(installScript, 'utf8');
       const patchedContent = scriptContent.replace(
-        'SOURCE_HOOK="$(git rev-parse --show-toplevel)/scripts/hooks/pre-commit"',
-        `SOURCE_HOOK="${preCommitScript}"`
+        'SOURCE_HOOK="$(git rev-parse --show-toplevel)/scripts/hooks/commit-msg"',
+        `SOURCE_HOOK="${commitMsgScript}"`
       );
       
       const patchedScriptPath = path.join(tempRepo, 'install-hooks.sh');
       fs.writeFileSync(patchedScriptPath, patchedContent);
       fs.chmodSync(patchedScriptPath, '755');
 
-      const hookPath = path.join(tempRepo, '.git', 'hooks', 'pre-commit');
+      const hookPath = path.join(tempRepo, '.git', 'hooks', 'commit-msg');
 
       // First install
       execSync(patchedScriptPath, { cwd: tempRepo });
