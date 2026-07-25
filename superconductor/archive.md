@@ -172,3 +172,27 @@ This file contains a registry of all completed and archived tracks.
   - [plan.md](tracks/cli_enhancements_20260725/plan.md)
 
 
+- [x] **Track: Swarm Protocol Strict Guardrails & Anti-Rogue Agent Enforcement**
+*Link: [./tracks/swarm_enforcement_20260725/](./tracks/swarm_enforcement_20260725/)*
+
+
+- [x] **Track: Dependency Functional Surface Intelligence**
+*Link: [./tracks/func_surface_intel_20260724/](./tracks/func_surface_intel_20260724/)*
+
+---
+
+- [x] **Track: Implement Redesign & Dense YAML DAG**
+*Link: [./tracks/implement_redesign_20260725/](./tracks/implement_redesign_20260725/)*
+
+---
+
+- [x] **Track: Parallel Multi-Agent Track Execution Model**
+*Link: [./tracks/parallel_execution_model_20260725/](./tracks/parallel_execution_model_20260725/)*
+
+---
+
+- [x] **Track: Swarm-Aware Planner — Throughput & Token Economics Optimizer**
+*Link: [./tracks/swarm_planner_20260724/](./tracks/swarm_planner_20260724/)*
+
+---
+
