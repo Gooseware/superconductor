@@ -147,7 +147,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Incremental Intelligence Layer — Always-Current, Basically-Free Repo Awareness**
+- [x] **Track: Incremental Intelligence Layer — Always-Current, Basically-Free Repo Awareness**
 *Link: [./tracks/intelligence_incremental_20260724/](./tracks/intelligence_incremental_20260724/)*
 
 ---
@@ -167,5 +167,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Astryx Agent Skills & Design Orchestrator**
+- [~] **Track: Astryx Agent Skills & Design Orchestrator**
 *Link: [./tracks/astryx_skills_20260725/](./tracks/astryx_skills_20260725/)*
