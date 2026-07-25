@@ -16,12 +16,12 @@
 | 5 | Task: Integrate track 'implement_redesign_20260... | flash_lite | 9K | ~3 min |
 
 ## Phase 0: Swarm Preflight
-- [ ] Task: Verify `swarm-orchestrate` skill is installed and active [TIER-1:TCS=3] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Verify `swarm-orchestrate` skill is installed and active [TIER-1:TCS=3] [AGENT:caduceus-processor] 4207479
+- [x] Task: Superconductor - User Manual Verification 'Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4] 4207479
 
 ## Phase 1: Context & Intelligence Foundation
 - [ ] Task: Create `schema/track-manifest.js` (or `.ts`) with Zod schema for the Dense YAML format [TIER-2:TCS=4] [AGENT:caduceus-processor]
-- [ ] Task: Refactor `IntelligenceSnapshotReader` to parse `tracks.yaml` instead of `tracks.md` using the new schema [TIER-3:TCS=4] [AGENT:caduceus-processor]
+- [ ] Task: Refactor `IntelligenceSnapshotReader` to parse `tracks.yaml` instead of `tracks.md` using a secure YAML parser (with schema execution disabled) and validate with the new Zod schema [TIER-3:TCS=4] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Context & Intelligence Foundation' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 2: DAG Resolution & Migration Utilities
@@ -30,9 +30,9 @@
 - [ ] Task: Superconductor - User Manual Verification 'DAG Resolution & Migration Utilities' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 3: Interactive CLI Orchestration
-- [ ] Task: Implement `CliDispatcher` to detect TTY vs headless environments [TIER-2:TCS=3] [AGENT:caduceus-processor]
+- [ ] Task: Implement `CliDispatcher` to detect TTY vs headless environments and route to the appropriate orchestrator [TIER-2:TCS=3] [AGENT:caduceus-processor]
 - [ ] Task: Implement `InteractiveOrchestrator` using TUI checklists for multi-track selection and DAG sorting [TIER-3:TCS=3] [AGENT:caduceus-processor]
-- [ ] Task: Implement `HeadlessOrchestrator` strictly handling argument-based execution [TIER-2:TCS=3] [AGENT:caduceus-processor]
+- [ ] Task: Implement `HeadlessOrchestrator` strictly handling argument-based execution and applying DAG sorting to the provided tracks [TIER-2:TCS=3] [AGENT:caduceus-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Interactive CLI Orchestration' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 4: Integration & Finalization
