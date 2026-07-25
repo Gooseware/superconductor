@@ -7,8 +7,8 @@
 - [x] Task: Superconductor - User Manual Verification 'Streaming Review Protocol' (Protocol in workflow.md) [fb5b43d]
 
 ## Phase 2: Multi-Modal Vision Oracle
-- [ ] Task: Integrate Playwright component screenshot harness into the test suite [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Implement Vision Oracle prompt templates to critique UI against Astryx design tokens [TIER-4] [AGENT:superconductor-oracle]
+- [x] Task: Integrate Playwright component screenshot harness into the test suite [TIER-3] [AGENT:superconductor-processor] [c87f552]
+- [x] Task: Implement Vision Oracle prompt templates to critique UI against Astryx design tokens [TIER-4] [AGENT:superconductor-oracle] [74f2075]
 - [ ] Task: Superconductor - User Manual Verification 'Multi-Modal Vision Oracle' (Protocol in workflow.md)
 
 ## Phase 3: Integration & Finalization

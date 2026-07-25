@@ -172,6 +172,14 @@ The Superconductor engine operates in either Interactive or Headless mode.
 3.  **Auto-Fix Loop:** Automatically apply suggested fixes using a Red-Green-Refactor cycle upon approval.
 4.  **Final Verdict:** Transition to cleanup once a "Ready" verdict is achieved.
 
+### Multi-Modal Vision Oracle Protocol
+
+The Vision Oracle enhances code review by visually analyzing UI components during the validation phase.
+1.  **Capture:** The orchestrator captures a base64 screenshot of the UI component using the Playwright harness.
+2.  **Vision Analysis:** The screenshot is fed into the Vision Oracle (Gemini 1.5 Pro) along with the Astryx design tokens.
+3.  **Critique:** The Vision Oracle critiques the UI against the design tokens (e.g., verifying hex colors, padding, typography, and glassmorphism effects).
+4.  **Feedback:** Visual deviations are logged as UI findings, blocking the Phase Gate until the UI matches the design specification perfectly.
+
 ### Quality Gates
 
 Before marking any task complete, verify:
