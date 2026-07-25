@@ -11,7 +11,8 @@
   "scripts": {
     "build": "npx --package typescript tsc",
     "test": "npx --package vitest vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "audit:swarm": "npx tsx scripts/audit-swarm-compliance.ts"
   },
   "devDependencies": {
     "@swc/core": "^1.15.46",
