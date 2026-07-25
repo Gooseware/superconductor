@@ -6,3 +6,4 @@ export * from './cli/index.js';
 export * from './intelligence/index.js';
 export * from './telemetry/index.js';
 export * from './schema/index.js';
+export * from './context/splicer.js';

@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import yaml from 'js-yaml';
 
 export interface TrackPlanData {
   trackId: string;
@@ -46,33 +47,31 @@ export class ExecutionPlanner {
     let benefitScore = 0;
 
     if (fs.existsSync(yamlPath)) {
-      try {
-        const content = fs.readFileSync(yamlPath, 'utf-8');
-        // Require js-yaml inline to avoid circular or missing imports at module level if not fully configured
-        const yaml = require('js-yaml');
-        const doc = yaml.load(content) as any;
-        if (doc && Array.isArray(doc.tracks)) {
-          const track = doc.tracks.find((t: any) => t.id === trackId);
-          if (track && Array.isArray(track.deps)) {
-            dependencies = track.deps;
-          }
+      const content = fs.readFileSync(yamlPath, 'utf-8');
+      const doc = yaml.load(content) as any;
+      const tracksArray = Array.isArray(doc) ? doc : (doc?.tracks ? doc.tracks : []);
+      if (Array.isArray(tracksArray)) {
+        const track = tracksArray.find((t: any) => t.id === trackId);
+        if (track && Array.isArray(track.deps)) {
+          dependencies = track.deps;
         }
-      } catch (err) {
-        // ignore parse error
       }
     }
 
     if (fs.existsSync(metadataPath)) {
-      try {
-        const content = fs.readFileSync(metadataPath, 'utf-8');
-        const data = JSON.parse(content);
-        if (typeof data.benefitScore === 'number') {
-          benefitScore = data.benefitScore;
-        } else if (typeof data.benefit_score === 'number') {
-          benefitScore = data.benefit_score;
+      const content = fs.readFileSync(metadataPath, 'utf-8');
+      const data = JSON.parse(content);
+      if (typeof data.benefitScore === 'number') {
+        benefitScore = data.benefitScore;
+      } else if (typeof data.benefit_score === 'number') {
+        benefitScore = data.benefit_score;
+      }
+      if (dependencies.length === 0) {
+        if (Array.isArray(data.dependencies)) {
+          dependencies = data.dependencies;
+        } else if (Array.isArray(data.deps)) {
+          dependencies = data.deps;
         }
-      } catch (err) {
-        // ignore parse error
       }
     }
     
