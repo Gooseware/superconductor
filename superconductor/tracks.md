@@ -191,3 +191,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - **Artifacts:**
   - [spec.md](tracks/cli_enhancements_20260725/spec.md)
   - [plan.md](tracks/cli_enhancements_20260725/plan.md)
+
+## [ ] Track: Track Archival Process & Regression Prevention
+- **Status:** planned
+- **Description:** Implement an automated track archival process and introduce a Regression Reviewer to the review quorum.
+- **Artifacts:**
+  - [spec.md](tracks/track_archival_process_20260725/spec.md)
+  - [plan.md](tracks/track_archival_process_20260725/plan.md)
