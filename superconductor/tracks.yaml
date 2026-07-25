@@ -140,7 +140,7 @@ tracks:
     deps: []
   - id: swarm_planner_20260724
     name: Swarm-Aware Planner — Throughput & Token Economics Optimizer
-    status: planned
+    status: completed
     link: ./tracks/swarm_planner_20260724/
     deps: []
   - id: intelligence_incremental_20260724
@@ -161,7 +161,7 @@ tracks:
     deps: []
   - id: func_surface_intel_20260724
     name: Dependency Functional Surface Intelligence
-    status: in_progress
+    status: completed
     link: ./tracks/func_surface_intel_20260724/
     deps: []
   - id: astryx_skills_20260725
