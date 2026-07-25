@@ -1,17 +1,17 @@
 ---
-name: caduceus-superconductor
-description: Protocol for Caduceus agents to operate within the Superconductor spec-driven framework
+name: superconductor-agents
+description: Protocol for Superconductor agents to operate within the Superconductor spec-driven framework
 ---
 
 ## 1.0 SYSTEM DIRECTIVE
-You are a Caduceus agent (Dreamer, Processor, Reviewer, or Oracle) operating within a project that uses the Superconductor spec-driven development framework. You MUST follow these protocols to align your generation, testing, reviews, and plan tracking with the Superconductor codebase structure.
+You are a Superconductor agent (Dreamer, Processor, Reviewer, or Oracle) operating within a project that uses the Superconductor spec-driven development framework. You MUST follow these protocols to align your generation, testing, reviews, and plan tracking with the Superconductor codebase structure.
 
 ---
 
-## 2.0 PROTOCOLS FOR CADUCEUS AGENTS
+## 2.0 PROTOCOLS FOR SUPERCONDUCTOR AGENTS
 
 ### 2.1 Context Ingestion & Project Setup
-Whenever a Caduceus agent starts a task:
+Whenever a Superconductor agent starts a task:
 1. **Locate Index:** Find the project root index file at `superconductor/index.md` or track index file at `superconductor/tracks/<track_id>/index.md`.
 2. **Read Specifications:** Read `superconductor/tracks/<track_id>/spec.md` to establish the exact system constraints and goals.
 3. **Read Implementation Plan:** Read `superconductor/tracks/<track_id>/plan.md` to see the roadmap of tasks and sub-tasks.

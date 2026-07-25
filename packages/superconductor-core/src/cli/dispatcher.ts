@@ -24,7 +24,9 @@ export class CliDispatcher {
     const isExplicitInteractive = args.includes('--interactive');
 
     let useHeadless: boolean;
-    if (isExplicitHeadless) {
+    if (isExplicitHeadless && isExplicitInteractive) {
+      throw new Error('Cannot specify both --headless and --interactive flags simultaneously.');
+    } else if (isExplicitHeadless) {
       useHeadless = true;
     } else if (isExplicitInteractive) {
       useHeadless = false;

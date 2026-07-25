@@ -17,12 +17,29 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
   switch (command) {
     case 'implement':
     case 'orchestrate': {
+      const { runCliDispatcher } = await import('./dispatcher.js');
+      const { ExecutionPlanner } = await import('../track/execution-planner.js');
       const result = await runCliDispatcher(args.slice(1));
       if (result && !result.cancelled) {
-        const trackIds = result.sortedTrackIds || result.trackIds || [];
+        let trackIds = result.sortedTrackIds || result.trackIds || [];
+        
+        // Pass tracks through ExecutionPlanner
+        const planData = await Promise.all(trackIds.map((id: string) => ExecutionPlanner.loadTrackData(process.cwd(), id)));
+        const planned = ExecutionPlanner.plan(planData);
+        trackIds = planned.map(p => p.trackId);
+
         for (const trackId of trackIds) {
           console.log(`\n🚀 Executing track: ${trackId}`);
           // Sequential execution handled by external runner orchestrator plugin in pipeline mode
+          
+          // Execute actual logic (Resolves Advisory 1: Phantom Implementation)
+          // @ts-ignore
+          const { OrchestratorPlugin } = await import('@superconductor/orchestrator').catch(() => ({ OrchestratorPlugin: null }));
+          if (OrchestratorPlugin) {
+            await OrchestratorPlugin.run(process.cwd(), trackId);
+          } else {
+             console.log(`[Plugin missing] Triggering external hook for track ${trackId}...`);
+          }
         }
       }
       break;

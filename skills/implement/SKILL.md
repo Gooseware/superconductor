@@ -190,13 +190,13 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 
 1.  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
 
-2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Caduceus Golden Registry (or fallback Design OS kernel) inclusion.
+2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
 
 3.  **Registry Inclusion Analysis:**
     -   **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
         -   **New Files Scan:** Check for new files in known component directories.
         -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
-        -   **Theme Usage Scan:** Check for usage of `design-os` or caduceus tokens and primitives.
+        -   **Theme Usage Scan:** Check for usage of `design-os` or design-os tokens and primitives.
     -   **Draft Publication Proposals:** For any high-quality, reusable component identified:
         -   Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
         -   Draft a publication proposal.
@@ -209,9 +209,9 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                     `[✓] Spec Analyzed`
                     `[✓] Registry Candidates Identified`
 
-                    I've identified '<component_name>' as a potential candidate for the Caduceus Golden Registry (or fallback Design OS kernel). Would you like me to publish it?
+                    I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?
                 - **type:** "yesno"
-        -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (local Caduceus repo if available, else Design OS kernel MCP).
+        -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
 
 4.  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
 
@@ -429,7 +429,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
             iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
     - If the report suggests **Kernel Sync Candidates**:
         - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `design-os-kernel`. Would you like me to publish them now?" (type: "yesno")
-        - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to route publication to the Caduceus registry. If Caduceus is not available, fall back to the `mcp_design-os-kernel_publish_vetted_component` tool.
+        - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_design-os-kernel_publish_vetted_component` tool.
     - If "Ready" verdict:
         - Proceed to finalization.
 
