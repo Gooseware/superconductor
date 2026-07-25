@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { describe, it, expect } from 'vitest';
 import { GenerateResearchPrompt, PackageVettingMatrixSchema } from '../../src/intelligence/prompt-generator.js';
 import { DependencyContextManager, ManifestParser } from '../../src/intelligence/dependency-context.js';
