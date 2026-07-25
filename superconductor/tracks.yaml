@@ -176,9 +176,10 @@ tracks:
     deps: []
   - id: parallel_execution_model_20260725
     name: Parallel Multi-Agent Track Execution Model
-    status: in_progress
+    status: completed
     link: ./tracks/parallel_execution_model_20260725/
-    deps: []
+    deps:
+      - implement_redesign_20260725
   - id: multimodal_oracle_review_20260725
     name: Streaming & Multi-Modal Oracle Review Panel
     status: planned
