@@ -36,12 +36,13 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Usage Heatmap Generation' (Protocol in workflow.md) [TIER-1:TCS=4] 8c011c6
 
 ## Phase 3: Agent MCP Tooling & Oracle Recommendations
-- [ ] Task: Create MCP Tool `get_dependency_surface` [TIER-3:TCS=3] [AGENT:caduceus-processor]
-    - [ ] Write unit tests verifying dynamic query capability without proactive context injection. [TIER-1:TCS=4]
-    - [ ] Implement `get_dependency_surface(depName)` tool. [TIER-1:TCS=3]
-- [ ] Task: Implement Oracle Reusability Strategy: Shared Snapshot Caching [TIER-4:TCS=3] [AGENT:caduceus-oracle]
-    - [ ] Refactor `IntelligenceSnapshotReader` and MCP Tool to use shared caching for memory efficiency. [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Agent MCP Tooling & Oracle Recommendations' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Create MCP Tool `get_dependency_surface` [TIER-3:TCS=3] [AGENT:caduceus-processor]
+    - [x] Write unit tests verifying dynamic query capability without proactive context injection. [TIER-1:TCS=4]
+    - [x] Implement `get_dependency_surface(depName)` tool. [TIER-1:TCS=3]
+- [x] Task: Implement Oracle Reusability Strategy: Shared Snapshot Caching [TIER-4:TCS=3] [AGENT:caduceus-oracle]
+    - [x] Refactor `IntelligenceSnapshotReader` and MCP Tool to use shared caching for memory efficiency. [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Agent MCP Tooling & Oracle Recommendations' (Protocol in workflow.md) [TIER-1:TCS=4]
+
 
 ## Phase 4: Adapter Generation Heuristics
 - [ ] Task: Update `SwarmBlueprintGenerator` with Adapter generation rules [TIER-4:TCS=3] [AGENT:caduceus-oracle]

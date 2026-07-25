@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { IntelligenceSnapshotReader } from './snapshot-reader.js';
 
 export function getDependencySurface(projectRoot: string, depName?: string): Record<string, number> {
   const intelDir = path.join(projectRoot, 'superconductor', 'intelligence');
@@ -10,15 +11,21 @@ export function getDependencySurface(projectRoot: string, depName?: string): Rec
   }
 
   try {
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    const heatmap = data.heatmap || {};
+    const loaded = IntelligenceSnapshotReader.load(intelDir, projectRoot);
+    const map = loaded?.dependencySurfaceMap;
 
     if (depName) {
-      return { [depName]: heatmap[depName] || 0 };
+      const score = map ? map.get(depName) : undefined;
+      return { [depName]: score ?? 0 };
     }
 
-    return heatmap;
+    if (map) {
+      return Object.fromEntries(map.entries());
+    }
+
+    return {};
   } catch (e) {
     return {};
   }
 }
+

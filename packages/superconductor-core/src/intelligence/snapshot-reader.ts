@@ -28,6 +28,7 @@ export class IntelligenceSnapshotReader {
     timestamp: number;
     lastCommitSha: string;
     tracksMtime?: number;
+    depSurfaceMtime?: number;
   }>();
 
   public static clearCache() {
@@ -46,6 +47,23 @@ export class IntelligenceSnapshotReader {
     }
   }
 
+  private static readDependencySurfaceMap(depSurfacePath: string): Map<string, number> {
+    const dependencySurfaceMap = new Map<string, number>();
+    try {
+      if (fs.existsSync(depSurfacePath)) {
+        const depSurfaceData = JSON.parse(fs.readFileSync(depSurfacePath, 'utf-8'));
+        if (depSurfaceData.heatmap && typeof depSurfaceData.heatmap === 'object') {
+          for (const [key, value] of Object.entries(depSurfaceData.heatmap)) {
+            if (typeof value === 'number') {
+              dependencySurfaceMap.set(key, value);
+            }
+          }
+        }
+      }
+    } catch { /* degrade gracefully */ }
+    return dependencySurfaceMap;
+  }
+
   static load(outputDir: string, projectRoot?: string): RepoContext | null {
     const manifestPath = path.join(outputDir, '00_manifest.json');
     if (!fs.existsSync(manifestPath)) {
@@ -56,22 +74,58 @@ export class IntelligenceSnapshotReader {
         ? tracksYamlPath
         : (fs.existsSync(altTracksYamlPath) ? altTracksYamlPath : null);
 
+      const depSurfacePath = path.join(outputDir, '08_dependency_surface.json');
+      let tracksMtime: number | undefined = undefined;
       if (targetYamlPath) {
-        let tracks: TrackEntryYaml[] = [];
-        try {
-          const yamlContent = fs.readFileSync(targetYamlPath, 'utf8');
-          tracks = this.parseTracksYaml(yamlContent);
-        } catch {
-          tracks = [];
+        try { tracksMtime = fs.statSync(targetYamlPath).mtimeMs; } catch {}
+      }
+      let depSurfaceMtime: number | undefined = undefined;
+      if (fs.existsSync(depSurfacePath)) {
+        try { depSurfaceMtime = fs.statSync(depSurfacePath).mtimeMs; } catch {}
+      }
+
+      if (targetYamlPath || fs.existsSync(depSurfacePath)) {
+        const cached = this.cache.get(outputDir);
+        if (
+          cached &&
+          cached.timestamp === 0 &&
+          cached.lastCommitSha === 'NONE' &&
+          cached.tracksMtime === tracksMtime &&
+          cached.depSurfaceMtime === depSurfaceMtime
+        ) {
+          return cached.context;
         }
-        return {
+
+        let tracks: TrackEntryYaml[] = [];
+        if (targetYamlPath) {
+          try {
+            const yamlContent = fs.readFileSync(targetYamlPath, 'utf8');
+            tracks = this.parseTracksYaml(yamlContent);
+          } catch {
+            tracks = [];
+          }
+        }
+
+        const dependencySurfaceMap = this.readDependencySurfaceMap(depSurfacePath);
+        const context: RepoContext = {
           hotspotMap: new Map(),
           testGapMap: new Map(),
           sastFindings: new Map(),
           driftState: 'NONE',
           driftBanner: IntelligenceSnapshotReader.NONE_BANNER,
           tracks,
+          dependencySurfaceMap,
         };
+
+        this.cache.set(outputDir, {
+          context,
+          timestamp: 0,
+          lastCommitSha: 'NONE',
+          tracksMtime,
+          depSurfaceMtime,
+        });
+
+        return context;
       }
       return null; // NONE state
     }
@@ -118,12 +172,23 @@ export class IntelligenceSnapshotReader {
       }
       this.cachedTracksMtime = tracksMtime;
 
+      let depSurfaceMtime: number | undefined = undefined;
+      const depSurfacePath = path.join(outputDir, '08_dependency_surface.json');
+      if (fs.existsSync(depSurfacePath)) {
+        try {
+          depSurfaceMtime = fs.statSync(depSurfacePath).mtimeMs;
+        } catch {
+          depSurfaceMtime = undefined;
+        }
+      }
+
       const cached = this.cache.get(outputDir);
       if (
         cached &&
         cached.timestamp === manifest.timestamp &&
         cached.lastCommitSha === manifest.lastCommitSha &&
-        cached.tracksMtime === tracksMtime
+        cached.tracksMtime === tracksMtime &&
+        cached.depSurfaceMtime === depSurfaceMtime
       ) {
         return {
           ...cached.context,
@@ -220,20 +285,7 @@ export class IntelligenceSnapshotReader {
         }
       } catch { /* degrade gracefully */ }
 
-      const dependencySurfaceMap = new Map<string, number>();
-      try {
-        const depSurfacePath = path.join(outputDir, '08_dependency_surface.json');
-        if (fs.existsSync(depSurfacePath)) {
-          const depSurfaceData = JSON.parse(fs.readFileSync(depSurfacePath, 'utf-8'));
-          if (depSurfaceData.heatmap && typeof depSurfaceData.heatmap === 'object') {
-            for (const [key, value] of Object.entries(depSurfaceData.heatmap)) {
-              if (typeof value === 'number') {
-                dependencySurfaceMap.set(key, value);
-              }
-            }
-          }
-        }
-      } catch { /* degrade gracefully */ }
+      const dependencySurfaceMap = this.readDependencySurfaceMap(depSurfacePath);
 
       const context: RepoContext = {
         hotspotMap,
@@ -253,7 +305,8 @@ export class IntelligenceSnapshotReader {
         context,
         timestamp: manifest.timestamp,
         lastCommitSha: manifest.lastCommitSha,
-        tracksMtime
+        tracksMtime,
+        depSurfaceMtime,
       });
 
       return context;
@@ -262,3 +315,4 @@ export class IntelligenceSnapshotReader {
     }
   }
 }
+
