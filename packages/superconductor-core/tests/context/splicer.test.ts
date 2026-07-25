@@ -1,7 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { TrackSplicer } from '../../src/context/splicer.js';
-
 import { vi, describe, beforeEach, it, expect } from 'vitest';
 
 vi.mock('node:fs');
@@ -46,7 +45,7 @@ describe('TrackSplicer', () => {
     expect(parsed[0].specSummary.endsWith('...')).toBe(true);
     
     // Assert correct compression of whitespace and comments
-    expect(parsed[0].planSummary).toBe('# Plan Content');
+    expect(parsed[0].planSummary).toBe('# Plan\n\nContent');
   });
 
   it('rejects invalid trackIds (SEC-1)', () => {

@@ -38,13 +38,13 @@ export class TrackSplicer {
       let specSummary = '';
       const specPath = path.join(trackDir, 'spec.md');
       if (fs.existsSync(specPath)) {
-        specSummary = this.compressMarkdown(fs.readFileSync(specPath, 'utf-8'));
+        specSummary = TrackSplicer.compressMarkdown(fs.readFileSync(specPath, 'utf-8'));
       }
 
       let planSummary = '';
       const planPath = path.join(trackDir, 'plan.md');
       if (fs.existsSync(planPath)) {
-        planSummary = this.compressMarkdown(fs.readFileSync(planPath, 'utf-8'));
+        planSummary = TrackSplicer.compressMarkdown(fs.readFileSync(planPath, 'utf-8'));
       }
 
       spliced.push({
@@ -58,10 +58,10 @@ export class TrackSplicer {
     return JSON.stringify(spliced);
   }
 
-  private compressMarkdown(markdown: string): string {
+  private static compressMarkdown(markdown: string): string {
     let compressed = markdown
       .replace(/<!--[\s\S]*?-->/g, '') // remove HTML comments
-      .replace(/\s+/g, ' ')
+      .replace(/(?:\r?\n){3,}/g, '\n\n')
       .trim();
     if (compressed.length > 2000) {
       compressed = compressed.substring(0, 2000) + '...';
