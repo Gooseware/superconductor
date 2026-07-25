@@ -78,7 +78,11 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
           });
         });
 
-        const engine = new Engine({ nodes, edges }, { commonContext: 'orchestrate' });
+        const { TrackSplicer } = await import('../context/splicer.js');
+        const splicer = new TrackSplicer(projectRoot);
+        const payload = splicer.spliceTracks(trackIds);
+
+        const engine = new Engine({ nodes, edges }, { commonContext: payload });
         await engine.execute();
       }
       break;
