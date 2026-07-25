@@ -37,38 +37,47 @@ test('ParallelDispatcher respects maxConcurrent limits and queues tasks', async 
     { id: '4', role: 'coder', prompt: 'test', dependencies: [] },
   ];
 
-  const dispatchPromises = tasks.map(t => dispatcher.dispatch(t));
+  let resolvedCount = 0;
+  const dispatchPromises = tasks.map(async t => {
+    await dispatcher.dispatch(t);
+    resolvedCount++;
+  });
 
-  // Allow promises to resolve
-  await new Promise(r => setTimeout(r, 50));
+  // Flush microtasks to allow simulateExecution to be called
+  await new Promise(process.nextTick);
 
   // Should immediately start first 2
   expect(dispatcher.activeAgents).toBe(2);
   expect(dispatcher.queueLength).toBe(2);
   expect(taskCompleters.length).toBe(2);
+  expect(resolvedCount).toBe(0); // Ensure promises haven't resolved early
   
   // Complete first task
   taskCompleters[0]();
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(process.nextTick);
+  await new Promise(process.nextTick); // sometimes multiple ticks needed for promise chaining
   
   expect(dispatcher.activeAgents).toBe(2);
   expect(dispatcher.queueLength).toBe(1);
   expect(taskCompleters.length).toBe(3);
+  expect(resolvedCount).toBe(1);
 
   // Complete second task
   taskCompleters[1]();
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(process.nextTick);
+  await new Promise(process.nextTick);
 
   expect(dispatcher.activeAgents).toBe(2);
   expect(dispatcher.queueLength).toBe(0);
   expect(taskCompleters.length).toBe(4);
+  expect(resolvedCount).toBe(2);
   
   // Complete rest
   taskCompleters[2]();
   taskCompleters[3]();
   await Promise.all(dispatchPromises);
-  await new Promise(r => setTimeout(r, 50));
   
+  expect(resolvedCount).toBe(4);
   expect(maxObserved).toBeLessThanOrEqual(2);
   expect(dispatcher.activeAgents).toBe(0);
 });

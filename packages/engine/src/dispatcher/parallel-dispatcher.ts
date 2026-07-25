@@ -4,11 +4,11 @@ import { DagNode } from '../types/dag.types.js';
 export class ParallelDispatcher extends Dispatcher {
   private maxConcurrent: number;
   private activeCount: number = 0;
-  private queue: DagNode[] = [];
+  private queue: { task: DagNode; resolve: () => void; reject: (err: any) => void }[] = [];
 
   constructor(maxConcurrent: number = 5) {
     super();
-    this.maxConcurrent = maxConcurrent;
+    this.maxConcurrent = Math.max(1, maxConcurrent);
   }
 
   get queueLength(): number {
@@ -21,8 +21,9 @@ export class ParallelDispatcher extends Dispatcher {
 
   async dispatch(task: DagNode): Promise<void> {
     if (this.activeCount >= this.maxConcurrent) {
-      this.queue.push(task);
-      return;
+      return new Promise<void>((resolve, reject) => {
+        this.queue.push({ task, resolve, reject });
+      });
     }
 
     await this.executeTask(task);
@@ -39,13 +40,11 @@ export class ParallelDispatcher extends Dispatcher {
   }
 
   private pumpQueue() {
-    if (this.activeCount < this.maxConcurrent && this.queue.length > 0) {
+    while (this.activeCount < this.maxConcurrent && this.queue.length > 0) {
       const nextTask = this.queue.shift();
       if (nextTask) {
         // We don't await this here so it runs in background similar to dispatch
-        this.executeTask(nextTask).catch(err => {
-          console.error('Error executing task from queue:', err);
-        });
+        this.executeTask(nextTask.task).then(nextTask.resolve).catch(nextTask.reject);
       }
     }
   }
