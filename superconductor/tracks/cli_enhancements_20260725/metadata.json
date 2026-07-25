@@ -1,0 +1,6 @@
+{
+  "id": "cli_enhancements_20260725",
+  "description": "CLI enhancements: Implement mode selection for implement, multi-track input, ExecutionPlanner, and TrackSplicer.",
+  "status": "planned",
+  "created_at": "2026-07-25T13:41:11+04:00"
+}

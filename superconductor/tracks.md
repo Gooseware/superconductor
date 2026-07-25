@@ -184,3 +184,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [ ] **Track: Streaming & Multi-Modal Oracle Review Panel**
 *Link: [./tracks/multimodal_oracle_review_20260725/](./tracks/multimodal_oracle_review_20260725/)*
+
+## cli_enhancements_20260725
+- **Status:** planned
+- **Description:** Implement mode selection, multi-track execution, execution planner, and track metadata splicing for CLI.
+- **Artifacts:**
+  - [spec.md](tracks/cli_enhancements_20260725/spec.md)
+  - [plan.md](tracks/cli_enhancements_20260725/plan.md)
