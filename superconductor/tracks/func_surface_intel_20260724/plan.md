@@ -50,5 +50,5 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 4: Adapter Generation Heuristics' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ## Phase 5: Integration & Finalization
-- [ ] Task: Integrate track 'func_surface_intel_20260724' into main branch. [TIER-3:TCS=3] [AGENT:caduceus-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Integrate track 'func_surface_intel_20260724' into main branch. [TIER-3:TCS=3] [AGENT:caduceus-processor]
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=4]
