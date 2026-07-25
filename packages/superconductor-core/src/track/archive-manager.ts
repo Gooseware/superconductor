@@ -66,7 +66,7 @@ export class ArchiveManager {
       for (const block of blocks) {
         const firstLine = block.split('\n')[0] || '';
         // SEC-1: Precise boundary match
-        if (firstLine.includes(trackId) && new RegExp(`(?<![\\w-])${trackId}(?![\\w-])`).test(firstLine) && blockRegex.test(block)) {
+        if (block.includes(trackId) && new RegExp(`(?<![\\w-])${trackId}(?![\\w-])`).test(block) && blockRegex.test(block)) {
           targetBlock = block;
           const match = block.match(/^(?:\s*-\s*|##\s*)\[([xX \-~])\]/);
           if (match) status = match[1].toLowerCase();
