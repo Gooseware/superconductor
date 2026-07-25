@@ -6,7 +6,7 @@ description: Use when the user wants to modify, add themes, or implement dark mo
 # Theme Manager Flow
 
 ## Overview
-Guides the creation and modification of themes, including the implementation of "Dark Mode" and high-contrast accessibility variants.
+Guides the creation and modification of themes, including the implementation of "Dark Mode" and high-contrast accessibility variants using the Astryx Theme Builder (`npx astryx theme`) and `<Theme>` provider.
 
 ## When to Use
 - User says "Add a dark mode".
@@ -20,30 +20,23 @@ Determine if the change is **Global** or **Scoped** (using `contextOverrides`).
 
 ### 2. Dark Mode Implementation
 If the goal is "Dark Mode":
-- Define a `.dark` context override.
-- Map dark-mode specific HSL values (e.g., lower lightness for backgrounds, higher for foregrounds).
-- Ensure the **App Shell** has a toggle tool that adds/removes the `.dark` class from the `<html>` or `<body>`.
+- Generate dark-mode specific semantic tokens using `npx astryx theme`.
+- Ensure the **App Shell** wraps the app in the Astryx `<Theme>` provider.
+- Toggle between `mode="light"`, `mode="dark"`, or `mode="system"` on the provider.
 
 ### 3. Generative Refinement
-Use the **`set_theme`** tool to persist changes.
-Example for adding Dark Mode:
-```json
-{
-  "contextOverrides": {
-    "dark": {
-      "background": "220 15% 10%",
-      "foreground": "220 5% 95%",
-      "primary": "220 90% 60%"
-    }
-  }
-}
+Use the Astryx CLI to generate the tokens and persist changes.
+Example workflow for adding Dark Mode:
+```bash
+npx astryx theme --mode dark
 ```
+This updates the theme variables in the `@astryxdesign/core` system or your local `theme.ts`.
 
 ### 4. Verification
 - Verify that color contrast (WCAG) is maintained in both modes.
-- Use `registry_validate_file` on components to ensure they use variables (`hsl(var(--background))`) instead of fixed colors.
+- Ensure all components use semantic variables (e.g., `var(--color-background)`) instead of fixed colors.
 
 ## Common Mistakes
-- Hardcoding `bg-white` instead of `bg-background`.
-- Forgetting to sync the SQLite database with the `product/design-system/theme.json` file.
-- Not defining "Active" and "Hover" states for the dark theme.
+- Hardcoding specific token hues (e.g., `var(--color-gray-100)`) instead of semantic tokens (`var(--color-background)`).
+- Forgetting to pass the `mode` prop to the Astryx `<Theme>` provider.
+- Not defining "Active" and "Hover" state tokens for custom brand themes.

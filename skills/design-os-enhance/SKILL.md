@@ -23,7 +23,7 @@ Guides the process of integrating Design OS logic into an existing application t
 ### 2. Introspection
 Ask the user:
 - "What is the primary goal of this enhancement? (Performance, Visual Polish, Feature Addition?)"
-- "Should we strictly follow the existing code patterns or migrate to our dogmatic RR7/Tailwind 4 stack?"
+- "Should we strictly follow the existing code patterns or migrate to our component-driven Astryx stack (`@astryxdesign/core`)?"
 
 ### 3. Flow Mapping
 - Draft an "Enhancement Plan" in `docs/plans/YYYY-MM-DD-enhance-[flow].md`.
@@ -36,4 +36,4 @@ Ask the user:
 ## Common Mistakes
 - Refactoring everything at once (prefer incremental flow updates).
 - Ignoring existing business logic while updating the UI.
-- Not verifying if the existing app is compatible with Tailwind 4.
+- Not verifying if the existing app is compatible with the Astryx design system and tokens.

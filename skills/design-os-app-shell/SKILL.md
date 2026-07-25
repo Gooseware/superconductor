@@ -6,7 +6,7 @@ description: Use when the user needs to design the persistent layout and navigat
 # Design OS Application Shell
 
 ## Overview
-Guides the design of the global navigation, user menus, and overall layout pattern (Sidebar vs Top-Nav).
+Guides the design of the global navigation, user menus, and overall layout pattern using the Astryx Design System frame components (e.g., `AppShell`, `SideNav`, `TopNav`, `Layout`).
 
 ## When to Use
 - Design system tokens are defined.
@@ -16,47 +16,39 @@ Guides the design of the global navigation, user menus, and overall layout patte
 ## The Process
 
 ### 1. Pattern Selection
-Propose a layout pattern based on the Roadmap (e.g., Sidebar is better for complex apps, Top-Nav for simple marketing/tools).
+Use the Astryx CLI to discover available layout archetype templates:
+`npx astryx template --list`
+Pick the best layout pattern based on the Roadmap (e.g., Tracker/work tool uses `AppShell` + `SideNav`, Media library uses `AppShell` + `TopNav`).
 
-### 2. Navigation Mapping
-Define the main links (mapping to the Roadmap sections).
+### 2. Layout Discovery and Navigation
+Scaffold or study the structure of the chosen template:
+`npx astryx template <name> --skeleton`
+Define the main links for the global navigation.
 
 ### 3. Create the Spec
 Write to `product/shell/spec.md`:
 ```markdown
 # Application Shell Spec
 
-## Layout Pattern
-[Sidebar | Top-Nav]
+## Astryx Frame
+Describe the layout pattern and the Astryx frame components to be used (e.g., `<AppShell>`, `<SideNav>`, `<LayoutPanel>`).
 
 ## Global Navigation
 - **Home**: [Path]
 - **[Section 1]**: [Path]
 
-## Component Architecture
-The system MUST follow the standard Design OS layout terminology:
-- **Layouts**: Global shells and persistent wrappers (e.g., `AppShell.tsx`).
-- **Pages**: Top-level route components.
-- **Atoms**: Primitive UI elements (Button, Input, Label).
-- **Molecules**: Groups of atoms (SearchField, CardHeader).
-- **Organisms**: Complex UI sections (Header, Sidebar, ThemeSwitcher).
-- **Forms**: Data entry groups with validation.
-- **Utils**: Shared helper functions (CN, Date Formatters).
-
-## Directory Structure
-- `app/components/layouts/`
-- `app/components/pages/`
-- `app/components/atoms/`
-- `app/components/molecules/`
-- `app/components/organisms/`
-- `app/components/forms/`
-- `app/utils/`
+## Responsive Contract
+- > 1024px: [e.g., nav 256px | content flex]
+- <= 1024px: [e.g., inspector overlays content]
+- <= 768px: [e.g., nav collapses into MobileNav drawer]
 ```
 
 ### 4. Implementation
-Use the `registry_recommend` MCP tool to find matching primitives. Ensure all new components are placed in their respective folders.
+Use the Astryx CLI to fetch the necessary components:
+`npx astryx build "layout shell with sidebar and header"`
+Do not build layouts using `<div>` tags. Use Astryx layout components (e.g., `Stack`, `Grid`, `Layout`, `AppShell`).
 
 ## Common Mistakes
-- Including too much logic in the shell.
-- Forgetting the user profile/auth menu.
-- Non-responsive designs.
+- Using `<div>` tags instead of Astryx Layout components (`Stack`, `Grid`, `Layout`, etc.).
+- Skipping the responsive contract before building.
+- Manually recreating elements that exist in the Astryx component library (use `npx astryx search`).
