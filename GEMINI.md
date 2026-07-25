@@ -45,4 +45,9 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - **MCP Server**: The `design-os-kernel` MCP server is configured in `mcp_config.json` at the extension root, and runs using node on the local compiled build (`packages/design-os-kernel/dist/index.js`).
 - **Skills**: When the superconductor plugin is installed, 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.) are automatically registered and available for discovery.
 
+## SWARM GUARDRAILS
 
+- When Superconductor is active + swarm mode: root agent MUST NOT write to `packages/*/src/**` directly. Must use `invoke_subagent` → Processor.
+- When Superconductor is active (any mode): root agent MUST NOT commit a track branch until Quorum loop is complete and green.
+- If the root agent catches itself violating this rule, it must emit the following exact error message:
+  "[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."

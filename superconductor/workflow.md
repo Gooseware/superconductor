@@ -269,6 +269,11 @@ Before requesting review:
    - Performance acceptable on mobile
    - Interactions feel native
 
+## Commit Gate
+
+- Sequential mode and swarm mode both require the Quorum → Remediate → Quorum loop to complete before the finalization commit step.
+- The finalization commit (`chore(superconductor): Mark track X as complete`) is explicitly gated — it MUST NOT run until all 4 reviewers report `RESOLVED`.
+
 ## Commit Guidelines
 
 ### Message Format
