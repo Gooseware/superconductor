@@ -1,7 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { TrackSplicer } from '../../src/context/splicer.js';
-
 import { vi, describe, beforeEach, it, expect } from 'vitest';
 
 vi.mock('node:fs');
