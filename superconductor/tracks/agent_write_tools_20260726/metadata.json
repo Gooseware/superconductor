@@ -1,0 +1,9 @@
+{
+  "id": "agent_write_tools_20260726",
+  "title": "Agent Write Tools Audit & Repair",
+  "type": "Bug",
+  "status": "planned",
+  "created_at": "2026-07-26T05:17:35+04:00",
+  "target_branch": "main",
+  "description": "Audit and repair Superconductor plugin-canonical agent manifests that are missing explicit write/run tool declarations, causing coding agents to be functionally read-only during swarm execution."
+}
