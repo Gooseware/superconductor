@@ -45,11 +45,11 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 3: Brownfield Codebase Chunking' (Protocol in workflow.md) [TIER-1:TCS=3] d7233fd
 
 ## Phase 4: Synthetic Onboarding Generator
-- [ ] Task: Write failing tests for `generateSyntheticContext()` method in `IntelligenceSnapshotReader` (Oracle Suggestion) [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Write failing tests asserting generated `product.md`/`tech-stack.md` contain no secrets, env vars, or credentials (Spec §3 Security) [TIER-2:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Implement synthetic `product.md` and `tech-stack.md` generation for brownfield projects [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Implement secret/env-var scrubbing pass on synthetic output before persisting to `superconductor/` (Spec §3 Reviewer) [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Synthetic Onboarding Generator' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Write failing tests for `generateSyntheticContext()` method in `IntelligenceSnapshotReader` (Oracle Suggestion) [TIER-3:TCS=3] [AGENT:superconductor-processor] 46f3475
+- [x] Task: Write failing tests asserting generated `product.md`/`tech-stack.md` contain no secrets, env vars, or credentials (Spec §3 Security) [TIER-2:TCS=3] [AGENT:superconductor-processor] 46f3475
+- [x] Task: Implement synthetic `product.md` and `tech-stack.md` generation for brownfield projects [TIER-3:TCS=3] [AGENT:superconductor-processor] 46f3475
+- [x] Task: Implement secret/env-var scrubbing pass on synthetic output before persisting to `superconductor/` (Spec §3 Reviewer) [TIER-3:TCS=3] [AGENT:superconductor-processor] 46f3475
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Synthetic Onboarding Generator' (Protocol in workflow.md) [TIER-1:TCS=3] 46f3475
 
 ## Phase 5: Integration & Finalization
 - [ ] Task: Run end-to-end smoke test validating all 4 Acceptance Criteria (Spec §6) on a sample project [TIER-3:TCS=3] [AGENT:superconductor-processor]
