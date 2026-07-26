@@ -52,6 +52,6 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 4: Synthetic Onboarding Generator' (Protocol in workflow.md) [TIER-1:TCS=3] 46f3475
 
 ## Phase 5: Integration & Finalization
-- [x] Task: Run end-to-end smoke test validating all 4 Acceptance Criteria (Spec §6) on a sample project [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Integrate track 'orchestrator_self_healing_20260726' into main branch. [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Run end-to-end smoke test validating all 4 Acceptance Criteria (Spec §6) on a sample project [TIER-3:TCS=3] [AGENT:superconductor-processor] af084e0
+- [x] Task: Integrate track 'orchestrator_self_healing_20260726' into main branch. [TIER-3:TCS=3] [AGENT:superconductor-processor] af084e0
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3] af084e0
