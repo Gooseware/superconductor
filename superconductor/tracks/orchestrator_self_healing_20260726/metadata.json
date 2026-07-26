@@ -1,0 +1,7 @@
+{
+  "id": "orchestrator_self_healing_20260726",
+  "name": "Orchestrator Self-Healing & Brownfield Quorum Reviews",
+  "description": "Enhance the Superconductor framework to handle agents falling off track via a recovery daemon, orchestrate quorum reviews, and enable brownfield codebase chunking via the Intelligence Layer.",
+  "status": "pending",
+  "created_at": "2026-07-26T05:59:00Z"
+}
