@@ -214,4 +214,4 @@ superconductor/backlog.md
 
 # Design OS Kernel
 packages/design-os-kernel/dist/
-packages/design-os-kernel/node_modules/
+packages/design-os-kernel/node_modules/.vite/
