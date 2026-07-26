@@ -30,8 +30,7 @@ const ROLES = {
 
 describe('Agent Manifests Audit', () => {
     if (!fs.existsSync(AGENTS_DIR)) {
-        console.warn(`Agents directory not found at ${AGENTS_DIR}. Skipping tests.`);
-        return;
+        throw new Error(`Agents directory not found at ${AGENTS_DIR}.`);
     }
 
     const agents = fs.readdirSync(AGENTS_DIR).filter(d => {
@@ -59,9 +58,9 @@ describe('Agent Manifests Audit', () => {
                 
                 const requiredTools = ROLES[agent];
                 if (!requiredTools) {
-                    console.warn(`No role defined for ${agent}`);
-                    return;
+                    expect.fail(`No role defined for ${agent}`);
                 }
+                expect(Array.isArray(manifest?.tools)).toBe(true);
 
                 const actualTools = manifest?.tools || [];
 
