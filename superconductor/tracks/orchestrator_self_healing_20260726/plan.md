@@ -27,15 +27,15 @@
 - [x] Task: Write failing tests for recovery daemon retry/escalation limit — daemon must stop re-injecting after N attempts and gracefully escalate [TIER-2:TCS=3] [AGENT:superconductor-processor] b213828
 - [x] Task: Implement the recovery daemon to detect missing track context and re-inject `plan.md` [TIER-3:TCS=3] [AGENT:superconductor-processor] 9761576
 - [x] Task: Implement configurable max re-injection retry limit and graceful escalation path on daemon (Spec §3 Reviewer, §5 NFR Safety) [TIER-3:TCS=3] [AGENT:superconductor-processor] 9761576
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Recovery Daemon (Orchestrator)' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Recovery Daemon (Orchestrator)' (Protocol in workflow.md) [TIER-1:TCS=3] 2580d6a
 
 ## Phase 2: Quorum Review & Remediation Loop
-- [x] Task: Write failing tests for triggering a full 4-panel Quorum Review (Correctness, Security, Adversarial, Regression) via `/superconductor:review` [TIER-2:TCS=3] [AGENT:superconductor-processor]
-- [x] Task: Write failing tests for configurable max iteration limit on QuorumReviewLoop (e.g. assert loop halts after 3 remediation cycles) [TIER-2:TCS=3] [AGENT:superconductor-processor] 1d209b31d209b31d209b3
-- [x] Task: Implement QuorumReviewLoop class handling `review > remediate > review` cycle (Oracle Suggestion) [TIER-3:TCS=3] [AGENT:superconductor-processor] 1d209b31d209b31d209b3
-- [x] Task: Add configurable `maxIterations` parameter to QuorumReviewLoop (Spec §5 NFR Safety) [TIER-3:TCS=3] [AGENT:superconductor-processor] 1d209b31d209b31d209b3
-- [x] Task: Integrate QuorumReviewLoop into the `/superconductor:review` command [TIER-3:TCS=3] [AGENT:superconductor-processor] 1d209b31d209b31d209b3
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Review & Remediation Loop' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Write failing tests for triggering a full 4-panel Quorum Review (Correctness, Security, Adversarial, Regression) via `/superconductor:review` [TIER-2:TCS=3] [AGENT:superconductor-processor] 2580d6a
+- [x] Task: Write failing tests for configurable max iteration limit on QuorumReviewLoop (e.g. assert loop halts after 3 remediation cycles) [TIER-2:TCS=3] [AGENT:superconductor-processor] 2580d6a
+- [x] Task: Implement QuorumReviewLoop class handling `review > remediate > review` cycle (Oracle Suggestion) [TIER-3:TCS=3] [AGENT:superconductor-processor] 2580d6a
+- [x] Task: Add configurable `maxIterations` parameter to QuorumReviewLoop (Spec §5 NFR Safety) [TIER-3:TCS=3] [AGENT:superconductor-processor] 2580d6a
+- [x] Task: Integrate QuorumReviewLoop into the `/superconductor:review` command [TIER-3:TCS=3] [AGENT:superconductor-processor] 2580d6a
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Review & Remediation Loop' (Protocol in workflow.md) [TIER-1:TCS=3] 2580d6a
 
 ## Phase 3: Brownfield Codebase Chunking
 - [ ] Task: Write failing tests for semantically chunking a codebase using DependencyAnalyzer [TIER-3:TCS=3] [AGENT:superconductor-processor]
