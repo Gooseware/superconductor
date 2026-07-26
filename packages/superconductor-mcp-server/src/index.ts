@@ -25,10 +25,47 @@ import {
   IntelligenceSnapshotReader
 } from "@superconductor/core";
 
-let promptTokens = 0;
-let completionTokens = 0;
-let stepIndex = 0;
-let hasFlushed = false;
+class TelemetrySession {
+  private promptTokens = 0;
+  private completionTokens = 0;
+  private stepIndex = 0;
+  private hasFlushed = false;
+  private store: FileTelemetryStore;
+  constructor(private root: string) {
+    this.store = new FileTelemetryStore(path.join(this.root, "superconductor", "telemetry.log"));
+  }
+  public addTokens(prompt: any, completion: any) {
+    if (typeof prompt === 'number' && Number.isInteger(prompt) && prompt > 0) {
+      this.promptTokens += prompt;
+    }
+    if (typeof completion === 'number' && Number.isInteger(completion) && completion > 0) {
+      this.completionTokens += completion;
+    }
+  }
+  public incrementStep() { this.stepIndex++; }
+  public async flush(retries = 3) {
+    if (this.hasFlushed) return;
+    for (let i = 0; i < retries; i++) {
+      try {
+        await this.store.recordUsage({
+          trackId: (process.env.SUPERCONDUCTOR_TRACK_ID || "unknown").replace(/[^a-zA-Z0-9_-]/g, ""),
+          subagentId: (process.env.SUPERCONDUCTOR_SUBAGENT_ID || "unknown").replace(/[^a-zA-Z0-9_-]/g, ""),
+          stepIndex: this.stepIndex,
+          promptTokens: this.promptTokens,
+          completionTokens: this.completionTokens,
+          timestamp: Date.now()
+        });
+        this.hasFlushed = true;
+        return;
+      } catch (e) {
+        if (i === retries - 1) {
+          console.error("Telemetry flush failed after retries:", e);
+        }
+      }
+    }
+  }
+}
+let telemetrySession: TelemetrySession;
 
 const server = new Server(
   {
@@ -49,6 +86,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 const workspaceRoot = path.resolve(process.env.SUPERCONDUCTOR_WORKSPACE_ROOT || process.cwd());
+telemetrySession = new TelemetrySession(workspaceRoot);
 
 /**
  * Resolves and validates a project root path.
@@ -190,10 +228,9 @@ export function handleGetDependencySurface(projectRoot: string, args: any): obje
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const meta = request.params?._meta;
   if (meta) {
-    if (typeof meta.promptTokens === 'number') promptTokens += meta.promptTokens;
-    if (typeof meta.completionTokens === 'number') completionTokens += meta.completionTokens;
+    telemetrySession.addTokens(meta.promptTokens, meta.completionTokens);
   }
-  stepIndex++;
+  telemetrySession.incrementStep();
 
   const { name, arguments: args } = request.params;
   const projectRoot = validateProjectRoot((args && typeof args.projectRoot === 'string') ? args.projectRoot : undefined);
@@ -224,21 +261,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
 
 async function flushTelemetry() {
-  if (hasFlushed) return;
-  hasFlushed = true;
-  try {
-    const store = new FileTelemetryStore(path.join(workspaceRoot, "superconductor", "telemetry.log"));
-    await store.recordUsage({
-      trackId: process.env.SUPERCONDUCTOR_TRACK_ID || "unknown",
-      subagentId: process.env.SUPERCONDUCTOR_SUBAGENT_ID || "unknown",
-      stepIndex,
-      promptTokens: Math.max(0, Math.round(promptTokens)),
-      completionTokens: Math.max(0, Math.round(completionTokens)),
-      timestamp: Date.now()
-    });
-  } catch (e) {
-    console.error("Telemetry flush failed:", e);
-  }
+  await telemetrySession.flush();
 }
 
 async function run() {

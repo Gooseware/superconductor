@@ -19,7 +19,7 @@ describe('Phase 4: Component Staging Bridge', () => {
   it('writes staged component atomically and ingests via watcher', async () => {
     const writer = new ComponentStagingWriter(tmpStaging);
     const success = await writer.write({
-      componentId: 'comp_button_1',
+      componentId: 'test-component',
       trackId: 'track_test',
       timestamp: new Date().toISOString(),
       metadata: {
@@ -33,9 +33,11 @@ describe('Phase 4: Component Staging Bridge', () => {
 
     expect(success).toBe(true);
 
+    await new Promise(r => setTimeout(r, 150));
+
     const watcher = new StagingWatcher(tmpStaging);
     const result = await watcher.processStaging(async (manifest) => {
-      expect(manifest.componentId).toBe('comp_button_1');
+      expect(manifest.componentId).toBe('test-component');
     });
 
     expect(result.processed).toBe(1);

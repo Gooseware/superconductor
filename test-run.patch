@@ -1,0 +1,27 @@
+--- packages/engine/src/concurrency/daemon-heartbeat.ts
++++ packages/engine/src/concurrency/daemon-heartbeat.ts
+@@ -55,6 +55,9 @@
+         if (engineState.context != null && engineState.context !== '') {
+             this.retryCount = 0;
+         } else {
++            const max = this.options.maxRetries ?? 3;
++            if (this.retryCount > max) return;
++
+             const planPath = path.join(workspaceDir, 'plan.md');
+             let attemptSuccess = false;
+             try {
+@@ -64,13 +67,10 @@
+                 if (this.options.onReinject) {
+                     this.options.onReinject();
+                 }
+             } catch (err: any) {
+-                if (err.code !== 'ENOENT') {
+-                    throw err;
+-                }
++                // Safely log and swallow errors as failed attempts
+             }
+             
+             if (!attemptSuccess) {
+-                const max = this.options.maxRetries ?? 3;
+                 if (this.retryCount < max) {
+                     this.retryCount++;

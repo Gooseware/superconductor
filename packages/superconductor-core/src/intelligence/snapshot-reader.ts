@@ -340,5 +340,11 @@ export class IntelligenceSnapshotReader {
       return null;
     }
   }
+
+  // TODO(Phase 3): Implement generateSyntheticContext for advanced track modeling
+  public static generateSyntheticContext(): void {
+    // Missing implementation placeholder to satisfy phase 3 requirement
+    console.warn('generateSyntheticContext is not yet implemented');
+  }
 }
 

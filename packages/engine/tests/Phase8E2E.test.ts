@@ -10,7 +10,7 @@ import { AdaptiveRouter } from '/home/gooseware/repos/hippos/caduceus/packages/c
 import { StagingWatcher } from '/home/gooseware/repos/hippos/caduceus/packages/mcp-server/src/managers/StagingWatcher.ts';
 
 describe('Phase 8: End-to-End Integration Verification', () => {
-  const tmpWorkspace = path.join(os.tmpdir(), `e2e-workspace-${Date.now()}`);
+  const tmpWorkspace = path.join(process.cwd(), `.tmp-e2e-workspace-${Date.now()}`);
   const tmpStaging = path.join(os.tmpdir(), `e2e-staging-${Date.now()}`);
   const activeModelPath = path.join(os.homedir(), '.gemini', 'active_model.json');
 
@@ -70,7 +70,7 @@ describe('Phase 8: End-to-End Integration Verification', () => {
     // 5. Superconductor stages reusable component & Caduceus ingests
     const writer = new ComponentStagingWriter(tmpStaging);
     const writeOk = await writer.write({
-      componentId: 'e2e_component',
+      componentId: 'test-component',
       trackId: 'e2e_track',
       timestamp: new Date().toISOString(),
       metadata: { type: 'molecule', description: 'E2E Component', tags: ['e2e'], dependencies: [] },
@@ -78,6 +78,7 @@ describe('Phase 8: End-to-End Integration Verification', () => {
     });
     expect(writeOk).toBe(true);
 
+    await new Promise(r => setTimeout(r, 150));
     const watcher = new StagingWatcher(tmpStaging);
     const watchResult = await watcher.processStaging();
     expect(watchResult.processed).toBe(1);

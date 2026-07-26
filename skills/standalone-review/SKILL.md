@@ -196,7 +196,7 @@ Correct intent:    empty = clean pass, should always skip
 
 **Default mode (full pipeline):**
 1. Run `scripts/deterministic-preflight.ts` (language-detected or extension-heuristic)
-2. Run QuorumReviewLoop to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression
+2. Run `scripts/quorum-review.ts` to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression
 3. Run `scripts/aggregate-coverage-manifest.ts` → ResidualCoverageMap
 4. If ResidualCoverageMap non-empty → dispatch residual Flash pass
 5. Run `scripts/aggregate-findings.ts` → unified findings

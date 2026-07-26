@@ -1,22 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { 
     QuorumReviewLoop, 
-    validateReviewerPayload, 
-    CodebaseChunker 
+    validateReviewerPayload
 } from '../src/verification/quorum-review-loop';
-
-describe('CodebaseChunker', () => {
-    it('should chunk large codebases into parts strictly below the 100k token limit', () => {
-        const largeText = 'token '.repeat(110000);
-        const chunker = new CodebaseChunker({ tokenLimit: 100000 });
-        const chunks = chunker.chunk(largeText);
-        
-        expect(chunks.length).toBeGreaterThan(1);
-        for (const chunk of chunks) {
-            expect(chunk.length).toBeLessThanOrEqual(100000 * 6);
-        }
-    });
-});
 
 describe('validateReviewerPayload', () => {
     it('should throw an error if both RESOLVED status and findings are provided', () => {

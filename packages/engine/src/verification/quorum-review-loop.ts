@@ -1,25 +1,3 @@
-export interface ChunkerOptions {
-    tokenLimit: number;
-}
-
-export class CodebaseChunker {
-    private tokenLimit: number;
-
-    constructor(options: ChunkerOptions) {
-        this.tokenLimit = options.tokenLimit;
-    }
-
-    chunk(text: string): string[] {
-        // Approximate 1 token to ~4 chars for the chunk limit
-        const charLimit = this.tokenLimit * 4;
-        const chunks: string[] = [];
-        for (let i = 0; i < text.length; i += charLimit) {
-            chunks.push(text.slice(i, i + charLimit));
-        }
-        return chunks;
-    }
-}
-
 export function validateReviewerPayload(payload: any): void {
     if (payload.status === 'RESOLVED' && payload.findings && payload.findings.length > 0) {
         throw new Error('Mutual exclusivity violated: cannot have RESOLVED status with findings');
@@ -30,17 +8,27 @@ export interface QuorumReviewLoopOptions {
     maxIterations: number;
     reviewerFn: (code: string) => Promise<{ status: string, findings: string[] }>;
     remediateFn?: (code: string, findings: string[]) => Promise<string>;
+    timeoutMs?: number;
 }
 
 export class QuorumReviewLoop {
     private maxIterations: number;
     private reviewerFn: (code: string) => Promise<{ status: string, findings: string[] }>;
     private remediateFn?: (code: string, findings: string[]) => Promise<string>;
+    private timeoutMs: number;
 
     constructor(options: QuorumReviewLoopOptions) {
-        this.maxIterations = options.maxIterations;
+        this.maxIterations = Math.max(1, options.maxIterations);
         this.reviewerFn = options.reviewerFn;
         this.remediateFn = options.remediateFn;
+        this.timeoutMs = options.timeoutMs || 30000;
+    }
+
+    private async withTimeout<T>(promise: Promise<T>): Promise<T> {
+        return Promise.race([
+            promise,
+            new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Operation timed out')), this.timeoutMs))
+        ]);
     }
 
     async run(code: string): Promise<{ status: string, findings?: string[] }> {
@@ -50,7 +38,7 @@ export class QuorumReviewLoop {
 
         while (iterations < this.maxIterations) {
             iterations++;
-            const result = await this.reviewerFn(currentCode);
+            const result = await this.withTimeout(this.reviewerFn(currentCode));
             validateReviewerPayload(result);
             lastResult = result;
 
@@ -58,8 +46,12 @@ export class QuorumReviewLoop {
                 return result;
             }
 
+            if (!result.findings || result.findings.length === 0) {
+                throw new Error('Reviewer returned no findings but status is not RESOLVED');
+            }
+
             if (this.remediateFn && result.findings && result.findings.length > 0) {
-                currentCode = await this.remediateFn(currentCode, result.findings);
+                currentCode = await this.withTimeout(this.remediateFn(currentCode, result.findings));
             }
         }
 

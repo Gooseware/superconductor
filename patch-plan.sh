@@ -1,0 +1,6 @@
+sed -i 's/^- \[ \] Task: Write failing tests for triggering a full 4-panel Quorum Review$/- [x] Task: Write failing tests for triggering a full 4-panel Quorum Review/g' superconductor/tracks/orchestrator_self_healing_20260726/plan.md
+sed -i 's/^- \[ \] Task: Write failing tests for configurable max iteration limit on QuorumReviewLoop$/- [x] Task: Write failing tests for configurable max iteration limit on QuorumReviewLoop/g' superconductor/tracks/orchestrator_self_healing_20260726/plan.md
+sed -i 's/^- \[ \] Task: Implement QuorumReviewLoop class handling `review > remediate > review` cycle$/- [x] Task: Implement QuorumReviewLoop class handling `review > remediate > review` cycle/g' superconductor/tracks/orchestrator_self_healing_20260726/plan.md
+sed -i 's/^- \[ \] Task: Add configurable `maxIterations` parameter to QuorumReviewLoop$/- [x] Task: Add configurable `maxIterations` parameter to QuorumReviewLoop/g' superconductor/tracks/orchestrator_self_healing_20260726/plan.md
+sed -i 's/^- \[ \] Task: Integrate QuorumReviewLoop into the `\/superconductor:review` command$/- [x] Task: Integrate QuorumReviewLoop into the `\/superconductor:review` command/g' superconductor/tracks/orchestrator_self_healing_20260726/plan.md
+bash patch-plan.sh
