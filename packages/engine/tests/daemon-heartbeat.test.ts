@@ -78,7 +78,6 @@ describe('DaemonHeartbeat', () => {
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject });
             const engineState: EngineState = {};
             
-            vi.mocked(fs.existsSync).mockReturnValue(true);
             vi.mocked(fs.readFileSync).mockReturnValue('mock context');
 
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
@@ -106,7 +105,6 @@ describe('DaemonHeartbeat', () => {
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
             const engineState: EngineState = {};
 
-            vi.mocked(fs.existsSync).mockReturnValue(true);
             vi.mocked(fs.readFileSync).mockReturnValue('mock context');
             
             // Fail 3 times, should reinject 3 times
@@ -134,7 +132,6 @@ describe('DaemonHeartbeat', () => {
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
             const engineState: EngineState = {};
 
-            vi.mocked(fs.existsSync).mockReturnValue(true);
             vi.mocked(fs.readFileSync).mockReturnValue('mock context');
             
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
@@ -158,6 +155,35 @@ describe('DaemonHeartbeat', () => {
             
             expect(onReinject).toHaveBeenCalledTimes(5);
             expect(onEscalate).not.toHaveBeenCalled();
+        });
+
+        it('should not call onEscalate multiple times if retries are exceeded', () => {
+            const onReinject = vi.fn();
+            const onEscalate = vi.fn();
+            
+            const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries: 1 });
+            const engineState: EngineState = {};
+            
+            // Simulating ENOENT
+            const error = new Error('ENOENT') as any;
+            error.code = 'ENOENT';
+            vi.mocked(fs.readFileSync).mockImplementation(() => { throw error; });
+            
+            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // retryCount: 1
+            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // escalates (retryCount: 2)
+            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // no-op
+            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // no-op
+            
+            expect(onEscalate).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not reinject if context is empty string', () => {
+            const onReinject = vi.fn();
+            const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject });
+            const engineState: EngineState = { context: '' };
+            
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            expect(onReinject).not.toHaveBeenCalled();
         });
     });
 });

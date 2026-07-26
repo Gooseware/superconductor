@@ -52,20 +52,25 @@ export class DaemonHeartbeat {
     }
 
     public verifyTrackContext(engineState: EngineState, workspaceDir: string = process.cwd()): void {
-        if (engineState.context) {
+        if (engineState.context !== undefined) {
             this.retryCount = 0;
         } else {
             const max = this.options.maxRetries ?? 3;
             if (this.retryCount < max) {
                 this.retryCount++;
                 const planPath = path.join(workspaceDir, 'plan.md');
-                if (fs.existsSync(planPath)) {
+                try {
                     engineState.context = fs.readFileSync(planPath, 'utf8');
                     if (this.options.onReinject) {
                         this.options.onReinject();
                     }
+                } catch (err: any) {
+                    if (err.code !== 'ENOENT') {
+                        throw err;
+                    }
                 }
-            } else {
+            } else if (this.retryCount === max) {
+                this.retryCount++;
                 if (this.options.onEscalate) {
                     this.options.onEscalate();
                 }
