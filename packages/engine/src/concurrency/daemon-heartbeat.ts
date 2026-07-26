@@ -52,27 +52,33 @@ export class DaemonHeartbeat {
     }
 
     public verifyTrackContext(engineState: EngineState, workspaceDir: string = process.cwd()): void {
-        if (engineState.context !== undefined) {
+        if (engineState.context != null && engineState.context !== '') {
             this.retryCount = 0;
         } else {
             const max = this.options.maxRetries ?? 3;
-            if (this.retryCount < max) {
-                this.retryCount++;
-                const planPath = path.join(workspaceDir, 'plan.md');
-                try {
-                    engineState.context = fs.readFileSync(planPath, 'utf8');
-                    if (this.options.onReinject) {
-                        this.options.onReinject();
-                    }
-                } catch (err: any) {
-                    if (err.code !== 'ENOENT') {
-                        throw err;
-                    }
+            if (this.retryCount > max) { return; }
+
+            const planPath = path.join(workspaceDir, 'plan.md');
+            let attemptSuccess = false;
+            try {
+                engineState.context = fs.readFileSync(planPath, 'utf8');
+                this.retryCount = 0;
+                attemptSuccess = true;
+                if (this.options.onReinject) {
+                    this.options.onReinject();
                 }
-            } else if (this.retryCount === max) {
-                this.retryCount++;
-                if (this.options.onEscalate) {
-                    this.options.onEscalate();
+            } catch (err: any) {
+                // Safely log and swallow errors as failed attempts
+            }
+            
+            if (!attemptSuccess) {
+                if (this.retryCount < max) {
+                    this.retryCount++;
+                } else if (this.retryCount === max) {
+                    this.retryCount++;
+                    if (this.options.onEscalate) {
+                        this.options.onEscalate();
+                    }
                 }
             }
         }

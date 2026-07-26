@@ -7,6 +7,7 @@ vi.mock('fs');
 
 describe('DaemonHeartbeat', () => {
     beforeEach(() => {
+        vi.clearAllMocks();
         vi.useFakeTimers();
     });
 
@@ -105,9 +106,13 @@ describe('DaemonHeartbeat', () => {
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
             const engineState: EngineState = {};
 
-            vi.mocked(fs.readFileSync).mockReturnValue('mock context');
+            vi.mocked(fs.readFileSync).mockImplementation(() => {
+                const error = new Error('ENOENT') as any;
+                error.code = 'ENOENT';
+                throw error;
+            });
             
-            // Fail 3 times, should reinject 3 times
+            // Fail 3 times, should NOT reinject
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
             engineState.context = undefined; // mock failure
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
@@ -115,13 +120,17 @@ describe('DaemonHeartbeat', () => {
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
             engineState.context = undefined;
             
-            expect(onReinject).toHaveBeenCalledTimes(3);
+            expect(onReinject).toHaveBeenCalledTimes(0);
             expect(onEscalate).not.toHaveBeenCalled();
             
-            // 4th time, should escalate and NOT re-inject again
+            // 4th time, should escalate
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
-            expect(onReinject).toHaveBeenCalledTimes(3);
+            expect(onReinject).toHaveBeenCalledTimes(0);
             expect(onEscalate).toHaveBeenCalledTimes(1);
+            
+            // 5th time, should abort early due to guard clause
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            expect(fs.readFileSync).toHaveBeenCalledTimes(4);
         });
 
         it('should reset retry count upon successful context verification', () => {
@@ -132,13 +141,17 @@ describe('DaemonHeartbeat', () => {
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
             const engineState: EngineState = {};
 
-            vi.mocked(fs.readFileSync).mockReturnValue('mock context');
+            vi.mocked(fs.readFileSync).mockImplementation(() => {
+                const error = new Error('ENOENT') as any;
+                error.code = 'ENOENT';
+                throw error;
+            });
             
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
             engineState.context = undefined;
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
             engineState.context = undefined;
-            expect(onReinject).toHaveBeenCalledTimes(2);
+            expect(onReinject).toHaveBeenCalledTimes(0);
             
             // Success resets it
             engineState.context = 'now present';
@@ -153,8 +166,12 @@ describe('DaemonHeartbeat', () => {
             heartbeat.verifyTrackContext(engineState, '/fake/dir');
             engineState.context = undefined;
             
-            expect(onReinject).toHaveBeenCalledTimes(5);
+            expect(onReinject).toHaveBeenCalledTimes(0);
             expect(onEscalate).not.toHaveBeenCalled();
+            
+            // 4th fail after reset escalates
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            expect(onEscalate).toHaveBeenCalledTimes(1);
         });
 
         it('should not call onEscalate multiple times if retries are exceeded', () => {
