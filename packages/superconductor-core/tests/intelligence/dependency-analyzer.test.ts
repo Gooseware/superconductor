@@ -126,4 +126,37 @@ describe('DependencyAnalyzer', () => {
     expect(analyzer.resolveImportPath('./components', 'src/main.ts', fileExists)).toBe('src/components/index.ts');
     expect(analyzer.resolveImportPath('./models/', 'src/main.ts', fileExists)).toBe('src/models/index.tsx');
   });
+
+  it('should generate a usage heatmap for multiple files (async fileReader)', async () => {
+    const analyzer = new DependencyAnalyzer();
+    
+    const mockReadFileAsync = vi.fn().mockImplementation(async (filePath: string) => {
+      if (filePath === 'src/x.ts') {
+        return `import { y } from "./y";`;
+      }
+      if (filePath === 'src/z.ts') {
+        return `import { y } from "./y";
+import { w } from "./w";`;
+      }
+      return '';
+    });
+    
+    analyzer.setFileReader(mockReadFileAsync);
+    
+    const heatmapPromise = analyzer.generateUsageHeatmap(['src/x.ts', 'src/z.ts']);
+    expect(heatmapPromise).toBeInstanceOf(Promise);
+    const heatmap = await heatmapPromise;
+    
+    expect(heatmap['src/y.ts']).toBe(2);
+    expect(heatmap['src/w.ts']).toBe(1);
+  });
+
+  it('resolves ESM .js imports to .ts or .tsx files (async fileExists)', async () => {
+    const analyzer = new DependencyAnalyzer();
+    const fileExistsAsync = async (p: string) => p === 'src/utils.ts' || p === 'src/components/Header.tsx';
+
+    expect(await analyzer.resolveImportPathAsync('./utils.js', 'src/main.ts', fileExistsAsync)).toBe('src/utils.ts');
+    expect(await analyzer.resolveImportPathAsync('./components/Header.jsx', 'src/main.ts', fileExistsAsync)).toBe('src/components/Header.tsx');
+  });
+
 });
