@@ -25,8 +25,8 @@
 ## Phase 1: Recovery Daemon (Orchestrator)
 - [x] Task: Write failing unit tests for the recovery daemon logic in orchestrator [TIER-2:TCS=3] [AGENT:superconductor-processor] b213828
 - [x] Task: Write failing tests for recovery daemon retry/escalation limit — daemon must stop re-injecting after N attempts and gracefully escalate [TIER-2:TCS=3] [AGENT:superconductor-processor] b213828
-- [ ] Task: Implement the recovery daemon to detect missing track context and re-inject `plan.md` [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Implement configurable max re-injection retry limit and graceful escalation path on daemon (Spec §3 Reviewer, §5 NFR Safety) [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement the recovery daemon to detect missing track context and re-inject `plan.md` [TIER-3:TCS=3] [AGENT:superconductor-processor] 9761576
+- [x] Task: Implement configurable max re-injection retry limit and graceful escalation path on daemon (Spec §3 Reviewer, §5 NFR Safety) [TIER-3:TCS=3] [AGENT:superconductor-processor] 9761576
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Recovery Daemon (Orchestrator)' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 2: Quorum Review & Remediation Loop
