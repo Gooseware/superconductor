@@ -54,30 +54,37 @@ describe('QuorumReviewLoop', () => {
             .mockResolvedValueOnce({ status: 'REJECTED', findings: ['Error 2'] })
             .mockResolvedValueOnce({ status: 'RESOLVED', findings: [] });
             
-        const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer });
+        const mockRemediate = vi.fn().mockImplementation((code, findings) => Promise.resolve(code + ' remediated'));
+            
+        const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer, remediateFn: mockRemediate });
         const result = await loop.run('some-code');
         
         expect(mockReviewer).toHaveBeenCalledTimes(3);
+        expect(mockRemediate).toHaveBeenCalledTimes(2);
         expect(result.status).toBe('RESOLVED');
     });
 
     it('should break out of the loop immediately when a RESOLVED status is received', async () => {
         const mockReviewer = vi.fn().mockResolvedValue({ status: 'RESOLVED', findings: [] });
+        const mockRemediate = vi.fn();
             
-        const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer });
+        const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer, remediateFn: mockRemediate });
         const result = await loop.run('some-code');
         
         expect(mockReviewer).toHaveBeenCalledTimes(1);
+        expect(mockRemediate).toHaveBeenCalledTimes(0);
         expect(result.status).toBe('RESOLVED');
     });
 
-    it('should stop after hitting maxIterations even if not resolved', async () => {
+    it('should stop after hitting maxIterations even if not resolved (e.g. assert loop halts after 3 remediation cycles)', async () => {
         const mockReviewer = vi.fn().mockResolvedValue({ status: 'REJECTED', findings: ['Always fails'] });
+        const mockRemediate = vi.fn().mockImplementation((code) => Promise.resolve(code));
             
-        const loop = new QuorumReviewLoop({ maxIterations: 3, reviewerFn: mockReviewer });
+        const loop = new QuorumReviewLoop({ maxIterations: 3, reviewerFn: mockReviewer, remediateFn: mockRemediate });
         const result = await loop.run('some-code');
         
         expect(mockReviewer).toHaveBeenCalledTimes(3);
+        expect(mockRemediate).toHaveBeenCalledTimes(3);
         expect(result.status).toBe('MAX_ITERATIONS_REACHED');
     });
 });

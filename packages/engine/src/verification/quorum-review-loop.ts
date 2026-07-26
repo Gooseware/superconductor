@@ -29,29 +29,37 @@ export function validateReviewerPayload(payload: any): void {
 export interface QuorumReviewLoopOptions {
     maxIterations: number;
     reviewerFn: (code: string) => Promise<{ status: string, findings: string[] }>;
+    remediateFn?: (code: string, findings: string[]) => Promise<string>;
 }
 
 export class QuorumReviewLoop {
     private maxIterations: number;
     private reviewerFn: (code: string) => Promise<{ status: string, findings: string[] }>;
+    private remediateFn?: (code: string, findings: string[]) => Promise<string>;
 
     constructor(options: QuorumReviewLoopOptions) {
         this.maxIterations = options.maxIterations;
         this.reviewerFn = options.reviewerFn;
+        this.remediateFn = options.remediateFn;
     }
 
     async run(code: string): Promise<{ status: string, findings?: string[] }> {
         let iterations = 0;
         let lastResult: { status: string, findings?: string[] } = { status: 'PENDING', findings: [] };
+        let currentCode = code;
 
         while (iterations < this.maxIterations) {
             iterations++;
-            const result = await this.reviewerFn(code);
+            const result = await this.reviewerFn(currentCode);
             validateReviewerPayload(result);
             lastResult = result;
 
             if (result.status === 'RESOLVED') {
                 return result;
+            }
+
+            if (this.remediateFn && result.findings && result.findings.length > 0) {
+                currentCode = await this.remediateFn(currentCode, result.findings);
             }
         }
 

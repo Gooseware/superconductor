@@ -1,6 +1,6 @@
 ---
 name: standalone-review
-description: Runs the full heterogeneous Flash review panel (Security + Correctness + Adversarial) + Coverage Manifest + Residual Pass + Pro Arbiter against any code, diff, file, directory, or PR. Works with zero Superconductor track context. Invoke as /superconductor:review [--staged|--branch <b>|--pr <url>|--file <f>|--dir <d>|--fast|--deep|--stats].
+description: Runs the full heterogeneous Flash review panel (Security + Correctness + Adversarial + Regression) + Coverage Manifest + Residual Pass + Pro Arbiter against any code, diff, file, directory, or PR. Works with zero Superconductor track context. Invoke as /superconductor:review [--staged|--branch <b>|--pr <url>|--file <f>|--dir <d>|--fast|--deep|--stats].
 ---
 
 ## 1.0 SYSTEM DIRECTIVE
@@ -190,13 +190,13 @@ Correct intent:    empty = clean pass, should always skip
 ### 5.1 Depth Mode Dispatch
 
 **`--fast` mode:**
-1. Dispatch Flash[Security], Flash[Correctness], Flash[Adversarial] in parallel (isolated)
+1. Dispatch Flash[Security], Flash[Correctness], Flash[Adversarial], Flash[Regression] in parallel (isolated)
 2. Aggregate findings via `scripts/aggregate-findings.ts`
 3. Emit findings report immediately — no residual pass, no arbiter
 
 **Default mode (full pipeline):**
 1. Run `scripts/deterministic-preflight.ts` (language-detected or extension-heuristic)
-2. Dispatch Flash panel (parallel, isolated): Security + Correctness + Adversarial
+2. Run QuorumReviewLoop to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression
 3. Run `scripts/aggregate-coverage-manifest.ts` → ResidualCoverageMap
 4. If ResidualCoverageMap non-empty → dispatch residual Flash pass
 5. Run `scripts/aggregate-findings.ts` → unified findings

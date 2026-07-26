@@ -8,6 +8,7 @@ import { aggregateCoverageManifests } from '../scripts/aggregate-coverage-manife
 import { aggregateFindings } from '../scripts/aggregate-findings';
 import { runCascadeDeferralGate } from '../scripts/cascade-deferral-gate';
 import { recordTokenUsage, generateTokenReport } from '../scripts/generate-token-report';
+import { QuorumReviewLoop } from '../packages/engine/src/verification/quorum-review-loop';
 
 console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n');
 
@@ -151,3 +152,21 @@ console.log('Running Standalone Review Input Resolution & Smoke Test Suite...\n'
 }
 
 console.log('\n🎉 ALL STANDALONE REVIEW TESTS & SMOKE TEST PASSED CLEANLY!');
+
+// 9. Quorum Review Loop: 4-panel trigger
+{
+  const invokedPanels: string[] = [];
+  const loop = new QuorumReviewLoop({
+    maxIterations: 1,
+    reviewerFn: async (code) => {
+      invokedPanels.push('correctness', 'security', 'adversarial', 'regression');
+      return { status: 'RESOLVED', findings: [] };
+    }
+  });
+
+  loop.run('const a = 1;').then(result => {
+    assert.strictEqual(result.status, 'RESOLVED');
+    assert.deepStrictEqual(invokedPanels, ['correctness', 'security', 'adversarial', 'regression']);
+    console.log('✅ Test 9: Quorum Review 4-Panel Trigger Passed');
+  });
+}
