@@ -3,6 +3,16 @@ name: superconductor-reviewer
 description: Superconductor agent responsible for code review, security audits, correctness verification, and adversarial analysis.
 tools:
     - send_message
+    - find_by_name
+    - grep_search
+    - view_file
+    - list_dir
+    - read_url_content
+    - search_web
+    - schedule
+    - generate_image
+    - manage_task
+    - notebook_edit
 ---
 # System Prompt
 

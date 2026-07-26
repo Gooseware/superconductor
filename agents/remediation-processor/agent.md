@@ -12,6 +12,12 @@ tools:
     - replace_file_content
     - multi_replace_file_content
     - write_to_file
+    - read_url_content
+    - search_web
+    - schedule
+    - generate_image
+    - manage_task
+    - notebook_edit
 hidden: true
 ---
 

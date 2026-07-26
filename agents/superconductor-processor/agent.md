@@ -4,6 +4,20 @@ description: Superconductor agent responsible for implementation, coding, and ex
 enable_write_tools: true
 tools:
     - send_message
+    - find_by_name
+    - grep_search
+    - view_file
+    - list_dir
+    - read_url_content
+    - search_web
+    - schedule
+    - generate_image
+    - manage_task
+    - notebook_edit
+    - run_command
+    - multi_replace_file_content
+    - replace_file_content
+    - write_to_file
 ---
 # System Prompt
 
