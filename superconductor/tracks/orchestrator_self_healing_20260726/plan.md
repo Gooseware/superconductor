@@ -38,11 +38,11 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Review & Remediation Loop' (Protocol in workflow.md) [TIER-1:TCS=3] 2580d6a
 
 ## Phase 3: Brownfield Codebase Chunking
-- [ ] Task: Write failing tests for semantically chunking a codebase using DependencyAnalyzer [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Write failing tests asserting chunk token budget is enforced (max 100k tokens per chunk, Spec §5 NFR Perf) [TIER-2:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Implement dependency-based codebase chunking logic [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Enforce 100k token cap in chunking logic; split oversized chunks by secondary dependency boundary [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Brownfield Codebase Chunking' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Write failing tests for semantically chunking a codebase using DependencyAnalyzer [TIER-3:TCS=3] [AGENT:superconductor-processor] d7233fd
+- [x] Task: Write failing tests asserting chunk token budget is enforced (max 100k tokens per chunk, Spec §5 NFR Perf) [TIER-2:TCS=3] [AGENT:superconductor-processor] d7233fd
+- [x] Task: Implement dependency-based codebase chunking logic [TIER-3:TCS=3] [AGENT:superconductor-processor] d7233fd
+- [x] Task: Enforce 100k token cap in chunking logic; split oversized chunks by secondary dependency boundary [TIER-3:TCS=3] [AGENT:superconductor-processor] d7233fd
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Brownfield Codebase Chunking' (Protocol in workflow.md) [TIER-1:TCS=3] d7233fd
 
 ## Phase 4: Synthetic Onboarding Generator
 - [ ] Task: Write failing tests for `generateSyntheticContext()` method in `IntelligenceSnapshotReader` (Oracle Suggestion) [TIER-3:TCS=3] [AGENT:superconductor-processor]
