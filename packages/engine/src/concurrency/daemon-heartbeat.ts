@@ -22,7 +22,7 @@ export class DaemonHeartbeat {
 
     constructor(
         intervalMs: number = 10000, 
-        onTimeout: () => void = () => { throw new Error('Daemon heartbeat timeout'); },
+        onTimeout: () => void = () => { console.error('Daemon heartbeat timeout'); },
         options: DaemonOptions = {}
     ) {
         this.intervalMs = intervalMs;
@@ -69,6 +69,7 @@ export class DaemonHeartbeat {
                 }
             } catch (err: any) {
                 // Safely log and swallow errors as failed attempts
+                console.warn('Failed to read plan.md', err);
             }
             
             if (!attemptSuccess) {

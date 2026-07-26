@@ -15,12 +15,12 @@ describe('DaemonHeartbeat', () => {
         vi.restoreAllMocks();
     });
 
-    it('should throw Error by default on timeout', () => {
+    it('should log error by default on timeout', () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         const heartbeat = new DaemonHeartbeat(100);
         heartbeat.start();
-        expect(() => {
-            vi.advanceTimersByTime(300);
-        }).toThrow('Daemon heartbeat timeout');
+        vi.advanceTimersByTime(300);
+        expect(consoleSpy).toHaveBeenCalledWith('Daemon heartbeat timeout');
     });
 
     it('should not infinitely loop after timeout', () => {
