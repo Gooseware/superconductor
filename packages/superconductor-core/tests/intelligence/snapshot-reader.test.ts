@@ -412,5 +412,45 @@ tracks:
     });
   });
 
-});
 
+  describe('generateSyntheticContext', () => {
+    it('generates synthetic product.md and tech-stack.md in superconductor/ directory', () => {
+      const scDir = path.join(tempDir, 'superconductor');
+      
+      IntelligenceSnapshotReader.generateSyntheticContext(tempDir);
+
+      expect(fs.existsSync(path.join(scDir, 'product.md'))).toBe(true);
+      expect(fs.existsSync(path.join(scDir, 'tech-stack.md'))).toBe(true);
+      
+      const productContent = fs.readFileSync(path.join(scDir, 'product.md'), 'utf-8');
+      const techStackContent = fs.readFileSync(path.join(scDir, 'tech-stack.md'), 'utf-8');
+      
+      expect(productContent.length).toBeGreaterThan(0);
+      expect(techStackContent.length).toBeGreaterThan(0);
+    });
+
+    it('scrubs secrets, env vars, and credentials from generated output', () => {
+      // Mock files in the repository that might be read to generate the context
+      fs.writeFileSync(path.join(tempDir, 'README.md'), 'Uses AWS_SECRET_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE and password="Password123!" DB_URL=postgres://user:pass@localhost:5432/db Some text mongodb://admin:secret@mongo:27017/db token=super-secret-token-xyz');
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({ name: "test", dependencies: { express: "^4.17.1" } }));
+      
+      IntelligenceSnapshotReader.generateSyntheticContext(tempDir);
+
+      const scDir = path.join(tempDir, 'superconductor');
+      const techStackContent = fs.existsSync(path.join(scDir, 'tech-stack.md')) ? fs.readFileSync(path.join(scDir, 'tech-stack.md'), 'utf-8') : '';
+      const productContent = fs.existsSync(path.join(scDir, 'product.md')) ? fs.readFileSync(path.join(scDir, 'product.md'), 'utf-8') : '';
+
+      expect(productContent).not.toContain('AKIAIOSFODNN7EXAMPLE');
+      expect(productContent).not.toContain('super-secret-token-xyz');
+      expect(productContent).not.toContain('Password123!');
+
+      // Expanded test assertions for REV-3
+      expect(productContent).not.toContain('postgres://user:pass@localhost:5432/db');
+      expect(productContent).not.toContain('user:pass');
+      expect(productContent).toContain('***');
+      expect(productContent).not.toContain('mongodb://admin:secret@mongo:27017/db');
+      expect(productContent).not.toContain('admin:secret');
+    });
+  });
+
+});

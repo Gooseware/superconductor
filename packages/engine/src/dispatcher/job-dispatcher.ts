@@ -136,9 +136,15 @@ export class JobDispatcher {
    * Runs the dispatcher in a continuous loop for headless daemon mode.
    */
   async runHeadless(backlogPath: string, pollIntervalMs: number = 30000): Promise<never> {
+    const engineState: { context?: string } = { context: undefined };
+    const workspaceRoot = process.cwd();
+
     const heartbeat = new DaemonHeartbeat(pollIntervalMs * 2, () => {
       console.error('JobDispatcher daemon frozen state detected! Terminating.');
       process.exit(1);
+    }, {
+      onReinject: () => console.log('Re-injecting track context...'),
+      onEscalate: () => console.warn('Escalating missed context recovery!')
     });
 
     heartbeat.start();
@@ -154,7 +160,10 @@ export class JobDispatcher {
 
     while (true) {
       try {
-        await this.dispatchNextJob(backlogPath);
+        const trackId = await this.dispatchNextJob(backlogPath);
+        if (trackId) {
+          heartbeat.verifyTrackContext(engineState, workspaceRoot, trackId);
+        }
       } catch (error) {
         console.error('Error dispatching job:', error);
       }

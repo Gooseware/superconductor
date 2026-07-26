@@ -18,17 +18,24 @@ export class QuorumReviewLoop {
     private timeoutMs: number;
 
     constructor(options: QuorumReviewLoopOptions) {
-        this.maxIterations = Math.max(1, options.maxIterations);
+        const providedIterations = Number(options.maxIterations);
+        this.maxIterations = isNaN(providedIterations) ? 3 : Math.max(1, providedIterations);
         this.reviewerFn = options.reviewerFn;
         this.remediateFn = options.remediateFn;
         this.timeoutMs = options.timeoutMs || 30000;
     }
 
     private async withTimeout<T>(promise: Promise<T>): Promise<T> {
-        return Promise.race([
-            promise,
-            new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Operation timed out')), this.timeoutMs))
-        ]);
+        let timeoutHandle: any;
+        const timeoutPromise = new Promise<T>((_, reject) => {
+            timeoutHandle = setTimeout(() => reject(new Error('Operation timed out')), this.timeoutMs);
+        });
+        
+        try {
+            return await Promise.race([promise, timeoutPromise]);
+        } finally {
+            clearTimeout(timeoutHandle);
+        }
     }
 
     async run(code: string): Promise<{ status: string, findings?: string[] }> {
@@ -48,6 +55,10 @@ export class QuorumReviewLoop {
 
             if (!result.findings || result.findings.length === 0) {
                 throw new Error('Reviewer returned no findings but status is not RESOLVED');
+            }
+
+            if (!this.remediateFn) {
+                throw new Error('Review failed and no remediateFn provided');
             }
 
             if (this.remediateFn && result.findings && result.findings.length > 0) {

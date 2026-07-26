@@ -51,7 +51,7 @@ export class DaemonHeartbeat {
         this.lastHeartbeat = Date.now();
     }
 
-    public verifyTrackContext(engineState: EngineState, workspaceDir: string = process.cwd()): void {
+    public verifyTrackContext(engineState: EngineState, workspaceDirOrPlanPath: string = process.cwd(), trackId?: string): void {
         if (engineState.context != null) {
             this.retryCount = 0;
         } else {
@@ -68,7 +68,13 @@ export class DaemonHeartbeat {
                 return;
             }
 
-            const planPath = path.join(workspaceDir, 'plan.md');
+            let planPath = workspaceDirOrPlanPath;
+            if (trackId) {
+                planPath = path.join(workspaceDirOrPlanPath, 'superconductor', 'tracks', trackId, 'plan.md');
+            } else if (!planPath.endsWith('plan.md')) {
+                planPath = path.join(workspaceDirOrPlanPath, 'plan.md');
+            }
+
             try {
                 engineState.context = fs.readFileSync(planPath, 'utf8');
                 if (this.options.onReinject) {

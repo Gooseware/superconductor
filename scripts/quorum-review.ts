@@ -1,7 +1,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import * as util from 'node:util';
 import { QuorumReviewLoop } from '../packages/engine/src/verification/quorum-review-loop';
+
+const execFileAsync = util.promisify(execFile);
 
 const targetFile = process.argv[2];
 if (!targetFile) {
@@ -12,14 +15,25 @@ if (!targetFile) {
 const codeToReview = fs.readFileSync(targetFile, 'utf8');
 
 const loop = new QuorumReviewLoop({
-  maxIterations: parseInt(process.env.MAX_ITERATIONS || '3'),
+  maxIterations: parseInt(process.env.MAX_ITERATIONS || '3', 10),
+  timeoutMs: 120000,
   reviewerFn: async (code) => {
     console.log(`[Reviewer] Analyzing ${targetFile}...`);
     try {
-        const output = execSync(`antigravity --skill standalone-review --file ${targetFile}`).toString();
-        // If there are findings, simulate rejection
+        const { stdout: output } = await execFileAsync('antigravity', ['--skill', 'standalone-review', '--file', targetFile]);
+        // If there are findings, extract them
         if (output.includes('Findings') || output.includes('findings')) {
-            return { status: 'REJECTED', findings: ['Review panel reported findings'] };
+            let extractedFindings = ['Review panel reported findings'];
+            const jsonMatch = output.match(/\{[\s\S]*"findings"\s*:\s*\[[\s\S]*?\][\s\S]*\}/);
+            if (jsonMatch) {
+                try {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    if (parsed.findings && Array.isArray(parsed.findings)) {
+                        extractedFindings = parsed.findings;
+                    }
+                } catch (err) {}
+            }
+            return { status: 'REJECTED', findings: extractedFindings };
         }
         return { status: 'RESOLVED', findings: [] };
     } catch (e: any) {
@@ -29,7 +43,8 @@ const loop = new QuorumReviewLoop({
   remediateFn: async (code, findings) => {
     console.log(`[Remediator] Remediation required for ${targetFile}...`);
     try {
-        execSync(`antigravity --skill remediation-processor --file ${targetFile}`);
+        const findingsArg = JSON.stringify(findings);
+        await execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', targetFile, '--findings', findingsArg]);
         return fs.readFileSync(targetFile, 'utf8');
     } catch (e) {
         console.error('Remediation failed', e);

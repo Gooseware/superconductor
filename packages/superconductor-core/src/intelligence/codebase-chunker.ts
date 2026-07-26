@@ -1,4 +1,4 @@
-import { DependencyAnalyzer } from './dependency-analyzer';
+import { DependencyAnalyzer } from './dependency-analyzer.js';
 
 export interface Chunk {
   id: string;
