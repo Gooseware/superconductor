@@ -1,3 +1,11 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
+export interface EngineState {
+    context?: string;
+    [key: string]: any;
+}
+
 export interface DaemonOptions {
     onReinject?: () => void;
     onEscalate?: () => void;
@@ -14,7 +22,7 @@ export class DaemonHeartbeat {
 
     constructor(
         intervalMs: number = 10000, 
-        onTimeout: () => void = () => { process.exit(1); },
+        onTimeout: () => void = () => { throw new Error('Daemon heartbeat timeout'); },
         options: DaemonOptions = {}
     ) {
         this.intervalMs = intervalMs;
@@ -26,10 +34,14 @@ export class DaemonHeartbeat {
     }
 
     public start(): void {
+        if (this.heartbeatInterval) {
+            this.stop();
+        }
         this.ping();
         this.heartbeatInterval = setInterval(() => {
             const now = Date.now();
             if (now - this.lastHeartbeat > this.intervalMs * 2) {
+                this.stop();
                 this.onTimeout();
             }
         }, this.intervalMs);
@@ -39,15 +51,19 @@ export class DaemonHeartbeat {
         this.lastHeartbeat = Date.now();
     }
 
-    public verifyTrackContext(hasContext: boolean): void {
-        if (hasContext) {
+    public verifyTrackContext(engineState: EngineState, workspaceDir: string = process.cwd()): void {
+        if (engineState.context) {
             this.retryCount = 0;
         } else {
             const max = this.options.maxRetries ?? 3;
             if (this.retryCount < max) {
                 this.retryCount++;
-                if (this.options.onReinject) {
-                    this.options.onReinject();
+                const planPath = path.join(workspaceDir, 'plan.md');
+                if (fs.existsSync(planPath)) {
+                    engineState.context = fs.readFileSync(planPath, 'utf8');
+                    if (this.options.onReinject) {
+                        this.options.onReinject();
+                    }
                 }
             } else {
                 if (this.options.onEscalate) {

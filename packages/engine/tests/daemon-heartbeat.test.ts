@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { DaemonHeartbeat } from '../src/concurrency/daemon-heartbeat';
+import { DaemonHeartbeat, EngineState } from '../src/concurrency/daemon-heartbeat';
+import * as fs from 'fs';
+import * as path from 'path';
+
+vi.mock('fs');
 
 describe('DaemonHeartbeat', () => {
     beforeEach(() => {
@@ -8,6 +12,36 @@ describe('DaemonHeartbeat', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+    });
+
+    it('should throw Error by default on timeout', () => {
+        const heartbeat = new DaemonHeartbeat(100);
+        heartbeat.start();
+        expect(() => {
+            vi.advanceTimersByTime(300);
+        }).toThrow('Daemon heartbeat timeout');
+    });
+
+    it('should not infinitely loop after timeout', () => {
+        const onTimeout = vi.fn();
+        const heartbeat = new DaemonHeartbeat(100, onTimeout);
+        heartbeat.start();
+        vi.advanceTimersByTime(300);
+        expect(onTimeout).toHaveBeenCalledTimes(1);
+        vi.advanceTimersByTime(300);
+        expect(onTimeout).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not leak memory if start is called multiple times', () => {
+        const onTimeout = vi.fn();
+        const heartbeat = new DaemonHeartbeat(100, onTimeout);
+        
+        heartbeat.start();
+        heartbeat.start();
+        heartbeat.start();
+        
+        vi.advanceTimersByTime(300);
+        expect(onTimeout).toHaveBeenCalledTimes(1);
     });
 
     it('should trigger timeout when heartbeat is missed', () => {
@@ -41,21 +75,24 @@ describe('DaemonHeartbeat', () => {
     describe('Recovery Daemon Logic', () => {
         it('should detect missing track context and re-inject plan.md', () => {
             const onReinject = vi.fn();
-            
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject });
+            const engineState: EngineState = {};
             
+            vi.mocked(fs.existsSync).mockReturnValue(true);
+            vi.mocked(fs.readFileSync).mockReturnValue('mock context');
+
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
             
-            heartbeat.verifyTrackContext(false);
+            expect(engineState.context).toBe('mock context');
             expect(onReinject).toHaveBeenCalled();
         });
 
         it('should not re-inject when track context is present', () => {
             const onReinject = vi.fn();
-            
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject });
+            const engineState: EngineState = { context: 'already present' };
             
-            
-            heartbeat.verifyTrackContext(true);
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
             expect(onReinject).not.toHaveBeenCalled();
         });
     });
@@ -67,21 +104,24 @@ describe('DaemonHeartbeat', () => {
             const maxRetries = 3;
             
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
+            const engineState: EngineState = {};
+
+            vi.mocked(fs.existsSync).mockReturnValue(true);
+            vi.mocked(fs.readFileSync).mockReturnValue('mock context');
             
             // Fail 3 times, should reinject 3 times
-            
-            heartbeat.verifyTrackContext(false);
-            
-            heartbeat.verifyTrackContext(false);
-            
-            heartbeat.verifyTrackContext(false);
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined; // mock failure
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
             
             expect(onReinject).toHaveBeenCalledTimes(3);
             expect(onEscalate).not.toHaveBeenCalled();
             
             // 4th time, should escalate and NOT re-inject again
-            
-            heartbeat.verifyTrackContext(false);
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
             expect(onReinject).toHaveBeenCalledTimes(3);
             expect(onEscalate).toHaveBeenCalledTimes(1);
         });
@@ -92,24 +132,29 @@ describe('DaemonHeartbeat', () => {
             const maxRetries = 3;
             
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
+            const engineState: EngineState = {};
+
+            vi.mocked(fs.existsSync).mockReturnValue(true);
+            vi.mocked(fs.readFileSync).mockReturnValue('mock context');
             
-            
-            heartbeat.verifyTrackContext(false);
-            
-            heartbeat.verifyTrackContext(false);
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
             expect(onReinject).toHaveBeenCalledTimes(2);
             
             // Success resets it
-            
-            heartbeat.verifyTrackContext(true);
+            engineState.context = 'now present';
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
             
             // We can now fail 3 more times before escalation
-            
-            heartbeat.verifyTrackContext(false);
-            
-            heartbeat.verifyTrackContext(false);
-            
-            heartbeat.verifyTrackContext(false);
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
             
             expect(onReinject).toHaveBeenCalledTimes(5);
             expect(onEscalate).not.toHaveBeenCalled();
