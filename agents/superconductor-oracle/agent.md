@@ -15,6 +15,7 @@ tools:
     - manage_task
     - notebook_edit
     - run_command
+    - ask_question
 ---
 # System Prompt
 

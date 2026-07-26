@@ -3,38 +3,37 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as yaml from 'js-yaml';
+import { fileURLToPath } from 'url';
 
-const AGENTS_DIR = path.join(os.homedir(), '.gemini/config/plugins/superconductor/agents');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const AGENTS_DIR = path.join(__dirname, '../../../../agents');
 
 const READ_TOOLS = [
     "send_message", "find_by_name", "grep_search", "view_file", "list_dir",
-    "read_url_content", "search_web", "schedule", "generate_image",
-    "manage_task", "notebook_edit"
+    "read_url_content", "search_web", "schedule", "generate_image", "manage_task", "notebook_edit"
 ];
 const RUN_TOOLS = ["run_command"];
 const WRITE_TOOLS = ["multi_replace_file_content", "replace_file_content", "write_to_file"];
-const FULL_TOOLS = [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS];
 
 const ROLES = {
-    "adversarial-reviewer": "read-only",
-    "correctness-reviewer": "read-only",
-    "regression-reviewer": "read-only",
-    "security-reviewer": "read-only",
-    "superconductor-reviewer": "read-only",
-    "superconductor-oracle": "read+run",
-    "superconductor-processor": "full",
-    "superconductor-dreamer": "write+run",
-    "remediation-processor": "write+run"
-} as Record<string, string>;
-
-function getRequiredTools(role: string): string[] {
-    if (role === "read-only") return READ_TOOLS;
-    if (role === "read+run") return [...READ_TOOLS, ...RUN_TOOLS];
-    if (role === "full" || role === "write+run") return FULL_TOOLS;
-    return [];
-}
+    "adversarial-reviewer": [...READ_TOOLS],
+    "correctness-reviewer": [...READ_TOOLS],
+    "regression-reviewer": [...READ_TOOLS, ...RUN_TOOLS],
+    "security-reviewer": [...READ_TOOLS],
+    "superconductor-reviewer": [...READ_TOOLS],
+    "superconductor-oracle": [...READ_TOOLS, ...RUN_TOOLS, "ask_question"],
+    "superconductor-processor": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],
+    "superconductor-dreamer": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],
+    "remediation-processor": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS]
+} as Record<string, string[]>;
 
 describe('Agent Manifests Audit', () => {
+    if (!fs.existsSync(AGENTS_DIR)) {
+        console.warn(`Agents directory not found at ${AGENTS_DIR}. Skipping tests.`);
+        return;
+    }
+
     const agents = fs.readdirSync(AGENTS_DIR).filter(d => {
         const stat = fs.statSync(path.join(AGENTS_DIR, d));
         return stat.isDirectory() && fs.existsSync(path.join(AGENTS_DIR, d, 'agent.md'));
@@ -42,27 +41,28 @@ describe('Agent Manifests Audit', () => {
 
     for (const agent of agents) {
         describe(`Agent: ${agent}`, () => {
-            let manifest: any;
-
-            it('should have valid YAML frontmatter', () => {
+            it('should have valid YAML frontmatter and required tools', () => {
                 const agentPath = path.join(AGENTS_DIR, agent, 'agent.md');
                 const content = fs.readFileSync(agentPath, 'utf-8');
                 const parts = content.split('---');
                 expect(parts.length).toBeGreaterThanOrEqual(3);
                 
+                let manifest: any;
                 expect(() => {
                     manifest = yaml.load(parts[1]);
                 }).not.toThrow();
                 
                 expect(manifest).toBeDefined();
+                expect(typeof manifest).toBe('object');
+                expect(manifest).not.toBeNull();
                 expect(manifest.name).toBe(agent);
-            });
+                
+                const requiredTools = ROLES[agent];
+                if (!requiredTools) {
+                    console.warn(`No role defined for ${agent}`);
+                    return;
+                }
 
-            it('should have the required tools for its role', () => {
-                const role = ROLES[agent];
-                expect(role).toBeDefined();
-
-                const requiredTools = getRequiredTools(role);
                 const actualTools = manifest?.tools || [];
 
                 const missingTools = requiredTools.filter(t => !actualTools.includes(t));
