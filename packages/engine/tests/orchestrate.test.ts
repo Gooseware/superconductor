@@ -18,8 +18,11 @@ describe('SwarmOrchestratorCLI', () => {
         fs.mkdirSync(path.join(import.meta.dirname, 'fixtures'), { recursive: true });
         
         fs.writeFileSync(topographyPath, JSON.stringify({
-            "frontend": { "owner": "agent-ui" },
-            "backend": { "owner": "agent-api" }
+            partitions: [
+                { id: 'frontend', files: ['src/ui.ts'], hotspotScore: 1, coverageGap: 0, reviewers: [] },
+                { id: 'backend', files: ['src/api.ts'], hotspotScore: 1, coverageGap: 0, reviewers: [] }
+            ],
+            dependencyGraph: []
         }));
         
         fs.writeFileSync(planPath, `
@@ -47,7 +50,6 @@ describe('SwarmOrchestratorCLI', () => {
     afterAll(() => {
         const topographyPath = path.join(import.meta.dirname, 'fixtures', 'topography.json');
         const planPath = path.join(import.meta.dirname, 'fixtures', 'plan.md');
-        if (fs.existsSync(topographyPath)) fs.unlinkSync(topographyPath);
-        if (fs.existsSync(planPath)) fs.unlinkSync(planPath);
+        fs.rmSync(path.join(import.meta.dirname, 'fixtures'), { recursive: true, force: true });
     });
 });

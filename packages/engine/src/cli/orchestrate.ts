@@ -91,8 +91,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
         const results = await Promise.allSettled(allDispatches);
         const failures = results.filter(r => r.status === 'rejected');
-        if (failures.length > 0 && failures.length === allDispatches.length && allDispatches.length > 0) {
-            throw new Error('All tasks failed');
+        if (failures.length > 0) {
+            throw new AggregateError(failures.map(f => (f as PromiseRejectedResult).reason), `${failures.length}/${allDispatches.length} tasks failed`);
         }
 
         return { workUnits };
