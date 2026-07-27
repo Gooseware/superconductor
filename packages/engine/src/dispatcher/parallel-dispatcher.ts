@@ -1,14 +1,21 @@
 import { Dispatcher } from './dispatcher.js';
 import { DagNode } from '../types/dag.types.js';
+import { ImplementorRegistry } from './implementor-registry.js';
+import { WorkUnitStateMachine, WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 
 export class ParallelDispatcher extends Dispatcher {
   private maxConcurrent: number;
   private activeCount: number = 0;
   private queue: { task: DagNode; resolve: () => void; reject: (err: any) => void }[] = [];
+  
+  public implementorRegistry: ImplementorRegistry;
+  public workUnitStateMachine: WorkUnitStateMachine;
 
   constructor(maxConcurrent: number = 5) {
     super();
     this.maxConcurrent = Math.max(1, maxConcurrent);
+    this.implementorRegistry = new ImplementorRegistry();
+    this.workUnitStateMachine = new WorkUnitStateMachine();
   }
 
   get queueLength(): number {
@@ -45,6 +52,25 @@ export class ParallelDispatcher extends Dispatcher {
       if (nextTask) {
         // We don't await this here so it runs in background similar to dispatch
         this.executeTask(nextTask.task).then(nextTask.resolve).catch(nextTask.reject);
+      }
+    }
+  }
+
+  handleFinding(finding: { filePath: string; keyholePayload: any }): void {
+    const implementorId = this.implementorRegistry.getImplementorForFile(finding.filePath);
+    if (implementorId) {
+      const wu = this.implementorRegistry.getWorkUnit(implementorId);
+      if (wu && wu.state === WorkUnitState.IN_PROGRESS) {
+        // Pause ONLY the affected implementor
+        const updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.PAUSED);
+        this.implementorRegistry.register(implementorId, updatedWu);
+        
+        // Route the keyhole payload to them (emit an event)
+        this.emit('keyhole_payload_routed', {
+          implementorId,
+          unitId: updatedWu.unitId,
+          payload: finding.keyholePayload
+        });
       }
     }
   }
