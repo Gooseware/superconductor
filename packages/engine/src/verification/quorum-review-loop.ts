@@ -71,7 +71,7 @@ export class QuorumReviewLoop {
             lastResult = { ...result, allGreen: result.status === 'RESOLVED' };
 
             if (result.status === 'RESOLVED') {
-                return { ...result, allGreen: true };
+                return { ...result, allGreen: lastResult.allGreen };
             }
 
             if (!result.findings || result.findings.length === 0) {

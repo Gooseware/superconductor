@@ -28,9 +28,11 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         const planPath = path.join(workspaceDir, '.superconductor', 'tracks', safeTrackId, 'plan.md');
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
 
+        const updatedWorkUnits = [...workUnits];
         const allDispatches: Promise<void>[] = [];
 
-        for (const wu of workUnits) {
+        for (let i = 0; i < workUnits.length; i++) {
+            const wu = workUnits[i];
             this.dispatcher.implementorRegistry.register(wu.implementorId, wu);
             
             const task: DagNode = {
@@ -87,17 +89,19 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
                     if (consensusArtifact.allGreen === false) {
                         const failedWu = sm.transition(updatedWu, WorkUnitState.FAILED);
-                        Object.assign(wu, failedWu);
+                        updatedWorkUnits[i] = failedWu;
                         throw new Error(`Quorum review failed for ${wu.unitId}: ${JSON.stringify(consensusArtifact.payload)}`);
                     } else if (consensusArtifact.allGreen === true) {
                         const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, consensusArtifact);
-                        Object.assign(wu, doneWu);
+                        updatedWorkUnits[i] = doneWu;
                     }
                 })
                 .catch(err => {
                     this.emit('orchestration_error', { error: err });
+                    if (updatedWorkUnits[i].state !== WorkUnitState.FAILED) {
                         const sm = new WorkUnitStateMachine();
-                        Object.assign(wu, sm.transition(wu, WorkUnitState.FAILED));
+                        updatedWorkUnits[i] = sm.transition(updatedWorkUnits[i] || wu, WorkUnitState.FAILED);
+                    }
                     throw err;
                 });
             
@@ -107,10 +111,12 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         const results = await Promise.allSettled(allDispatches);
         const failures = results.filter(r => r.status === 'rejected');
         if (failures.length > 0) {
-            throw new AggregateError(failures.map(f => (f as PromiseRejectedResult).reason), `${failures.length}/${allDispatches.length} tasks failed`);
+            const err = new AggregateError(failures.map(f => (f as PromiseRejectedResult).reason), `${failures.length}/${allDispatches.length} tasks failed`);
+            (err as any).workUnits = updatedWorkUnits;
+            throw err;
         }
 
-        return { workUnits };
+        return { workUnits: updatedWorkUnits };
     }
 
     public async parseAndDispatch(topographyPath: string, planPath: string): Promise<WorkUnit[]> {

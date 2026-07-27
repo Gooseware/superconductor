@@ -1,0 +1,11 @@
+--- packages/engine/src/verification/quorum-review-loop.ts
++++ packages/engine/src/verification/quorum-review-loop.ts
+@@ -71,7 +71,7 @@
+             lastResult = { ...result, allGreen: result.status === 'RESOLVED' };
+ 
+             if (result.status === 'RESOLVED') {
+-                return { ...result, allGreen: true };
++                return lastResult;
+             }
+ 
+             if (!result.findings || result.findings.length === 0) {
