@@ -44,7 +44,6 @@ export class QualityNotesWriter {
         }
 
         const noteJson = JSON.stringify(validatedNote);
-        const escapedJson = noteJson.replace(/'/g, "'\\''");
-        execFileSync('git', ['notes', '--ref=refs/notes/quality', 'append', '-m', escapedJson, commitSha], { cwd: this.cwd, timeout: 10000 });
+        execFileSync('git', ['notes', '--ref=refs/notes/quality', 'append', '-m', noteJson, commitSha], { cwd: this.cwd, timeout: 10000 });
     }
 }

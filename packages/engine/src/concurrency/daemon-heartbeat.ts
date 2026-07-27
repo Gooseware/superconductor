@@ -70,7 +70,8 @@ export class DaemonHeartbeat {
 
             let planPath = workspaceDirOrPlanPath;
             if (trackId) {
-                planPath = path.join(workspaceDirOrPlanPath, 'superconductor', 'tracks', trackId, 'plan.md');
+                const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
+                planPath = path.join(workspaceDirOrPlanPath, 'superconductor', 'tracks', safeTrackId, 'plan.md');
             } else if (!planPath.endsWith('plan.md')) {
                 planPath = path.join(workspaceDirOrPlanPath, 'plan.md');
             }

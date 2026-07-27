@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 export interface WorkerLockPayload {
   track_id: string;
@@ -33,11 +33,13 @@ export class WorkerPoolManager {
   }
 
   private getLockFilePath(workerId: string): string {
-    return path.join(this.workspacesDir, `${workerId}.lock`);
+    const safeWorkerId = workerId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    return path.join(this.workspacesDir, `${safeWorkerId}.lock`);
   }
 
   public getWorkspacePath(workerId: string): string {
-    return path.join(this.workspacesDir, workerId);
+    const safeWorkerId = workerId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    return path.join(this.workspacesDir, safeWorkerId);
   }
 
   // Detect if a lock is orphaned
@@ -119,7 +121,7 @@ export class WorkerPoolManager {
     
     // Dynamically provision if it doesn't exist
     if (!fs.existsSync(workspacePath)) {
-      execSync(`git clone ${this.originRepo} ${workspacePath}`, { stdio: 'ignore' });
+      execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore' });
     } else {
       this.syncAndCleanWorkspace(assignedWorker);
     }
@@ -154,14 +156,14 @@ export class WorkerPoolManager {
     if (!fs.existsSync(workspacePath)) return;
 
     try {
-      execSync('git fetch origin', { cwd: workspacePath, stdio: 'ignore' });
-      execSync('git reset --hard origin/main', { cwd: workspacePath, stdio: 'ignore' });
-      execSync('git clean -fdx', { cwd: workspacePath, stdio: 'ignore' });
+      execFileSync('git', ['fetch', 'origin'], { cwd: workspacePath, stdio: 'ignore' });
+      execFileSync('git', ['reset', '--hard', 'origin/main'], { cwd: workspacePath, stdio: 'ignore' });
+      execFileSync('git', ['clean', '-fdx'], { cwd: workspacePath, stdio: 'ignore' });
     } catch (e) {
       console.warn(`Failed to sync and clean workspace ${workerId}, falling back to fresh clone:`, e);
       // Fallback: delete and re-clone
       fs.rmSync(workspacePath, { recursive: true, force: true });
-      execSync(`git clone ${this.originRepo} ${workspacePath}`, { stdio: 'ignore' });
+      execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore' });
     }
   }
 }

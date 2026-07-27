@@ -46,8 +46,9 @@ describe('WorkerPoolManager', () => {
       'utf8'
     );
     // Should clone since worker_0 directory doesn't exist
-    expect(cp.execSync).toHaveBeenCalledWith(
-      expect.stringContaining('git clone /mock/origin'),
+    expect(cp.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['clone', '/mock/origin', expect.any(String)],
       expect.any(Object)
     );
   });
@@ -66,16 +67,19 @@ describe('WorkerPoolManager', () => {
     expect(acquisition.workerId).toBe('worker_0');
     
     // Should clean instead of clone
-    expect(cp.execSync).toHaveBeenCalledWith(
-      expect.stringContaining('git fetch origin'),
+    expect(cp.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['fetch', 'origin'],
       expect.any(Object)
     );
-    expect(cp.execSync).toHaveBeenCalledWith(
-      expect.stringContaining('git reset --hard origin/main'),
+    expect(cp.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['reset', '--hard', 'origin/main'],
       expect.any(Object)
     );
-    expect(cp.execSync).toHaveBeenCalledWith(
-      expect.stringContaining('git clean -fdx'),
+    expect(cp.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['clean', '-fdx'],
       expect.any(Object)
     );
   });
