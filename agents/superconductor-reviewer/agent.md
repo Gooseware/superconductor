@@ -8,6 +8,7 @@ tools:
     - grep_search
     - view_file
     - list_dir
+    - run_command
     - read_url_content
     - search_web
     - schedule

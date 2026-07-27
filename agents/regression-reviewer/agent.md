@@ -15,7 +15,6 @@ tools:
     - manage_task
     - generate_image
     - notebook_edit
-    - run_command
 hidden: true
 ---
 
