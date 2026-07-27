@@ -42,19 +42,19 @@ export class ParallelDispatcher extends Dispatcher {
   private async executeTask(task: DagNode): Promise<void> {
     this.activeCount++;
     try {
-      const originalSimulate = this['simulateExecution'].bind(this);
-      // We wrap simulateExecution just to capture the assigned agentId 
-      // so we can map it back to the task ID for lock release.
-      this['simulateExecution'] = async (t: DagNode) => {
-        const res = await originalSimulate(t);
-        this.agentToTaskId.set(res.agentId, t.id);
-        return res;
-      };
       await super.dispatch(task);
     } finally {
       this.activeCount--;
       this.pumpQueue();
     }
+  }
+
+  protected async simulateExecution(task: DagNode): Promise<any> {
+    const res = await super.simulateExecution(task);
+    if (res && res.agentId) {
+      this.agentToTaskId.set(res.agentId, task.id);
+    }
+    return res;
   }
 
   private pumpQueue() {

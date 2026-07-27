@@ -6,30 +6,30 @@ export enum WorkUnitState {
   FAILED = 'FAILED'
 }
 
-export interface ConsensusArtifact {
+export interface ConsensusArtifact<T = unknown> {
   allGreen: boolean;
-  [key: string]: any;
+  payload?: T;
 }
 
-export interface WorkUnit {
+export interface WorkUnit<T = unknown> {
   unitId: string;
   domainScope: string[];
   spec: string;
   state: WorkUnitState;
   implementorId: string;
-  consensusArtifact?: ConsensusArtifact;
+  consensusArtifact?: ConsensusArtifact<T>;
 }
 
 export class WorkUnitStateMachine {
   private allowedTransitions: Record<WorkUnitState, WorkUnitState[]> = {
     [WorkUnitState.PENDING]: [WorkUnitState.IN_PROGRESS],
     [WorkUnitState.IN_PROGRESS]: [WorkUnitState.PAUSED, WorkUnitState.DONE, WorkUnitState.FAILED],
-    [WorkUnitState.PAUSED]: [WorkUnitState.IN_PROGRESS, WorkUnitState.FAILED],
+    [WorkUnitState.PAUSED]: [WorkUnitState.IN_PROGRESS, WorkUnitState.FAILED, WorkUnitState.DONE],
     [WorkUnitState.DONE]: [WorkUnitState.IN_PROGRESS, WorkUnitState.FAILED],
     [WorkUnitState.FAILED]: [WorkUnitState.PENDING, WorkUnitState.IN_PROGRESS] // e.g. for retry
   };
 
-  transition(wu: WorkUnit, nextState: WorkUnitState, artifact?: ConsensusArtifact): WorkUnit {
+  transition<T = unknown>(wu: WorkUnit<T>, nextState: WorkUnitState, artifact?: ConsensusArtifact<T>): WorkUnit<T> {
     const allowed = this.allowedTransitions[wu.state];
     if (!allowed || !allowed.includes(nextState)) {
       throw new Error(`Invalid state transition from ${wu.state} to ${nextState}`);

@@ -18,7 +18,7 @@ export class SwarmAuthorizer {
    * @returns True if a valid trailer is present, false otherwise.
    */
   static validateTrailer(commitMsg: string): boolean {
-    const regex = /Swarm-Authorized:\s*true\s*\|\s*reviewers:\s*([^\n\r]+)/;
+    const regex = /Swarm-Authorized:\s*true\s*\|\s*reviewers:\s*([^\n\r]+)$/m;
     const match = commitMsg.match(regex);
     if (!match) return false;
     
