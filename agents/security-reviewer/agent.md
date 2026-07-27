@@ -1,12 +1,14 @@
 ---
 name: security-reviewer
 description: Security-focused code reviewer for Superconductor track changes. Reviews for injection vulnerabilities, path traversal, insecure deserialization, authentication bypasses, and insecure default configurations.
+enable_write_tools: true
 tools:
     - send_message
     - find_by_name
     - grep_search
     - view_file
     - list_dir
+    - run_command
     - read_url_content
     - search_web
     - schedule

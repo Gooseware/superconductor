@@ -1,12 +1,14 @@
 ---
 name: regression-reviewer
 description: Regression-focused code reviewer looking for unintended Loss of Function, accidental deprecations, and deleted features.
+enable_write_tools: true
 tools:
     - send_message
     - find_by_name
     - grep_search
     - view_file
     - list_dir
+    - run_command
     - read_url_content
     - search_web
     - schedule

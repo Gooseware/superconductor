@@ -1,12 +1,14 @@
 ---
 name: correctness-reviewer
 description: Correctness-focused code reviewer verifying implementation matches spec ACs, tests pass, no phantom implementations, no silent failures.
+enable_write_tools: true
 tools:
     - send_message
     - find_by_name
     - grep_search
     - view_file
     - list_dir
+    - run_command
     - read_url_content
     - search_web
     - schedule

@@ -1,12 +1,14 @@
 ---
 name: adversarial-reviewer
 description: 'Adversarial code reviewer checking for shenanigans: phantom implementations, test theatre, scope creep, confidence washing, semantic drift, coverage map gaming, silent degradation, dependency laundering.'
+enable_write_tools: true
 tools:
     - send_message
     - find_by_name
     - grep_search
     - view_file
     - list_dir
+    - run_command
     - read_url_content
     - search_web
     - schedule
