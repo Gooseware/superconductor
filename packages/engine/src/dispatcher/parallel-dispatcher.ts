@@ -65,9 +65,14 @@ export class ParallelDispatcher extends Dispatcher {
     const wu = this.implementorRegistry.getWorkUnit(implementorId);
     if (wu) {
       let updatedWu = wu;
-      if (wu.state === WorkUnitState.IN_PROGRESS) {
+      
+      if (wu.state === WorkUnitState.DONE || wu.state === WorkUnitState.PENDING || wu.state === WorkUnitState.FAILED) {
+        updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.IN_PROGRESS);
+      }
+
+      if (updatedWu.state === WorkUnitState.IN_PROGRESS) {
         // Pause ONLY the affected implementor
-        updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.PAUSED);
+        updatedWu = this.workUnitStateMachine.transition(updatedWu, WorkUnitState.PAUSED);
         this.implementorRegistry.register(implementorId, updatedWu);
       }
       

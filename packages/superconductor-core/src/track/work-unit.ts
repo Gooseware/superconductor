@@ -25,8 +25,8 @@ export class WorkUnitStateMachine {
     [WorkUnitState.PENDING]: [WorkUnitState.IN_PROGRESS],
     [WorkUnitState.IN_PROGRESS]: [WorkUnitState.PAUSED, WorkUnitState.DONE, WorkUnitState.FAILED],
     [WorkUnitState.PAUSED]: [WorkUnitState.IN_PROGRESS, WorkUnitState.FAILED],
-    [WorkUnitState.DONE]: [],
-    [WorkUnitState.FAILED]: [WorkUnitState.PENDING] // e.g. for retry
+    [WorkUnitState.DONE]: [WorkUnitState.IN_PROGRESS, WorkUnitState.FAILED],
+    [WorkUnitState.FAILED]: [WorkUnitState.PENDING, WorkUnitState.IN_PROGRESS] // e.g. for retry
   };
 
   transition(wu: WorkUnit, nextState: WorkUnitState, artifact?: ConsensusArtifact): WorkUnit {
