@@ -54,7 +54,7 @@ export class CodebaseChunker {
       const start = unvisited.keys().next().value;
       const comp: string[] = [];
       const q = [start];
-      unvisited.delete(start);
+      if (start) unvisited.delete(start);
 
       while (q.length > 0) {
         const curr = q.shift()!;
@@ -91,12 +91,12 @@ export class CodebaseChunker {
 
           // Pick a start node (could be node with most edges, but any is fine)
           const start = unassigned.keys().next().value;
-          unassigned.delete(start);
-          chunkFiles.push(start);
-          currentTokens += tokens[start];
+          if (start) unassigned.delete(start);
+          if (start) chunkFiles.push(start);
+          if (start) currentTokens += tokens[start];
 
           const boundary = new Set<string>();
-          for (const n of adj[start]) {
+          if (start) for (const n of adj[start]) {
             if (unassigned.has(n)) boundary.add(n);
           }
 

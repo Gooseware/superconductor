@@ -10,3 +10,4 @@ export * from './abi.js';
 export * from './streaming-client.js';
 export * from './playwright-harness.js';
 export * from './vision-oracle.js';
+export * from './serialize-topography.js';

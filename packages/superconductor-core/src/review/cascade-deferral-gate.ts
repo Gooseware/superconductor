@@ -1,4 +1,5 @@
 import { ReviewFinding } from './aggregate-findings.js';
+import { serializeBaselineTopography } from './serialize-topography.js';
 
 export interface DeferralGateResult {
   can_skip_arbiter: boolean;
@@ -17,7 +18,9 @@ const severityMap: Record<string, ReviewFinding['severity']> = {
 
 export function runCascadeDeferralGate(
   findings: ReviewFinding[],
-  totalReviewersCount: number
+  totalReviewersCount: number,
+  projectRoot?: string,
+  trackId?: string
 ): DeferralGateResult {
   // Guard against invalid or 0 reviewer count
   if (totalReviewersCount <= 0) {
@@ -68,10 +71,15 @@ export function runCascadeDeferralGate(
     briefing += `### [${effectiveSeverity.toUpperCase()}] ${f.category} — ${f.file}:${f.line_range}\n`;
     briefing += `- **Agreement:** ${f.agreement_count}/${totalReviewersCount} reviewers (${f.reviewer_ids?.join(', ')})\n`;
     if (isDisputed) {
-      briefing += `- **Status:** Disputed (${totalReviewersCount === 1 ? 'N=1 single reviewer pass' : `Original severity: ${f.severity.toUpperCase()}, downgraded to ${effectiveSeverity.toUpperCase()}`})\n`;
+      briefing += `- **Status:** Disputed (${totalReviewersCount === 1 ? 'N=1 single reviewer pass' : 'Original severity: ' + f.severity.toUpperCase() + ', downgraded to ' + effectiveSeverity.toUpperCase()})\n`;
     }
     briefing += `- **Description:** ${f.description}\n`;
     briefing += `- **Recommendation:** ${f.recommendation}\n\n`;
+  }
+
+  // Integrate TopographyMap generation into the baseline review output
+  if (projectRoot && trackId) {
+    serializeBaselineTopography(projectRoot, trackId, classified);
   }
 
   return {
