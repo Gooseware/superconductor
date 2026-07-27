@@ -20,7 +20,7 @@ export interface ReviewFinding {
 const VALID_SEVERITIES = new Set(['critical', 'high', 'medium', 'low', 'advisory']);
 const VALID_CATEGORIES = new Set(['security', 'correctness', 'adversarial', 'architecture', 'style']);
 
-function isValidFinding(f: any): boolean {
+export function isValidFinding(f: any): boolean {
   return (
     f !== null &&
     !Array.isArray(f) &&
@@ -178,6 +178,8 @@ export class KeyholeFeedbackExtractor {
         const l2 = match[2] ? parseInt(match[2], 10) : l1;
         startLine = Math.max(1, l1 - 50);
         endLine = Math.min(lines.length, l2 + 50);
+      } else {
+        throw new Error(`Invalid line_range format: ${finding.line_range}`);
       }
     }
 
