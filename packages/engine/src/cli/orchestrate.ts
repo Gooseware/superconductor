@@ -1,5 +1,6 @@
 import { WorkUnit, WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import * as fs from 'fs';
+import * as path from 'path';
 
 export class SwarmOrchestratorCLI {
     private llmUsed = false;
@@ -51,7 +52,7 @@ export class SwarmOrchestratorCLI {
                     state: WorkUnitState.PENDING,
                     implementorId,
                     reviewers
-                });
+                } as any);
             }
         }
 

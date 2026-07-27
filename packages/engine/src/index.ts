@@ -8,5 +8,6 @@ export * from './generator/index.js';
 export * from './engine.js';
 export { ComponentStagingWriter } from './curator/ComponentStagingWriter.js';
 export { SkillTriggerEngine, type SkillManifest, type SkillMatch } from './skills/skill-trigger-engine.js';
+export { SwarmOrchestratorCLI } from './cli/orchestrate.js';
 // Add future module exports here
 

@@ -125,6 +125,19 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'swarm-execute': {
+      const { SwarmOrchestratorCLI } = await import('@superconductor/engine');
+      const trackId = args[1];
+      if (!trackId) {
+        console.error('Missing track-id. Usage: superconductor swarm-execute <track-id>');
+        process.exit(1);
+      }
+      const cli = new SwarmOrchestratorCLI();
+      const res = await cli.executeTrack(process.cwd(), trackId);
+      console.log(`🚀 Swarm execute complete. WorkUnits dispatched: ${res.workUnits.length}`);
+      break;
+    }
+
     case 'setup': {
       const rawHome = process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor');
       const homeDir = path.resolve(rawHome);
