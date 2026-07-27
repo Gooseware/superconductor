@@ -5,6 +5,8 @@ import * as path from 'path';
 
 import { EventEmitter } from 'events';
 import { ParallelDispatcher } from '../dispatcher/parallel-dispatcher.js';
+import { DagNode, TaskRole } from '../types/dag.types.js';
+import { DomainPartition } from '@superconductor/core/src/intelligence/topography-map.js';
 
 export class SwarmOrchestratorCLI extends EventEmitter {
     private llmUsed = false;
@@ -31,9 +33,9 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         for (const wu of workUnits) {
             this.dispatcher.implementorRegistry.register(wu.implementorId, wu);
             
-            const task = {
+            const task: DagNode = {
                 id: wu.unitId,
-                role: wu.implementorId,
+                role: wu.implementorId as TaskRole,
                 tier: 3,
                 status: 'pending',
                 prompt: wu.spec,
@@ -43,7 +45,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
             this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: wu.spec });
             
-            const dispatchPromise = this.dispatcher.dispatch(task as any)
+            const dispatchPromise = this.dispatcher.dispatch(task)
                 .then(async () => {
                     const sm = new WorkUnitStateMachine();
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
@@ -52,10 +54,10 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         const loop = new QuorumReviewLoop({
                             maxIterations: 1,
                             reviewerFn: async () => {
-                                const reviewerPromises = wu.reviewers.map(reviewer => {
-                                    const reviewerTask = {
+                                const reviewerPromises = wu.reviewers!.map(reviewer => {
+                                    const reviewerTask: DagNode = {
                                         id: `${wu.unitId}-review-${reviewer}`,
-                                        role: reviewer,
+                                        role: reviewer as TaskRole,
                                         tier: 3,
                                         status: 'pending',
                                         prompt: `Review ${wu.unitId}`,
@@ -63,7 +65,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                         dependsOn: [task.id]
                                     };
                                     this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
-                                    return this.dispatcher.dispatch(reviewerTask as any);
+                                    return this.dispatcher.dispatch(reviewerTask);
                                 });
                                 await Promise.all(reviewerPromises);
                                 return { status: 'RESOLVED', findings: [] };
@@ -99,7 +101,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
     }
 
     public async parseAndDispatch(topographyPath: string, planPath: string): Promise<WorkUnit[]> {
-        const topography = JSON.parse(await fs.promises.readFile(topographyPath, 'utf8'));
+        const topography: { partitions?: DomainPartition[] } = JSON.parse(await fs.promises.readFile(topographyPath, 'utf8'));
         const planContent = await fs.promises.readFile(planPath, 'utf8');
 
         const workUnits: WorkUnit[] = [];
@@ -119,9 +121,9 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
                 let reviewers: string[] = [];
                 for (const domain of domainScope) {
-                    const partition = topography.partitions?.find((p: any) => p.id === domain);
-                    if (partition && (partition as any).reviewers) {
-                        reviewers.push(...(partition as any).reviewers);
+                    const partition = topography.partitions?.find((p: DomainPartition) => p.id === domain);
+                    if (partition && partition.reviewers) {
+                        reviewers.push(...partition.reviewers);
                     }
                 }
 
@@ -132,7 +134,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     state: WorkUnitState.PENDING,
                     implementorId,
                     reviewers
-                } as any);
+                });
             }
         }
 

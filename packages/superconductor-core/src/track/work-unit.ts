@@ -19,6 +19,7 @@ export interface WorkUnit<T = unknown> {
   state: WorkUnitState;
   implementorId: string;
   consensusArtifact?: ConsensusArtifact<T>;
+  reviewers?: string[];
 }
 
 export class WorkUnitStateMachine {

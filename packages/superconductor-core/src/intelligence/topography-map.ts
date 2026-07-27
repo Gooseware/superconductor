@@ -3,6 +3,7 @@ export interface DomainPartition {
     files: string[];
     hotspotScore: number;
     coverageGapPercent: number;
+    reviewers?: string[];
 }
 
 export interface DependencyGraph {
