@@ -1,0 +1,135 @@
+{
+  "dependency_graph": [
+    "Engine -> Scheduler (DAG coordination)",
+    "Engine -> Dispatcher (Task execution & parallel queueing)",
+    "Engine -> StormController (Concurrency & file locking)",
+    "Engine -> EscalationRouter (Failure tracking & tier routing)",
+    "Engine -> GitCheckpointManager (Safety & state rollback)",
+    "Dispatcher -> ToolSurfaceFilter (Security enforcement)",
+    "SuperconductorCore -> Review (Phase gates & finding aggregation)",
+    "SuperconductorCore -> Intelligence (Dependency context & AST parsing)"
+  ],
+  "domain_partitions": [
+    {
+      "id": "domain-core-engine",
+      "files": ["packages/engine/src/engine.ts", "packages/engine/src/scheduler/*", "packages/engine/src/types/*"]
+    },
+    {
+      "id": "domain-dispatcher",
+      "files": ["packages/engine/src/dispatcher/*", "packages/engine/src/concurrency/*", "packages/engine/src/routing/*"]
+    },
+    {
+      "id": "domain-review",
+      "files": ["packages/superconductor-core/src/review/*"]
+    },
+    {
+      "id": "domain-intelligence",
+      "files": ["packages/superconductor-core/src/intelligence/*"]
+    }
+  ],
+  "hotspots": [
+    {
+      "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
+      "reason": "tight coupling risk with lock manager and internal state; uses execSync with variable interpolation"
+    },
+    {
+      "file": "packages/superconductor-core/src/intelligence/dependency-analyzer.ts",
+      "reason": "high-churn module with complex AST dependencies"
+    },
+    {
+      "file": "packages/engine/src/context/builder.ts",
+      "reason": "Uses execSync with unsanitized arrays joined into a shell command string, leading to a high risk of command injection."
+    },
+    {
+      "file": "packages/engine/src/concurrency/worker-pool.ts",
+      "reason": "Uses execSync with variable interpolation for originRepo."
+    },
+    {
+      "file": "packages/engine/src/curator/skill-synthesizer.ts",
+      "reason": "Uses unvalidated skill names in path.join when writing files, leading to potential path traversal."
+    }
+  ],
+  "findings_queue": [
+    {
+      "finding_id": "REG-001",
+      "domain": "engine",
+      "file": "packages/engine/src/concurrency/storm.ts",
+      "line_range": "L1-L50",
+      "severity": "ADVISORY",
+      "category": "regression",
+      "description": "Storm concurrency model lacks explicit bounds testing, risking regressions under high load."
+    },
+    {
+      "finding_id": "SEC-001",
+      "domain": "engine",
+      "file": "packages/engine/src/context/builder.ts",
+      "line_range": "L46-L122",
+      "severity": "CRITICAL",
+      "category": "security",
+      "description": "Command Injection via unsanitized contextFiles passed to execSync."
+    },
+    {
+      "finding_id": "SEC-002",
+      "domain": "engine",
+      "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
+      "line_range": "L45-L47",
+      "severity": "ADVISORY",
+      "category": "security",
+      "description": "ExecSync used with branch name interpolation."
+    },
+    {
+      "finding_id": "SEC-003",
+      "domain": "engine",
+      "file": "packages/engine/src/concurrency/worker-pool.ts",
+      "line_range": "L122-L164",
+      "severity": "ADVISORY",
+      "category": "security",
+      "description": "ExecSync used with repository clone URL and workspace path."
+    },
+    {
+      "finding_id": "SEC-004",
+      "domain": "engine",
+      "file": "packages/engine/src/curator/skill-synthesizer.ts",
+      "line_range": "L41",
+      "severity": "LOW",
+      "category": "security",
+      "description": "Potential Path Traversal when writing skill files."
+    },
+    {
+      "finding_id": "COR-001",
+      "domain": "domain-core-engine",
+      "file": "packages/engine/src/engine.ts",
+      "line_range": "L94-L98",
+      "severity": "CRITICAL",
+      "category": "correctness",
+      "description": "Global engine shutdown on single task failure due to this.isHalted = true in handleSchedulerEvent."
+    },
+    {
+      "finding_id": "COR-002",
+      "domain": "domain-core-engine",
+      "file": "packages/engine/src/engine.ts",
+      "line_range": "L113-L115",
+      "severity": "CRITICAL",
+      "category": "correctness",
+      "description": "Global destructive rollback in parallel environment via git reset --hard sha destroying concurrent progress."
+    },
+    {
+      "finding_id": "COR-003",
+      "domain": "domain-review",
+      "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
+      "line_range": "L108-L131",
+      "severity": "HIGH",
+      "category": "correctness",
+      "description": "Critical severity findings can be silenced by deduplication."
+    },
+    {
+      "finding_id": "COR-004",
+      "domain": "domain-dispatcher",
+      "file": "packages/engine/src/routing/escalation-router.ts",
+      "line_range": "L64-L66",
+      "severity": "MEDIUM",
+      "category": "correctness",
+      "description": "Escalation signal ignores budget exceeded loop."
+    }
+  ]
+}

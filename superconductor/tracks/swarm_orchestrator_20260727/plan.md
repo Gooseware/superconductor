@@ -23,9 +23,9 @@
 ---
 
 ## Phase 0: Swarm Preflight
-- [ ] Task: Verify `swarm-orchestrate` skill is installed and loaded [TIER-2:TCS=2] [AGENT:superconductor-processor]
-- [ ] Task: Run full-repository baseline quorum review (Security + Correctness + Adversarial + Regression panels) to produce the initial Topography Map and Findings Queue [TIER-4:TCS=5] [AGENT:superconductor-reviewer]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify `swarm-orchestrate` skill is installed and loaded [TIER-2:TCS=2] [AGENT:superconductor-processor]
+- [x] Task: Run full-repository baseline quorum review (Security + Correctness + Adversarial + Regression panels) to produce the initial Topography Map and Findings Queue [TIER-4:TCS=5] [AGENT:superconductor-reviewer]
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ## Phase 1: Topography Map Infrastructure
 - [ ] Task: Write failing tests for `TopographyMap` data structure — must serialize domain partitions, dependency graph, hotspots, test coverage gaps, and findings queue [TIER-2:TCS=3] [AGENT:superconductor-processor]
