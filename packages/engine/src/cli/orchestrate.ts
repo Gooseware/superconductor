@@ -50,6 +50,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     const sm = new WorkUnitStateMachine();
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
                     
+                    let consensusArtifact = { allGreen: true, payload: [] as any[] };
                     if (wu.reviewers && wu.reviewers.length > 0) {
                         const loop = new QuorumReviewLoop({
                             maxIterations: 1,
@@ -71,11 +72,21 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                 return { status: 'RESOLVED', findings: [] };
                             }
                         });
-                        await loop.run("");
+                        const loopResult = await loop.run("");
+                        consensusArtifact = {
+                            allGreen: loopResult.status === 'RESOLVED',
+                            payload: loopResult.findings || []
+                        };
                     }
                     
-                    const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, { allGreen: true });
-                    Object.assign(wu, doneWu);
+                    if (!consensusArtifact.allGreen) {
+                        const failedWu = sm.transition(updatedWu, WorkUnitState.FAILED);
+                        Object.assign(wu, failedWu);
+                        throw new Error(`Quorum review failed for ${wu.unitId}: ${JSON.stringify(consensusArtifact.payload)}`);
+                    } else {
+                        const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, consensusArtifact);
+                        Object.assign(wu, doneWu);
+                    }
                 })
                 .catch(err => {
                     this.emit('orchestration_error', { error: err });

@@ -20,39 +20,51 @@ export interface ReviewFinding {
 const VALID_SEVERITIES = new Set(['critical', 'high', 'medium', 'low', 'advisory']);
 const VALID_CATEGORIES = new Set(['security', 'correctness', 'adversarial', 'architecture', 'style']);
 
-export function isValidFinding(f: any): boolean {
+export function isValidFinding(f: unknown): f is ReviewFinding {
+  if (f === null || Array.isArray(f) || typeof f !== 'object') return false;
+  const obj = f as Record<string, unknown>;
   return (
-    f !== null &&
-    !Array.isArray(f) &&
-    typeof f === 'object' &&
-    typeof f.finding_id === 'string' &&
-    typeof f.severity === 'string' &&
-    VALID_SEVERITIES.has(f.severity) &&
-    typeof f.category === 'string' &&
-    VALID_CATEGORIES.has(f.category) &&
-    typeof f.file === 'string' &&
-    typeof f.line_range === 'string'
+    typeof obj.finding_id === 'string' &&
+    typeof obj.severity === 'string' &&
+    VALID_SEVERITIES.has(obj.severity) &&
+    typeof obj.category === 'string' &&
+    VALID_CATEGORIES.has(obj.category) &&
+    typeof obj.file === 'string' &&
+    typeof obj.line_range === 'string'
   );
 }
 
-export function mapReviewerIssue(issue: any, reviewerId: string, options?: any): ReviewFinding | null {
+export function mapReviewerIssue(issue: unknown, reviewerId: string, options?: unknown): ReviewFinding | null {
+  if (typeof issue !== 'object' || issue === null) {
+    throw new TypeError('issue must be a non-null object');
+  }
   if (!isValidFinding(issue)) return null;
-  const f = { ...issue };
+  const f = { ...(issue as Record<string, unknown>) };
   if (!f.reviewer_id) {
     f.reviewer_id = reviewerId;
   }
-  return f as ReviewFinding;
+  if (typeof f.reviewer_id !== 'string') {
+    throw new TypeError('reviewer_id must be a string');
+  }
+  return f as unknown as ReviewFinding;
 }
 
 export function extractReviewerFindings(
   item: { reviewer_id: string; raw_text?: string },
   manifestsDir?: string
 ): ReviewFinding[] {
-  let parsedArray: any[] | null = null;
+  if (!item || typeof item !== 'object') {
+    throw new TypeError('item must be an object');
+  }
+  if (typeof item.reviewer_id !== 'string') {
+    throw new TypeError('item.reviewer_id must be a string');
+  }
+
+  let parsedArray: unknown[] | null = null;
 
   // Tier 1 Extraction
   if (item.raw_text) {
-    const parsed = extractFencedBlock<any[]>(item.raw_text, 'review-findings');
+    const parsed = extractFencedBlock<unknown[]>(item.raw_text, 'review-findings');
     if (Array.isArray(parsed)) {
       parsedArray = parsed;
     }
@@ -60,8 +72,11 @@ export function extractReviewerFindings(
 
   // Tier 2 Extraction
   if (!parsedArray && manifestsDir) {
-    const artifactPath = path.join(manifestsDir, `${item.reviewer_id}-findings.json`);
-    if (fs.existsSync(artifactPath)) {
+    const safeReviewerId = item.reviewer_id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const artifactPath = path.resolve(manifestsDir, `${safeReviewerId}-findings.json`);
+    const resolvedManifestsDir = path.resolve(manifestsDir);
+    
+    if (artifactPath.startsWith(resolvedManifestsDir) && fs.existsSync(artifactPath)) {
       try {
         const content = fs.readFileSync(artifactPath, 'utf-8');
         const parsed = JSON.parse(content);

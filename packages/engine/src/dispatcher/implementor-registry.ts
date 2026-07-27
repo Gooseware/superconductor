@@ -8,7 +8,9 @@ export class ImplementorRegistry {
       if (existingId !== implementorId) {
         for (const newScope of workUnit.domainScope) {
           for (const existingScope of existingWu.domainScope) {
-            if (newScope.startsWith(existingScope) || existingScope.startsWith(newScope)) {
+            const normNew = newScope.endsWith('/') ? newScope : newScope + '/';
+            const normExist = existingScope.endsWith('/') ? existingScope : existingScope + '/';
+            if (newScope === existingScope || normNew.startsWith(normExist) || normExist.startsWith(normNew)) {
               throw new Error(`Architectural Drift: Overlapping domain scope detected between ${implementorId} and ${existingId} for scopes: ${newScope}, ${existingScope}`);
             }
           }
@@ -24,7 +26,10 @@ export class ImplementorRegistry {
 
   getImplementorForFile(filePath: string): string | undefined {
     for (const [implementorId, workUnit] of this.implementors.entries()) {
-      if (workUnit.domainScope.some((scope: string) => filePath.startsWith(scope))) {
+      if (workUnit.domainScope.some((scope: string) => {
+        const normalizedScope = scope.endsWith('/') ? scope : scope + '/';
+        return filePath === scope || filePath.startsWith(normalizedScope);
+      })) {
         return implementorId;
       }
     }

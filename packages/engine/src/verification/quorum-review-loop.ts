@@ -1,24 +1,28 @@
 import * as crypto from 'node:crypto';
 import { KeyholeFeedbackExtractor, isValidFinding } from '@superconductor/core/src/review/aggregate-findings.js';
 
-export function validateReviewerPayload(payload: any): void {
-    if (payload.status === 'RESOLVED' && payload.findings && payload.findings.length > 0) {
+export function validateReviewerPayload(payload: unknown): void {
+    if (typeof payload !== 'object' || payload === null) {
+        throw new TypeError('Payload must be a non-null object');
+    }
+    const p = payload as { status?: unknown, findings?: unknown };
+    if (p.status === 'RESOLVED' && Array.isArray(p.findings) && p.findings.length > 0) {
         throw new Error('Mutual exclusivity violated: cannot have RESOLVED status with findings');
     }
 }
 
 export interface QuorumReviewLoopOptions {
     maxIterations: number;
-    reviewerFn: (code: string) => Promise<{ status: string, findings: any[] }>;
-    remediateFn?: (payloads: any[]) => Promise<string>;
+    reviewerFn: (code: string) => Promise<{ status: string, findings: unknown[] }>;
+    remediateFn?: (payloads: unknown[]) => Promise<string>;
     timeoutMs?: number;
     workUnitSpec?: string;
 }
 
 export class QuorumReviewLoop {
     private maxIterations: number;
-    private reviewerFn: (code: string) => Promise<{ status: string, findings: any[] }>;
-    private remediateFn?: (payloads: any[]) => Promise<string>;
+    private reviewerFn: (code: string) => Promise<{ status: string, findings: unknown[] }>;
+    private remediateFn?: (payloads: unknown[]) => Promise<string>;
     private timeoutMs: number;
     private workUnitSpec: string;
 
@@ -48,9 +52,9 @@ export class QuorumReviewLoop {
         return crypto.createHash('sha256').update(code).digest('hex');
     }
 
-    async run(code: string): Promise<{ status: string, findings?: any[] }> {
+    async run(code: string): Promise<{ status: string, findings?: unknown[] }> {
         let iterations = 0;
-        let lastResult: { status: string, findings?: any[] } = { status: 'PENDING', findings: [] };
+        let lastResult: { status: string, findings?: unknown[] } = { status: 'PENDING', findings: [] };
         let currentCode = code;
         const stateHashes = new Set<string>();
 
