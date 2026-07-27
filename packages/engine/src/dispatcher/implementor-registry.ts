@@ -13,7 +13,7 @@ export class ImplementorRegistry {
 
   getImplementorForFile(filePath: string): string | undefined {
     for (const [implementorId, workUnit] of this.implementors.entries()) {
-      if (workUnit.domainScope.includes(filePath)) {
+      if (workUnit.domainScope.some((scope: string) => filePath.startsWith(scope))) {
         return implementorId;
       }
     }

@@ -58,13 +58,20 @@ export class ParallelDispatcher extends Dispatcher {
 
   handleFinding(finding: { filePath: string; keyholePayload: any }): void {
     const implementorId = this.implementorRegistry.getImplementorForFile(finding.filePath);
-    if (implementorId) {
-      const wu = this.implementorRegistry.getWorkUnit(implementorId);
-      if (wu && wu.state === WorkUnitState.IN_PROGRESS) {
+    if (!implementorId) {
+      throw new Error(`No active implementor found for file: ${finding.filePath}`);
+    }
+
+    const wu = this.implementorRegistry.getWorkUnit(implementorId);
+    if (wu) {
+      let updatedWu = wu;
+      if (wu.state === WorkUnitState.IN_PROGRESS) {
         // Pause ONLY the affected implementor
-        const updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.PAUSED);
+        updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.PAUSED);
         this.implementorRegistry.register(implementorId, updatedWu);
-        
+      }
+      
+      if (updatedWu.state === WorkUnitState.PAUSED) {
         // Route the keyhole payload to them (emit an event)
         this.emit('keyhole_payload_routed', {
           implementorId,
@@ -72,6 +79,8 @@ export class ParallelDispatcher extends Dispatcher {
           payload: finding.keyholePayload
         });
       }
+    } else {
+      throw new Error(`WorkUnit not found for implementor: ${implementorId}`);
     }
   }
 }

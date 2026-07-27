@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { WorkUnit, WorkUnitStateMachine, WorkUnitState } from '../../src/track/work-unit.js';
+import { WorkUnit, WorkUnitStateMachine, WorkUnitState, ConsensusArtifact } from '../../src/track/work-unit.js';
 
 describe('WorkUnit & WorkUnitStateMachine', () => {
   it('should initialize a WorkUnit with required properties', () => {
@@ -50,15 +50,28 @@ describe('WorkUnit & WorkUnitStateMachine', () => {
       expect(nextWu.state).toBe(WorkUnitState.IN_PROGRESS);
     });
 
-    it('should transition to COMPLETED', () => {
+    it('should NOT transition to DONE without a green ConsensusArtifact', () => {
       wu.state = WorkUnitState.IN_PROGRESS;
-      const nextWu = stateMachine.transition(wu, WorkUnitState.COMPLETED);
-      expect(nextWu.state).toBe(WorkUnitState.COMPLETED);
+      expect(() => {
+        stateMachine.transition(wu, WorkUnitState.DONE);
+      }).toThrow(/quorum/i); // or some specific error
+      
+      expect(() => {
+        stateMachine.transition(wu, WorkUnitState.DONE, { allGreen: false });
+      }).toThrow(/quorum/i);
+    });
+
+    it('should transition to DONE with a green ConsensusArtifact', () => {
+      wu.state = WorkUnitState.IN_PROGRESS;
+      const artifact: ConsensusArtifact = { allGreen: true };
+      const nextWu = stateMachine.transition(wu, WorkUnitState.DONE, artifact);
+      expect(nextWu.state).toBe(WorkUnitState.DONE);
+      expect(nextWu.consensusArtifact).toBe(artifact);
     });
 
     it('should throw an error for invalid transitions', () => {
       expect(() => {
-        stateMachine.transition(wu, WorkUnitState.COMPLETED);
+        stateMachine.transition(wu, WorkUnitState.DONE, { allGreen: true });
       }).toThrow(/Invalid state transition/);
     });
   });
