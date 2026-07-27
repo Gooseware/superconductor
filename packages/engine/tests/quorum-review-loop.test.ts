@@ -40,7 +40,8 @@ describe('QuorumReviewLoop', () => {
             .mockResolvedValueOnce({ status: 'REJECTED', findings: ['Error 2'] })
             .mockResolvedValueOnce({ status: 'RESOLVED', findings: [] });
             
-        const mockRemediate = vi.fn().mockImplementation((code, findings) => Promise.resolve(code + ' remediated'));
+        let counter = 0;
+        const mockRemediate = vi.fn().mockImplementation((code, findings) => Promise.resolve(code + ' remediated' + (++counter)));
             
         const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer, remediateFn: mockRemediate });
         const result = await loop.run('some-code');
@@ -64,7 +65,8 @@ describe('QuorumReviewLoop', () => {
 
     it('should stop after hitting maxIterations even if not resolved (e.g. assert loop halts after 3 remediation cycles)', async () => {
         const mockReviewer = vi.fn().mockResolvedValue({ status: 'REJECTED', findings: ['Always fails'] });
-        const mockRemediate = vi.fn().mockImplementation((code) => Promise.resolve(code));
+        let counter = 0;
+        const mockRemediate = vi.fn().mockImplementation((code) => Promise.resolve(code + (++counter)));
             
         const loop = new QuorumReviewLoop({ maxIterations: 3, reviewerFn: mockReviewer, remediateFn: mockRemediate });
         const result = await loop.run('some-code');
@@ -72,5 +74,17 @@ describe('QuorumReviewLoop', () => {
         expect(mockReviewer).toHaveBeenCalledTimes(3);
         expect(mockRemediate).toHaveBeenCalledTimes(3);
         expect(result.status).toBe('MAX_ITERATIONS_REACHED');
+    });
+
+    it('should halt with THRASH_DETECTED if state hash recurs', async () => {
+        const mockReviewer = vi.fn().mockResolvedValue({ status: 'REJECTED', findings: ['Always fails'] });
+        const mockRemediate = vi.fn().mockImplementation((code) => Promise.resolve(code)); // Returns same code, causing thrashing
+            
+        const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer, remediateFn: mockRemediate });
+        const result = await loop.run('some-code');
+        
+        expect(mockReviewer).toHaveBeenCalledTimes(1);
+        expect(mockRemediate).toHaveBeenCalledTimes(1);
+        expect(result.status).toBe('THRASH_DETECTED');
     });
 });

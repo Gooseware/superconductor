@@ -155,3 +155,38 @@ function isLineRangeClose(rangeA: string, rangeB: string): boolean {
   if (isNaN(numA) || isNaN(numB)) return false;
   return Math.abs(numA - numB) <= 3;
 }
+
+export interface KeyholePayload {
+  finding: ReviewFinding;
+  workUnitSpec: string;
+  contextLines: string;
+  fullFileContent?: never;
+  branchDiff?: never;
+  crossDomainFindings?: never;
+}
+
+export class KeyholeFeedbackExtractor {
+  static extractPayload(finding: ReviewFinding, fileContent: string, workUnitSpec: string): KeyholePayload {
+    const lines = fileContent.split('\n');
+    let startLine = 1;
+    let endLine = lines.length;
+
+    if (finding.line_range && finding.line_range !== 'all') {
+      const match = finding.line_range.match(/L(\d+)(?:-L(\d+))?/);
+      if (match) {
+        const l1 = parseInt(match[1], 10);
+        const l2 = match[2] ? parseInt(match[2], 10) : l1;
+        startLine = Math.max(1, l1 - 50);
+        endLine = Math.min(lines.length, l2 + 50);
+      }
+    }
+
+    const contextLines = lines.slice(startLine - 1, endLine).join('\n');
+
+    return {
+      finding,
+      workUnitSpec,
+      contextLines
+    };
+  }
+}
