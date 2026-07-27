@@ -44,7 +44,7 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         expect(result.workUnits).toHaveLength(1);
         expect(result.workUnits[0].implementorId).toBe('agent-ui');
         expect(result.workUnits[0].reviewers).toEqual(["agent-reviewer-1", "agent-reviewer-2"]);
-        expect(result.workUnits[0].state).toBe(WorkUnitState.PENDING);
+        expect(result.workUnits[0].state).toBe('REVIEWED');
         
         expect(invokedAgents).toHaveLength(1);
         expect(invokedAgents[0].agentId).toBe('agent-ui');

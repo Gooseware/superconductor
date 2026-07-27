@@ -24,6 +24,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         const planPath = path.join(workspaceDir, '.superconductor', 'tracks', trackId, 'plan.md');
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
 
+        const allDispatches: Promise<void>[] = [];
+
         for (const wu of workUnits) {
             this.dispatcher.implementorRegistry.register(wu.implementorId, wu);
             
@@ -39,16 +41,35 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
             this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: wu.spec });
             
-            this.dispatcher.dispatch(task as any).catch(err => {
-                this.emit('orchestration_error', { error: err });
-            });
-
-            if (wu.reviewers && wu.reviewers.length > 0) {
-                for (const reviewer of wu.reviewers) {
-                   this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
-                }
-            }
+            const dispatchPromise = this.dispatcher.dispatch(task as any)
+                .then(async () => {
+                    wu.state = 'COMPLETED' as any;
+                    if (wu.reviewers && wu.reviewers.length > 0) {
+                        const reviewerPromises = wu.reviewers.map(reviewer => {
+                            const reviewerTask = {
+                                id: `${wu.unitId}-review-${reviewer}`,
+                                role: reviewer,
+                                tier: 3,
+                                status: 'pending',
+                                prompt: `Review ${wu.unitId}`,
+                                contextFiles: [],
+                                dependsOn: [task.id]
+                            };
+                            this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
+                            return this.dispatcher.dispatch(reviewerTask as any);
+                        });
+                        await Promise.all(reviewerPromises);
+                        wu.state = 'REVIEWED' as any;
+                    }
+                })
+                .catch(err => {
+                    this.emit('orchestration_error', { error: err });
+                });
+            
+            allDispatches.push(dispatchPromise);
         }
+
+        await Promise.all(allDispatches);
 
         return { workUnits };
     }
