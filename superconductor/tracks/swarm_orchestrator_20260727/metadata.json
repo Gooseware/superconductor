@@ -1,0 +1,13 @@
+{
+  "track_id": "swarm_orchestrator_20260727",
+  "title": "Swarm Orchestrator Protocol",
+  "type": "feature",
+  "status": "pending",
+  "created_at": "2026-07-27T06:30:00Z",
+  "updated_at": "2026-07-27T06:30:00Z",
+  "target_branch": "main",
+  "branch": "track/swarm_orchestrator_20260727",
+  "phases": 7,
+  "estimated_tokens": "~0.8M",
+  "description": "Implements a production-grade Swarm Orchestrator Protocol. Root agent acts as pure delegator. Swarm Orchestrator manages Implementor Swarm + Review Quorum Swarm with quorum-gated parallelism, keyhole feedback routing, Topography Map baseline, and ConsensusArtifact commit gating. Introduces /superconductor:swarm-execute command."
+}
