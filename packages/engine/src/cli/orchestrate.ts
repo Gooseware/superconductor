@@ -2,8 +2,17 @@ import { WorkUnit, WorkUnitState } from '@superconductor/core/src/track/work-uni
 import * as fs from 'fs';
 import * as path from 'path';
 
-export class SwarmOrchestratorCLI {
+import { EventEmitter } from 'events';
+import { ParallelDispatcher } from '../dispatcher/parallel-dispatcher.js';
+
+export class SwarmOrchestratorCLI extends EventEmitter {
     private llmUsed = false;
+    public dispatcher: ParallelDispatcher;
+
+    constructor() {
+        super();
+        this.dispatcher = new ParallelDispatcher(5);
+    }
 
     public wasLLMUsed(): boolean {
         return this.llmUsed;
@@ -14,6 +23,33 @@ export class SwarmOrchestratorCLI {
         const topographyPath = path.join(workspaceDir, 'topography.json');
         const planPath = path.join(workspaceDir, '.superconductor', 'tracks', trackId, 'plan.md');
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
+
+        for (const wu of workUnits) {
+            this.dispatcher.implementorRegistry.register(wu.implementorId, wu);
+            
+            const task = {
+                id: wu.unitId,
+                role: wu.implementorId,
+                tier: 3,
+                status: 'pending',
+                prompt: wu.spec,
+                contextFiles: [],
+                dependsOn: []
+            };
+
+            this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: wu.spec });
+            
+            this.dispatcher.dispatch(task as any).catch(err => {
+                this.emit('orchestration_error', { error: err });
+            });
+
+            if (wu.reviewers && wu.reviewers.length > 0) {
+                for (const reviewer of wu.reviewers) {
+                   this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
+                }
+            }
+        }
+
         return { workUnits };
     }
 
