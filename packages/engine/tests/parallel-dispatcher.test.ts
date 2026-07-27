@@ -96,6 +96,7 @@ test('ParallelDispatcher holds lock until WorkUnit reaches DONE via green quorum
   const task: DagNode = { id: 'test-lock-task', role: 'coder', prompt: 'test', dependencies: [] };
   
   dispatcher['simulateExecution'] = async (t: DagNode) => {
+    dispatcher['agentToTaskId'].set('agent-lock', t.id);
     return { agentId: 'agent-lock', status: 'success', output: 'done' };
   };
 
@@ -114,7 +115,7 @@ test('ParallelDispatcher holds lock until WorkUnit reaches DONE via green quorum
   expect(lockReleased).toBe(false);
 
   // When we handle the quorum with allGreen: true
-  dispatcher.handleQuorumResult('agent-lock', { allGreen: true });
+  await dispatcher.handleQuorumResult('agent-lock', { allGreen: true });
 
   // Now the lock should be released
   expect(lockReleased).toBe(true);

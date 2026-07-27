@@ -78,13 +78,13 @@ describe('QuorumReviewLoop', () => {
 
     it('should halt with THRASH_DETECTED if state hash recurs', async () => {
         const mockReviewer = vi.fn().mockResolvedValue({ status: 'REJECTED', findings: ['Always fails'] });
-        const mockRemediate = vi.fn().mockImplementation((code) => Promise.resolve(code)); // Returns same code, causing thrashing
+        const mockRemediate = vi.fn().mockImplementation((payloads) => Promise.resolve("unchanged_code"));
             
         const loop = new QuorumReviewLoop({ maxIterations: 5, reviewerFn: mockReviewer, remediateFn: mockRemediate });
         const result = await loop.run('some-code');
         
-        expect(mockReviewer).toHaveBeenCalledTimes(1);
-        expect(mockRemediate).toHaveBeenCalledTimes(1);
+        expect(mockReviewer).toHaveBeenCalledTimes(2);
+        expect(mockRemediate).toHaveBeenCalledTimes(2);
         expect(result.status).toBe('THRASH_DETECTED');
     });
 });

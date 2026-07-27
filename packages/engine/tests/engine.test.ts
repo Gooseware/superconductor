@@ -6,13 +6,13 @@ describe('Engine Integration', () => {
   it('successfully executes a complete DAG from start to finish', async () => {
     const graph: TaskGraph = {
       nodes: {
-        A: { id: 'A', status: 'pending', prompt: 'Do A', tier: 1 },
-        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1 },
-        C: { id: 'C', status: 'pending', prompt: 'Do C', tier: 1 }
+        A1: { id: 'A1', status: 'pending', prompt: 'Do A', tier: 1 },
+        B1: { id: 'B1', status: 'pending', prompt: 'Do B', tier: 1 },
+        C1: { id: 'C1', status: 'pending', prompt: 'Do C', tier: 1 }
       },
       edges: [
-        { from: 'A', to: 'B' },
-        { from: 'A', to: 'C' }
+        { from: 'A1', to: 'B1' },
+        { from: 'A1', to: 'C1' }
       ]
     };
 
@@ -20,21 +20,21 @@ describe('Engine Integration', () => {
     const result = await engine.execute();
 
     expect(result.success).toBe(true);
-    expect(graph.nodes['A'].status).toBe('completed');
-    expect(graph.nodes['B'].status).toBe('completed');
-    expect(graph.nodes['C'].status).toBe('completed');
+    expect(graph.nodes['A1'].status).toBe('completed');
+    expect(graph.nodes['B1'].status).toBe('completed');
+    expect(graph.nodes['C1'].status).toBe('completed');
   });
 
   it('halts and escalates/blocks upon cascading failure', async () => {
     const graph: TaskGraph = {
       nodes: {
-        A: { id: 'A', status: 'pending', prompt: 'Fail me', tier: 1 },
-        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1 },
-        C: { id: 'C', status: 'pending', prompt: 'Do C', tier: 1 }
+        A2: { id: 'A2', status: 'pending', prompt: 'Fail me', tier: 1 },
+        B2: { id: 'B2', status: 'pending', prompt: 'Do B', tier: 1 },
+        C2: { id: 'C2', status: 'pending', prompt: 'Do C', tier: 1 }
       },
       edges: [
-        { from: 'A', to: 'B' },
-        { from: 'B', to: 'C' }
+        { from: 'A2', to: 'B2' },
+        { from: 'B2', to: 'C2' }
       ]
     };
 
@@ -42,20 +42,20 @@ describe('Engine Integration', () => {
     const result = await engine.execute();
 
     expect(result.success).toBe(false);
-    expect(graph.nodes['A'].status).toBe('failed');
-    expect(graph.nodes['B'].status).toBe('blocked');
-    expect(graph.nodes['C'].status).toBe('blocked');
+    expect(graph.nodes['A2'].status).toBe('failed');
+    expect(graph.nodes['B2'].status).toBe('blocked');
+    expect(graph.nodes['C2'].status).toBe('blocked');
   });
 
   it('safely resolves a file conflict via wait-and-retry', async () => {
     const graph: TaskGraph = {
       nodes: {
-        A: { id: 'A', status: 'pending', prompt: 'Do A', tier: 1, contextFiles: ['file1.txt'] },
-        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1, contextFiles: ['file1.txt'] },
-        C: { id: 'C', status: 'pending', prompt: 'Do C', tier: 1 }
+        A3: { id: 'A3', status: 'pending', prompt: 'Do A', tier: 1, contextFiles: ['file1.txt'] },
+        B3: { id: 'B3', status: 'pending', prompt: 'Do B', tier: 1, contextFiles: ['file1.txt'] },
+        C3: { id: 'C3', status: 'pending', prompt: 'Do C', tier: 1 }
       },
       edges: [
-        { from: 'A', to: 'C' }
+        { from: 'A3', to: 'C3' }
       ]
     };
 
@@ -63,19 +63,19 @@ describe('Engine Integration', () => {
     const result = await engine.execute();
 
     expect(result.success).toBe(true);
-    expect(graph.nodes['A'].status).toBe('completed');
-    expect(graph.nodes['B'].status).toBe('completed');
-    expect(graph.nodes['C'].status).toBe('completed');
+    expect(graph.nodes['A3'].status).toBe('completed');
+    expect(graph.nodes['B3'].status).toBe('completed');
+    expect(graph.nodes['C3'].status).toBe('completed');
   });
 
   it('handles unhandled dispatch rejection without hanging', async () => {
     const graph: TaskGraph = {
       nodes: {
-        A: { id: 'A', status: 'pending', prompt: 'Crash me', tier: 1 },
-        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1 }
+        A4: { id: 'A4', status: 'pending', prompt: 'Crash me', tier: 1 },
+        B4: { id: 'B4', status: 'pending', prompt: 'Do B', tier: 1 }
       },
       edges: [
-        { from: 'A', to: 'B' }
+        { from: 'A4', to: 'B4' }
       ]
     };
 
@@ -83,15 +83,15 @@ describe('Engine Integration', () => {
     const result = await engine.execute();
 
     expect(result.success).toBe(false);
-    expect(graph.nodes['A'].status).toBe('failed');
-    expect(graph.nodes['B'].status).toBe('blocked');
+    expect(graph.nodes['A4'].status).toBe('failed');
+    expect(graph.nodes['B4'].status).toBe('blocked');
   });
 
   it('rejects the execution promise upon engine deadlock', async () => {
     const graph: TaskGraph = {
       nodes: {
-        A: { id: 'A', status: 'pending', prompt: 'Do A', tier: 1, contextFiles: ['file1.txt'] },
-        B: { id: 'B', status: 'pending', prompt: 'Do B', tier: 1, contextFiles: ['file2.txt'] }
+        A5: { id: 'A5', status: 'pending', prompt: 'Do A', tier: 1, contextFiles: ['file1.txt'] },
+        B5: { id: 'B5', status: 'pending', prompt: 'Do B', tier: 1, contextFiles: ['file2.txt'] }
       },
       edges: []
     };

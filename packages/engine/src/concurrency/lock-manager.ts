@@ -4,7 +4,12 @@ import path from 'path';
 export class TaskLockManager {
     private lockDir: string;
 
-    constructor(lockDir: string = '.superconductor/locks') {
+    constructor(lockDir?: string) {
+        if (!lockDir) {
+            lockDir = process.env.NODE_ENV === 'test'
+                ? `.superconductor/locks_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+                : '.superconductor/locks';
+        }
         this.lockDir = path.resolve(process.cwd(), lockDir);
         if (!fs.existsSync(this.lockDir)) {
             fs.mkdirSync(this.lockDir, { recursive: true });

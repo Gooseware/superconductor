@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SwarmOrchestratorCLI } from '../src/cli/orchestrate.js';
 import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import * as fs from 'fs';

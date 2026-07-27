@@ -10,8 +10,17 @@ export interface TokenUsageReport {
     timestamp: number;
 }
 
+export interface MetricReport {
+    trackId: string;
+    metricType: 'DISPATCH_COUNT' | 'FEEDBACK_LOOP' | 'RESOLUTION_TIME';
+    value: number;
+    metadata?: Record<string, any>;
+    timestamp: number;
+}
+
 export interface TelemetryStore {
     recordUsage(report: TokenUsageReport): Promise<void>;
+    recordMetric?(report: MetricReport): Promise<void>;
 }
 
 export class FileTelemetryStore implements TelemetryStore {
@@ -50,7 +59,32 @@ export class FileTelemetryStore implements TelemetryStore {
             throw new Error("subagentId must be a non-empty string");
         }
 
-        const line = JSON.stringify(report) + '\n';
+        const line = JSON.stringify({ type: 'TOKEN_USAGE', ...report }) + '\n';
+        
+        const task = this.queue.then(async () => {
+            await this.ensureDir();
+            await fs.appendFile(this.filePath, line, 'utf-8');
+        });
+        
+        this.queue = task.catch(() => {});
+        await task;
+    }
+
+    async recordMetric(report: MetricReport): Promise<void> {
+        if (!report) {
+            throw new Error("Report is required");
+        }
+        if (!report.trackId || typeof report.trackId !== 'string') {
+            throw new Error("trackId must be a non-empty string");
+        }
+        if (!['DISPATCH_COUNT', 'FEEDBACK_LOOP', 'RESOLUTION_TIME'].includes(report.metricType)) {
+            throw new Error("Invalid metricType");
+        }
+        if (typeof report.value !== 'number') {
+            throw new Error("value must be a number");
+        }
+
+        const line = JSON.stringify({ type: 'METRIC', ...report }) + '\n';
         
         const task = this.queue.then(async () => {
             await this.ensureDir();
