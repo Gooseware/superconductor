@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { SwarmOrchestratorCLI } from '../src/cli/orchestrate.js';
 import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import * as fs from 'fs';
@@ -12,10 +12,10 @@ describe('SwarmOrchestratorCLI', () => {
     });
 
     it('should parse topography.json and plan.md and emit structured WorkUnit dispatch commands without LLM', async () => {
-        const topographyPath = path.join(__dirname, 'fixtures', 'topography.json');
-        const planPath = path.join(__dirname, 'fixtures', 'plan.md');
+        const topographyPath = path.join(import.meta.dirname, 'fixtures', 'topography.json');
+        const planPath = path.join(import.meta.dirname, 'fixtures', 'plan.md');
 
-        fs.mkdirSync(path.join(__dirname, 'fixtures'), { recursive: true });
+        fs.mkdirSync(path.join(import.meta.dirname, 'fixtures'), { recursive: true });
         
         fs.writeFileSync(topographyPath, JSON.stringify({
             "frontend": { "owner": "agent-ui" },
@@ -42,5 +42,12 @@ describe('SwarmOrchestratorCLI', () => {
         
         // Assert LLM isn't called (which it wouldn't be since we just purely parse)
         expect(cli.wasLLMUsed()).toBe(false);
+    });
+
+    afterAll(() => {
+        const topographyPath = path.join(import.meta.dirname, 'fixtures', 'topography.json');
+        const planPath = path.join(import.meta.dirname, 'fixtures', 'plan.md');
+        if (fs.existsSync(topographyPath)) fs.unlinkSync(topographyPath);
+        if (fs.existsSync(planPath)) fs.unlinkSync(planPath);
     });
 });

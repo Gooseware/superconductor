@@ -25,7 +25,9 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         fs.mkdirSync(path.dirname(trackPath), { recursive: true });
         
         fs.writeFileSync(topographyPath, JSON.stringify({
-            "frontend": { "owner": "agent-ui", "reviewers": ["agent-reviewer-1", "agent-reviewer-2"] }
+            partitions: [
+                { id: "frontend", files: [], hotspotScore: 0, coverageGapPercent: 0, reviewers: ["agent-reviewer-1", "agent-reviewer-2"] }
+            ]
         }));
         
         fs.writeFileSync(trackPath, `
@@ -44,7 +46,8 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         expect(result.workUnits).toHaveLength(1);
         expect(result.workUnits[0].implementorId).toBe('agent-ui');
         expect(result.workUnits[0].reviewers).toEqual(["agent-reviewer-1", "agent-reviewer-2"]);
-        expect(result.workUnits[0].state).toBe('REVIEWED');
+        expect(result.workUnits[0].state).toBe(WorkUnitState.DONE);
+        expect(result.workUnits[0].consensusArtifact?.allGreen).toBe(true);
         
         expect(invokedAgents).toHaveLength(1);
         expect(invokedAgents[0].agentId).toBe('agent-ui');

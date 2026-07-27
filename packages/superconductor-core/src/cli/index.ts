@@ -133,8 +133,14 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
         process.exit(1);
       }
       const cli = new SwarmOrchestratorCLI();
-      const res = await cli.executeTrack(process.cwd(), trackId);
-      console.log(`🚀 Swarm execute complete. WorkUnits dispatched: ${res.workUnits.length}`);
+      try {
+        const res = await cli.executeTrack(process.cwd(), trackId);
+        const succeeded = res.workUnits.filter((wu: any) => wu.state === 'DONE').length;
+        console.log(`🚀 Swarm execute complete. ${succeeded}/${res.workUnits.length} tasks succeeded`);
+      } catch (err) {
+        console.error('Swarm execute failed:', err);
+        process.exit(1);
+      }
       break;
     }
 

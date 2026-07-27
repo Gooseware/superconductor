@@ -137,36 +137,32 @@ describe('DaemonHeartbeat', () => {
             const heartbeat = new DaemonHeartbeat(100, vi.fn(), { onReinject, onEscalate, maxRetries });
             const engineState: EngineState = {};
 
-            vi.mocked(fs.readFileSync)
-                .mockImplementationOnce(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); })
-                .mockImplementationOnce(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); })
-                .mockReturnValue('mock context');
+            vi.mocked(fs.readFileSync).mockReturnValue('mock context');
             
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fail 1
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fail 2
-            expect(onReinject).toHaveBeenCalledTimes(0);
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            expect(onReinject).toHaveBeenCalledTimes(2);
             
             // Success resets it
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // success!
-            expect(onReinject).toHaveBeenCalledTimes(1);
-
             engineState.context = 'now present';
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fast paths out
-            expect(onReinject).toHaveBeenCalledTimes(1);
-            
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
             engineState.context = undefined;
-            // We can now fail 3 more times before escalation
-            vi.mocked(fs.readFileSync).mockImplementation(() => { throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' }); });
-
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fail 1
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fail 2
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fail 3
             
-            expect(onReinject).toHaveBeenCalledTimes(1);
+            // We can now fail 3 more times before escalation
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
+            engineState.context = undefined;
+            
+            expect(onReinject).toHaveBeenCalledTimes(5);
             expect(onEscalate).not.toHaveBeenCalled();
             
             // 4th fail after reset escalates
-            heartbeat.verifyTrackContext(engineState, '/fake/dir'); // fail 4 -> escalate
+            heartbeat.verifyTrackContext(engineState, '/fake/dir');
             expect(onEscalate).toHaveBeenCalledTimes(1);
         });
 

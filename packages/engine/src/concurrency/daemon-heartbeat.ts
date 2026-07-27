@@ -82,6 +82,7 @@ export class DaemonHeartbeat {
                     this.options.onReinject();
                 }
             } catch (err: any) {
+                if (err.code !== 'ENOENT') throw err;
                 // Safely log and swallow errors as failed attempts
                 console.warn('Failed to read plan.md', err);
             }

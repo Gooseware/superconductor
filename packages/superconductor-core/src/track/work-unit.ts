@@ -9,6 +9,7 @@ export enum WorkUnitState {
 export interface ConsensusArtifact<T = unknown> {
   allGreen: boolean;
   payload?: T;
+  arbitrations?: Array<{ rule: 'Security' | 'Performance' | 'UX'; winner: string; rationale: string }>;
 }
 
 export interface WorkUnit<T = unknown> {

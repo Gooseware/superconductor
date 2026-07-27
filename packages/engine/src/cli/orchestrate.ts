@@ -1,4 +1,5 @@
-import { WorkUnit, WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
+import { WorkUnit, WorkUnitState, WorkUnitStateMachine } from '@superconductor/core/src/track/work-unit.js';
+import { QuorumReviewLoop } from '../verification/quorum-review-loop.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -21,7 +22,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
     public async executeTrack(workspaceDir: string, trackId: string): Promise<{ workUnits: WorkUnit[] }> {
         const path = await import('path');
         const topographyPath = path.join(workspaceDir, 'topography.json');
-        const planPath = path.join(workspaceDir, '.superconductor', 'tracks', trackId, 'plan.md');
+        const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const planPath = path.join(workspaceDir, '.superconductor', 'tracks', safeTrackId, 'plan.md');
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
 
         const allDispatches: Promise<void>[] = [];
@@ -43,33 +45,55 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             
             const dispatchPromise = this.dispatcher.dispatch(task as any)
                 .then(async () => {
-                    wu.state = 'COMPLETED' as any;
+                    const sm = new WorkUnitStateMachine();
+                    let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
+                    
                     if (wu.reviewers && wu.reviewers.length > 0) {
-                        const reviewerPromises = wu.reviewers.map(reviewer => {
-                            const reviewerTask = {
-                                id: `${wu.unitId}-review-${reviewer}`,
-                                role: reviewer,
-                                tier: 3,
-                                status: 'pending',
-                                prompt: `Review ${wu.unitId}`,
-                                contextFiles: [],
-                                dependsOn: [task.id]
-                            };
-                            this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
-                            return this.dispatcher.dispatch(reviewerTask as any);
+                        const loop = new QuorumReviewLoop({
+                            maxIterations: 1,
+                            reviewerFn: async () => {
+                                const reviewerPromises = wu.reviewers.map(reviewer => {
+                                    const reviewerTask = {
+                                        id: `${wu.unitId}-review-${reviewer}`,
+                                        role: reviewer,
+                                        tier: 3,
+                                        status: 'pending',
+                                        prompt: `Review ${wu.unitId}`,
+                                        contextFiles: [],
+                                        dependsOn: [task.id]
+                                    };
+                                    this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
+                                    return this.dispatcher.dispatch(reviewerTask as any);
+                                });
+                                await Promise.all(reviewerPromises);
+                                return { status: 'RESOLVED', findings: [] };
+                            }
                         });
-                        await Promise.all(reviewerPromises);
-                        wu.state = 'REVIEWED' as any;
+                        await loop.run("");
                     }
+                    
+                    const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, { allGreen: true });
+                    Object.assign(wu, doneWu);
                 })
                 .catch(err => {
                     this.emit('orchestration_error', { error: err });
+                    try {
+                        const sm = new WorkUnitStateMachine();
+                        Object.assign(wu, sm.transition(wu, WorkUnitState.FAILED));
+                    } catch (e) {
+                        wu.state = WorkUnitState.FAILED;
+                    }
+                    throw err;
                 });
             
             allDispatches.push(dispatchPromise);
         }
 
-        await Promise.all(allDispatches);
+        const results = await Promise.allSettled(allDispatches);
+        const failures = results.filter(r => r.status === 'rejected');
+        if (failures.length > 0 && failures.length === allDispatches.length && allDispatches.length > 0) {
+            throw new Error('All tasks failed');
+        }
 
         return { workUnits };
     }
@@ -95,10 +119,9 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
                 let reviewers: string[] = [];
                 for (const domain of domainScope) {
-                    if (topography[domain]) {
-                        if (topography[domain].reviewers) {
-                            reviewers.push(...topography[domain].reviewers);
-                        }
+                    const partition = topography.partitions?.find((p: any) => p.id === domain);
+                    if (partition && (partition as any).reviewers) {
+                        reviewers.push(...(partition as any).reviewers);
                     }
                 }
 

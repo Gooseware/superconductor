@@ -121,7 +121,7 @@ export class WorkerPoolManager {
     
     // Dynamically provision if it doesn't exist
     if (!fs.existsSync(workspacePath)) {
-      execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore' });
+      execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore', timeout: 30000 });
     } else {
       this.syncAndCleanWorkspace(assignedWorker);
     }
@@ -156,14 +156,14 @@ export class WorkerPoolManager {
     if (!fs.existsSync(workspacePath)) return;
 
     try {
-      execFileSync('git', ['fetch', 'origin'], { cwd: workspacePath, stdio: 'ignore' });
+      execFileSync('git', ['fetch', 'origin'], { cwd: workspacePath, stdio: 'ignore', timeout: 30000 });
       execFileSync('git', ['reset', '--hard', 'origin/main'], { cwd: workspacePath, stdio: 'ignore' });
       execFileSync('git', ['clean', '-fdx'], { cwd: workspacePath, stdio: 'ignore' });
     } catch (e) {
       console.warn(`Failed to sync and clean workspace ${workerId}, falling back to fresh clone:`, e);
       // Fallback: delete and re-clone
       fs.rmSync(workspacePath, { recursive: true, force: true });
-      execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore' });
+      execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore', timeout: 30000 });
     }
   }
 }
