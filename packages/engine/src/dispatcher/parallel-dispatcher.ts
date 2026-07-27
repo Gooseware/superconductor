@@ -11,8 +11,11 @@ export class ParallelDispatcher extends Dispatcher {
   public implementorRegistry: ImplementorRegistry;
   public workUnitStateMachine: WorkUnitStateMachine;
 
+  private agentToTaskId = new Map<string, string>();
+
   constructor(maxConcurrent: number = 5) {
     super();
+    this.autoReleaseLock = false; // Phase 4 requirement
     this.maxConcurrent = Math.max(1, maxConcurrent);
     this.implementorRegistry = new ImplementorRegistry();
     this.workUnitStateMachine = new WorkUnitStateMachine();
@@ -39,6 +42,14 @@ export class ParallelDispatcher extends Dispatcher {
   private async executeTask(task: DagNode): Promise<void> {
     this.activeCount++;
     try {
+      const originalSimulate = this['simulateExecution'].bind(this);
+      // We wrap simulateExecution just to capture the assigned agentId 
+      // so we can map it back to the task ID for lock release.
+      this['simulateExecution'] = async (t: DagNode) => {
+        const res = await originalSimulate(t);
+        this.agentToTaskId.set(res.agentId, t.id);
+        return res;
+      };
       await super.dispatch(task);
     } finally {
       this.activeCount--;
@@ -86,6 +97,32 @@ export class ParallelDispatcher extends Dispatcher {
       }
     } else {
       throw new Error(`WorkUnit not found for implementor: ${implementorId}`);
+    }
+  }
+
+  async handleQuorumResult(implementorId: string, result: { allGreen: boolean }): Promise<void> {
+    const wu = this.implementorRegistry.getWorkUnit(implementorId);
+    if (!wu) {
+      throw new Error(`WorkUnit not found for implementor: ${implementorId}`);
+    }
+
+    if (result.allGreen) {
+      // Transition WorkUnit to DONE with green consensus
+      const updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.DONE, { allGreen: true });
+      this.implementorRegistry.register(implementorId, updatedWu);
+
+      // Release lock
+      const taskId = this.agentToTaskId.get(implementorId);
+      if (taskId) {
+        await this.lockManager.releaseLock(taskId, `dispatcher-${process.pid}`);
+        this.agentToTaskId.delete(implementorId);
+      }
+    } else {
+      // Transition to FAILED if not all green
+      const updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.FAILED);
+      this.implementorRegistry.register(implementorId, updatedWu);
+      
+      // Do not release lock, it might be retried or kept held for remediation
     }
   }
 }

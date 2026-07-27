@@ -80,14 +80,16 @@ export function checkToolSurfaceViolations(toolSurface: string | string[], reque
 }
 
 export class Dispatcher extends EventEmitter {
-  private lockManager: TaskLockManager;
+  protected lockManager: TaskLockManager;
   public toolFilter: ToolSurfaceFilter;
+  protected autoReleaseLock: boolean = true;
 
   constructor() {
     super();
     this.lockManager = new TaskLockManager();
     this.toolFilter = new ToolSurfaceFilter();
   }
+
 
   getTierConfig(tier: number): { models: string[] } {
     return TIER_CONFIG[tier] || { models: ['flash'] }; // fallback
@@ -155,7 +157,9 @@ export class Dispatcher extends EventEmitter {
       };
       this.emit('event', eventFailed);
     } finally {
-      await this.lockManager.releaseLock(task.id, dispatcherAgentId);
+      if (this.autoReleaseLock) {
+        await this.lockManager.releaseLock(task.id, dispatcherAgentId);
+      }
     }
   }
 

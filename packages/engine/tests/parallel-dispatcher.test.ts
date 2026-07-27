@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { ParallelDispatcher } from '../src/dispatcher/parallel-dispatcher.js';
 import { DagNode } from '../src/types/dag.types.js';
+import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 
 test('ParallelDispatcher respects maxConcurrent limits and queues tasks', async () => {
   const dispatcher = new ParallelDispatcher(2);
@@ -80,4 +81,45 @@ test('ParallelDispatcher respects maxConcurrent limits and queues tasks', async 
   expect(resolvedCount).toBe(4);
   expect(maxObserved).toBeLessThanOrEqual(2);
   expect(dispatcher.activeAgents).toBe(0);
+});
+
+test('ParallelDispatcher holds lock until WorkUnit reaches DONE via green quorum', async () => {
+  const dispatcher = new ParallelDispatcher(2);
+  let lockReleased = false;
+
+  dispatcher['lockManager'].acquireLock = vi.fn().mockResolvedValue(true);
+  dispatcher['lockManager'].releaseLock = vi.fn().mockImplementation(async () => {
+    lockReleased = true;
+    return true;
+  });
+
+  const task: DagNode = { id: 'test-lock-task', role: 'coder', prompt: 'test', dependencies: [] };
+  
+  dispatcher['simulateExecution'] = async (t: DagNode) => {
+    return { agentId: 'agent-lock', status: 'success', output: 'done' };
+  };
+
+  // Register a work unit so it can transition
+  dispatcher.implementorRegistry.register('agent-lock', {
+    unitId: 'wu-test',
+    domainScope: ['src/a.ts'],
+    spec: 'Test',
+    state: WorkUnitState.IN_PROGRESS,
+    implementorId: 'agent-lock'
+  });
+
+  await dispatcher.dispatch(task);
+
+  // Execution is done, but lock should not be released yet
+  expect(lockReleased).toBe(false);
+
+  // When we handle the quorum with allGreen: true
+  dispatcher.handleQuorumResult('agent-lock', { allGreen: true });
+
+  // Now the lock should be released
+  expect(lockReleased).toBe(true);
+  
+  // The state should be DONE
+  const wu = dispatcher.implementorRegistry.getWorkUnit('agent-lock');
+  expect(wu?.state).toBe(WorkUnitState.DONE);
 });
