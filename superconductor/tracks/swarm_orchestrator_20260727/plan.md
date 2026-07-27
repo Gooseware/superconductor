@@ -67,13 +67,14 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 5: Root Agent Decoupling' (Protocol in workflow.md)
 
 ## Phase 6: `swarm-execute` Skill & Command
-- [ ] Task: Write failing tests for `swarm-execute` skill invocation — must accept a track ID, load the topography map, and orchestrate implementors + quorum reviewers [TIER-2:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Create `skills/swarm-execute/SKILL.md` defining the skill protocol: delegator entry point, topography map loading, implementor swarm dispatch, quorum-gated review loop, consensus artifact generation [TIER-3:TCS=4] [AGENT:superconductor-dreamer]
-- [ ] Task: Publish `swarm-execute` skill to `~/.gemini/config/plugins/superconductor/skills/swarm-execute/` [TIER-2:TCS=2] [AGENT:superconductor-processor]
-- [ ] Task: Add `/superconductor:swarm-execute` slash command entry in skill catalog and verify it is discoverable [TIER-2:TCS=2] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: `swarm-execute` Skill & Command' (Protocol in workflow.md)
+- [x] Task: Write failing tests for `swarm-execute` skill invocation — must accept a track ID, load the topography map, and orchestrate implementors + quorum reviewers [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Create `skills/swarm-execute/SKILL.md` defining the skill protocol: delegator entry point, topography map loading, implementor swarm dispatch, quorum-gated review loop, consensus artifact generation [TIER-3:TCS=4] [AGENT:superconductor-dreamer]
+- [x] Task: Implement `swarm-execute` skill in `~/.gemini/config/plugins/superconductor/skills/swarm-execute/SKILL.md` (and underlying logic) [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Add `/superconductor:swarm-execute` slash command entry in skill catalog and verify it is discoverable [TIER-2:TCS=2] [AGENT:superconductor-processor]
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: `swarm-execute` Skill & Command' (Protocol in workflow.md)
 
 ## Phase 7: Integration & Finalization
 - [ ] Task: Run end-to-end smoke test — invoke `/superconductor:swarm-execute` on a sample track, verify Topography Map is produced, implementors run concurrently, red findings route to correct agents, ConsensusArtifact is generated [TIER-4:TCS=5] [AGENT:superconductor-oracle]
+- [x] Task: Add integration tests for end-to-end `swarm-execute` on a mock topography [TIER-4:TCS=5] [AGENT:superconductor-processor]
 - [ ] Task: Integrate track `swarm_orchestrator_20260727` into `main` branch [TIER-3:TCS=3] [AGENT:superconductor-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)
