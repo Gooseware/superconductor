@@ -1,0 +1,14 @@
+{
+  "name": "superconductor",
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "pnpm": {
+    "builtDependencies": [
+      "better-sqlite3",
+      "@swc/core",
+      "esbuild"
+    ]
+  }
+}

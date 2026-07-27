@@ -52,26 +52,26 @@ export class QuorumReviewLoop {
         return crypto.createHash('sha256').update(code).digest('hex');
     }
 
-    async run(code: string): Promise<{ status: string, findings?: unknown[] }> {
+    async run(code: string): Promise<{ status: string, findings?: unknown[], allGreen: boolean }> {
         let iterations = 0;
-        let lastResult: { status: string, findings?: unknown[] } = { status: 'PENDING', findings: [] };
+        let lastResult: { status: string, findings?: unknown[], allGreen: boolean } = { status: 'PENDING', findings: [], allGreen: false };
         let currentCode = code;
         const stateHashes = new Set<string>();
 
         while (iterations < this.maxIterations) {
             const currentHash = this.hashState(currentCode);
             if (stateHashes.has(currentHash)) {
-                return { status: 'THRASH_DETECTED', findings: lastResult.findings || [] };
+                return { status: 'THRASH_DETECTED', findings: lastResult.findings || [], allGreen: false };
             }
             stateHashes.add(currentHash);
 
             iterations++;
             const result = await this.withTimeout(this.reviewerFn(currentCode));
             validateReviewerPayload(result);
-            lastResult = result;
+            lastResult = { ...result, allGreen: result.status === 'RESOLVED' };
 
             if (result.status === 'RESOLVED') {
-                return result;
+                return { ...result, allGreen: true };
             }
 
             if (!result.findings || result.findings.length === 0) {
@@ -97,6 +97,6 @@ export class QuorumReviewLoop {
             }
         }
 
-        return { status: 'MAX_ITERATIONS_REACHED', findings: lastResult.findings || [] };
+        return { status: 'MAX_ITERATIONS_REACHED', findings: lastResult.findings || [], allGreen: false };
     }
 }

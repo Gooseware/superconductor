@@ -1,4 +1,4 @@
-import { WorkUnit, WorkUnitState, WorkUnitStateMachine } from '@superconductor/core/src/track/work-unit.js';
+import { WorkUnit, WorkUnitState, WorkUnitStateMachine, ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 import { QuorumReviewLoop } from '../verification/quorum-review-loop.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -50,7 +50,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     const sm = new WorkUnitStateMachine();
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
                     
-                    let consensusArtifact = { allGreen: true, payload: [] as any[] };
+                    let consensusArtifact: ConsensusArtifact | null = null;
                     if (wu.reviewers && wu.reviewers.length > 0) {
                         const loop = new QuorumReviewLoop({
                             maxIterations: 1,
@@ -73,17 +73,23 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                             }
                         });
                         const loopResult = await loop.run("");
-                        consensusArtifact = {
-                            allGreen: loopResult.status === 'RESOLVED',
-                            payload: loopResult.findings || []
-                        };
+                        if (loopResult) {
+                            consensusArtifact = {
+                                allGreen: loopResult.allGreen,
+                                payload: loopResult.findings || []
+                            };
+                        }
                     }
                     
-                    if (!consensusArtifact.allGreen) {
+                    if (!consensusArtifact) {
+                        throw new Error('QuorumReviewLoop returned no result — cannot determine consensus');
+                    }
+
+                    if (consensusArtifact.allGreen === false) {
                         const failedWu = sm.transition(updatedWu, WorkUnitState.FAILED);
                         Object.assign(wu, failedWu);
                         throw new Error(`Quorum review failed for ${wu.unitId}: ${JSON.stringify(consensusArtifact.payload)}`);
-                    } else {
+                    } else if (consensusArtifact.allGreen === true) {
                         const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, consensusArtifact);
                         Object.assign(wu, doneWu);
                     }

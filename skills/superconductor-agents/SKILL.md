@@ -54,11 +54,3 @@ If a Phase Gate reviewer reports that fixes from a previous RESOLVED are still n
 - Escalate to Oracle tier immediately with both the Processor's RESOLVED claim and the Reviewer's finding.
 - The Oracle arbitrates — the Orchestrator does not override unilaterally.
 
-### 2.5 Orchestrator Behavior
-
-## Orchestrator Override Protection
-If a Phase Gate reviewer reports that fixes from a previous RESOLVED are still not applied:
-- NEVER terminate the reviewer and assume the code is correct.
-- ALWAYS treat the reviewer's persistent finding as ground truth.
-- Escalate to Oracle tier immediately with both the Processor's RESOLVED claim and the Reviewer's finding.
-- The Oracle arbitrates — the Orchestrator does not override unilaterally.

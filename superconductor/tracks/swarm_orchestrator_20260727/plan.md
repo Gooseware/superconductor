@@ -74,7 +74,7 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 6: `swarm-execute` Skill & Command' (Protocol in workflow.md)
 
 ## Phase 7: Integration & Finalization
-- [ ] Task: Run end-to-end smoke test — invoke `/superconductor:swarm-execute` on a sample track, verify Topography Map is produced, implementors run concurrently, red findings route to correct agents, ConsensusArtifact is generated [TIER-4:TCS=5] [AGENT:superconductor-oracle]
+- [x] Task: Run end-to-end smoke test — invoke `/superconductor:swarm-execute` on a sample track, verify Topography Map is produced, implementors run concurrently, red findings route to correct agents, ConsensusArtifact is generated [TIER-4:TCS=5] [AGENT:superconductor-oracle]
 - [x] Task: Add integration tests for end-to-end `swarm-execute` on a mock topography [TIER-4:TCS=5] [AGENT:superconductor-processor]
-- [ ] Task: Integrate track `swarm_orchestrator_20260727` into `main` branch [TIER-3:TCS=3] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)
+- [x] Task: Integrate track `swarm_orchestrator_20260727` into `main` branch [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)
