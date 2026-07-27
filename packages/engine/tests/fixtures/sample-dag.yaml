@@ -7,60 +7,45 @@ tasks:
     files:
       - package.json
     dependencies: []
-
   - id: backend_setup
     name: Backend Setup
     description: Initialize the backend service and configure the runtime environment
     role: editor
     tier: 2
-    dependencies:
-      - root
-
+    dependencies: [root]
   - id: frontend_setup
     name: Frontend Setup
     description: Initialize the frontend scaffolding and configure the UI framework
     role: editor
     tier: 2
-    dependencies:
-      - root
-
+    dependencies: [root]
   - id: db_schema
     name: Database Schema
     description: Define and migrate the database schema for all entities
     role: editor
     tier: 3
-    dependencies:
-      - backend_setup
-
+    dependencies: [backend_setup]
   - id: api_routes
     name: API Routes
     description: Implement all REST API endpoints and wire them to the database layer
     role: editor
     tier: 4
-    dependencies:
-      - db_schema
-
+    dependencies: [db_schema]
   - id: ui_components
     name: UI Components
     description: Build all reusable UI components and connect them to the API layer
     role: editor
     tier: 4
-    dependencies:
-      - frontend_setup
-
+    dependencies: [frontend_setup]
   - id: integration
     name: Integration
     description: Integrate the frontend and backend layers end-to-end
     role: architect
     tier: 4
-    dependencies:
-      - api_routes
-      - ui_components
-
+    dependencies: [api_routes, ui_components]
   - id: e2e_tests
     name: End-to-End Tests
     description: Run the full end-to-end test suite across all integrated components
     role: architect
     tier: 4
-    dependencies:
-      - integration
+    dependencies: [integration]

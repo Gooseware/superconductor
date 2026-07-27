@@ -50,6 +50,6 @@ describe('SwarmOrchestratorCLI', () => {
     afterAll(() => {
         const topographyPath = path.join(import.meta.dirname, 'fixtures', 'topography.json');
         const planPath = path.join(import.meta.dirname, 'fixtures', 'plan.md');
-        fs.rmSync(path.join(import.meta.dirname, 'fixtures'), { recursive: true, force: true });
+        fs.rmSync(topographyPath, { force: true }); fs.rmSync(planPath, { force: true });
     });
 });

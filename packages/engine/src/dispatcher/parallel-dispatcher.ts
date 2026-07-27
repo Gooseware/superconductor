@@ -108,7 +108,7 @@ export class ParallelDispatcher extends Dispatcher {
 
     if (result.allGreen) {
       // Transition WorkUnit to DONE with green consensus
-      const updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.DONE, { allGreen: true });
+      const updatedWu = this.workUnitStateMachine.transition(wu, WorkUnitState.DONE, { allGreen: result.allGreen });
       this.implementorRegistry.register(implementorId, updatedWu);
 
       // Release lock

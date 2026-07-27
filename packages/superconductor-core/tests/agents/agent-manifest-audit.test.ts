@@ -17,11 +17,11 @@ const RUN_TOOLS = ["run_command"];
 const WRITE_TOOLS = ["multi_replace_file_content", "replace_file_content", "write_to_file"];
 
 const ROLES = {
-    "adversarial-reviewer": [...READ_TOOLS],
-    "correctness-reviewer": [...READ_TOOLS],
+    "adversarial-reviewer": [...READ_TOOLS, ...RUN_TOOLS],
+    "correctness-reviewer": [...READ_TOOLS, ...RUN_TOOLS],
     "regression-reviewer": [...READ_TOOLS, ...RUN_TOOLS],
-    "security-reviewer": [...READ_TOOLS],
-    "superconductor-reviewer": [...READ_TOOLS],
+    "security-reviewer": [...READ_TOOLS, ...RUN_TOOLS],
+    "superconductor-reviewer": [...READ_TOOLS, ...RUN_TOOLS],
     "superconductor-oracle": [...READ_TOOLS, ...RUN_TOOLS, "ask_question"],
     "superconductor-processor": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],
     "superconductor-dreamer": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],

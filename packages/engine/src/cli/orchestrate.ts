@@ -96,12 +96,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                 })
                 .catch(err => {
                     this.emit('orchestration_error', { error: err });
-                    try {
                         const sm = new WorkUnitStateMachine();
                         Object.assign(wu, sm.transition(wu, WorkUnitState.FAILED));
-                    } catch (e) {
-                        wu.state = WorkUnitState.FAILED;
-                    }
                     throw err;
                 });
             
