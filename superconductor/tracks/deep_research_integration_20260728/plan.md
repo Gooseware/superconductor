@@ -36,7 +36,7 @@
 
 ---
 
-## Phase 2: Core Foundations [checkpoint: ]
+## Phase 2: Core Foundations [checkpoint: 3e21a37]
 
 - [x] Task: Implement generic SemanticCache<T> dc38a61
     - [ ] Create packages/superconductor-core/src/cache/semantic-cache.ts
