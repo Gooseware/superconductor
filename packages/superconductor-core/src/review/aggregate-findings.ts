@@ -40,7 +40,7 @@ export function mapReviewerIssue(issue: unknown, reviewerId: string, options?: u
     throw new TypeError('issue must be a non-null object');
   }
   if (!isValidFinding(issue)) return null;
-  const f = { ...(issue as Record<string, unknown>) };
+  const f = { ...(issue as unknown as Record<string, unknown>) };
   if (!f.reviewer_id) {
     f.reviewer_id = reviewerId;
   }
