@@ -14,13 +14,13 @@
 
 ## Phase 1: Contracts & Refactor [checkpoint: ]
 
-- [ ] Task: Define shared research type contracts [TIER-3] [AGENT:superconductor-dreamer]
+- [x] Task: Define shared research type contracts a6cd23c [TIER-3] [AGENT:superconductor-dreamer]
     - [ ] Create packages/engine/src/research/types.ts
     - [ ] Define IResearchQuery, IResearchSource, IResearchBrief, IResearchProvider, IContextInjector<T> interfaces
     - [ ] Define ResearchFinding with category union type
     - [ ] Add Zod schema for ResearchBrief validation (ResearchBriefSchema)
     - [ ] Write tests: schema rejects malformed brief, accepts valid brief
-- [ ] Task: Extract InputSanitizer from aggregate-findings.ts [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Extract InputSanitizer from aggregate-findings.ts a6cd23c [TIER-3] [AGENT:superconductor-processor]
     - [ ] Read packages/superconductor-core/src/review/aggregate-findings.ts
     - [ ] Extract into packages/superconductor-core/src/utils/input-sanitizer.ts with sanitizeId(), sanitizePath(), sanitizeUntrustedText()
     - [ ] Update aggregate-findings.ts to import from shared utility (no behavior change)
