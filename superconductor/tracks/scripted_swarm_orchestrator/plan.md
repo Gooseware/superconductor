@@ -18,10 +18,16 @@
 - [ ] Task: Implement a permission evaluator that reads `agent-config.md` to check if swarm mode is active, and enforce tool permission revocation (`write_file`, `run_command`) on the root model session. [TIER-4] [AGENT:superconductor-oracle]
 - [ ] Task: Add integration tests verifying that delegator models cannot mutate files directly during an active swarm phase. [TIER-3] [AGENT:superconductor-processor]
 
-## Phase 5: Baking the Shenanigan Checklist
+## Phase 5: Track Lifecycle & Cleanup
+- [ ] Task: Implement a `TrackLifecycleManager` in `packages/engine/src/cli/lifecycle-manager.ts` that, on track completion (`WorkUnitState.DONE` for all work units), automatically kills all subagents registered to that track and deletes their associated git worktrees. [TIER-3] [AGENT:superconductor-processor]
+- [ ] Task: Register each spawned subagent conversation ID against its `trackId` in a manifest file (`.superconductor/tracks/<trackId>/agents.json`) so the cleanup phase has a reliable list of agents to terminate. [TIER-2] [AGENT:superconductor-processor]
+- [ ] Task: Add a `cleanup` CLI command (`npx superconductor cleanup <trackId>`) that can be invoked manually to kill stale agents and prune orphaned worktrees for a given track — useful when agents go rogue or a session is interrupted. [TIER-2] [AGENT:superconductor-processor]
+- [ ] Task: Write tests: verify cleanup kills all registered agents, deletes worktrees, and fails gracefully if an agent ID is already dead. [TIER-2] [AGENT:superconductor-processor]
+
+## Phase 6: Baking the Shenanigan Checklist
 - [ ] Task: Extract the 8-item Shenanigan Checklist from `standalone-review/SKILL.md` and bake it permanently into the system prompt template for the `superconductor-reviewer` agent. [TIER-2] [AGENT:superconductor-processor]
 - [ ] Task: Write tests to instantiate a `superconductor-reviewer` agent and assert the system prompt contains the checklist. [TIER-2] [AGENT:superconductor-processor]
 
-## Phase 6: E2E Testing & Finalization
-- [ ] Task: Write an E2E test verifying a full `swarm-execute` flow: implementors run via AGY SDK, output is persisted to disk, the 4-agent quorum runs automatically, and `allGreen` gating resolves correctly. [TIER-4] [AGENT:superconductor-oracle]
+## Phase 7: E2E Testing & Finalization
+- [ ] Task: Write an E2E test verifying a full `swarm-execute` flow: implementors run via AGY SDK, output is persisted to disk, the 4-agent quorum runs automatically, `allGreen` gating resolves correctly, and cleanup fires automatically on completion. [TIER-4] [AGENT:superconductor-oracle]
 - [ ] Task: Integrate `scripted_swarm_orchestrator` branch into `main`. [TIER-3] [AGENT:superconductor-processor]
