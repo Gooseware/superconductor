@@ -7,4 +7,4 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] [Orchestrator Self-Healing & Brownfield Quorum Reviews](./tracks/orchestrator_self_healing_20260726/index.md)
 - [~] [Swarm Orchestrator Protocol](./tracks/swarm_orchestrator_20260727/index.md)
 
-- [ ] [Deep Research Integration](./tracks/deep_research_integration_20260728/index.md)
+- [~] [Deep Research Integration](./tracks/deep_research_integration_20260728/index.md)

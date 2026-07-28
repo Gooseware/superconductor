@@ -21,20 +21,23 @@ export class ResearchSourceQualityGate {
       case 'community':
         return this.evaluateCommunity(source);
       default:
-        return { passed: true };
+        return { passed: false, reason: 'Unknown source type' };
     }
   }
 
   private evaluateGithub(source: ResearchSource): { passed: boolean; reason?: string } {
-    if (source.stars !== undefined && source.stars < 100) {
+    if (source.stars === undefined || source.lastCommitDaysAgo === undefined || source.license === undefined) {
+      return { passed: false, reason: 'Missing required metadata' };
+    }
+    if (source.stars < 100) {
       return { passed: false, reason: 'GitHub source must have >= 100 stars' };
     }
-    if (source.lastCommitDaysAgo !== undefined && source.lastCommitDaysAgo > 365) {
+    if (source.lastCommitDaysAgo > 365) {
       return { passed: false, reason: 'GitHub source last commit must be <= 365 days ago' };
     }
     
     const allowedLicenses = ['MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause'];
-    if (source.license && !allowedLicenses.includes(source.license)) {
+    if (!allowedLicenses.includes(source.license)) {
       return { passed: false, reason: `GitHub source license must be one of: ${allowedLicenses.join(', ')}` };
     }
 
@@ -69,12 +72,9 @@ export class ResearchSourceQualityGate {
     try {
       const url = new URL(source.url);
       const host = url.hostname;
-      const exactDomains = ['stackoverflow.com', 'developer.mozilla.org'];
+      const exactDomains = ['stackoverflow.com', 'developer.mozilla.org', 'docs.github.com', 'docs.docker.com'];
       
       let isAllowed = exactDomains.some(domain => host === domain || host.endsWith('.' + domain));
-      if (!isAllowed && host.startsWith('docs.')) {
-        isAllowed = true;
-      }
       
       if (!isAllowed) {
         return { passed: false, reason: 'Community URL must be from an allowed domain' };

@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractFencedBlock } from './extract-fenced-block.js';
+import { sanitizeId } from '../utils/input-sanitizer.js';
 
 export interface ReviewFinding {
   finding_id: string;
@@ -72,7 +73,7 @@ export function extractReviewerFindings(
 
   // Tier 2 Extraction
   if (!parsedArray && manifestsDir) {
-    const safeReviewerId = item.reviewer_id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const safeReviewerId = sanitizeId(item.reviewer_id);
     const artifactPath = path.resolve(manifestsDir, `${safeReviewerId}-findings.json`);
     const resolvedManifestsDir = path.resolve(manifestsDir);
     

@@ -8,7 +8,28 @@ describe('ResearchSourceQualityGate', () => {
     gate = new ResearchSourceQualityGate();
   });
 
+  it('should block unknown source types', () => {
+    const source: ResearchSource = {
+      type: 'alien',
+      url: 'https://example.com'
+    };
+    const result = gate.evaluate(source);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toBe('Unknown source type');
+  });
+
   describe('GitHub Rules', () => {
+    it('should block repos missing required metadata', () => {
+      const source: ResearchSource = {
+        type: 'github',
+        url: 'https://github.com/foo/bar',
+        lastCommitDaysAgo: 10,
+        license: 'MIT'
+      };
+      const result = gate.evaluate(source);
+      expect(result.passed).toBe(false);
+      expect(result.reason).toBe('Missing required metadata');
+    });
     it('should block GPL license', () => {
       const source: ResearchSource = {
         type: 'github',
@@ -96,12 +117,20 @@ describe('ResearchSourceQualityGate', () => {
       expect(gate.evaluate(source).passed).toBe(true);
     });
 
-    it('should pass docs.* URLs', () => {
+    it('should pass trusted docs URLs', () => {
       const source: ResearchSource = {
         type: 'community',
         url: 'https://docs.docker.com/engine/'
       };
       expect(gate.evaluate(source).passed).toBe(true);
+    });
+
+    it('should block malicious docs.* domains', () => {
+      const source: ResearchSource = {
+        type: 'community',
+        url: 'https://docs.malicious.com/engine/'
+      };
+      expect(gate.evaluate(source).passed).toBe(false);
     });
 
     it('should pass developer.mozilla.org URLs', () => {
