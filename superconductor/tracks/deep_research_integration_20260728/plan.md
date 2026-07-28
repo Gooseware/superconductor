@@ -26,7 +26,7 @@
     - [ ] Update aggregate-findings.ts to import from shared utility (no behavior change)
     - [ ] Write unit tests including adversarial inputs
     - [ ] Confirm existing tests still pass (207+361)
-- [ ] Task: Refactor KeyholeFeedbackExtractor to KeyholeContextManager [TIER-4] [AGENT:superconductor-dreamer]
+- [x] Task: Refactor KeyholeFeedbackExtractor to KeyholeContextManager dc38a61
     - [ ] Read aggregate-findings.ts — understand KeyholeFeedbackExtractor API
     - [ ] Extend into KeyholeContextManager<T> generic class with extractReviewFeedback() and injectResearchContext()
     - [ ] Implement injectResearchContext: filters brief.keyFindings to workUnit.domain, appends executiveSummary + domain findings as workUnit.researchContext
@@ -38,7 +38,7 @@
 
 ## Phase 2: Core Foundations [checkpoint: ]
 
-- [ ] Task: Implement generic SemanticCache<T> [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Implement generic SemanticCache<T> dc38a61
     - [ ] Create packages/superconductor-core/src/cache/semantic-cache.ts
     - [ ] Constructor: SemanticCache<T>(namespace: string, similarityThreshold = 0.85)
     - [ ] Storage: .superconductor/cache/<namespace>/<query_hash>.json
