@@ -62,10 +62,7 @@ export class ResearchExecutor {
         try {
             for (const query of queries) {
                 const searchResults = await provider.search(query);
-                results.push(...searchResults.map(res => ({
-                    url: sanitizeUntrustedText(res.url),
-                    title: sanitizeUntrustedText(res.title || '')
-                })));
+                results.push(...searchResults);
             }
         } catch (error) {
             if (error instanceof ResearchProviderUnavailableError) {
@@ -111,6 +108,7 @@ export class ResearchExecutor {
         const synthesizer = new ResearchBriefSynthesizer(outDir, this.executeLlmTool); // Local var (COR-4)
         
         const brief = await synthesizer.synthesize(results, trackId, queries.map(q => q.term));
+        brief.queriesExecuted = queries.map(q => q.term);
 
         if (!fs.existsSync(outDir)) {
             fs.mkdirSync(outDir, { recursive: true });

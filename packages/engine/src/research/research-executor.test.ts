@@ -37,7 +37,7 @@ describe('ResearchExecutor', () => {
         mockProvider = {
             search: vi.fn().mockResolvedValue([{ url: 'test.com', title: 'Test' }])
         };
-        mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'fallback.com', title: 'Fallback' }]);
+        mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'https://stackoverflow.com/q/123', title: 'Fallback' }]);
     });
 
     it('should throw ResearchBudgetExceededError if >3 queries', async () => {
