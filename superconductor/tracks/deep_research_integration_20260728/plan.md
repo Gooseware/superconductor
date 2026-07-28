@@ -58,19 +58,19 @@
 
 ## Phase 3: Research Engine [checkpoint: ]
 
-- [ ] Task: Implement ResearchQueryFormulator [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create packages/engine/src/research/query-formulator.ts
-    - [ ] formulate(trackDescription: string, maxQueries = 8): ResearchQueryDraft[]
-    - [ ] Always generate >=1 query per mandatory dimension: OSS, academic, ecosystem, SC skills, community
-    - [ ] Returns structured ResearchQueryDraft[] with dimension, query, rationale
-    - [ ] Write tests: always produces >=3 queries, never exceeds maxQueries
-- [ ] Task: Implement ResearchSourceQualityGate [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create packages/engine/src/research/source-quality-gate.ts
-    - [ ] GitHub: >=100 stars, last commit <=12 months, license in {MIT, Apache-2.0, BSD-2, BSD-3}
-    - [ ] Papers: arXiv, ACL, NeurIPS, openreview.net domains
-    - [ ] Community: stackoverflow.com, docs.*, MDN
-    - [ ] Returns { passed: boolean, reason?: string } per source
-    - [ ] Write tests: GPL blocked, abandoned blocked, fresh MIT passes, arxiv passes
+- [x] Task: Implement ResearchQueryFormulator [TIER-3] [AGENT:superconductor-processor]
+    - [x] Create packages/engine/src/research/query-formulator.ts
+    - [x] formulate(trackDescription: string, maxQueries = 8): ResearchQueryDraft[]
+    - [x] Always generate >=1 query per mandatory dimension: OSS, academic, ecosystem, SC skills, community
+    - [x] Returns structured ResearchQueryDraft[] with dimension, query, rationale
+    - [x] Write tests: always produces >=3 queries, never exceeds maxQueries
+- [x] Task: Implement ResearchSourceQualityGate [TIER-3] [AGENT:superconductor-processor]
+    - [x] Create packages/engine/src/research/source-quality-gate.ts
+    - [x] GitHub: >=100 stars, last commit <=12 months, license in {MIT, Apache-2.0, BSD-2, BSD-3}
+    - [x] Papers: arXiv, ACL, NeurIPS, openreview.net domains
+    - [x] Community: stackoverflow.com, docs.*, MDN
+    - [x] Returns { passed: boolean, reason?: string } per source
+    - [x] Write tests: GPL blocked, abandoned blocked, fresh MIT passes, arxiv passes
 - [ ] Task: Implement GoogleDeepResearchProvider [TIER-4] [AGENT:superconductor-processor]
     - [ ] Create packages/engine/src/research/providers/google-deep-research-provider.ts
     - [ ] Implements IResearchProvider interface
