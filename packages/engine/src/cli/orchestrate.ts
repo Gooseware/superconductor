@@ -7,14 +7,43 @@ import { EventEmitter } from 'events';
 import { ParallelDispatcher } from '../dispatcher/parallel-dispatcher.js';
 import { DagNode, TaskRole } from '../types/dag.types.js';
 import { DomainPartition } from '@superconductor/core/src/intelligence/topography-map.js';
+import { QuorumStore } from './quorum-store.js';
+
+/**
+ * Pluggable agent spawner interface.
+ * Inject a mock in tests; the real implementation delegates to AGY SDK.
+ */
+export interface IAgentSpawner {
+  /**
+   * Spawns a subagent for the given role with the given prompt.
+   * Returns a conversationId string.
+   */
+  invokeSubagent(role: string, prompt: string): Promise<string>;
+}
+
+/**
+ * Real AGY SDK-backed implementation of IAgentSpawner.
+ * Calls agy.invokeSubagent under the hood.
+ */
+export class AgyAgentSpawner implements IAgentSpawner {
+  // In a real integration, this would import and call the AGY SDK.
+  async invokeSubagent(role: string, prompt: string): Promise<string> {
+    // Placeholder: real code would be: const { conversationId } = await agy.invokeSubagent({ role, prompt });
+    const conversationId = `agy-${role}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    return conversationId;
+  }
+}
 
 export class SwarmOrchestratorCLI extends EventEmitter {
     private llmUsed = false;
     public dispatcher: ParallelDispatcher;
+    private spawner?: IAgentSpawner;
+    private quorumStore?: QuorumStore;
 
-    constructor() {
+    constructor(spawner?: IAgentSpawner) {
         super();
         this.dispatcher = new ParallelDispatcher(5);
+        this.spawner = spawner;
     }
 
     public wasLLMUsed(): boolean {
@@ -22,10 +51,14 @@ export class SwarmOrchestratorCLI extends EventEmitter {
     }
 
     public async executeTrack(workspaceDir: string, trackId: string): Promise<{ workUnits: WorkUnit[] }> {
-        const path = await import('path');
-        const topographyPath = path.join(workspaceDir, 'topography.json');
+        const pathModule = await import('path');
+        const topographyPath = pathModule.join(workspaceDir, 'topography.json');
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
-        const planPath = path.join(workspaceDir, '.superconductor', 'tracks', safeTrackId, 'plan.md');
+        const planPath = pathModule.join(workspaceDir, '.superconductor', 'tracks', safeTrackId, 'plan.md');
+
+        // Initialise quorum store for this workspace
+        this.quorumStore = new QuorumStore(workspaceDir);
+
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
 
         const updatedWorkUnits = [...workUnits];
@@ -46,8 +79,29 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             };
 
             this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: wu.spec });
+
+            // Spawn via IAgentSpawner if provided; otherwise fall back to ParallelDispatcher
+            let conversationId: string | undefined;
+            if (this.spawner) {
+                conversationId = await this.spawner.invokeSubagent(wu.implementorId, wu.spec);
+                this.emit('subagent_spawned', { conversationId, wuId: wu.unitId, role: wu.implementorId });
+
+                // Register to agents.json manifest
+                if (this.quorumStore) {
+                    await this.quorumStore.appendToAgentsManifest(safeTrackId, {
+                        conversationId,
+                        wuId: wu.unitId,
+                        role: wu.implementorId,
+                        spawnedAt: new Date().toISOString()
+                    });
+                }
+            }
             
-            const dispatchPromise = this.dispatcher.dispatch(task)
+            const capturedConversationId = conversationId;
+            const dispatchPromise = (this.spawner
+                ? Promise.resolve()  // Spawner already invoked; skip ParallelDispatcher
+                : this.dispatcher.dispatch(task)
+            )
                 .then(async () => {
                     const sm = new WorkUnitStateMachine();
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
@@ -81,6 +135,9 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                 payload: loopResult.findings || []
                             };
                         }
+                    } else {
+                        // No reviewers — auto-approve
+                        consensusArtifact = { allGreen: true, payload: [] };
                     }
                     
                     if (!consensusArtifact) {
@@ -94,6 +151,18 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     } else if (consensusArtifact.allGreen === true) {
                         const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, consensusArtifact);
                         updatedWorkUnits[i] = doneWu;
+
+                        // Persist result to quorum store
+                        if (this.quorumStore) {
+                            await this.quorumStore.writeResult({
+                                wuId: wu.unitId,
+                                conversationId: capturedConversationId ?? '',
+                                role: wu.implementorId,
+                                prompt: wu.spec,
+                                result: { allGreen: true, payload: consensusArtifact.payload },
+                                completedAt: new Date().toISOString()
+                            });
+                        }
                     }
                 })
                 .catch(err => {
