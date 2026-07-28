@@ -17,19 +17,32 @@ describe('InputSanitizer', () => {
   });
 
   describe('sanitizePath', () => {
-    it('should strip out dots and null bytes', () => {
+    it('should normalize paths and prevent directory traversal', () => {
       expect(sanitizePath('valid/path.txt')).toBe('valid/path.txt');
-      expect(sanitizePath('../../etc/passwd')).toBe('//etc/passwd');
-      expect(sanitizePath('path/./to/file')).toBe('path//to/file');
+      expect(sanitizePath('path/./to/file')).toBe('path/to/file');
       expect(sanitizePath('path\0/to/file')).toBe('path/to/file');
+      expect(sanitizePath('....//')).toBe('..../');
+      expect(sanitizePath('..././')).toBe('.../');
+    });
+
+    it('should throw an error for path traversal attempts', () => {
+      expect(() => sanitizePath('../../etc/passwd')).toThrow('Path traversal detected');
+      expect(() => sanitizePath('../')).toThrow('Path traversal detected');
+      expect(() => sanitizePath('/etc/passwd')).toThrow('Path traversal detected');
     });
   });
 
   describe('sanitizeUntrustedText', () => {
     it('should sanitize XML block breakers', () => {
-      expect(sanitizeUntrustedText('Some text ]]>')).toBe('Some text ]] >');
+      expect(sanitizeUntrustedText('Some text ]]>')).toBe('Some text ]] &gt;');
       expect(sanitizeUntrustedText('Text </prompt>')).toBe('Text &lt;/prompt&gt;');
       expect(sanitizeUntrustedText('Null\0Byte')).toBe('NullByte');
+    });
+
+    it('should handle adversarial XML tags with spacing', () => {
+      expect(sanitizeUntrustedText('</prompt >')).toBe('&lt;/prompt &gt;');
+      expect(sanitizeUntrustedText('< / prompt>')).toBe('&lt; / prompt&gt;');
+      expect(sanitizeUntrustedText('<<<prompt>>>')).toBe('&lt;&lt;&lt;prompt&gt;&gt;&gt;');
     });
   });
 });
