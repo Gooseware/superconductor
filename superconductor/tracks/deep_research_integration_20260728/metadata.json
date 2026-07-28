@@ -1,0 +1,16 @@
+{
+  "trackId": "deep_research_integration_20260728",
+  "type": "Feature",
+  "status": "PLANNING",
+  "title": "Deep Research Integration",
+  "description": "Integrate Google Deep Research (and pluggable provider alternatives) into the Superconductor planning lifecycle. The planning agent collaboratively formulates research queries with the user, executes async deep research, and injects structured ResearchBrief context into spec generation, implementor work units, and quorum reviewer prompts.",
+  "createdAt": "2026-07-28T03:59:00Z",
+  "updatedAt": "2026-07-28T03:59:00Z",
+  "targetBranch": "main",
+  "trackBranch": "track/deep_research_integration_20260728",
+  "estimatedWaves": 10,
+  "oracleCadence": 3,
+  "swarmSize": 6,
+  "researchSources": ["GPT Researcher", "LangChain Open Deep Research", "Tongyi DeepResearch"],
+  "keyPapers": ["RAP (Kagaya et al 2024)", "ExRAP (2024)", "RaDA (2024)"]
+}
