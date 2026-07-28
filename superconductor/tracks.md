@@ -9,4 +9,4 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [~] [Deep Research Integration](./tracks/deep_research_integration_20260728/index.md)
 - [x] [Scripted Swarm Orchestrator](./tracks/scripted_swarm_orchestrator/index.md) (COMPLETED (merged b6ffbed))
-- [ ] [Gemini API Deep Research](./tracks/gemini_api_deep_research_20260728/index.md)
+- [x] [Gemini API Deep Research](./tracks/gemini_api_deep_research_20260728/index.md)
