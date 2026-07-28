@@ -15,7 +15,11 @@ export class ResearchBriefSynthesizer {
   constructor(outputDir: string = 'research', executeLlm?: ExecuteLlmFn) {
     this.outputDir = outputDir;
     // Default to a functional mock if none provided for testing
-    this.executeLlm = executeLlm || (async () => ({}));
+    this.executeLlm = executeLlm || (async (prompt: string) => {
+      if (prompt.includes('Extract')) return [];
+      if (prompt.includes('Synthesize')) return { executiveSummary: 'Mock', recommendedPatterns: [], antiPatterns: [] };
+      return {};
+    });
   }
 
   public async synthesize(rawResults: IResearchSource[], trackId: string = 'default-track'): Promise<IResearchBrief> {
@@ -71,21 +75,7 @@ export class ResearchBriefSynthesizer {
     const res = await this.executeLlm(`Extract structured findings from ${source.url}`);
     if (Array.isArray(res)) return res;
     
-    // Fallback for missing executeLlm logic in some tests
-    return [
-      {
-        category: 'OSS_DISCOVERY',
-        description: `Mock finding for ${source.title || source.url}`,
-        sourceUrl: source.url,
-        confidenceScore: 0.9
-      },
-      {
-        category: 'ARCHITECTURAL_PATTERN',
-        description: `Low confidence mock finding for ${source.title || source.url}`,
-        sourceUrl: source.url,
-        confidenceScore: 0.4
-      }
-    ];
+    throw new Error('LLM did not return an array of findings');
   }
 
   public async llmReduceFindings(findings: ResearchFindingWithScore[]): Promise<{
@@ -98,12 +88,7 @@ export class ResearchBriefSynthesizer {
         return res;
     }
     
-    // Fallback
-    return {
-      executiveSummary: "Mock executive summary based on findings.",
-      recommendedPatterns: ["Pattern A", "Pattern B"],
-      antiPatterns: ["AntiPattern A"]
-    };
+    throw new Error('LLM did not return a valid synthesis object');
   }
 
   private slugify(text: string): string {

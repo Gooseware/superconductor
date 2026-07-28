@@ -1,5 +1,4 @@
 import { IResearchProvider, IResearchQuery, IResearchSource } from '../types.js';
-import { ResearchSourceQualityGate } from '../source-quality-gate.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
 
@@ -7,9 +6,8 @@ export type ExecuteToolFn = (toolName: string, args: any) => Promise<any>;
 
 export class GoogleDeepResearchProvider implements IResearchProvider {
   private consecutiveFailures = 0;
-  private qualityGate = new ResearchSourceQualityGate();
 
-  constructor(private executeTool: ExecuteToolFn = async () => []) {}
+  constructor(private executeTool: ExecuteToolFn = async () => "") {}
 
   public async search(query: IResearchQuery): Promise<IResearchSource[]> {
     if (this.consecutiveFailures >= 3) {
@@ -24,19 +22,12 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
         const rawResults = await this.executeTool('search_web', { query: query.term });
         this.consecutiveFailures = 0;
 
-        const filtered: IResearchSource[] = [];
+        const rawString = typeof rawResults === 'string' ? rawResults : String(rawResults);
 
-        for (const res of rawResults) {
-          const evalResult = this.qualityGate.evaluate(res);
-          if (evalResult.passed) {
-            filtered.push({
-              url: `<untrusted_research_results>${sanitizeUntrustedText(res.url)}</untrusted_research_results>`,
-              title: `<untrusted_research_results>${sanitizeUntrustedText(res.title || '')}</untrusted_research_results>`,
-            });
-          }
-        }
-
-        return filtered;
+        return [{
+          url: `<untrusted_research_results>search_web_results</untrusted_research_results>`,
+          title: `<untrusted_research_results>${sanitizeUntrustedText(rawString)}</untrusted_research_results>`,
+        }];
       } catch (err) {
         retries++;
         if (retries > maxRetries) {

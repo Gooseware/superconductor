@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { extractFencedBlock } from './extract-fenced-block.js';
-import { sanitizeId } from '../utils/input-sanitizer.js';
+import { sanitizeId, sanitizeUntrustedText } from '../utils/input-sanitizer.js';
 
 export interface ReviewFinding {
   finding_id: string;
@@ -181,17 +181,17 @@ export interface KeyholePayload {
   crossDomainFindings?: never;
 }
 
-export class KeyholeContextManager<T extends { domain?: string; researchContext?: string }> {
+export class KeyholeContextManager<T extends { domainScope?: string[]; researchContext?: string }> {
   public extractReviewFeedback(finding: ReviewFinding, fileContent: string, workUnitSpec: string): KeyholePayload {
     return KeyholeContextManager.extractPayload(finding, fileContent, workUnitSpec);
   }
 
   public injectResearchContext(workUnit: T, brief: any): void {
-    const domain = workUnit.domain;
-    if (!domain) return;
+    const domainScope = workUnit.domainScope;
+    if (!domainScope || !Array.isArray(domainScope) || domainScope.length === 0) return;
     
     const filteredFindings = (brief.keyFindings || []).filter((f: any) => 
-      f.domain === domain || f.category === domain
+      domainScope.includes(f.domain) || domainScope.includes(f.category)
     );
     
     let contextAddition = '';
@@ -200,12 +200,14 @@ export class KeyholeContextManager<T extends { domain?: string; researchContext?
     }
     
     if (filteredFindings.length > 0) {
-      contextAddition += `Domain Findings (${domain}):\n`;
+      contextAddition += `Domain Findings (${domainScope.join(', ')}):\n`;
       contextAddition += JSON.stringify(filteredFindings, null, 2);
     }
     
     if (contextAddition) {
-      workUnit.researchContext = (workUnit.researchContext ? workUnit.researchContext + '\n\n' : '') + contextAddition.trim();
+      const sanitized = sanitizeUntrustedText(contextAddition.trim());
+      const safeContext = `<untrusted_research_context>\n${sanitized}\n</untrusted_research_context>`;
+      workUnit.researchContext = (workUnit.researchContext ? workUnit.researchContext + '\n\n' : '') + safeContext;
     }
   }
 

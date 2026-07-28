@@ -68,7 +68,7 @@ describe('ResearchExecutor', () => {
 
         const queries = [{ term: 'q1' }];
         const res = await executor.execute('t1', queries, mockProvider);
-        expect(res).toEqual(mockBrief);
+        expect(res.brief).toEqual(mockBrief);
         expect(mockProvider.search).not.toHaveBeenCalled();
     });
 
@@ -87,8 +87,8 @@ describe('ResearchExecutor', () => {
         };
 
         const queries = [{ term: 'q1' }];
-        await executor.execute('t1', queries, mockProvider, wu);
-        expect(wu.state).toBe(WorkUnitState.RESEARCHING);
+        const { updatedWorkUnit } = await executor.execute('t1', queries, mockProvider, wu);
+        expect(updatedWorkUnit?.state).toBe(WorkUnitState.RESEARCHING);
     });
 
     it('should fall back to search_web if provider unavailable', async () => {
@@ -100,7 +100,7 @@ describe('ResearchExecutor', () => {
         (executor as any).cache = { get: mockCacheGet, set: mockCacheSet };
 
         const queries = [{ term: 'fallback-test' }];
-        const brief = await executor.execute('t1', queries, mockProvider);
+        const { brief } = await executor.execute('t1', queries, mockProvider);
 
         expect(mockExecuteTool).toHaveBeenCalledWith('search_web', { query: 'fallback-test' });
         expect(mockProvider.search).toHaveBeenCalled();

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ResearchProviderRegistry, GoogleDeepResearchProvider } from '../../src/research/provider-registry';
+import { ResearchProviderRegistry } from '../../src/research/provider-registry.js';
+import { GoogleDeepResearchProvider } from '../../src/research/providers/google-deep-research-provider.js';
 
 describe('ResearchProviderRegistry', () => {
   it('should return GoogleDeepResearchProvider by default', () => {

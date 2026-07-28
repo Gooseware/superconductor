@@ -24,7 +24,7 @@ describe('KeyholeContextManager', () => {
   describe('injectResearchContext', () => {
     it('should inject relevant domain findings and executive summary into researchContext', () => {
       const manager = new KeyholeContextManager();
-      const workUnit = { domain: 'auth', researchContext: 'Original context.' };
+      const workUnit = { domainScope: ['auth'], researchContext: 'Original context.' };
       const brief = {
         executiveSummary: 'Auth needs to be secure.',
         keyFindings: [
@@ -44,7 +44,7 @@ describe('KeyholeContextManager', () => {
       expect(workUnit.researchContext).not.toContain('Unindexed query');
     });
 
-    it('should not throw or modify if domain is not set', () => {
+    it('should not throw or modify if domainScope is not set', () => {
       const manager = new KeyholeContextManager();
       const workUnit = { researchContext: 'Original context.' };
       const brief = {
@@ -59,7 +59,7 @@ describe('KeyholeContextManager', () => {
 
     it('should handle empty brief keyFindings gracefully', () => {
       const manager = new KeyholeContextManager();
-      const workUnit = { domain: 'auth', researchContext: '' };
+      const workUnit = { domainScope: ['auth'], researchContext: '' };
       const brief = {
         executiveSummary: 'Summary'
       };

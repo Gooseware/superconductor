@@ -1,10 +1,5 @@
-import { IResearchProvider, IResearchQuery, IResearchSource } from './types';
-
-export class GoogleDeepResearchProvider implements IResearchProvider {
-  async search(query: IResearchQuery): Promise<IResearchSource[]> {
-    return [];
-  }
-}
+import { IResearchProvider, IResearchQuery, IResearchSource } from './types.js';
+import { GoogleDeepResearchProvider } from './providers/google-deep-research-provider.js';
 
 export class ResearchProviderRegistry {
   resolve(providerName: string = 'google'): IResearchProvider {

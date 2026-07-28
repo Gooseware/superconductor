@@ -26,6 +26,19 @@ export class ResearchSourceQualityGate {
   }
 
   private evaluateGithub(source: ResearchSource): { passed: boolean; reason?: string } {
+    if (!source.url) {
+      return { passed: false, reason: 'URL is missing' };
+    }
+
+    try {
+      const url = new URL(source.url);
+      if (url.hostname !== 'github.com' && url.hostname !== 'www.github.com') {
+        return { passed: false, reason: 'URL must belong to github.com' };
+      }
+    } catch (e) {
+      return { passed: false, reason: 'Invalid URL' };
+    }
+
     if (source.stars === undefined || source.lastCommitDaysAgo === undefined || source.license === undefined) {
       return { passed: false, reason: 'Missing required metadata' };
     }
