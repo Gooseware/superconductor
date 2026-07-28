@@ -3,9 +3,13 @@ import { ResearchSourceQualityGate } from '../source-quality-gate.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
 
+export type ExecuteToolFn = (toolName: string, args: any) => Promise<any>;
+
 export class GoogleDeepResearchProvider implements IResearchProvider {
   private consecutiveFailures = 0;
   private qualityGate = new ResearchSourceQualityGate();
+
+  constructor(private executeTool: ExecuteToolFn = async () => []) {}
 
   public async search(query: IResearchQuery): Promise<IResearchSource[]> {
     if (this.consecutiveFailures >= 3) {
@@ -17,7 +21,7 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
 
     while (retries <= maxRetries) {
       try {
-        const rawResults = await this.mock_search_web(query.term);
+        const rawResults = await this.executeTool('search_web', { query: query.term });
         this.consecutiveFailures = 0;
 
         const filtered: IResearchSource[] = [];
@@ -26,7 +30,7 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
           const evalResult = this.qualityGate.evaluate(res);
           if (evalResult.passed) {
             filtered.push({
-              url: sanitizeUntrustedText(res.url),
+              url: `<untrusted_research_results>${sanitizeUntrustedText(res.url)}</untrusted_research_results>`,
               title: `<untrusted_research_results>${sanitizeUntrustedText(res.title || '')}</untrusted_research_results>`,
             });
           }
@@ -46,34 +50,5 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
     }
 
     throw new Error('Unreachable');
-  }
-
-  private async mock_search_web(term: string): Promise<any[]> {
-    if (term.includes('FAIL_NOW')) {
-      throw new Error('Simulated network error');
-    }
-    return [
-      {
-        type: 'github',
-        url: 'https://github.com/mock/repo',
-        title: 'Mock Repo',
-        stars: 150,
-        lastCommitDaysAgo: 10,
-        license: 'MIT'
-      },
-      {
-        type: 'paper',
-        url: 'https://arxiv.org/abs/1234.5678',
-        title: 'Mock Paper'
-      },
-      {
-        type: 'github',
-        url: 'https://github.com/bad/repo',
-        title: 'Bad Repo',
-        stars: 5,
-        lastCommitDaysAgo: 400,
-        license: 'GPL'
-      }
-    ];
   }
 }
