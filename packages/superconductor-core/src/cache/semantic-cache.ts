@@ -34,8 +34,10 @@ export class SemanticCache<T> {
     private async ensureDir(): Promise<void> {
         try {
             await fs.mkdir(this.basePath, { recursive: true });
-        } catch (error) {
-            // ignore
+        } catch (error: any) {
+            if (error.code !== 'EEXIST') {
+                throw error;
+            }
         }
     }
 
