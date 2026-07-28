@@ -53,10 +53,13 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         expect(invokedAgents[0].agentId).toBe('agent-ui');
         expect(invokedAgents[0].taskId).toBe('wu-1');
         
-        expect(invokedReviewers).toHaveLength(2);
-        expect(invokedReviewers[0].reviewerId).toBe('agent-reviewer-1');
-        expect(invokedReviewers[1].reviewerId).toBe('agent-reviewer-2');
-        expect(invokedReviewers[0].unitId).toBe('wu-1');
-        expect(invokedReviewers[1].unitId).toBe('wu-1');
+        // Hard invariant: exactly these 4 quorum agents must be invoked regardless of topography
+        expect(invokedReviewers).toHaveLength(4);
+        const reviewerIds = invokedReviewers.map((r: any) => r.reviewerId);
+        expect(reviewerIds).toContain('security-reviewer');
+        expect(reviewerIds).toContain('correctness-reviewer');
+        expect(reviewerIds).toContain('adversarial-reviewer');
+        expect(reviewerIds).toContain('regression-reviewer');
+        invokedReviewers.forEach((r: any) => expect(r.unitId).toBe('wu-1'));
     });
 });

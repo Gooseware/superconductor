@@ -1,5 +1,6 @@
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine, ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 import { QuorumReviewLoop } from '../verification/quorum-review-loop.js';
+import { QuorumEnforcer, REQUIRED_QUORUM_AGENTS } from '../verification/quorum-enforcer.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -107,11 +108,17 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
                     
                     let consensusArtifact: ConsensusArtifact | null = null;
-                    if (wu.reviewers && wu.reviewers.length > 0) {
+                    {
+                        // Hard invariant: ALWAYS spawn exactly these 4 quorum agents.
+                        // This is NOT overridable via topography or any external config.
+                        const quorumEnforcer = new QuorumEnforcer();
+                        const quorumAgents = [...REQUIRED_QUORUM_AGENTS];
+
                         const loop = new QuorumReviewLoop({
                             maxIterations: 1,
                             reviewerFn: async () => {
-                                const reviewerPromises = wu.reviewers!.map(reviewer => {
+                                const spawnResults: Array<{ agentType: string; success: boolean }> = [];
+                                const reviewerPromises = quorumAgents.map(reviewer => {
                                     const reviewerTask: DagNode = {
                                         id: `${wu.unitId}-review-${reviewer}`,
                                         role: reviewer as TaskRole,
@@ -122,9 +129,13 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                         dependsOn: [task.id]
                                     };
                                     this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
-                                    return this.dispatcher.dispatch(reviewerTask);
+                                    return this.dispatcher.dispatch(reviewerTask)
+                                        .then(() => spawnResults.push({ agentType: reviewer, success: true }))
+                                        .catch(() => spawnResults.push({ agentType: reviewer, success: false }));
                                 });
                                 await Promise.all(reviewerPromises);
+                                // Enforce quorum — throws QuorumViolationError if invariant is broken
+                                quorumEnforcer.assertQuorumSpawned(spawnResults);
                                 return { status: 'RESOLVED', findings: [] };
                             }
                         });
