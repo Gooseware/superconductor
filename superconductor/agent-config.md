@@ -15,6 +15,7 @@ Adjust the mapping of model identifiers to each logic tier based on your provide
 Specify an optional custom endpoint (e.g., LiteLLM, OpenRouter, or a local server) if you route traffic through a central gateway:
 
 - **Proxy Endpoint:** (none)
+- **Research Provider:** `google-deep-research`
 
 ---
 

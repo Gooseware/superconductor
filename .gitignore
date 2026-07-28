@@ -208,6 +208,7 @@ __marimo__/
 # Superconductor
 tmp/
 .manifests/
+.superconductor/
 superconductor/backlog.md
 
 /.gemini/tmp/
