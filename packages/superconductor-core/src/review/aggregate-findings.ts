@@ -181,7 +181,34 @@ export interface KeyholePayload {
   crossDomainFindings?: never;
 }
 
-export class KeyholeFeedbackExtractor {
+export class KeyholeContextManager<T extends { domain?: string; researchContext?: string }> {
+  public extractReviewFeedback(finding: ReviewFinding, fileContent: string, workUnitSpec: string): KeyholePayload {
+    return KeyholeContextManager.extractPayload(finding, fileContent, workUnitSpec);
+  }
+
+  public injectResearchContext(workUnit: T, brief: any): void {
+    const domain = workUnit.domain;
+    if (!domain) return;
+    
+    const filteredFindings = (brief.keyFindings || []).filter((f: any) => 
+      f.domain === domain || f.category === domain
+    );
+    
+    let contextAddition = '';
+    if (brief.executiveSummary) {
+      contextAddition += `Executive Summary:\n${brief.executiveSummary}\n\n`;
+    }
+    
+    if (filteredFindings.length > 0) {
+      contextAddition += `Domain Findings (${domain}):\n`;
+      contextAddition += JSON.stringify(filteredFindings, null, 2);
+    }
+    
+    if (contextAddition) {
+      workUnit.researchContext = (workUnit.researchContext ? workUnit.researchContext + '\n\n' : '') + contextAddition.trim();
+    }
+  }
+
   static extractPayload(finding: ReviewFinding, fileContent: string, workUnitSpec: string): KeyholePayload {
     const lines = fileContent.split('\n');
     let startLine = 1;
@@ -208,3 +235,5 @@ export class KeyholeFeedbackExtractor {
     };
   }
 }
+
+export const KeyholeFeedbackExtractor = KeyholeContextManager;
