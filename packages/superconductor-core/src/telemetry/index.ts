@@ -32,6 +32,20 @@ export class FileTelemetryStore implements TelemetryStore {
         this.filePath = filePath;
     }
 
+    private redactContent(content: string): string {
+        let scrubbed = content;
+        const sensitiveEnvVars = ['GEMINI_API_KEY', 'GCP_PROJECT_ID', 'GCP_LOCATION'];
+        for (const varName of sensitiveEnvVars) {
+            const val = process.env[varName];
+            if (val && val.trim().length > 0) {
+                scrubbed = scrubbed.split(val).join('[REDACTED]');
+            }
+        }
+        // Redact known key format for Gemini API keys if not caught by env
+        scrubbed = scrubbed.replace(/AIza[a-zA-Z0-9_\-]{35}/g, '[REDACTED]');
+        return scrubbed;
+    }
+
     private ensureDir(): Promise<void> {
         if (!this.initPromise) {
             this.initPromise = (async () => {
@@ -59,7 +73,8 @@ export class FileTelemetryStore implements TelemetryStore {
             throw new Error("subagentId must be a non-empty string");
         }
 
-        const line = JSON.stringify({ type: 'TOKEN_USAGE', ...report }) + '\n';
+        let line = JSON.stringify({ type: 'TOKEN_USAGE', ...report }) + '\n';
+        line = this.redactContent(line);
         
         const task = this.queue.then(async () => {
             await this.ensureDir();
@@ -84,7 +99,8 @@ export class FileTelemetryStore implements TelemetryStore {
             throw new Error("value must be a number");
         }
 
-        const line = JSON.stringify({ type: 'METRIC', ...report }) + '\n';
+        let line = JSON.stringify({ type: 'METRIC', ...report }) + '\n';
+        line = this.redactContent(line);
         
         const task = this.queue.then(async () => {
             await this.ensureDir();
