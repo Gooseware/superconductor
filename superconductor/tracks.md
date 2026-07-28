@@ -8,4 +8,4 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [~] [Swarm Orchestrator Protocol](./tracks/swarm_orchestrator_20260727/index.md)
 
 - [~] [Deep Research Integration](./tracks/deep_research_integration_20260728/index.md)
-- [~] [Scripted Swarm Orchestrator](./tracks/scripted_swarm_orchestrator/index.md)
+- [x] [Scripted Swarm Orchestrator](./tracks/scripted_swarm_orchestrator/index.md) (COMPLETED (merged b6ffbed))
