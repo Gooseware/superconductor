@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from 'fs';
 import * as path from 'path';
 import { ResearchBriefSynthesizer } from '../../src/research/brief-synthesizer.js';
@@ -7,9 +7,23 @@ import { IResearchSource } from '../../src/research/types.js';
 describe('ResearchBriefSynthesizer', () => {
   const testOutputDir = path.join(__dirname, '.test_research_output');
   let synthesizer: ResearchBriefSynthesizer;
+  let mockExecuteLlm: any;
 
   beforeEach(() => {
-    synthesizer = new ResearchBriefSynthesizer(testOutputDir);
+    mockExecuteLlm = vi.fn().mockImplementation(async (prompt) => {
+      if (prompt.includes('Extract structured findings')) {
+        return [
+          { category: 'OSS_DISCOVERY', description: 'Good finding', confidenceScore: 0.8 },
+          { category: 'ARCHITECTURAL_PATTERN', description: 'Bad finding', confidenceScore: 0.5 },
+        ];
+      }
+      return {
+        executiveSummary: "Mock executive summary",
+        recommendedPatterns: [],
+        antiPatterns: []
+      };
+    });
+    synthesizer = new ResearchBriefSynthesizer(testOutputDir, mockExecuteLlm);
   });
 
   afterEach(() => {
@@ -23,13 +37,6 @@ describe('ResearchBriefSynthesizer', () => {
       { url: 'https://example.com/1', title: 'Example 1' }
     ];
 
-    synthesizer.llmMapSource = async (source) => {
-      return [
-        { category: 'OSS_DISCOVERY', description: 'Good finding', confidenceScore: 0.8 },
-        { category: 'ARCHITECTURAL_PATTERN', description: 'Bad finding', confidenceScore: 0.5 },
-      ];
-    };
-
     const brief = await synthesizer.synthesize(mockResults);
 
     expect(brief.keyFindings).toHaveLength(1);
@@ -40,31 +47,40 @@ describe('ResearchBriefSynthesizer', () => {
   it('validates output against ResearchBriefSchema', async () => {
     const mockResults: IResearchSource[] = [];
     
-    synthesizer.llmReduceFindings = async () => {
+    mockExecuteLlm.mockImplementation(async () => {
       return {
         executiveSummary: "Mock",
-        recommendedPatterns: null as any,
+        recommendedPatterns: null, // this will fail validation
         antiPatterns: []
       };
-    };
+    });
 
     await expect(synthesizer.synthesize(mockResults)).rejects.toThrow();
   });
 
-  it('ensures executiveSummary is <= 400 words', async () => {
+  it('ensures executiveSummary is truncated to <= 400 words', async () => {
     const mockResults: IResearchSource[] = [];
     
-    const longSummary = Array(401).fill('word').join(' ');
+    // Generate a string with 410 words
+    const longSummary = Array(410).fill('word').join(' ');
 
-    synthesizer.llmReduceFindings = async () => {
-      return {
-        executiveSummary: longSummary,
-        recommendedPatterns: [],
-        antiPatterns: []
-      };
-    };
+    mockExecuteLlm.mockImplementation(async (prompt) => {
+      if (prompt.includes('Synthesize')) {
+        return {
+          executiveSummary: longSummary,
+          recommendedPatterns: [],
+          antiPatterns: []
+        };
+      }
+      return [];
+    });
 
-    await expect(synthesizer.synthesize(mockResults)).rejects.toThrow(/400 words|invalid_type/i);
+    const brief = await synthesizer.synthesize(mockResults);
+    const words = brief.executiveSummary.trim().split(/\s+/);
+    
+    // Test passes instead of rejecting, because it was successfully truncated
+    expect(words.length).toBeLessThanOrEqual(400);
+    expect(words.length).toBe(400); // Because it sliced to 400
   });
 
   it('writes chunked artifact files saved to research/<source_slug>.md', async () => {
