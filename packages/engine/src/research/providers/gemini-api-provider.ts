@@ -7,19 +7,21 @@ export class GeminiAPIProvider implements IResearchProvider {
   capabilities = ['DEEP_RESEARCH'];
   
   private client: GeminiInteractionsClient;
-  private poller: AsyncLongPoller<string>;
+  private poller: AsyncLongPoller<any>;
 
   constructor() {
     this.client = new GeminiInteractionsClient();
-    this.poller = new AsyncLongPoller<string>();
+    this.poller = new AsyncLongPoller<any>();
   }
 
   async invoke(query: string): Promise<string> {
+    const interaction = await this.client.createInteraction({ background: true, query });
     return this.poller.poll(async () => {
-      if (!this.client.sdkClient) {
-        throw new Error('SDK client not configured');
+      const result = await this.client.getInteraction(interaction.id || interaction.name);
+      if (result.status === 'COMPLETED') {
+         return result.outputs[0].text;
       }
-      return `Deep research content for: ${query}`;
+      throw new Error('Not completed yet');
     });
   }
 
