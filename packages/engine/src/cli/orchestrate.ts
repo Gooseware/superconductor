@@ -1,3 +1,4 @@
+import { SwarmPermissionEvaluator } from './swarm-permission-evaluator.js';
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine, ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 import { QuorumReviewLoop } from '../verification/quorum-review-loop.js';
 import { QuorumEnforcer, REQUIRED_QUORUM_AGENTS } from '../verification/quorum-enforcer.js';
@@ -65,7 +66,12 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         return this.llmUsed;
     }
 
-    public async executeTrack(workspaceDir: string, trackId: string): Promise<{ workUnits: WorkUnit[] }> {
+    public async executeTrack(workspaceDir: string, trackId: string, options?: { agentConfigPath?: string }): Promise<{ workUnits: WorkUnit[] }> {
+        const defaultAgentConfigPath = path.join(workspaceDir, '.superconductor', 'agent-config.md');
+        const configPath = options?.agentConfigPath || defaultAgentConfigPath;
+        const evaluator = new SwarmPermissionEvaluator(configPath);
+        evaluator.assertRootModelRestricted();
+        this.emit('permission_check', { revokedTools: evaluator.getRevokedTools(), swarmActive: evaluator.isSwarmModeActive() });
         const pathModule = await import('path');
         const topographyPath = pathModule.join(workspaceDir, 'topography.json');
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
