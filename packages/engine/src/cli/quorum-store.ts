@@ -22,6 +22,8 @@ export interface AgentManifestEntry {
   wuId: string;
   role: string;
   spawnedAt: string;
+  /** Optional path to the git worktree associated with this agent. */
+  worktreePath?: string;
 }
 
 /**

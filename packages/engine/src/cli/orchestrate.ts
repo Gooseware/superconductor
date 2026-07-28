@@ -10,6 +10,7 @@ import { ParallelDispatcher } from '../dispatcher/parallel-dispatcher.js';
 import { DagNode, TaskRole } from '../types/dag.types.js';
 import { DomainPartition } from '@superconductor/core/src/intelligence/topography-map.js';
 import { QuorumStore } from './quorum-store.js';
+import { TrackLifecycleManager } from './lifecycle-manager.js';
 
 /**
  * Pluggable agent spawner interface.
@@ -269,6 +270,20 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             const err = new AggregateError(failures.map(f => (f as PromiseRejectedResult).reason), `${failures.length}/${allDispatches.length} tasks failed`);
             (err as any).workUnits = updatedWorkUnits;
             throw err;
+        }
+
+        // Wave-3A: Trigger lifecycle cleanup when all work units have completed.
+        const allDone = updatedWorkUnits.every(wu => wu.state === WorkUnitState.DONE);
+        if (allDone && this.quorumStore) {
+            const lifecycleManager = new TrackLifecycleManager(
+                this.quorumStore,
+                workspaceDir,
+                { kill: async (_id: string) => 'already_dead' as const }
+            );
+            // Fire-and-forget: do not block the caller on cleanup errors.
+            lifecycleManager.onTrackComplete(safeTrackId).catch((err: unknown) => {
+                this.emit('orchestration_error', { error: err });
+            });
         }
 
         return { workUnits: updatedWorkUnits };
