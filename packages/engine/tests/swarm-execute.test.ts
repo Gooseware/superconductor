@@ -45,7 +45,14 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         
         expect(result.workUnits).toHaveLength(1);
         expect(result.workUnits[0].implementorId).toBe('agent-ui');
-        expect(result.workUnits[0].reviewers).toEqual(["agent-reviewer-1", "agent-reviewer-2"]);
+        // REV-7: reviewers must be REQUIRED_QUORUM_AGENTS, not topography reviewers.
+        // Topography-supplied reviewers are ignored; the quorum enforcer always uses the fixed set.
+        expect(result.workUnits[0].reviewers).toEqual([
+            'security-reviewer',
+            'correctness-reviewer',
+            'adversarial-reviewer',
+            'regression-reviewer',
+        ]);
         expect(result.workUnits[0].state).toBe(WorkUnitState.DONE);
         expect(result.workUnits[0].consensusArtifact?.allGreen).toBe(true);
         
@@ -53,10 +60,13 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         expect(invokedAgents[0].agentId).toBe('agent-ui');
         expect(invokedAgents[0].taskId).toBe('wu-1');
         
-        expect(invokedReviewers).toHaveLength(2);
-        expect(invokedReviewers[0].reviewerId).toBe('agent-reviewer-1');
-        expect(invokedReviewers[1].reviewerId).toBe('agent-reviewer-2');
-        expect(invokedReviewers[0].unitId).toBe('wu-1');
-        expect(invokedReviewers[1].unitId).toBe('wu-1');
+        // Hard invariant: exactly these 4 quorum agents must be invoked regardless of topography
+        expect(invokedReviewers).toHaveLength(4);
+        const reviewerIds = invokedReviewers.map((r: any) => r.reviewerId);
+        expect(reviewerIds).toContain('security-reviewer');
+        expect(reviewerIds).toContain('correctness-reviewer');
+        expect(reviewerIds).toContain('adversarial-reviewer');
+        expect(reviewerIds).toContain('regression-reviewer');
+        invokedReviewers.forEach((r: any) => expect(r.unitId).toBe('wu-1'));
     });
 });
