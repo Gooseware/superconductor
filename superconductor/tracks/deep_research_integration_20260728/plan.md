@@ -12,7 +12,7 @@
 
 ---
 
-## Phase 1: Contracts & Refactor [checkpoint: ]
+## Phase 1: Contracts & Refactor [checkpoint: b261115]
 
 - [x] Task: Define shared research type contracts a6cd23c [TIER-3] [AGENT:superconductor-dreamer]
     - [ ] Create packages/engine/src/research/types.ts
