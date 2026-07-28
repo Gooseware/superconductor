@@ -1,14 +1,18 @@
 /**
- * orchestrate-integration.test.ts — REV-6
+ * orchestrate-integration.test.ts — REV-6 + Wave-2A
  *
  * Integration tests verifying QuorumViolationError propagation through
  * executeTrack: the work unit must transition to FAILED (or an AggregateError
  * containing the QuorumViolationError must be thrown) — NOT silently succeed.
+ *
+ * Wave-2A adds: strict file-based DONE gating. Even if in-memory state says
+ * allGreen, a missing or tampered consensus.json must cause FAILED transition.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SwarmOrchestratorCLI, IAgentSpawner } from '../../src/cli/orchestrate.js';
 import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import { QuorumViolationError } from '../../src/verification/quorum-enforcer.js';
+import { QuorumStore } from '../../src/cli/quorum-store.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -158,5 +162,143 @@ describe('executeTrack — QuorumViolationError integration (REV-6)', () => {
         expect(mockSpawner.invokeSubagent).toHaveBeenCalledTimes(
             1 + REQUIRED_QUORUM_AGENTS.length
         );
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Tests — Wave-2A: Strict file-based DONE gating
+// ---------------------------------------------------------------------------
+
+describe('executeTrack — strict file-based DONE gating (Wave-2A)', () => {
+    let tmpDir: string;
+
+    beforeEach(() => {
+        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestrate-wave2a-'));
+    });
+
+    afterEach(() => {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('should transition to FAILED if consensus.json is deleted after being written', async () => {
+        /**
+         * Strategy: use a spawner that succeeds for all agents. Then intercept
+         * the quorum store by using a tampered QuorumStore subclass that deletes
+         * the consensus.json file immediately after it is written.
+         *
+         * The orchestrator must detect the missing file and transition to FAILED
+         * instead of DONE — even though in-memory state was allGreen.
+         */
+        const { REQUIRED_QUORUM_AGENTS } = await import('../../src/verification/quorum-enforcer.js');
+
+        const mockSpawner: IAgentSpawner = {
+            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
+        };
+
+        // Set up workspace
+        setupWorkspace(tmpDir, 'consensus-delete-track', [
+            '- [ ] Task: Successful task [TIER-3] [AGENT:agent-ok] [DOMAIN:core]'
+        ]);
+
+        // Create a proxy that deletes consensus.json after writing it
+        const store = new QuorumStore(tmpDir);
+        const originalWrite = store.writeConsensus.bind(store);
+        store.writeConsensus = async (wuId: string, artifact: any) => {
+            await originalWrite(wuId, artifact);
+            // Delete the file immediately — simulating filesystem failure / external deletion
+            const consensusPath = store.getConsensusPath(wuId);
+            fs.unlinkSync(consensusPath);
+        };
+
+        const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Inject the tampered store via the test-friendly setter
+        (cli as any).quorumStore = store;
+
+        let thrownError: any;
+        try {
+            await cli.executeTrack(tmpDir, 'consensus-delete-track');
+        } catch (err) {
+            thrownError = err;
+        }
+
+        // Must throw
+        expect(thrownError).toBeDefined();
+
+        // Work unit must be FAILED, not DONE
+        const workUnits = (thrownError as any)?.workUnits;
+        expect(workUnits).toBeDefined();
+        expect(workUnits[0].state).toBe(WorkUnitState.FAILED);
+    });
+
+    it('should transition to FAILED if consensus.json has allGreen:false on disk', async () => {
+        /**
+         * Strategy: use a spawner that succeeds for all agents. Intercept the
+         * QuorumStore so that after writeConsensus, we overwrite the file with
+         * allGreen:false.
+         *
+         * The orchestrator must read back the disk file and transition to FAILED
+         * because the disk-artifact has allGreen !== true.
+         */
+        const mockSpawner: IAgentSpawner = {
+            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
+        };
+
+        setupWorkspace(tmpDir, 'consensus-tampered-track', [
+            '- [ ] Task: Successful task [TIER-3] [AGENT:agent-ok] [DOMAIN:core]'
+        ]);
+
+        const store = new QuorumStore(tmpDir);
+        const originalWrite = store.writeConsensus.bind(store);
+        store.writeConsensus = async (wuId: string, artifact: any) => {
+            await originalWrite(wuId, artifact);
+            // Tamper: overwrite with allGreen:false
+            const consensusPath = store.getConsensusPath(wuId);
+            fs.writeFileSync(consensusPath, JSON.stringify({ allGreen: false, payload: ['tampered'] }), 'utf8');
+        };
+
+        const cli = new SwarmOrchestratorCLI(mockSpawner);
+        (cli as any).quorumStore = store;
+
+        let thrownError: any;
+        try {
+            await cli.executeTrack(tmpDir, 'consensus-tampered-track');
+        } catch (err) {
+            thrownError = err;
+        }
+
+        // Must throw
+        expect(thrownError).toBeDefined();
+
+        // Work unit must be FAILED, not DONE
+        const workUnits = (thrownError as any)?.workUnits;
+        expect(workUnits).toBeDefined();
+        expect(workUnits[0].state).toBe(WorkUnitState.FAILED);
+    });
+
+    it('should write consensus.json to disk on successful quorum review', async () => {
+        /**
+         * Verifies that executeTrack writes a consensus.json file to
+         * .superconductor/quorum/<wu_id>/consensus.json when allGreen.
+         */
+        const mockSpawner: IAgentSpawner = {
+            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
+        };
+
+        setupWorkspace(tmpDir, 'consensus-write-track', [
+            '- [ ] Task: Successful task [TIER-3] [AGENT:agent-ok] [DOMAIN:core]'
+        ]);
+
+        const cli = new SwarmOrchestratorCLI(mockSpawner);
+        const result = await cli.executeTrack(tmpDir, 'consensus-write-track');
+
+        expect(result.workUnits[0].state).toBe(WorkUnitState.DONE);
+
+        // consensus.json must exist on disk
+        const wuId = result.workUnits[0].unitId;
+        const consensusPath = path.join(tmpDir, '.superconductor', 'quorum', wuId, 'consensus.json');
+        expect(fs.existsSync(consensusPath)).toBe(true);
+
+        const diskArtifact = JSON.parse(fs.readFileSync(consensusPath, 'utf8'));
+        expect(diskArtifact.allGreen).toBe(true);
     });
 });

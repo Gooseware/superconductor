@@ -77,8 +77,10 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
         const planPath = pathModule.join(workspaceDir, '.superconductor', 'tracks', safeTrackId, 'plan.md');
 
-        // Initialise quorum store for this workspace
-        this.quorumStore = new QuorumStore(workspaceDir);
+        // Initialise quorum store for this workspace (only if not already injected in tests)
+        if (!this.quorumStore) {
+            this.quorumStore = new QuorumStore(workspaceDir);
+        }
 
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
 
@@ -134,6 +136,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             
             const capturedConversationId = conversationId;
             const capturedSpawner = this.spawner;
+            const capturedQuorumStore = this.quorumStore;
             const dispatchPromise = (this.spawner
                 ? Promise.resolve()  // Spawner already invoked; skip ParallelDispatcher
                 : this.dispatcher.dispatch(task)
@@ -197,18 +200,52 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         updatedWorkUnits[i] = failedWu;
                         throw new Error(`Quorum review failed for ${wu.unitId}: ${JSON.stringify(consensusArtifact.payload)}`);
                     } else if (consensusArtifact.allGreen === true) {
-                        const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, consensusArtifact);
+                        // ── Wave-2A: Strict file-based DONE gating ──────────────────────────────
+                        // Step 1: Write the ConsensusArtifact to disk via QuorumStore
+                        if (capturedQuorumStore) {
+                            await capturedQuorumStore.writeConsensus(wu.unitId, consensusArtifact);
+                        }
+
+                        // Step 2: Read it back from disk — disk is the source of truth
+                        let diskArtifact: ConsensusArtifact | null = null;
+                        if (capturedQuorumStore) {
+                            try {
+                                diskArtifact = await capturedQuorumStore.readConsensus(wu.unitId);
+                            } catch (readErr: any) {
+                                // Read error (non-ENOENT) — must FAIL
+                                const failedWu = sm.transition(updatedWu, WorkUnitState.FAILED);
+                                updatedWorkUnits[i] = failedWu;
+                                throw new Error('Consensus artifact missing or unreadable from disk');
+                            }
+                        }
+
+                        // Step 3: Gate DONE on disk-read artifact having allGreen === true
+                        if (!diskArtifact) {
+                            // null = ENOENT — file was not written or was deleted
+                            const failedWu = sm.transition(updatedWu, WorkUnitState.FAILED);
+                            updatedWorkUnits[i] = failedWu;
+                            throw new Error('Consensus artifact missing or unreadable from disk');
+                        }
+
+                        if (diskArtifact.allGreen !== true) {
+                            const failedWu = sm.transition(updatedWu, WorkUnitState.FAILED);
+                            updatedWorkUnits[i] = failedWu;
+                            throw new Error('Quorum consensus on disk is not allGreen');
+                        }
+
+                        // All gates passed — safe to transition to DONE
+                        const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, diskArtifact);
                         // Update reviewers to match the canonical REQUIRED_QUORUM_AGENTS (REV-7)
                         updatedWorkUnits[i] = { ...doneWu, reviewers: [...REQUIRED_QUORUM_AGENTS] };
 
-                        // Persist result to quorum store
-                        if (this.quorumStore) {
-                            await this.quorumStore.writeResult({
+                        // Persist implementor result to quorum store
+                        if (capturedQuorumStore) {
+                            await capturedQuorumStore.writeResult({
                                 wuId: wu.unitId,
                                 conversationId: capturedConversationId ?? '',
                                 role: wu.implementorId,
                                 prompt: wu.spec,
-                                result: { allGreen: true, payload: consensusArtifact.payload },
+                                result: { allGreen: true, payload: diskArtifact.payload },
                                 completedAt: new Date().toISOString()
                             });
                         }

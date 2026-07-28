@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { QuorumStore, AgentOutputRecord, AgentManifestEntry } from '../../src/cli/quorum-store.js';
+import { ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -193,6 +194,78 @@ describe('QuorumStore', () => {
             for (let i = 0; i < N; i++) {
                 expect(convIds.has(`conv-${i}`)).toBe(true);
             }
+        });
+    });
+
+    describe('writeConsensus / readConsensus', () => {
+        it('should write a ConsensusArtifact to the expected path', async () => {
+            const artifact: ConsensusArtifact = { allGreen: true, payload: ['finding-1'] };
+            await store.writeConsensus('wu-con-1', artifact);
+
+            const expectedPath = path.join(tmpDir, '.superconductor', 'quorum', 'wu-con-1', 'consensus.json');
+            expect(fs.existsSync(expectedPath)).toBe(true);
+
+            const written = JSON.parse(fs.readFileSync(expectedPath, 'utf8'));
+            expect(written.allGreen).toBe(true);
+            expect(written.payload).toEqual(['finding-1']);
+        });
+
+        it('should round-trip a ConsensusArtifact via writeConsensus / readConsensus', async () => {
+            const artifact: ConsensusArtifact = { allGreen: true, payload: [] };
+            await store.writeConsensus('wu-con-2', artifact);
+
+            const read = await store.readConsensus('wu-con-2');
+            expect(read).not.toBeNull();
+            expect(read!.allGreen).toBe(true);
+            expect(read!.payload).toEqual([]);
+        });
+
+        it('should round-trip allGreen:false ConsensusArtifact', async () => {
+            const artifact: ConsensusArtifact = { allGreen: false, payload: ['issue-a', 'issue-b'] };
+            await store.writeConsensus('wu-con-3', artifact);
+
+            const read = await store.readConsensus('wu-con-3');
+            expect(read).not.toBeNull();
+            expect(read!.allGreen).toBe(false);
+            expect(read!.payload).toEqual(['issue-a', 'issue-b']);
+        });
+
+        it('should return null when consensus.json does not exist', async () => {
+            const result = await store.readConsensus('wu-does-not-exist-consensus');
+            expect(result).toBeNull();
+        });
+
+        it('should create intermediate directories when writing consensus', async () => {
+            const dir = path.join(tmpDir, '.superconductor', 'quorum', 'wu-con-new');
+            expect(fs.existsSync(dir)).toBe(false);
+
+            await store.writeConsensus('wu-con-new', { allGreen: true });
+            expect(fs.existsSync(dir)).toBe(true);
+        });
+
+        it('should throw on wuId containing ".." in writeConsensus', async () => {
+            await expect(store.writeConsensus('../evil', { allGreen: true }))
+                .rejects.toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on wuId containing "/" in writeConsensus', async () => {
+            await expect(store.writeConsensus('wu/evil', { allGreen: true }))
+                .rejects.toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on wuId containing ".." in readConsensus', async () => {
+            await expect(store.readConsensus('../evil'))
+                .rejects.toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on wuId containing "/" in readConsensus', async () => {
+            await expect(store.readConsensus('wu/evil'))
+                .rejects.toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should expose getConsensusPath returning the expected path', () => {
+            const p = store.getConsensusPath('wu-99');
+            expect(p).toBe(path.join(tmpDir, '.superconductor', 'quorum', 'wu-99', 'consensus.json'));
         });
     });
 });

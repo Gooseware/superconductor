@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 
 /**
  * Represents a persisted agent output record stored per work unit.
@@ -26,6 +27,7 @@ export interface AgentManifestEntry {
 /**
  * QuorumStore handles reading and writing quorum-related files:
  * - `.superconductor/quorum/<wu_id>/implementor-result.json` for per-agent outputs
+ * - `.superconductor/quorum/<wu_id>/consensus.json` for consensus artifacts (Wave-2A)
  * - `.superconductor/tracks/<trackId>/agents.json` for the agents manifest
  */
 export class QuorumStore {
@@ -76,6 +78,17 @@ export class QuorumStore {
   }
 
   /**
+   * Returns the path to the consensus.json for a given work unit (Wave-2A).
+   * Sanitizes wuId to prevent path traversal (REV-4).
+   */
+  public getConsensusPath(wuId: string): string {
+    this.validateId(wuId);
+    const resolved = path.resolve(this.workspaceDir, '.superconductor', 'quorum', wuId, 'consensus.json');
+    this.assertUnderBase(resolved);
+    return resolved;
+  }
+
+  /**
    * Returns the path to the agents.json manifest for a given track.
    * Sanitizes trackId to prevent path traversal (REV-4).
    */
@@ -104,6 +117,32 @@ export class QuorumStore {
     try {
       const raw = await fs.promises.readFile(filePath, 'utf8');
       return JSON.parse(raw) as AgentOutputRecord;
+    } catch (err: any) {
+      if (err.code === 'ENOENT') return null;
+      throw err;
+    }
+  }
+
+  /**
+   * Persists a ConsensusArtifact to `.superconductor/quorum/<wuId>/consensus.json`.
+   * This is the source-of-truth file that the orchestrator reads back before
+   * transitioning a work unit to DONE (Wave-2A strict file-based gating).
+   */
+  public async writeConsensus(wuId: string, artifact: ConsensusArtifact): Promise<void> {
+    const filePath = this.getConsensusPath(wuId);
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.promises.writeFile(filePath, JSON.stringify(artifact, null, 2), 'utf8');
+  }
+
+  /**
+   * Reads the ConsensusArtifact from `.superconductor/quorum/<wuId>/consensus.json`.
+   * Returns null if the file does not exist (ENOENT). Re-throws on any other error.
+   */
+  public async readConsensus(wuId: string): Promise<ConsensusArtifact | null> {
+    const filePath = this.getConsensusPath(wuId);
+    try {
+      const raw = await fs.promises.readFile(filePath, 'utf8');
+      return JSON.parse(raw) as ConsensusArtifact;
     } catch (err: any) {
       if (err.code === 'ENOENT') return null;
       throw err;
