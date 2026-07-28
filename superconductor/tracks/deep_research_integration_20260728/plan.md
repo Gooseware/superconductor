@@ -3,12 +3,12 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify swarm-execute skill is installed and baseline tests pass [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Verify swarm-execute skill is installed and baseline tests pass 3709a86 [TIER-1] [AGENT:superconductor-processor]
     - [ ] Check skills/swarm-execute/SKILL.md exists
     - [ ] Check skills/new-track/SKILL.md exists
     - [ ] Confirm QuorumReviewLoop and KeyholeFeedbackExtractor are importable
     - [ ] Run npm test -w packages/engine -w packages/superconductor-core — must be green before any work starts
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' 3709a86 (Protocol in workflow.md)
 
 ---
 
