@@ -26,6 +26,7 @@
     "yaml": "^2.4.1"
   },
   "dependencies": {
+    "@google/genai": "^2.13.0",
     "@superconductor/core": "workspace:*",
     "better-sqlite3": "^12.11.1",
     "enquirer": "^2.4.1",

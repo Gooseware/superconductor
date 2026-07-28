@@ -8,6 +8,7 @@ export interface IResearchQuery {
 export interface IResearchSource {
   url: string;
   title?: string;
+  content?: string;
 }
 
 export interface IResearchProvider {

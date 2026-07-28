@@ -98,7 +98,7 @@ export class ResearchExecutor {
 
         const synthesizer = new ResearchBriefSynthesizer(outDir, this.executeLlmTool); // Local var (COR-4)
         
-        const brief = await synthesizer.synthesize(results, trackId, queries.map(q => q.term));
+        const brief = await synthesizer.synthesize(results, trackId);
         brief.queriesExecuted = queries.map(q => q.term);
 
         if (!fs.existsSync(outDir)) {
