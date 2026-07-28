@@ -20,19 +20,19 @@ describe('GoogleDeepResearchProvider', () => {
     provider = new GoogleDeepResearchProvider(mockExecuteTool);
   });
 
-  it('filters results through quality gate, sanitizes, and wraps in XML tags', async () => {
+  it('filters results through quality gate and sanitizes without XML wrapping', async () => {
     const results = await provider.search({ term: 'test query' });
     
     // We expect 2 valid sources out of 3 mock sources
     expect(results.length).toBe(2);
     
-    // Check XML wrapping and sanitization for URL
-    expect(results[0].url).toMatch(/<untrusted_research_results>.*https:\/\/github.com\/mock\/repo.*<\/untrusted_research_results>/);
+    // Check sanitization for URL
+    expect(results[0].url).toEqual('https://github.com/mock/repo');
     
-    // Check XML wrapping and sanitization for title
-    expect(results[0].title).toMatch(/<untrusted_research_results>.*Mock Repo.*<\/untrusted_research_results>/);
-    expect(results[1].url).toMatch(/<untrusted_research_results>.*https:\/\/arxiv.org\/abs\/1234.5678.*<\/untrusted_research_results>/);
-    expect(results[1].title).toMatch(/<untrusted_research_results>.*Mock Paper.*<\/untrusted_research_results>/);
+    // Check sanitization for title
+    expect(results[0].title).toEqual('Mock Repo');
+    expect(results[1].url).toEqual('https://arxiv.org/abs/1234.5678');
+    expect(results[1].title).toEqual('Mock Paper');
   });
 
   it('implements exponential backoff on failures', async () => {
