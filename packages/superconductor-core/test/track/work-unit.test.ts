@@ -40,21 +40,21 @@ describe('WorkUnit & WorkUnitStateMachine', () => {
     });
 
     it('should transition from RESEARCHING to IN_PROGRESS', () => {
-      wu.state = WorkUnitState.RESEARCHING;
-      const nextWu = stateMachine.transition(wu, WorkUnitState.IN_PROGRESS);
+      const researchingWu = stateMachine.transition(wu, WorkUnitState.RESEARCHING);
+      const nextWu = stateMachine.transition(researchingWu, WorkUnitState.IN_PROGRESS);
       expect(nextWu.state).toBe(WorkUnitState.IN_PROGRESS);
     });
 
     it('should transition from RESEARCHING to FAILED', () => {
-      wu.state = WorkUnitState.RESEARCHING;
-      const nextWu = stateMachine.transition(wu, WorkUnitState.FAILED);
+      const researchingWu = stateMachine.transition(wu, WorkUnitState.RESEARCHING);
+      const nextWu = stateMachine.transition(researchingWu, WorkUnitState.FAILED);
       expect(nextWu.state).toBe(WorkUnitState.FAILED);
     });
 
     it('should NOT transition from RESEARCHING to DONE', () => {
-      wu.state = WorkUnitState.RESEARCHING;
+      const researchingWu = stateMachine.transition(wu, WorkUnitState.RESEARCHING);
       expect(() => {
-        stateMachine.transition(wu, WorkUnitState.DONE, { allGreen: true });
+        stateMachine.transition(researchingWu, WorkUnitState.DONE, { allGreen: true });
       }).toThrow(/Invalid state transition/);
     });
 
