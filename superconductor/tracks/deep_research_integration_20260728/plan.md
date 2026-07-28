@@ -45,7 +45,7 @@
     - [ ] Methods: get(), set(), invalidate()
     - [ ] Deterministic hash-based similarity for MVP (no embedding API required)
     - [ ] Write tests: cache miss returns null, hit returns value, namespace isolation, --refresh bypass
-- [ ] Task: Add RESEARCHING state to WorkUnitStateMachine [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Add RESEARCHING state to WorkUnitStateMachine 6f2a8d4
     - [ ] Read packages/superconductor-core/src/track/work-unit.ts
     - [ ] Add RESEARCHING = 'RESEARCHING' to WorkUnitState enum
     - [ ] Add valid transitions: PENDING->RESEARCHING, RESEARCHING->IN_PROGRESS, RESEARCHING->FAILED
