@@ -1,8 +1,8 @@
-import * as child_process from 'child_process';
-import * as util from 'util';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { QuorumStore, AgentManifestEntry } from './quorum-store.js';
 
-const execAsync = util.promisify(child_process.exec);
+const execFileAsync = promisify(execFile);
 
 /**
  * Pluggable interface for killing a running agent conversation.
@@ -60,10 +60,12 @@ export class TrackLifecycleManager {
   }
 
   /**
-   * Default git worktree removal implementation using child_process.exec.
+   * Default git worktree removal implementation using child_process.execFile.
+   * Uses an argument array — never interpolates worktreePath into a shell string,
+   * preventing command injection via shell subshell operators.
    */
   private async _defaultExecWorktreeRemove(worktreePath: string): Promise<void> {
-    await execAsync(`git worktree remove --force ${JSON.stringify(worktreePath)}`, {
+    await execFileAsync('git', ['worktree', 'remove', '--force', worktreePath], {
       cwd: this.worktreeDir
     });
   }

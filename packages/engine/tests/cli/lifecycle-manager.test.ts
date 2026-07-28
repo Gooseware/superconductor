@@ -139,7 +139,49 @@ describe('TrackLifecycleManager', () => {
       expect(report.errors).toEqual([]);
     });
 
-    it('should return errors array for failed kills without throwing', async () => {
+    it('should collect error and NOT increment worktreesRemoved when execWorktreeRemove throws', async () => {
+      const trackId = 'track-wt-fail';
+      const goodPath = '/some/good/worktree';
+      const badPath = '/some/bad/worktree';
+
+      await store.appendToAgentsManifest(trackId, {
+        conversationId: 'conv-good-wt',
+        wuId: 'wu-1',
+        role: 'agent-good',
+        spawnedAt: new Date().toISOString(),
+        worktreePath: goodPath,
+      });
+      await store.appendToAgentsManifest(trackId, {
+        conversationId: 'conv-bad-wt',
+        wuId: 'wu-2',
+        role: 'agent-bad',
+        spawnedAt: new Date().toISOString(),
+        worktreePath: badPath,
+      });
+
+      const killer = makeKiller();
+      const manager = new TrackLifecycleManager(store, tmpDir, killer, {
+        execWorktreeRemove: async (wPath: string) => {
+          if (wPath === badPath) {
+            throw new Error(`git worktree remove failed for ${wPath}`);
+          }
+          // goodPath succeeds silently
+        }
+      });
+
+      // Should NOT throw — errors are collected
+      const report = await manager.cleanup(trackId);
+
+      // Only the successful removal increments the counter
+      expect(report.worktreesRemoved).toBe(1);
+      // The failed removal is recorded in errors
+      expect(report.errors.length).toBe(1);
+      expect(report.errors[0]).toMatch(/bad\/worktree/);
+      // Both agents were still killed (cleanup continued past the failure)
+      expect(report.agentsKilled).toBe(2);
+    });
+
+        it('should return errors array for failed kills without throwing', async () => {
       const trackId = 'track-fail';
       await store.appendToAgentsManifest(trackId, {
         conversationId: 'conv-ok',
