@@ -30,23 +30,60 @@ export interface AgentManifestEntry {
  */
 export class QuorumStore {
   private workspaceDir: string;
+  /** Resolved absolute base directory — used for path-traversal assertion. */
+  private baseDir: string;
+  /** Per-track mutex chains for appendToAgentsManifest (REV-5). */
+  private manifestMutexes: Map<string, Promise<void>> = new Map();
 
   constructor(workspaceDir: string) {
     this.workspaceDir = workspaceDir;
+    this.baseDir = path.resolve(workspaceDir);
+  }
+
+  /**
+   * Validates a single path segment (wuId or trackId) against path-traversal
+   * attacks (REV-4). Rejects any input containing `..`, `/`, or `\`.
+   *
+   * @throws {Error} if the id contains dangerous characters.
+   */
+  private validateId(id: string): void {
+    if (/\.\./.test(id) || /[/\\]/.test(id)) {
+      throw new Error(`Invalid id: path traversal detected in "${id}"`);
+    }
+  }
+
+  /**
+   * Asserts that the fully-resolved path is still under baseDir (REV-4).
+   *
+   * @throws {Error} if the resolved path escapes the workspace directory.
+   */
+  private assertUnderBase(resolvedPath: string): void {
+    const base = this.baseDir + path.sep;
+    if (!resolvedPath.startsWith(base) && resolvedPath !== this.baseDir) {
+      throw new Error(`Invalid path: resolved path escapes workspace directory`);
+    }
   }
 
   /**
    * Returns the path to the implementor-result.json for a given work unit.
+   * Sanitizes wuId to prevent path traversal (REV-4).
    */
   public getResultPath(wuId: string): string {
-    return path.join(this.workspaceDir, '.superconductor', 'quorum', wuId, 'implementor-result.json');
+    this.validateId(wuId);
+    const resolved = path.resolve(this.workspaceDir, '.superconductor', 'quorum', wuId, 'implementor-result.json');
+    this.assertUnderBase(resolved);
+    return resolved;
   }
 
   /**
    * Returns the path to the agents.json manifest for a given track.
+   * Sanitizes trackId to prevent path traversal (REV-4).
    */
   public getAgentsManifestPath(trackId: string): string {
-    return path.join(this.workspaceDir, '.superconductor', 'tracks', trackId, 'agents.json');
+    this.validateId(trackId);
+    const resolved = path.resolve(this.workspaceDir, '.superconductor', 'tracks', trackId, 'agents.json');
+    this.assertUnderBase(resolved);
+    return resolved;
   }
 
   /**
@@ -76,8 +113,21 @@ export class QuorumStore {
   /**
    * Appends a new agent entry to the agents.json manifest for a track.
    * Creates the file if it does not exist.
+   *
+   * Uses a per-track async mutex (REV-5) so concurrent calls are serialized,
+   * preventing lost updates from the read-modify-write cycle.
    */
-  public async appendToAgentsManifest(trackId: string, entry: AgentManifestEntry): Promise<void> {
+  public appendToAgentsManifest(trackId: string, entry: AgentManifestEntry): Promise<void> {
+    // Chain onto the existing promise for this track (or a resolved baseline)
+    const previous = this.manifestMutexes.get(trackId) ?? Promise.resolve();
+    const next = previous.then(() => this._doAppend(trackId, entry));
+    // Store the chain (suppress unhandled rejection on chain itself)
+    this.manifestMutexes.set(trackId, next.catch(() => {}));
+    return next;
+  }
+
+  /** Internal: performs the actual read-modify-write under the mutex. */
+  private async _doAppend(trackId: string, entry: AgentManifestEntry): Promise<void> {
     const filePath = this.getAgentsManifestPath(trackId);
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
 

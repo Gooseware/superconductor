@@ -23,16 +23,30 @@ export interface IAgentSpawner {
 }
 
 /**
- * Real AGY SDK-backed implementation of IAgentSpawner.
- * Calls agy.invokeSubagent under the hood.
+ * Placeholder AGY SDK-backed implementation of IAgentSpawner.
+ * The real AGY SDK is not yet wired — inject a concrete IAgentSpawner in production.
+ * Throws on every call so failures are surfaced immediately, not masked by fake IDs.
  */
 export class AgyAgentSpawner implements IAgentSpawner {
-  // In a real integration, this would import and call the AGY SDK.
-  async invokeSubagent(role: string, prompt: string): Promise<string> {
-    // Placeholder: real code would be: const { conversationId } = await agy.invokeSubagent({ role, prompt });
-    const conversationId = `agy-${role}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    return conversationId;
+  async invokeSubagent(_role: string, _prompt: string): Promise<string> {
+    throw new Error('AgyAgentSpawner: AGY SDK not yet wired. Inject a real IAgentSpawner implementation.');
   }
+}
+
+/** Transitions a work unit through IN_PROGRESS then to FAILED, respecting the state machine. */
+function transitionToFailed(wu: WorkUnit, sm: WorkUnitStateMachine): WorkUnit {
+    let current = wu;
+    if (current.state === WorkUnitState.PENDING || current.state === WorkUnitState.RESEARCHING) {
+        current = sm.transition(current, WorkUnitState.IN_PROGRESS);
+    }
+    if (current.state === WorkUnitState.DONE) {
+        // DONE → FAILED is allowed per state machine
+        return sm.transition(current, WorkUnitState.FAILED);
+    }
+    if (current.state !== WorkUnitState.FAILED) {
+        return sm.transition(current, WorkUnitState.FAILED);
+    }
+    return current;
 }
 
 export class SwarmOrchestratorCLI extends EventEmitter {
@@ -83,22 +97,37 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
             // Spawn via IAgentSpawner if provided; otherwise fall back to ParallelDispatcher
             let conversationId: string | undefined;
+            let spawnerImplError: Error | undefined;
             if (this.spawner) {
-                conversationId = await this.spawner.invokeSubagent(wu.implementorId, wu.spec);
-                this.emit('subagent_spawned', { conversationId, wuId: wu.unitId, role: wu.implementorId });
+                try {
+                    conversationId = await this.spawner.invokeSubagent(wu.implementorId, wu.spec);
+                    this.emit('subagent_spawned', { conversationId, wuId: wu.unitId, role: wu.implementorId });
 
-                // Register to agents.json manifest
-                if (this.quorumStore) {
-                    await this.quorumStore.appendToAgentsManifest(safeTrackId, {
-                        conversationId,
-                        wuId: wu.unitId,
-                        role: wu.implementorId,
-                        spawnedAt: new Date().toISOString()
-                    });
+                    // Register to agents.json manifest
+                    if (this.quorumStore) {
+                        await this.quorumStore.appendToAgentsManifest(safeTrackId, {
+                            conversationId,
+                            wuId: wu.unitId,
+                            role: wu.implementorId,
+                            spawnedAt: new Date().toISOString()
+                        });
+                    }
+                } catch (err: any) {
+                    spawnerImplError = err;
                 }
+            }
+
+            if (spawnerImplError) {
+                // Spawner failed on implementor invocation — mark FAILED immediately
+                const sm = new WorkUnitStateMachine();
+                updatedWorkUnits[i] = transitionToFailed(wu, sm);
+                this.emit('orchestration_error', { error: spawnerImplError });
+                allDispatches.push(Promise.reject(spawnerImplError));
+                continue;
             }
             
             const capturedConversationId = conversationId;
+            const capturedSpawner = this.spawner;
             const dispatchPromise = (this.spawner
                 ? Promise.resolve()  // Spawner already invoked; skip ParallelDispatcher
                 : this.dispatcher.dispatch(task)
@@ -108,47 +137,49 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
                     
                     let consensusArtifact: ConsensusArtifact | null = null;
-                    {
-                        // Hard invariant: ALWAYS spawn exactly these 4 quorum agents.
-                        // This is NOT overridable via topography or any external config.
-                        const quorumEnforcer = new QuorumEnforcer();
-                        const quorumAgents = [...REQUIRED_QUORUM_AGENTS];
 
-                        const loop = new QuorumReviewLoop({
-                            maxIterations: 1,
-                            reviewerFn: async () => {
-                                const spawnResults: Array<{ agentType: string; success: boolean }> = [];
-                                const reviewerPromises = quorumAgents.map(reviewer => {
-                                    const reviewerTask: DagNode = {
-                                        id: `${wu.unitId}-review-${reviewer}`,
-                                        role: reviewer as TaskRole,
-                                        tier: 3,
-                                        status: 'pending',
-                                        prompt: `Review ${wu.unitId}`,
-                                        contextFiles: [],
-                                        dependsOn: [task.id]
-                                    };
-                                    this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
-                                    return this.dispatcher.dispatch(reviewerTask)
+                    // Hard invariant: ALWAYS spawn exactly these 4 quorum agents.
+                    // This is NOT overridable via topography or any external config.
+                    const quorumEnforcer = new QuorumEnforcer();
+                    const quorumAgents = [...REQUIRED_QUORUM_AGENTS];
+
+                    const loop = new QuorumReviewLoop({
+                        maxIterations: 1,
+                        reviewerFn: async () => {
+                            const spawnResults: Array<{ agentType: string; success: boolean }> = [];
+                            const reviewerPromises = quorumAgents.map(reviewer => {
+                                if (capturedSpawner) {
+                                    // Use spawner for reviewer invocations when it is provided
+                                    return capturedSpawner.invokeSubagent(reviewer, `Review ${wu.unitId}`)
                                         .then(() => spawnResults.push({ agentType: reviewer, success: true }))
                                         .catch(() => spawnResults.push({ agentType: reviewer, success: false }));
-                                });
-                                await Promise.all(reviewerPromises);
-                                // Enforce quorum — throws QuorumViolationError if invariant is broken
-                                quorumEnforcer.assertQuorumSpawned(spawnResults);
-                                return { status: 'RESOLVED', findings: [] };
-                            }
-                        });
-                        const loopResult = await loop.run("");
-                        if (loopResult) {
-                            consensusArtifact = {
-                                allGreen: loopResult.allGreen,
-                                payload: loopResult.findings || []
-                            };
+                                }
+                                const reviewerTask: DagNode = {
+                                    id: `${wu.unitId}-review-${reviewer}`,
+                                    role: reviewer as TaskRole,
+                                    tier: 3,
+                                    status: 'pending',
+                                    prompt: `Review ${wu.unitId}`,
+                                    contextFiles: [],
+                                    dependsOn: [task.id]
+                                };
+                                this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
+                                return this.dispatcher.dispatch(reviewerTask)
+                                    .then(() => spawnResults.push({ agentType: reviewer, success: true }))
+                                    .catch(() => spawnResults.push({ agentType: reviewer, success: false }));
+                            });
+                            await Promise.all(reviewerPromises);
+                            // Enforce quorum — throws QuorumViolationError if invariant is broken
+                            quorumEnforcer.assertQuorumSpawned(spawnResults);
+                            return { status: 'RESOLVED', findings: [] };
                         }
-                    } else {
-                        // No reviewers — auto-approve
-                        consensusArtifact = { allGreen: true, payload: [] };
+                    });
+                    const loopResult = await loop.run("");
+                    if (loopResult) {
+                        consensusArtifact = {
+                            allGreen: loopResult.allGreen,
+                            payload: loopResult.findings || []
+                        };
                     }
                     
                     if (!consensusArtifact) {
@@ -161,7 +192,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         throw new Error(`Quorum review failed for ${wu.unitId}: ${JSON.stringify(consensusArtifact.payload)}`);
                     } else if (consensusArtifact.allGreen === true) {
                         const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, consensusArtifact);
-                        updatedWorkUnits[i] = doneWu;
+                        // Update reviewers to match the canonical REQUIRED_QUORUM_AGENTS (REV-7)
+                        updatedWorkUnits[i] = { ...doneWu, reviewers: [...REQUIRED_QUORUM_AGENTS] };
 
                         // Persist result to quorum store
                         if (this.quorumStore) {
@@ -178,9 +210,9 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                 })
                 .catch(err => {
                     this.emit('orchestration_error', { error: err });
+                    const sm = new WorkUnitStateMachine();
                     if (updatedWorkUnits[i].state !== WorkUnitState.FAILED) {
-                        const sm = new WorkUnitStateMachine();
-                        updatedWorkUnits[i] = sm.transition(updatedWorkUnits[i] || wu, WorkUnitState.FAILED);
+                        updatedWorkUnits[i] = transitionToFailed(updatedWorkUnits[i] || wu, sm);
                     }
                     throw err;
                 });
@@ -218,21 +250,15 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                 const domainMatch = line.match(/\[DOMAIN:([^\]]+)\]/);
                 const domainScope = domainMatch ? [domainMatch[1]] : [];
 
-                let reviewers: string[] = [];
-                for (const domain of domainScope) {
-                    const partition = topography.partitions?.find((p: DomainPartition) => p.id === domain);
-                    if (partition && partition.reviewers) {
-                        reviewers.push(...partition.reviewers);
-                    }
-                }
-
+                // REV-7: Do NOT populate reviewers from topography.
+                // Quorum agents are always REQUIRED_QUORUM_AGENTS — fixed by QuorumEnforcer at runtime.
                 workUnits.push({
                     unitId: `wu-${idCounter++}`,
                     domainScope,
                     spec,
                     state: WorkUnitState.PENDING,
                     implementorId,
-                    reviewers
+                    reviewers: []
                 });
             }
         }

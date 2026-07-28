@@ -45,7 +45,14 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         
         expect(result.workUnits).toHaveLength(1);
         expect(result.workUnits[0].implementorId).toBe('agent-ui');
-        expect(result.workUnits[0].reviewers).toEqual(["agent-reviewer-1", "agent-reviewer-2"]);
+        // REV-7: reviewers must be REQUIRED_QUORUM_AGENTS, not topography reviewers.
+        // Topography-supplied reviewers are ignored; the quorum enforcer always uses the fixed set.
+        expect(result.workUnits[0].reviewers).toEqual([
+            'security-reviewer',
+            'correctness-reviewer',
+            'adversarial-reviewer',
+            'regression-reviewer',
+        ]);
         expect(result.workUnits[0].state).toBe(WorkUnitState.DONE);
         expect(result.workUnits[0].consensusArtifact?.allGreen).toBe(true);
         

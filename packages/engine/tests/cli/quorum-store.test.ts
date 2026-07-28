@@ -144,4 +144,55 @@ describe('QuorumStore', () => {
             expect(p).toBe(path.join(tmpDir, '.superconductor', 'tracks', 'my-cool-track', 'agents.json'));
         });
     });
+
+    describe('path traversal protection (REV-4)', () => {
+        it('should throw on wuId containing ".."', () => {
+            expect(() => store.getResultPath('../evil')).toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on wuId containing "/"', () => {
+            expect(() => store.getResultPath('wu/evil')).toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on wuId containing "\\"', () => {
+            expect(() => store.getResultPath('wu\\evil')).toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on trackId containing ".."', () => {
+            expect(() => store.getAgentsManifestPath('../../etc/passwd')).toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should throw on trackId containing "/"', () => {
+            expect(() => store.getAgentsManifestPath('track/evil')).toThrow('Invalid id: path traversal detected');
+        });
+
+        it('should accept clean alphanumeric ids', () => {
+            expect(() => store.getResultPath('wu-99')).not.toThrow();
+            expect(() => store.getAgentsManifestPath('my-track_01')).not.toThrow();
+        });
+    });
+
+    describe('concurrent appendToAgentsManifest (REV-5 mutex)', () => {
+        it('should not lose entries when called concurrently', async () => {
+            const trackId = 'concurrent-track';
+            const N = 10;
+            const entries: AgentManifestEntry[] = Array.from({ length: N }, (_, i) => ({
+                conversationId: `conv-${i}`,
+                wuId: `wu-${i}`,
+                role: `agent-${i}`,
+                spawnedAt: new Date().toISOString()
+            }));
+
+            // Fire all appends concurrently — without a mutex this would lose entries
+            await Promise.all(entries.map(e => store.appendToAgentsManifest(trackId, e)));
+
+            const manifest = await store.readAgentsManifest(trackId);
+            expect(manifest).toHaveLength(N);
+
+            const convIds = new Set(manifest.map(e => e.conversationId));
+            for (let i = 0; i < N; i++) {
+                expect(convIds.has(`conv-${i}`)).toBe(true);
+            }
+        });
+    });
 });

@@ -70,8 +70,11 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         // Act
         const result = await cli.executeTrack(tmpDir, trackId);
 
-        // Assert: spawner was called for each work unit
-        expect(mockSpawner.invokeSubagent).toHaveBeenCalledTimes(2);
+        // Assert: spawner was called for each work unit (implementor) AND for each of the
+        // 4 required quorum reviewers per work unit.
+        // 2 work units × (1 implementor + 4 quorum reviewers) = 10 total calls.
+        const { REQUIRED_QUORUM_AGENTS } = await import('../../src/verification/quorum-enforcer.js');
+        expect(mockSpawner.invokeSubagent).toHaveBeenCalledTimes(2 * (1 + REQUIRED_QUORUM_AGENTS.length));
         expect(mockSpawner.invokeSubagent).toHaveBeenCalledWith('agent-ui', expect.any(String));
         expect(mockSpawner.invokeSubagent).toHaveBeenCalledWith('agent-api', expect.any(String));
     });
@@ -117,9 +120,13 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
     it('should update agents.json manifest with conversationId for each spawned agent', async () => {
         // Arrange
         const mockSpawner: IAgentSpawner = {
+            // Use mockResolvedValue (not Once) so all spawner calls return a valid string.
+            // The first 2 calls are implementor invocations (tracked in agents.json);
+            // subsequent calls are quorum reviewer invocations (not tracked in agents.json).
             invokeSubagent: vi.fn()
                 .mockResolvedValueOnce('conv-first-agent')
                 .mockResolvedValueOnce('conv-second-agent')
+                .mockResolvedValue('conv-reviewer-ok')
         };
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
