@@ -19,6 +19,8 @@ export interface WorkUnit<T = unknown> {
   spec: string;
   state: WorkUnitState;
   implementorId: string;
+  /** Classifies this work unit as a code task or a manual verification step. */
+  unitType: 'TASK' | 'VERIFY';
   researchContext?: any;
   consensusArtifact?: ConsensusArtifact<T>;
   reviewers?: string[];

@@ -1,7 +1,11 @@
 import { SwarmPermissionEvaluator } from './swarm-permission-evaluator.js';
+import { ExecutionMode, NonInteractiveModeError } from '../guard/execution-mode.js';
+import { HeadlessModeGuard, createHeadlessModeGuard } from '../guard/headless-mode-guard.js';
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine, ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 import { QuorumReviewLoop } from '../verification/quorum-review-loop.js';
 import { QuorumEnforcer, REQUIRED_QUORUM_AGENTS } from '../verification/quorum-enforcer.js';
+import { ReviewerResponseBroker } from '../verification/reviewer-response-broker.js';
+import { isResolved } from '../verification/reviewer-findings-schema.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -12,28 +16,8 @@ import { DomainPartition } from '@superconductor/core/src/intelligence/topograph
 import { QuorumStore } from './quorum-store.js';
 import { TrackLifecycleManager } from './lifecycle-manager.js';
 
-/**
- * Pluggable agent spawner interface.
- * Inject a mock in tests; the real implementation delegates to AGY SDK.
- */
-export interface IAgentSpawner {
-  /**
-   * Spawns a subagent for the given role with the given prompt.
-   * Returns a conversationId string.
-   */
-  invokeSubagent(role: string, prompt: string): Promise<string>;
-}
-
-/**
- * Placeholder AGY SDK-backed implementation of IAgentSpawner.
- * The real AGY SDK is not yet wired — inject a concrete IAgentSpawner in production.
- * Throws on every call so failures are surfaced immediately, not masked by fake IDs.
- */
-export class AgyAgentSpawner implements IAgentSpawner {
-  async invokeSubagent(_role: string, _prompt: string): Promise<string> {
-    throw new Error('AgyAgentSpawner: AGY SDK not yet wired. Inject a real IAgentSpawner implementation.');
-  }
-}
+import { AgyAgentSpawner } from './agy-agent-spawner.js';
+import type { IAgentSpawner, AgentSpawnConfig, SpawnedAgent } from './agent-spawner.js';
 
 /** Transitions a work unit through IN_PROGRESS then to FAILED, respecting the state machine. */
 function transitionToFailed(wu: WorkUnit, sm: WorkUnitStateMachine): WorkUnit {
@@ -56,6 +40,13 @@ export class SwarmOrchestratorCLI extends EventEmitter {
     public dispatcher: ParallelDispatcher;
     private spawner?: IAgentSpawner;
     private quorumStore?: QuorumStore;
+    private guard?: HeadlessModeGuard;
+    /**
+     * Injectable ReviewerResponseBroker — set directly on the instance in tests
+     * to bypass file-watching with a mock. When null, a real broker is constructed
+     * using workspaceDir and the configured timeoutMs.
+     */
+    public reviewerBroker: ReviewerResponseBroker | null = null;
 
     constructor(spawner?: IAgentSpawner) {
         super();
@@ -72,6 +63,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         const configPath = options?.agentConfigPath || defaultAgentConfigPath;
         const evaluator = new SwarmPermissionEvaluator(configPath);
         evaluator.assertRootModelRestricted();
+        // Bind guard to the actual runtime execution mode via factory (ADV-2)
+        this.guard = createHeadlessModeGuard(evaluator);
         this.emit('permission_check', { revokedTools: evaluator.getRevokedTools(), swarmActive: evaluator.isSwarmModeActive() });
         const pathModule = await import('path');
         const topographyPath = pathModule.join(workspaceDir, 'topography.json');
@@ -81,6 +74,10 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         // Initialise quorum store for this workspace (only if not already injected in tests)
         if (!this.quorumStore) {
             this.quorumStore = new QuorumStore(workspaceDir);
+        }
+
+        if (!this.spawner) {
+            this.spawner = new AgyAgentSpawner(pathModule.join(workspaceDir, '.superconductor'));
         }
 
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
@@ -104,16 +101,70 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
             this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: wu.spec });
 
+            // ── VERIFY unit routing via ExecutionMode ─────────────────────────────
+            if (wu.unitType === 'VERIFY') {
+                const executionMode = evaluator.getExecutionMode();
+                if (executionMode === ExecutionMode.HEADLESS) {
+                    // Headless: guard asserts the mode (throws NonInteractiveModeError which we catch
+                    // to confirm we are in the right branch — this is the canonical guard-gated pattern).
+                    try {
+                        this.guard!.assertInteractiveAllowed('Manual Verification checkpoint', false);
+                        // Should never reach here in HEADLESS mode — guard must throw
+                    } catch (e) {
+                        if (!(e instanceof NonInteractiveModeError)) throw e;
+                        // Expected: guard confirmed HEADLESS — auto-approve
+                    }
+                    // Auto-approve VERIFY without spawning any subagent
+                    const headlessConsensus = {
+                        status: 'VERIFIED_HEADLESS',
+                        autoApproved: true,
+                        timestamp: Date.now()
+                    };
+                    if (this.quorumStore) {
+                        // ADV-3: wrap writeConsensus in try/catch — disk errors must not crash executeTrack
+                        try {
+                            await this.quorumStore.writeConsensus(wu.unitId, headlessConsensus as any);
+                        } catch (writeErr: any) {
+                            process.stderr.write(`[orchestrate] WARN: writeConsensus failed for ${wu.unitId}: ${writeErr?.message}\n`);
+                            this.emit('orchestration_error', { error: writeErr });
+                            // Mark FAILED — do NOT transition to DONE
+                            const sm = new WorkUnitStateMachine();
+                            updatedWorkUnits[i] = transitionToFailed(wu, sm);
+                            allDispatches.push(Promise.reject(writeErr));
+                            continue;
+                        }
+                    }
+                    const sm = new WorkUnitStateMachine();
+                    const inProgressWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
+                    updatedWorkUnits[i] = sm.transition(inProgressWu, WorkUnitState.DONE, { allGreen: true, payload: [] });
+                    allDispatches.push(Promise.resolve());
+                    continue;
+                } else {
+                    // Interactive: guard passes through (no throw in INTERACTIVE mode).
+                    // REV-2: MUST NOT fall through to subagent dispatch — the caller is
+                    // responsible for listening on 'verification_required' and resuming
+                    // the orchestrator when the user confirms.
+                    // TODO: implement proper await/event-driven pause once the CLI layer
+                    //       provides a resume() callback.
+                    this.guard!.assertInteractiveAllowed('Manual Verification checkpoint', false);
+                    this.emit('verification_required', { wuId: wu.unitId, spec: wu.spec, autoApproved: false });
+                    allDispatches.push(Promise.resolve());
+                    continue;
+                }
+            }
+
             // Spawn via IAgentSpawner if provided; otherwise fall back to ParallelDispatcher
             let conversationId: string | undefined;
             let spawnerImplError: Error | undefined;
             if (this.spawner) {
                 try {
-                    conversationId = await this.spawner.invokeSubagent(wu.implementorId, wu.spec);
+                    const agent = await this.spawner.spawn({ role: wu.implementorId, prompt: wu.spec });
+                    conversationId = agent.conversationId;
                     this.emit('subagent_spawned', { conversationId, wuId: wu.unitId, role: wu.implementorId });
 
                     // Register to agents.json manifest
                     if (this.quorumStore) {
+                        evaluator.assertRootWriteAllowed(this.quorumStore.getAgentsManifestPath(safeTrackId));
                         await this.quorumStore.appendToAgentsManifest(safeTrackId, {
                             conversationId,
                             wuId: wu.unitId,
@@ -138,11 +189,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             const capturedConversationId = conversationId;
             const capturedSpawner = this.spawner;
             const capturedQuorumStore = this.quorumStore;
-            const dispatchPromise = (this.spawner
-                ? Promise.resolve()  // Spawner already invoked; skip ParallelDispatcher
-                : this.dispatcher.dispatch(task)
-            )
-                .then(async () => {
+            const dispatchPromise = Promise.resolve().then(async () => {
                     const sm = new WorkUnitStateMachine();
                     let updatedWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
                     
@@ -153,15 +200,24 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     const quorumEnforcer = new QuorumEnforcer();
                     const quorumAgents = [...REQUIRED_QUORUM_AGENTS];
 
+                    // Capture broker reference (injectable for tests; null → real broker)
+                    const capturedBroker = this.reviewerBroker;
+
                     const loop = new QuorumReviewLoop({
-                        maxIterations: 1,
+                        maxIterations: 3,
                         reviewerFn: async () => {
                             const spawnResults: Array<{ agentType: string; success: boolean }> = [];
+                            // Collect conversationIds from spawner for broker aggregation
+                            const reviewerConversationIds: string[] = [];
+
                             const reviewerPromises = quorumAgents.map(reviewer => {
                                 if (capturedSpawner) {
                                     // Use spawner for reviewer invocations when it is provided
-                                    return capturedSpawner.invokeSubagent(reviewer, `Review ${wu.unitId}`)
-                                        .then(() => spawnResults.push({ agentType: reviewer, success: true }))
+                                    return capturedSpawner.spawn({ role: reviewer, prompt: `Review ${wu.unitId}` })
+                                        .then((agent: SpawnedAgent) => {
+                                            reviewerConversationIds.push(agent.conversationId);
+                                            spawnResults.push({ agentType: reviewer, success: true });
+                                        })
                                         .catch(() => spawnResults.push({ agentType: reviewer, success: false }));
                                 }
                                 const reviewerTask: DagNode = {
@@ -181,8 +237,42 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                             await Promise.all(reviewerPromises);
                             // Enforce quorum — throws QuorumViolationError if invariant is broken
                             quorumEnforcer.assertQuorumSpawned(spawnResults);
+
+                            // ── Phase 4: Real quorum result ingestion via ReviewerResponseBroker ──
+                            // Only use the broker when a spawner is present (we have conversationIds).
+                            if (capturedSpawner && reviewerConversationIds.length > 0) {
+                                const broker = capturedBroker ?? new ReviewerResponseBroker({
+                                    workspaceDir,
+                                    timeoutMs: 30_000,
+                                });
+                                const brokerResults = await broker.aggregate(reviewerConversationIds);
+                                const allResolved = broker.isConsensusResolved(brokerResults);
+                                if (allResolved) {
+                                    return { status: 'RESOLVED', findings: [] };
+                                } else {
+                                    const failedFindings = brokerResults
+                                        .filter(r => !isResolved(r.findings))
+                                        .flatMap(r => (r.findings as { findings: unknown[] }).findings);
+                                    return { status: 'FAILED', findings: failedFindings };
+                                }
+                            }
+
+                            // No spawner (ParallelDispatcher path) — auto-resolve
                             return { status: 'RESOLVED', findings: [] };
-                        }
+                        },
+                        remediateFn: async (payloads: unknown[]) => {
+                            if (!capturedSpawner) {
+                                return 'Skipped remediation: no spawner';
+                            }
+                            try {
+                                const prompt = `Remediate findings: ${JSON.stringify(payloads)}`;
+                                const agent = await capturedSpawner.spawn({ role: 'superconductor-remediation-processor', prompt });
+                                return `Dispatched remediator: ${agent.conversationId}`;
+                            } catch (err: any) {
+                                process.stderr.write(`[orchestrate] ERR: Failed to spawn remediator: ${err.message}\n`);
+                                return `Failed to dispatch remediator: ${err.message}`;
+                            }
+                        },
                     });
                     const loopResult = await loop.run("");
                     if (loopResult) {
@@ -204,6 +294,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         // ── Wave-2A: Strict file-based DONE gating ──────────────────────────────
                         // Step 1: Write the ConsensusArtifact to disk via QuorumStore
                         if (capturedQuorumStore) {
+                            evaluator.assertRootWriteAllowed(capturedQuorumStore.getConsensusPath(wu.unitId));
                             await capturedQuorumStore.writeConsensus(wu.unitId, consensusArtifact);
                         }
 
@@ -241,6 +332,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
                         // Persist implementor result to quorum store
                         if (capturedQuorumStore) {
+                            evaluator.assertRootWriteAllowed(capturedQuorumStore.getResultPath(wu.unitId));
                             await capturedQuorumStore.writeResult({
                                 wuId: wu.unitId,
                                 conversationId: capturedConversationId ?? '',
@@ -310,12 +402,14 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
                 // REV-7: Do NOT populate reviewers from topography.
                 // Quorum agents are always REQUIRED_QUORUM_AGENTS — fixed by QuorumEnforcer at runtime.
+                const isVerify = spec.startsWith('Superconductor - User Manual Verification');
                 workUnits.push({
                     unitId: `wu-${idCounter++}`,
                     domainScope,
                     spec,
                     state: WorkUnitState.PENDING,
                     implementorId,
+                    unitType: isVerify ? 'VERIFY' : 'TASK',
                     reviewers: []
                 });
             }

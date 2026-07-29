@@ -15,7 +15,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/components/button.tsx'],
       spec: 'Add disabled state',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-1'
+      implementorId: 'impl-1',
+      unitType: 'TASK'
     };
 
     registry.register('impl-1', wu);
@@ -28,7 +29,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/components/button.tsx', 'src/components/card.tsx'],
       spec: 'Refactor components',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-1'
+      implementorId: 'impl-1',
+      unitType: 'TASK'
     };
     
     const wu2: WorkUnit = {
@@ -36,7 +38,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/utils/math.ts'],
       spec: 'Add new math utils',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-2'
+      implementorId: 'impl-2',
+      unitType: 'TASK'
     };
 
     registry.register('impl-1', wu1);
@@ -53,7 +56,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/auth'],
       spec: 'Fix auth',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-auth'
+      implementorId: 'impl-auth',
+      unitType: 'TASK'
     };
     registry.register('impl-auth', authWu);
 
@@ -70,7 +74,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/auth'],
       spec: 'Auth feature',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-1'
+      implementorId: 'impl-1',
+      unitType: 'TASK'
     };
     
     const wu2: WorkUnit = {
@@ -78,7 +83,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/authorizer'], // should NOT drift-error with src/auth
       spec: 'Authorizer feature',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-2'
+      implementorId: 'impl-2',
+      unitType: 'TASK'
     };
 
     const wu3: WorkUnit = {
@@ -86,7 +92,8 @@ describe('ImplementorRegistry', () => {
       domainScope: ['src/auth/login'], // SHOULD drift-error with src/auth
       spec: 'Login feature',
       state: WorkUnitState.IN_PROGRESS,
-      implementorId: 'impl-3'
+      implementorId: 'impl-3',
+      unitType: 'TASK'
     };
 
     registry.register('impl-1', wu1);

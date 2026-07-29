@@ -83,7 +83,8 @@ describe('ResearchExecutor', () => {
             domainScope: [],
             spec: '',
             state: WorkUnitState.PENDING,
-            implementorId: 'i1'
+            implementorId: 'i1',
+            unitType: 'TASK'
         };
 
         const queries = [{ term: 'q1' }];

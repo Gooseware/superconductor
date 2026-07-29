@@ -116,7 +116,7 @@ export class ABI {
       execFileSync('git', ['commit', '-m', commitMsg], { cwd: gitCwd, stdio: 'ignore', timeout: 10000 });
     } catch (e) {
       // Partial failure recovery: swallow git errors if it fails to commit (e.g. no git initialized)
-      console.warn('ABI partial failure recovery: failed to commit skill tweak to git.', e);
+      console.warn('ABI partial failure recovery: failed to commit skill tweak to git.', e instanceof Error ? e.message : String(e));
     }
   }
 }

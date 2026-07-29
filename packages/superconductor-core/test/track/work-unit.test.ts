@@ -8,7 +8,8 @@ describe('WorkUnit & WorkUnitStateMachine', () => {
       domainScope: ['src/a.ts', 'src/b.ts'],
       spec: 'Update components to use new React 19 hooks',
       state: WorkUnitState.PENDING,
-      implementorId: 'agent-1'
+      implementorId: 'agent-1',
+      unitType: 'TASK'
     };
     
     expect(wu.unitId).toBe('wu-123');
@@ -29,7 +30,8 @@ describe('WorkUnit & WorkUnitStateMachine', () => {
         domainScope: [],
         spec: 'Test',
         state: WorkUnitState.PENDING,
-        implementorId: 'agent-2'
+        implementorId: 'agent-2',
+        unitType: 'TASK'
       };
     });
 

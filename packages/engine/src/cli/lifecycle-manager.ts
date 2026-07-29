@@ -1,6 +1,8 @@
-import { execFile } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
 import { promisify } from 'util';
+import * as path from 'path';
 import { QuorumStore, AgentManifestEntry } from './quorum-store.js';
+import { RetrospectiveGenerator, RetroFinding } from '../telemetry/retrospective-generator.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -35,6 +37,11 @@ export interface CleanupReport {
 export interface TrackLifecycleManagerOptions {
   /** Override the worktree-remove executor — default runs `git worktree remove --force <path>`. */
   execWorktreeRemove?: (worktreePath: string) => Promise<void>;
+  /**
+   * Override the git-notes executor — default calls execFileSync with git notes add.
+   * Inject a mock in tests to avoid real git calls.
+   */
+  execGitNotes?: (retroJson: string, cwd: string) => void;
 }
 
 /**
@@ -46,6 +53,7 @@ export class TrackLifecycleManager {
   private worktreeDir: string;
   private killer: IAgentKiller;
   private execWorktreeRemove: (worktreePath: string) => Promise<void>;
+  private execGitNotes: (retroJson: string, cwd: string) => void;
 
   constructor(
     manifestReader: IAgentsManifestReader,
@@ -57,6 +65,7 @@ export class TrackLifecycleManager {
     this.worktreeDir = worktreeDir;
     this.killer = killer;
     this.execWorktreeRemove = options.execWorktreeRemove ?? this._defaultExecWorktreeRemove.bind(this);
+    this.execGitNotes = options.execGitNotes ?? this._defaultExecGitNotes.bind(this);
   }
 
   /**
@@ -67,6 +76,17 @@ export class TrackLifecycleManager {
   private async _defaultExecWorktreeRemove(worktreePath: string): Promise<void> {
     await execFileAsync('git', ['worktree', 'remove', '--force', worktreePath], {
       cwd: this.worktreeDir
+    });
+  }
+
+  /**
+   * Default git notes implementation — attaches retroJson as a git note on HEAD.
+   * Uses execFileSync with an argument array (no shell interpolation).
+   */
+  private _defaultExecGitNotes(retroJson: string, cwd: string): void {
+    execFileSync('git', ['notes', 'add', '-f', '-m', retroJson], {
+      cwd,
+      stdio: 'ignore',
     });
   }
 
@@ -136,6 +156,48 @@ export class TrackLifecycleManager {
    */
   public async onTrackComplete(trackId: string): Promise<void> {
     const report = await this.cleanup(trackId);
+
+    // Generate and attach retrospective as git notes (non-blocking)
+    try {
+      const generator = new RetrospectiveGenerator({
+        transcriptPath: path.join(this.worktreeDir, '.superconductor', trackId, 'transcript.jsonl'),
+        quorumStorePath: path.join(this.worktreeDir, '.superconductor', 'quorum'),
+        workspaceDir: this.worktreeDir,
+      });
+            const quorumStore = new QuorumStore(this.worktreeDir);
+      const entries = await this.manifestReader.readAgentsManifest(trackId).catch((e) => { report.errors.push(String(e)); return []; });
+      const wuIds = [...new Set(entries.map(e => e.wuId))];
+      const stepIndices = await generator.extractStepIndices();
+      const defaultStepIndex = stepIndices.size > 0 ? Math.min(...Array.from(stepIndices)) : 0;
+
+      const findings: RetroFinding[] = [];
+      let findingCount = 0;
+      for (const wuId of wuIds) {
+        try {
+          const consensus = await quorumStore.readConsensus(wuId);
+          if (consensus && Array.isArray(consensus.payload)) {
+            for (const item of consensus.payload) {
+              findingCount++;
+              findings.push({
+                findingId: `finding-${wuId}-${findingCount}`,
+                stepIndex: defaultStepIndex,
+                description: String(item)
+              });
+            }
+          }
+        } catch (e) { console.warn('[TrackLifecycleManager] Failed to read consensus for wuId:', wuId, e instanceof Error ? e.message : String(e)); report.errors.push(String(e)); }
+      }
+
+      const retro = await generator.generate(trackId, findings);
+      const retroJson = JSON.stringify(retro, null, 2);
+      // Attach to HEAD commit as git notes (injection-safe: uses argument array)
+      this.execGitNotes(retroJson, this.worktreeDir);
+    } catch (e) {
+      // Non-blocking: log but never prevent track completion
+      console.warn('[RetrospectiveGenerator] Failed to generate retrospective:', e instanceof Error ? e.message : String(e));
+      report.errors.push(String(e));
+    }
+
     console.log(`[TrackLifecycleManager] Cleanup complete for track "${trackId}":`, JSON.stringify(report, null, 2));
   }
 }

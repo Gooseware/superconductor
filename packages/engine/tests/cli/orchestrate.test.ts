@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
-import { SwarmOrchestratorCLI, IAgentSpawner } from '../../src/cli/orchestrate.js';
+import { SwarmOrchestratorCLI } from '../../src/cli/orchestrate.js';
+import { MockAgentSpawner } from '../../src/cli/mock-agent-spawner.js';
 import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
+import { ReviewerResponseBroker } from '../../src/verification/reviewer-response-broker.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -8,6 +10,18 @@ import * as os from 'os';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function makeResolvedBroker(): ReviewerResponseBroker {
+    return {
+        aggregate: vi.fn().mockResolvedValue([
+            { reviewerId: 'r1', findings: { status: 'RESOLVED' }, timedOut: false },
+            { reviewerId: 'r2', findings: { status: 'RESOLVED' }, timedOut: false },
+            { reviewerId: 'r3', findings: { status: 'RESOLVED' }, timedOut: false },
+            { reviewerId: 'r4', findings: { status: 'RESOLVED' }, timedOut: false },
+        ]),
+        isConsensusResolved: () => true,
+    } as unknown as ReviewerResponseBroker;
+}
 
 function writePlan(planPath: string, tasks: string[]) {
     const content = `# Plan\n${tasks.join('\n')}\n`;
@@ -44,11 +58,12 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
 
     it('should call IAgentSpawner.invokeSubagent for each work unit', async () => {
         // Arrange
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockResolvedValue('conv-mock-123')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockResolvedValue({ conversationId: 'conv-mock-123', synthetic: false });
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
 
         const trackId = 'test-track';
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -74,21 +89,23 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         // 4 required quorum reviewers per work unit.
         // 2 work units × (1 implementor + 4 quorum reviewers) = 10 total calls.
         const { REQUIRED_QUORUM_AGENTS } = await import('../../src/verification/quorum-enforcer.js');
-        expect(mockSpawner.invokeSubagent).toHaveBeenCalledTimes(2 * (1 + REQUIRED_QUORUM_AGENTS.length));
-        expect(mockSpawner.invokeSubagent).toHaveBeenCalledWith('agent-ui', expect.any(String));
-        expect(mockSpawner.invokeSubagent).toHaveBeenCalledWith('agent-api', expect.any(String));
+        expect(mockSpawner.spawn).toHaveBeenCalledTimes(2 * (1 + REQUIRED_QUORUM_AGENTS.length));
+        expect(mockSpawner.spawn).toHaveBeenCalledWith(expect.objectContaining({ role: 'agent-ui' }));
+        expect(mockSpawner.spawn).toHaveBeenCalledWith(expect.objectContaining({ role: 'agent-api' }));
     });
 
     it('should persist implementor-result.json for each completed work unit', async () => {
         // Arrange
         let callCount = 0;
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockImplementation(async (role: string) => {
-                return `conv-${role}-${++callCount}`;
-            })
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockImplementation(async (config: import('../../src/cli/agent-spawner.js').AgentSpawnConfig) => {
+
+                return { conversationId: `conv-${config.role}-${++callCount}`, synthetic: false };
+            });
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
 
         const trackId = 'persist-track';
         const safeTrackId = trackId;
@@ -119,17 +136,15 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
 
     it('should update agents.json manifest with conversationId for each spawned agent', async () => {
         // Arrange
-        const mockSpawner: IAgentSpawner = {
-            // Use mockResolvedValue (not Once) so all spawner calls return a valid string.
-            // The first 2 calls are implementor invocations (tracked in agents.json);
-            // subsequent calls are quorum reviewer invocations (not tracked in agents.json).
-            invokeSubagent: vi.fn()
-                .mockResolvedValueOnce('conv-first-agent')
-                .mockResolvedValueOnce('conv-second-agent')
-                .mockResolvedValue('conv-reviewer-ok')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn')
+            .mockResolvedValueOnce({ conversationId: 'conv-first-agent', synthetic: false })
+            .mockResolvedValueOnce({ conversationId: 'conv-second-agent', synthetic: false })
+            .mockResolvedValue({ conversationId: 'conv-reviewer-ok', synthetic: false });
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
 
         const trackId = 'manifest-track';
         const safeTrackId = trackId;
@@ -169,11 +184,12 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
 
     it('should emit subagent_spawned event with conversationId when spawner is provided', async () => {
         // Arrange
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockResolvedValue('conv-event-test')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockResolvedValue({ conversationId: 'conv-event-test', synthetic: false });
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
         const spawnedEvents: any[] = [];
         cli.on('subagent_spawned', (evt) => spawnedEvents.push(evt));
 
@@ -199,30 +215,6 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         expect(spawnedEvents[0].role).toBe('agent-ev');
     });
 
-    it('should fall back to ParallelDispatcher when no spawner is provided', async () => {
-        // Arrange: no spawner
-        const cli = new SwarmOrchestratorCLI();
-
-        const trackId = 'fallback-track';
-        const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
-        fs.mkdirSync(trackDir, { recursive: true });
-
-        const topographyPath = path.join(tmpDir, 'topography.json');
-        writeTopography(topographyPath, [{ id: 'fallback-domain' }]);
-
-        const planPath = path.join(trackDir, 'plan.md');
-        writePlan(planPath, [
-            '- [ ] Task: Fallback task [TIER-3] [AGENT:agent-fallback] [DOMAIN:fallback-domain]'
-        ]);
-
-        // Act
-        const result = await cli.executeTrack(tmpDir, trackId);
-
-        // Assert: no crash, work unit completes
-        expect(result.workUnits).toHaveLength(1);
-        // When ParallelDispatcher is used, state should be DONE (auto-approved, no reviewers)
-        expect(result.workUnits[0].state).toBe(WorkUnitState.DONE);
-    });
 
     it('should still parse and dispatch correctly (backward compat with existing test)', async () => {
         // Existing parseAndDispatch test migrated here for CLI sub-directory
@@ -247,4 +239,5 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         expect(workUnits[0].state).toBe(WorkUnitState.PENDING);
         expect(cli.wasLLMUsed()).toBe(false);
     });
+
 });

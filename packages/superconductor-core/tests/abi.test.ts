@@ -138,7 +138,7 @@ describe('ABI.applySkillTweak', () => {
     ABI.applySkillTweak(sampleReport, homeDir);
 
     expect(fs.writeFileSync).toHaveBeenCalledTimes(1); // the file was still written
-    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('partial failure recovery'), expect.any(Error));
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('partial failure recovery'), expect.any(String));
 
     consoleWarnSpy.mockRestore();
   });

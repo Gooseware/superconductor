@@ -79,7 +79,7 @@ export class ResearchExecutor {
                             });
                         }
                     } catch (fallbackError) {
-                        console.error('[ResearchExecutor] Fallback search_web also failed:', fallbackError);
+                        console.error('[ResearchExecutor] Fallback search_web also failed:', fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
                         throw fallbackError;
                     }
                 }
@@ -98,7 +98,7 @@ export class ResearchExecutor {
 
         const synthesizer = new ResearchBriefSynthesizer(outDir, this.executeLlmTool); // Local var (COR-4)
         
-        const brief = await synthesizer.synthesize(results, trackId, queries.map(q => q.term));
+        const brief = await synthesizer.synthesize(results, trackId);
         brief.queriesExecuted = queries.map(q => q.term);
 
         if (!fs.existsSync(outDir)) {

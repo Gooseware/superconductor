@@ -74,6 +74,45 @@ describe('JobDispatcher', () => {
     );
   });
 
+  it('should handle acquireWorker failure and release locks correctly', async () => {
+    vi.mocked(WorkerPoolManager.prototype.acquireWorker).mockImplementationOnce(() => {
+      throw new Error('No workers available');
+    });
+
+    await expect(dispatcher.dispatchNextJob('/mock/backlog.md')).rejects.toThrow('No workers available');
+
+    // The lock manager should have released the lock
+    expect(TaskLockManager.prototype.releaseLock).toHaveBeenCalled();
+  });
+
+  it('should handle setupTrackWorkspace checkout failure and release locks and worker correctly', async () => {
+    vi.mocked(cp.execSync).mockImplementation(() => {
+      throw new Error('Git checkout failed');
+    });
+
+    await expect(dispatcher.dispatchNextJob('/mock/backlog.md')).rejects.toThrow('Git checkout failed');
+
+    expect(WorkerPoolManager.prototype.releaseWorker).toHaveBeenCalledWith('worker_0');
+    expect(TaskLockManager.prototype.releaseLock).toHaveBeenCalledWith(expect.any(String), expect.any(String));
+  });
+
+  it('should fallback to normal git checkout if branch creation fails without releasing worker', async () => {
+    let callCount = 0;
+    vi.mocked(cp.execSync).mockImplementation((cmd) => {
+      if (cmd.toString().includes('git checkout -b') && callCount === 0) {
+        callCount++;
+        throw new Error('Branch already exists');
+      }
+      return Buffer.from('');
+    });
+
+    const trackId = await dispatcher.dispatchNextJob('/mock/backlog.md');
+    expect(trackId).toBeTruthy();
+    // Worker and lock should not be released because the job is running
+    expect(WorkerPoolManager.prototype.releaseWorker).not.toHaveBeenCalled();
+    expect(TaskLockManager.prototype.releaseLock).not.toHaveBeenCalled();
+  });
+
   it('should mark a job as completed', () => {
     (fs.existsSync as any).mockReturnValue(true);
     (fs.readFileSync as any).mockReturnValue('- [ ] Feature: Test');

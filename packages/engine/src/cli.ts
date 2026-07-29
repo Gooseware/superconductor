@@ -33,7 +33,7 @@ async function main() {
   const { parseYamlDag } = await import('./dag/parser.js');
   const resultParse = parseYamlDag(graphContent);
   if (!resultParse.success) {
-    console.error('Failed to parse graph:', resultParse.errors);
+    console.error('Failed to parse graph:', JSON.stringify(resultParse.errors, null, 2));
     process.exit(1);
   }
   const graph = resultParse.graph;
@@ -56,6 +56,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error(err);
+  console.error(err instanceof Error ? err.message : String(err));
   process.exit(1);
 });

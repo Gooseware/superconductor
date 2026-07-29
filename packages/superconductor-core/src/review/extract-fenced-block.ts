@@ -47,7 +47,7 @@ export function extractFencedBlock<T = any>(
 
     return parsed as T;
   } catch (err) {
-    console.error(`[extractFencedBlock] Failed to parse JSON for block ${blockIdentifier}:`, err);
+    console.error(`[extractFencedBlock] Failed to parse JSON for block ${blockIdentifier}:`, err instanceof Error ? err.message : String(err));
     return null;
   }
 }
