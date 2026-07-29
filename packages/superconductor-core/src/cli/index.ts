@@ -138,7 +138,7 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
         const succeeded = res.workUnits.filter((wu: any) => wu.state === 'DONE').length;
         console.log(`🚀 Swarm execute complete. ${succeeded}/${res.workUnits.length} tasks succeeded`);
       } catch (err) {
-        console.error('Swarm execute failed:', err);
+        console.error('Swarm execute failed:', err instanceof Error ? err.message : String(err));
         process.exit(1);
       }
       break;
@@ -179,7 +179,7 @@ Usage:
 // Auto-run if executed as main CLI binary
 if (import.meta.url === `file://${process.argv[1]}`) {
   runCli().catch((err) => {
-    console.error(err);
+    console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
   });
 }

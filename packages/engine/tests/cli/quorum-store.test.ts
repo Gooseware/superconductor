@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
-import { QuorumStore, AgentOutputRecord, AgentManifestEntry } from '../../src/cli/quorum-store.js';
+import { QuorumStore, AgentOutputRecord, AgentManifestEntry, PathTraversalError } from '../../src/cli/quorum-store.js';
 import { ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -147,24 +147,27 @@ describe('QuorumStore', () => {
     });
 
     describe('path traversal protection (REV-4)', () => {
+        // REV-1: sanitizeId() now runs first — it throws PathTraversalError with
+        // 'Invalid id "...": only alphanumeric...' before validateId() is reached.
+        // Tests use PathTraversalError for precision (both classes share 'Invalid id' prefix).
         it('should throw on wuId containing ".."', () => {
-            expect(() => store.getResultPath('../evil')).toThrow('Invalid id: path traversal detected');
+            expect(() => store.getResultPath('../evil')).toThrow(PathTraversalError);
         });
 
         it('should throw on wuId containing "/"', () => {
-            expect(() => store.getResultPath('wu/evil')).toThrow('Invalid id: path traversal detected');
+            expect(() => store.getResultPath('wu/evil')).toThrow(PathTraversalError);
         });
 
         it('should throw on wuId containing "\\"', () => {
-            expect(() => store.getResultPath('wu\\evil')).toThrow('Invalid id: path traversal detected');
+            expect(() => store.getResultPath('wu\\evil')).toThrow(PathTraversalError);
         });
 
         it('should throw on trackId containing ".."', () => {
-            expect(() => store.getAgentsManifestPath('../../etc/passwd')).toThrow('Invalid id: path traversal detected');
+            expect(() => store.getAgentsManifestPath('../../etc/passwd')).toThrow(PathTraversalError);
         });
 
         it('should throw on trackId containing "/"', () => {
-            expect(() => store.getAgentsManifestPath('track/evil')).toThrow('Invalid id: path traversal detected');
+            expect(() => store.getAgentsManifestPath('track/evil')).toThrow(PathTraversalError);
         });
 
         it('should accept clean alphanumeric ids', () => {
@@ -245,22 +248,22 @@ describe('QuorumStore', () => {
 
         it('should throw on wuId containing ".." in writeConsensus', async () => {
             await expect(store.writeConsensus('../evil', { allGreen: true }))
-                .rejects.toThrow('Invalid id: path traversal detected');
+                .rejects.toThrow(PathTraversalError);
         });
 
         it('should throw on wuId containing "/" in writeConsensus', async () => {
             await expect(store.writeConsensus('wu/evil', { allGreen: true }))
-                .rejects.toThrow('Invalid id: path traversal detected');
+                .rejects.toThrow(PathTraversalError);
         });
 
         it('should throw on wuId containing ".." in readConsensus', async () => {
             await expect(store.readConsensus('../evil'))
-                .rejects.toThrow('Invalid id: path traversal detected');
+                .rejects.toThrow(PathTraversalError);
         });
 
         it('should throw on wuId containing "/" in readConsensus', async () => {
             await expect(store.readConsensus('wu/evil'))
-                .rejects.toThrow('Invalid id: path traversal detected');
+                .rejects.toThrow(PathTraversalError);
         });
 
         it('should expose getConsensusPath returning the expected path', () => {

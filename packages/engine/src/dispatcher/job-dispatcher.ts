@@ -33,9 +33,10 @@ export async function setupTrackWorkspace(
   lockManager: TaskLockManager,
   agentId: string
 ): Promise<{ workerId: string; branchName: string; trackDir: string; workspaceRoot: string }> {
+  let workerId: string | undefined;
   try {
     const acquisition = poolManager.acquireWorker(trackId);
-    const workerId = acquisition.workerId;
+    workerId = acquisition.workerId;
     const workspaceRoot = acquisition.workspacePath;
 
     poolManager.updateProgress(workerId, 'Checking out branch');
@@ -55,7 +56,11 @@ export async function setupTrackWorkspace(
 
     return { workerId, branchName, trackDir, workspaceRoot };
   } catch (error) {
-    console.error(`Failed to create workspace for ${trackId}:`, error);
+    if (workerId) {
+      poolManager.updateProgress(workerId, 'Failed: ' + (error instanceof Error ? error.message : String(error)));
+      poolManager.releaseWorker(workerId);
+    }
+    console.error(`Failed to create workspace for ${trackId}: ${error instanceof Error ? error.message : String(error)}`);
     await lockManager.releaseLock(trackId, agentId);
     throw error;
   }
@@ -88,31 +93,54 @@ export function spawnAgentAndSync(params: {
 
   if (child && typeof child.on === 'function') {
     child.on('close', async () => {
-      poolManager.updateProgress(workerId, 'Agent finished, syncing...');
       try {
-        const statusOutput = cp.execSync('git status --porcelain', { cwd: workspaceRoot });
-        const status = statusOutput ? statusOutput.toString() : '';
-        if (status.trim() !== '') {
-          cp.execSync('git add .', { cwd: workspaceRoot, stdio: 'ignore' });
-          cp.execSync('git commit -m "chore: generate spec and plan"', { cwd: workspaceRoot, stdio: 'ignore' });
-        }
-        const branchName = `track/${trackId}`;
-        // Push to origin
-        cp.execSync(`git push -u origin ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
+        poolManager.updateProgress(workerId, 'Agent finished, syncing...');
+        try {
+          const statusOutput = cp.execSync('git status --porcelain', { cwd: workspaceRoot });
+          const status = statusOutput ? statusOutput.toString() : '';
+          if (status.trim() !== '') {
+            cp.execSync('git add .', { cwd: workspaceRoot, stdio: 'ignore' });
+            cp.execSync('git commit -m "chore: generate spec and plan"', { cwd: workspaceRoot, stdio: 'ignore' });
+          }
+          const branchName = `track/${trackId}`;
+          // Push to origin
+          cp.execSync(`git push -u origin ${branchName}`, { cwd: workspaceRoot, stdio: 'ignore' });
 
-        // Note: The user requested to merge to the parent branches. Since this is an agent,
-        // the full merge would be handled by the implementation track itself. But we can push the branch here.
-      } catch (e) {
-        console.error(`Failed to sync workspace for ${trackId}:`, e);
-      } finally {
-        poolManager.releaseWorker(workerId);
-        await lockManager.releaseLock(trackId, agentId);
+          // Note: The user requested to merge to the parent branches. Since this is an agent,
+          // the full merge would be handled by the implementation track itself. But we can push the branch here.
+        } catch (err) {
+          console.error(`Error during agent sync: ${err instanceof Error ? err.message : String(err)}`);
+          poolManager.updateProgress(workerId, 'Failed: ' + (err instanceof Error ? err.message : String(err)));
+        } finally {
+          poolManager.releaseWorker(workerId);
+          await lockManager.releaseLock(trackId, agentId);
+        }
+      } catch (globalErr) {
+        poolManager.updateProgress(workerId, 'Failed: ' + (globalErr instanceof Error ? globalErr.message : String(globalErr)));
+        console.error('Agent sync fatal error: ' + (globalErr instanceof Error ? globalErr.message : String(globalErr)));
+        try { 
+          poolManager.releaseWorker(workerId); 
+        } catch (releaseErr) {
+          console.error(`Failed to release worker ${workerId}:`, releaseErr instanceof Error ? releaseErr.message : String(releaseErr));
+        }
+        lockManager.releaseLock(trackId, agentId).catch((lockErr) => {
+          console.error(`Failed to release lock for ${agentId}:`, lockErr instanceof Error ? lockErr.message : String(lockErr));
+        });
       }
     });
 
-    child.on('error', async () => {
-      poolManager.releaseWorker(workerId);
-      await lockManager.releaseLock(trackId, agentId);
+    child.on('error', async (err: Error) => {
+      try {
+        poolManager.updateProgress(workerId, 'Failed: ' + (err instanceof Error ? err.message : String(err)));
+        console.error(`Agent sync fatal error: ${err instanceof Error ? err.message : String(err)}`);
+        poolManager.releaseWorker(workerId);
+        await lockManager.releaseLock(trackId, agentId);
+      } catch (globalErr) {
+        poolManager.updateProgress(workerId, 'Failed: ' + (globalErr instanceof Error ? globalErr.message : String(globalErr)));
+        console.error('Agent sync fatal error: ' + (globalErr instanceof Error ? globalErr.message : String(globalErr)));
+        try { poolManager.releaseWorker(workerId); } catch (releaseErr) { console.error('Failed to release worker:', releaseErr instanceof Error ? releaseErr.message : String(releaseErr)); }
+        lockManager.releaseLock(trackId, agentId).catch((lockErr) => { console.error('Failed to release lock:', lockErr instanceof Error ? lockErr.message : String(lockErr)); });
+      }
     });
   } else {
     // Fallback for mocked tests or immediate execution
@@ -164,8 +192,9 @@ export class JobDispatcher {
         if (trackId) {
           heartbeat.verifyTrackContext(engineState, workspaceRoot, trackId);
         }
-      } catch (error) {
-        console.error('Error dispatching job:', error);
+      } catch (err) {
+        console.error(`Error in dispatch loop: ${err instanceof Error ? err.message : String(err)}`);
+        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
       }
       heartbeat.ping();
       await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
@@ -226,7 +255,8 @@ export class JobDispatcher {
         jobTitle: nextJob.title
       });
     } catch (error) {
-      console.error(`Failed to spawn agent for ${trackId}:`, error);
+      console.error(`Failed to spawn agent for ${trackId}: ${error instanceof Error ? error.message : String(error)}`);
+      this.poolManager.updateProgress(workerId, 'Failed: ' + (error instanceof Error ? error.message : String(error)));
       this.poolManager.releaseWorker(workerId);
       await this.lockManager.releaseLock(trackId, agentId);
       throw error;

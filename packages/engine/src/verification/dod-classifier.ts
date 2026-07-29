@@ -50,7 +50,7 @@ export async function runDodGate(level: DodLevel, taskId: string): Promise<{ pas
         } finally {
           try {
             execSync(`git worktree remove --force ${tmpDir}`, { stdio: 'ignore' });
-          } catch {}
+          } catch (e) { console.warn('[DoDClassifier] Worktree removal failed:', e instanceof Error ? e.message : String(e)); }
         }
       }
       return { passed: true, feedback: ['Level 4 DoD Passed (Tabula Rasa isolated clean-branch worktree runner verified 0 failures)'] };

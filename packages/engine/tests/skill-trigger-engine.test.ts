@@ -98,7 +98,7 @@ describe('SkillTriggerEngine', () => {
     expect(context).toBe('');
   });
 
-  it('should skip malformed manifests gracefully', () => {
+  it('should throw on malformed manifests instead of silently skipping', () => {
     const skillDir = path.join(tempDir, 'skills', 'bad-skill');
     fs.mkdirSync(skillDir, { recursive: true });
     fs.writeFileSync(path.join(skillDir, 'skill-rules.json'), '{ invalid json');
@@ -110,7 +110,7 @@ describe('SkillTriggerEngine', () => {
       dependencies: []
     };
 
-    expect(() => engine.match(task)).not.toThrow();
+    expect(() => engine.match(task)).toThrow();
   });
 
   it('should enforce an 8000 character context limit cap', () => {

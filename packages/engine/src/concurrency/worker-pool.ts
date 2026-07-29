@@ -71,7 +71,7 @@ export class WorkerPoolManager {
            try {
               const data = fs.readFileSync(lockPath, 'utf8');
               orphaned.push(JSON.parse(data));
-           } catch(e) {}
+           } catch (e) { console.warn('[WorkerPool] Failed to clear metrics:', e instanceof Error ? e.message : String(e)); }
         }
       }
     }
@@ -160,7 +160,7 @@ export class WorkerPoolManager {
       execFileSync('git', ['reset', '--hard', 'origin/main'], { cwd: workspacePath, stdio: 'ignore' });
       execFileSync('git', ['clean', '-fdx'], { cwd: workspacePath, stdio: 'ignore' });
     } catch (e) {
-      console.warn(`Failed to sync and clean workspace ${workerId}, falling back to fresh clone:`, e);
+      console.warn(`Failed to sync and clean workspace ${workerId}, falling back to fresh clone:`, e instanceof Error ? e.message : String(e));
       // Fallback: delete and re-clone
       fs.rmSync(workspacePath, { recursive: true, force: true });
       execFileSync('git', ['clone', this.originRepo, workspacePath], { stdio: 'ignore', timeout: 30000 });

@@ -106,7 +106,8 @@ test('ParallelDispatcher holds lock until WorkUnit reaches DONE via green quorum
     domainScope: ['src/a.ts'],
     spec: 'Test',
     state: WorkUnitState.IN_PROGRESS,
-    implementorId: 'agent-lock'
+    implementorId: 'agent-lock',
+    unitType: 'TASK'
   });
 
   await dispatcher.dispatch(task);

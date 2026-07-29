@@ -79,7 +79,7 @@ export class ResearchExecutor {
                             });
                         }
                     } catch (fallbackError) {
-                        console.error('[ResearchExecutor] Fallback search_web also failed:', fallbackError);
+                        console.error('[ResearchExecutor] Fallback search_web also failed:', fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
                         throw fallbackError;
                     }
                 }

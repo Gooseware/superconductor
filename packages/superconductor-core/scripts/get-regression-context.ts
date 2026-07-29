@@ -10,7 +10,7 @@ function getDetailedDeletions() {
     const deletions = diff.split('\n').filter(line => line.startsWith('-') && !line.startsWith('---'));
     console.log(deletions.join('\n'));
   } catch (error) {
-    console.error('Failed to get diff:', error);
+    console.error('Failed to get diff:', error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -19,7 +19,7 @@ function getCommitHistory(file: string) {
     const log = execSync(`git log -p -2 ${file}`, { encoding: 'utf-8' });
     console.log(log);
   } catch (error) {
-    console.error('Failed to get history:', error);
+    console.error('Failed to get history:', error instanceof Error ? error.message : String(error));
   }
 }
 

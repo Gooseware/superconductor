@@ -4,7 +4,11 @@
  * Bakes the 8-item Shenanigan Checklist permanently into the
  * superconductor-reviewer agent system prompt so it is ALWAYS present —
  * not injected per-prompt by the orchestrating model.
+ *
+ * Role-specific skill content is also injected when a role is provided,
+ * giving each reviewer agent its operational guidelines at spawn time.
  */
+import { loadRoleSkill } from './skill-loader.js';
 
 /**
  * The canonical 8-item Shenanigan Checklist, sourced from
@@ -24,13 +28,35 @@ export const SHENANIGAN_CHECKLIST: readonly string[] = [
 ] as const;
 
 /**
+ * Canonical role descriptions for the four reviewer specialisations.
+ * Used by the orchestrator when spawning role-specific reviewer agents.
+ */
+export const REVIEWER_ROLES: Readonly<Record<string, string>> = {
+  'security-reviewer':
+    'SecOps & Exploit Analyst. OWASP/CWE bound. Hunt exploit paths, injection vulns, insecure deps.',
+  'correctness-reviewer':
+    'Implementation Correctness + Spec Connectedness. Every AC from spec must be implemented. Find hallucinated features. Use git diff origin/main..HEAD.',
+  'adversarial-reviewer':
+    'Architecture & Resilience Stress-Tester. Break this implementation. Find race conditions, N+1, unhandled exceptions. No style comments.',
+  'regression-reviewer':
+    'State & Functionality QA. Flag broken backward compatibility unless spec-mandated. Ensure state transitions remain pristine.',
+} as const;
+
+export type ReviewerRole = keyof typeof REVIEWER_ROLES;
+
+/**
  * Appends the Shenanigan Checklist as a mandatory section to any base
  * system prompt, returning the combined prompt.
  *
+ * When a `role` is provided the corresponding skill file content is also
+ * appended, giving the agent its role-specific operational guidelines.
+ *
  * @param basePrompt - The base system prompt for the reviewer agent.
- * @returns The combined prompt with the Shenanigan Checklist appended.
+ * @param role       - Optional reviewer role name (e.g. 'security-reviewer').
+ * @returns The combined prompt with the Shenanigan Checklist (and optionally
+ *          the role skill) appended.
  */
-export function buildReviewerSystemPrompt(basePrompt: string): string {
+export function buildReviewerSystemPrompt(basePrompt: string, role?: string): string {
   const numberedItems = SHENANIGAN_CHECKLIST.map(
     (item, idx) => `${idx + 1}. ${item}`
   ).join('\n');
@@ -45,7 +71,13 @@ ${numberedItems}
 Failure to check all 8 items is itself a Critical finding.
 `.trim();
 
-  return `${basePrompt}\n\n${checklistSection}`;
+  // Inject role-specific skill if available
+  const skillContent = role ? loadRoleSkill(role) : '';
+  const skillSection = skillContent
+    ? `\n\n## ROLE SKILL — ACTIVE GUIDELINES\n\n${skillContent}`
+    : '';
+
+  return `${basePrompt}\n\n${checklistSection}${skillSection}`;
 }
 
 /**

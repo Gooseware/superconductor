@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { SwarmOrchestratorCLI } from '../src/cli/orchestrate.js';
+import { MockAgentSpawner } from '../src/cli/mock-agent-spawner.js';
 import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,8 +9,11 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
     let cli: SwarmOrchestratorCLI;
     const workspaceDir = path.join(import.meta.dirname, 'fixtures', 'workspace-execute');
     
+    let mockSpawner: MockAgentSpawner;
+
     beforeEach(() => {
-        cli = new SwarmOrchestratorCLI();
+        mockSpawner = new MockAgentSpawner();
+        cli = new SwarmOrchestratorCLI(mockSpawner);
     });
 
     afterAll(() => {
@@ -41,6 +45,16 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         cli.on('agent_invoked', (event) => invokedAgents.push(event));
         cli.on('reviewer_invoked', (event) => invokedReviewers.push(event));
 
+        cli.reviewerBroker = {
+            aggregate: vi.fn().mockResolvedValue([
+                { reviewerId: 'security-reviewer', findings: { status: 'RESOLVED' } },
+                { reviewerId: 'correctness-reviewer', findings: { status: 'RESOLVED' } },
+                { reviewerId: 'adversarial-reviewer', findings: { status: 'RESOLVED' } },
+                { reviewerId: 'regression-reviewer', findings: { status: 'RESOLVED' } },
+            ]),
+            isConsensusResolved: () => true
+        } as any;
+
         const result = await cli.executeTrack(workspaceDir, 'track-123');
         
         expect(result.workUnits).toHaveLength(1);
@@ -60,13 +74,13 @@ describe('SwarmOrchestratorCLI - swarm-execute', () => {
         expect(invokedAgents[0].agentId).toBe('agent-ui');
         expect(invokedAgents[0].taskId).toBe('wu-1');
         
-        // Hard invariant: exactly these 4 quorum agents must be invoked regardless of topography
-        expect(invokedReviewers).toHaveLength(4);
-        const reviewerIds = invokedReviewers.map((r: any) => r.reviewerId);
-        expect(reviewerIds).toContain('security-reviewer');
-        expect(reviewerIds).toContain('correctness-reviewer');
-        expect(reviewerIds).toContain('adversarial-reviewer');
-        expect(reviewerIds).toContain('regression-reviewer');
-        invokedReviewers.forEach((r: any) => expect(r.unitId).toBe('wu-1'));
+        // Hard invariant: exactly these 4 quorum agents must be invoked via spawner
+        const spawnerCalls = mockSpawner.spawned.map(c => c.role);
+        expect(spawnerCalls).toHaveLength(5);
+        expect(spawnerCalls).toContain('agent-ui');
+        expect(spawnerCalls).toContain('security-reviewer');
+        expect(spawnerCalls).toContain('correctness-reviewer');
+        expect(spawnerCalls).toContain('adversarial-reviewer');
+        expect(spawnerCalls).toContain('regression-reviewer');
     });
 });

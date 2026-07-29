@@ -259,7 +259,7 @@ export class Engine extends EventEmitter {
     }
     
     this.dispatcher.dispatch(task).catch((err) => {
-      console.error(err);
+      console.error(err instanceof Error ? err.message : String(err));
       this.activeTasks--;
       this.storm.releaseAccess(task.id);
       this.scheduler.failTask(task.id);

@@ -59,7 +59,7 @@ class TelemetrySession {
         return;
       } catch (e) {
         if (i === retries - 1) {
-          console.error("Telemetry flush failed after retries:", e);
+          console.error("Telemetry flush failed after retries:", e instanceof Error ? e.message : String(e));
         }
       }
     }
@@ -283,6 +283,6 @@ async function run() {
 });
 
 run().catch((error) => {
-  console.error("Superconductor MCP Server error:", error);
+  console.error("Superconductor MCP Server error:", error instanceof Error ? error.message : String(error));
   process.exit(1);
 });

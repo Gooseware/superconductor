@@ -10,6 +10,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "postbuild": "cp -r src/agents/skills dist/agents/skills",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -30,6 +31,7 @@
     "@superconductor/core": "workspace:*",
     "better-sqlite3": "^12.11.1",
     "enquirer": "^2.4.1",
+    "minimatch": "^10.2.6",
     "zod": "^3.23.8"
   }
 }

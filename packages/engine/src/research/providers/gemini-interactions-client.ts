@@ -21,10 +21,9 @@ export class GeminiInteractionsClient {
         throw new ResearchProviderUnavailableError('Missing GCP_PROJECT_ID');
       }
       this.sdkClient = new GoogleGenAI({
-        vertexai: {
-            project: projectId,
-            location: process.env.GCP_LOCATION || 'us-central1'
-        }
+        vertexai: true,
+        project: projectId,
+        location: process.env.GCP_LOCATION || 'us-central1'
       });
     } else {
       throw new Error(`Invalid auth mode: ${options.authMode}`);

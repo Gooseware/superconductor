@@ -263,12 +263,93 @@ describe('TrackLifecycleManager', () => {
       });
 
       const killer = makeKiller();
-      const manager = new TrackLifecycleManager(store, tmpDir, killer);
+      // Provide a no-op execGitNotes to avoid real git calls
+      const manager = new TrackLifecycleManager(store, tmpDir, killer, {
+        execGitNotes: () => { /* no-op */ },
+      });
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await expect(manager.onTrackComplete(trackId)).resolves.toBeUndefined();
       expect(killer.calls).toContain('conv-done');
 
+      consoleSpy.mockRestore();
+    });
+
+    it('should call RetrospectiveGenerator.generate() in onTrackComplete — observable via execGitNotes receiving retroJson', async () => {
+      const trackId = 'track-retro-called';
+      const killer = makeKiller();
+      let capturedJson: string | null = null;
+
+      const manager = new TrackLifecycleManager(store, tmpDir, killer, {
+        execGitNotes: (retroJson) => { capturedJson = retroJson; },
+      });
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await manager.onTrackComplete(trackId);
+
+      // RetrospectiveGenerator was called and its output passed to execGitNotes
+      expect(capturedJson).not.toBeNull();
+      const parsed = JSON.parse(capturedJson!);
+      expect(parsed.trackId).toBe(trackId);
+      expect(parsed.generatedAt).toBeDefined();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should attach retrospective via execGitNotes (injection-safe git notes add)', async () => {
+      const trackId = 'track-git-notes';
+      const killer = makeKiller();
+      const gitNotesCalls: Array<{ retroJson: string; cwd: string }> = [];
+
+      const manager = new TrackLifecycleManager(store, tmpDir, killer, {
+        execGitNotes: (retroJson, cwd) => {
+          gitNotesCalls.push({ retroJson, cwd });
+        },
+      });
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await manager.onTrackComplete(trackId);
+
+      // Verify git notes add was called with valid JSON and the workspace dir
+      expect(gitNotesCalls.length).toBe(1);
+      expect(gitNotesCalls[0].cwd).toBe(tmpDir);
+      const parsed = JSON.parse(gitNotesCalls[0].retroJson);
+      expect(parsed.trackId).toBe(trackId);
+      expect(parsed.findings).toBeDefined();
+      expect(parsed.commitSha).toBeDefined();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should NOT throw and should NOT prevent track completion when execGitNotes fails', async () => {
+      const trackId = 'track-notes-fail';
+      await store.appendToAgentsManifest(trackId, {
+        conversationId: 'conv-ok',
+        wuId: 'wu-1',
+        role: 'agent',
+        spawnedAt: new Date().toISOString(),
+      });
+
+      const killer = makeKiller();
+      const manager = new TrackLifecycleManager(store, tmpDir, killer, {
+        execGitNotes: () => {
+          throw new Error('git notes failed');
+        },
+      });
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // Must not throw — git notes failure is non-blocking
+      await expect(manager.onTrackComplete(trackId)).resolves.toBeUndefined();
+      // Cleanup still ran (agent was killed)
+      expect(killer.calls).toContain('conv-ok');
+      // Warn was called with the error
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('RetrospectiveGenerator'),
+        expect.anything()
+      );
+
+      warnSpy.mockRestore();
       consoleSpy.mockRestore();
     });
   });

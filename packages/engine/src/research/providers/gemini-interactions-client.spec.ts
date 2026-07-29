@@ -1,8 +1,9 @@
 vi.mock('@google/genai', () => ({
   GoogleGenAI: class {
-    constructor(opts) {
+    public opts: any;
+    constructor(opts: any) {
       this.opts = opts;
-      if (!opts.apiKey && !(opts.vertexai && opts.vertexai.project && opts.vertexai.location)) {
+      if (!opts.apiKey && !(opts.vertexai && opts.project && opts.location)) {
         throw new Error('Authentication is not set up...');
       }
     }

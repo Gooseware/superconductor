@@ -95,4 +95,37 @@ describe('FileTelemetryStore', () => {
         };
         await expect(store.recordUsage(invalidReport)).rejects.toThrow("trackId must be a non-empty string");
     });
+
+    it('should redact sensitive information from payload', async () => {
+        const store = new FileTelemetryStore(testLogFile);
+        
+        process.env.GEMINI_API_KEY = 'AIzaSyFakeKey123';
+        process.env.GCP_PROJECT_ID = 'secret-project-42';
+        process.env.GCP_LOCATION = 'us-central1';
+
+        const report = {
+            trackId: 'test-track-AIzaSyFakeKey123',
+            subagentId: 'sub-secret-project-42-us-central1',
+            stepIndex: 1,
+            promptTokens: 100,
+            completionTokens: 50,
+            timestamp: 123
+        };
+
+        await store.recordUsage(report);
+
+        const content = await fs.readFile(testLogFile, 'utf-8');
+        const lines = content.trim().split('\n');
+        const parsed = JSON.parse(lines[lines.length - 1]);
+        
+        expect(parsed.trackId).toBe('test-track-[REDACTED]');
+        expect(parsed.subagentId).toBe('sub-[REDACTED]-[REDACTED]');
+        expect(content).not.toContain('AIzaSyFakeKey123');
+        expect(content).not.toContain('secret-project-42');
+        expect(content).not.toContain('us-central1');
+
+        delete process.env.GEMINI_API_KEY;
+        delete process.env.GCP_PROJECT_ID;
+        delete process.env.GCP_LOCATION;
+    });
 });

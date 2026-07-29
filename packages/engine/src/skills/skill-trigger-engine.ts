@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import minimatchPkg from 'minimatch';
-const minimatch = typeof minimatchPkg === 'function' ? minimatchPkg : (minimatchPkg as any).minimatch;
+import { minimatch } from 'minimatch';
+
 import { DagNode } from '../types/dag.types.js';
 
 export interface SkillManifest {
@@ -62,14 +62,16 @@ export class SkillTriggerEngine {
                   .filter((r): r is RegExp => r !== null);
                 this.regexCache.set(parsed.metadata.name, compiled);
               }
-            } catch {
-              console.warn(`[SkillTriggerEngine] Warning: Malformed manifest at ${manifestPath}`);
+            } catch (err) {
+              console.error(`[SkillTriggerEngine] Error: Malformed manifest at ${manifestPath}`);
+              throw err;
             }
           }
         }
       }
     } catch (e) {
-      console.warn(`[SkillTriggerEngine] Warning: Failed to scan skills directory: ${e}`);
+      console.error(`[SkillTriggerEngine] Error: Failed to scan skills directory: ${e instanceof Error ? e.message : String(e)}`);
+      throw e;
     }
 
     return this.manifests;
@@ -165,8 +167,8 @@ export class SkillTriggerEngine {
 
         parts.push(section);
         totalChars += section.length;
-      } catch {
-        // Skip unreadable SKILL.md
+      } catch (err) {
+        throw err;
       }
     }
 

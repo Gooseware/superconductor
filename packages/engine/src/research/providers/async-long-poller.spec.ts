@@ -26,7 +26,7 @@ describe('AsyncLongPoller', () => {
     const fn = vi.fn().mockRejectedValue(new Error('not ready'));
     
     const promise = poller.poll(fn);
-    promise.catch(() => {}); // prevent unhandled rejection warning
+    promise.catch((e: any) => { console.debug('Expected unhandled rejection:', e instanceof Error ? e.message : String(e)); });
     
     await vi.runAllTimersAsync();
     

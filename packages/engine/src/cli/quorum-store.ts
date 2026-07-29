@@ -3,6 +3,51 @@ import * as path from 'path';
 import { ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
 
 /**
+ * Thrown when a path traversal attempt is detected in a user-supplied id.
+ */
+export class PathTraversalError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PathTraversalError';
+    // Restore prototype chain for instanceof checks in transpiled environments
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Sanitizes a user-supplied id (trackId or wuId) for safe use in file paths.
+ *
+ * Validation rules:
+ * 1. `id` must match `/^[a-zA-Z0-9_-]+$/` — throws `PathTraversalError` otherwise.
+ * 2. The constructed path must resolve to a location still under `workspace` — throws
+ *    `PathTraversalError` if `path.resolve()` escapes the workspace root.
+ *
+ * @param id        The user-controlled identifier to validate.
+ * @param workspace The absolute workspace root directory.
+ * @param subdir    The sub-directory to join (e.g. `.superconductor/tracks`).
+ * @returns         The constructed (non-resolved) path: `path.join(workspace, subdir, id)`.
+ * @throws {PathTraversalError} if the id is invalid or the resolved path escapes the workspace.
+ */
+export function sanitizeId(id: string, workspace: string, subdir: string): string {
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new PathTraversalError(
+      `Invalid id "${id}": only alphanumeric characters, hyphens, and underscores are allowed`
+    );
+  }
+  const joined = path.join(workspace, subdir, id);
+  const resolved = path.resolve(joined);
+  const resolvedWorkspace = path.resolve(workspace);
+  // Guard: resolved path must start with the workspace root (plus separator),
+  // or be exactly the workspace root itself.
+  if (!resolved.startsWith(resolvedWorkspace + path.sep) && resolved !== resolvedWorkspace) {
+    throw new PathTraversalError(
+      `Invalid id "${id}": resolved path escapes workspace directory`
+    );
+  }
+  return joined;
+}
+
+/**
  * Represents a persisted agent output record stored per work unit.
  */
 export interface AgentOutputRecord {
@@ -49,6 +94,7 @@ export class QuorumStore {
    * attacks (REV-4). Rejects any input containing `..`, `/`, or `\`.
    *
    * @throws {Error} if the id contains dangerous characters.
+   * @deprecated Belt-and-suspenders only — sanitizeId() is now called first at every entry point.
    */
   private validateId(id: string): void {
     if (/\.\./.test(id) || /[/\\]/.test(id)) {
@@ -70,9 +116,12 @@ export class QuorumStore {
 
   /**
    * Returns the path to the implementor-result.json for a given work unit.
-   * Sanitizes wuId to prevent path traversal (REV-4).
+   * Sanitizes wuId via sanitizeId() (regex whitelist + resolve-escape check) BEFORE
+   * any path.join() call (REV-1). Falls through to belt-and-suspenders validateId().
    */
   public getResultPath(wuId: string): string {
+    // REV-1: sanitizeId enforces /^[a-zA-Z0-9_-]+$/ whitelist and resolve-escape guard
+    sanitizeId(wuId, this.workspaceDir, '.superconductor/quorum');
     this.validateId(wuId);
     const resolved = path.resolve(this.workspaceDir, '.superconductor', 'quorum', wuId, 'implementor-result.json');
     this.assertUnderBase(resolved);
@@ -81,9 +130,12 @@ export class QuorumStore {
 
   /**
    * Returns the path to the consensus.json for a given work unit (Wave-2A).
-   * Sanitizes wuId to prevent path traversal (REV-4).
+   * Sanitizes wuId via sanitizeId() (regex whitelist + resolve-escape check) BEFORE
+   * any path.join() call (REV-1). Falls through to belt-and-suspenders validateId().
    */
   public getConsensusPath(wuId: string): string {
+    // REV-1: sanitizeId enforces /^[a-zA-Z0-9_-]+$/ whitelist and resolve-escape guard
+    sanitizeId(wuId, this.workspaceDir, '.superconductor/quorum');
     this.validateId(wuId);
     const resolved = path.resolve(this.workspaceDir, '.superconductor', 'quorum', wuId, 'consensus.json');
     this.assertUnderBase(resolved);
@@ -92,9 +144,12 @@ export class QuorumStore {
 
   /**
    * Returns the path to the agents.json manifest for a given track.
-   * Sanitizes trackId to prevent path traversal (REV-4).
+   * Sanitizes trackId via sanitizeId() (regex whitelist + resolve-escape check) BEFORE
+   * any path.join() call (REV-1). Falls through to belt-and-suspenders validateId().
    */
   public getAgentsManifestPath(trackId: string): string {
+    // REV-1: sanitizeId enforces /^[a-zA-Z0-9_-]+$/ whitelist and resolve-escape guard
+    sanitizeId(trackId, this.workspaceDir, '.superconductor/tracks');
     this.validateId(trackId);
     const resolved = path.resolve(this.workspaceDir, '.superconductor', 'tracks', trackId, 'agents.json');
     this.assertUnderBase(resolved);
@@ -163,7 +218,7 @@ export class QuorumStore {
     const previous = this.manifestMutexes.get(trackId) ?? Promise.resolve();
     const next = previous.then(() => this._doAppend(trackId, entry));
     // Store the chain (suppress unhandled rejection on chain itself)
-    this.manifestMutexes.set(trackId, next.catch(() => {}));
+    this.manifestMutexes.set(trackId, next.catch((e) => { console.warn('[QuorumStore] Manifest mutex chain failed:', e instanceof Error ? e.message : String(e)); }));
     return next;
   }
 

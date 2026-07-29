@@ -45,7 +45,7 @@ function fetchDynamicTierConfig(): Record<number, { models: string[] }> {
       }
     }
   } catch (err) {
-    console.error('fetchDynamicTierConfig Error:', err);
+    console.error('fetchDynamicTierConfig Error:', err instanceof Error ? err.message : String(err));
     // Fallback if agy is not available
     config[2].models = ['flash', 'claude-3-haiku'];
     config[3].models = ['pro', 'claude-3-5-sonnet'];

@@ -9,10 +9,12 @@
  * allGreen, a missing or tampered consensus.json must cause FAILED transition.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SwarmOrchestratorCLI, IAgentSpawner } from '../../src/cli/orchestrate.js';
+import { SwarmOrchestratorCLI } from '../../src/cli/orchestrate.js';
+import { MockAgentSpawner } from '../../src/cli/mock-agent-spawner.js';
 import { WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import { QuorumViolationError } from '../../src/verification/quorum-enforcer.js';
 import { QuorumStore } from '../../src/cli/quorum-store.js';
+import { ReviewerResponseBroker } from '../../src/verification/reviewer-response-broker.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -38,6 +40,23 @@ function setupWorkspace(tmpDir: string, trackId: string, tasks: string[]) {
     fs.mkdirSync(trackDir, { recursive: true });
     writeTopography(path.join(tmpDir, 'topography.json'));
     writePlan(path.join(trackDir, 'plan.md'), tasks);
+}
+
+/**
+ * Creates a mock ReviewerResponseBroker that always returns RESOLVED for all reviewers.
+ * Use in tests that exercise Wave-2A file-gating logic — the broker result is a pass-through;
+ * what matters is the consensus.json written/tampered at the wu-level by QuorumStore.
+ */
+function makeResolvedBroker(): ReviewerResponseBroker {
+    return {
+        aggregate: vi.fn().mockResolvedValue([
+            { reviewerId: 'r1', findings: { status: 'RESOLVED' }, timedOut: false },
+            { reviewerId: 'r2', findings: { status: 'RESOLVED' }, timedOut: false },
+            { reviewerId: 'r3', findings: { status: 'RESOLVED' }, timedOut: false },
+            { reviewerId: 'r4', findings: { status: 'RESOLVED' }, timedOut: false },
+        ]),
+        isConsensusResolved: () => true,
+    } as unknown as ReviewerResponseBroker;
 }
 
 // ---------------------------------------------------------------------------
@@ -66,8 +85,9 @@ describe('executeTrack — QuorumViolationError integration (REV-6)', () => {
         const { REQUIRED_QUORUM_AGENTS } = await import('../../src/verification/quorum-enforcer.js');
 
         let implementorCallCount = 0;
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockImplementation(async (role: string) => {
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockImplementation(async (config: import('../../src/cli/agent-spawner.js').AgentSpawnConfig) => {
+
                 // First call = implementor spawn — always succeed
                 if (!REQUIRED_QUORUM_AGENTS.includes(role)) {
                     implementorCallCount++;
@@ -79,8 +99,7 @@ describe('executeTrack — QuorumViolationError integration (REV-6)', () => {
                     throw new Error(`Simulated spawn failure for ${role}`);
                 }
                 return `conv-reviewer-${role}`;
-            })
-        };
+            });
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
         setupWorkspace(tmpDir, 'quorum-fail-track', [
@@ -104,9 +123,8 @@ describe('executeTrack — QuorumViolationError integration (REV-6)', () => {
     });
 
     it('should transition work unit to FAILED and throw AggregateError when spawner throws on implementor invocation', async () => {
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockRejectedValue(new Error('Spawner network failure'))
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockRejectedValue(new Error('Spawner network failure'));
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
         setupWorkspace(tmpDir, 'spawner-throw-track', [
@@ -138,14 +156,18 @@ describe('executeTrack — QuorumViolationError integration (REV-6)', () => {
          * A successful run: spawner returns a conversationId for all 4+1 calls
          * (implementor + 4 quorum agents). Work unit should be DONE with
          * reviewers = REQUIRED_QUORUM_AGENTS.
+         *
+         * Phase 4: Inject a resolved mock broker so the test doesn't block on
+         * file-watching for reviewer consensus files.
          */
         const { REQUIRED_QUORUM_AGENTS } = await import('../../src/verification/quorum-enforcer.js');
 
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockResolvedValue({ conversationId: 'conv-ok', synthetic: false });
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
         setupWorkspace(tmpDir, 'quorum-success-track', [
             '- [ ] Task: Successful task [TIER-3] [AGENT:agent-ok] [DOMAIN:core]'
         ]);
@@ -159,7 +181,7 @@ describe('executeTrack — QuorumViolationError integration (REV-6)', () => {
         expect(result.workUnits[0].reviewers).toEqual([...REQUIRED_QUORUM_AGENTS]);
 
         // Spawner must have been called for implementor + all 4 quorum agents
-        expect(mockSpawner.invokeSubagent).toHaveBeenCalledTimes(
+        expect(mockSpawner.spawn).toHaveBeenCalledTimes(
             1 + REQUIRED_QUORUM_AGENTS.length
         );
     });
@@ -188,12 +210,14 @@ describe('executeTrack — strict file-based DONE gating (Wave-2A)', () => {
          *
          * The orchestrator must detect the missing file and transition to FAILED
          * instead of DONE — even though in-memory state was allGreen.
+         *
+         * Phase 4: Inject a resolved mock broker so the test doesn't block on
+         * file-watching for reviewer consensus files.
          */
         const { REQUIRED_QUORUM_AGENTS } = await import('../../src/verification/quorum-enforcer.js');
 
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockResolvedValue({ conversationId: 'conv-ok', synthetic: false });
 
         // Set up workspace
         setupWorkspace(tmpDir, 'consensus-delete-track', [
@@ -213,6 +237,8 @@ describe('executeTrack — strict file-based DONE gating (Wave-2A)', () => {
         const cli = new SwarmOrchestratorCLI(mockSpawner);
         // Inject the tampered store via the test-friendly setter
         (cli as any).quorumStore = store;
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
 
         let thrownError: any;
         try {
@@ -238,10 +264,12 @@ describe('executeTrack — strict file-based DONE gating (Wave-2A)', () => {
          *
          * The orchestrator must read back the disk file and transition to FAILED
          * because the disk-artifact has allGreen !== true.
+         *
+         * Phase 4: Inject a resolved mock broker so the test doesn't block on
+         * file-watching for reviewer consensus files.
          */
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockResolvedValue({ conversationId: 'conv-ok', synthetic: false });
 
         setupWorkspace(tmpDir, 'consensus-tampered-track', [
             '- [ ] Task: Successful task [TIER-3] [AGENT:agent-ok] [DOMAIN:core]'
@@ -258,6 +286,8 @@ describe('executeTrack — strict file-based DONE gating (Wave-2A)', () => {
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
         (cli as any).quorumStore = store;
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
 
         let thrownError: any;
         try {
@@ -279,16 +309,20 @@ describe('executeTrack — strict file-based DONE gating (Wave-2A)', () => {
         /**
          * Verifies that executeTrack writes a consensus.json file to
          * .superconductor/quorum/<wu_id>/consensus.json when allGreen.
+         *
+         * Phase 4: Inject a resolved mock broker so the test doesn't block on
+         * file-watching for reviewer consensus files.
          */
-        const mockSpawner: IAgentSpawner = {
-            invokeSubagent: vi.fn().mockResolvedValue('conv-ok')
-        };
+        const mockSpawner = new MockAgentSpawner();
+        vi.spyOn(mockSpawner, 'spawn').mockResolvedValue({ conversationId: 'conv-ok', synthetic: false });
 
         setupWorkspace(tmpDir, 'consensus-write-track', [
             '- [ ] Task: Successful task [TIER-3] [AGENT:agent-ok] [DOMAIN:core]'
         ]);
 
         const cli = new SwarmOrchestratorCLI(mockSpawner);
+        // Phase 4: inject resolved broker to avoid file-watch blocking in tests.
+        cli.reviewerBroker = makeResolvedBroker();
         const result = await cli.executeTrack(tmpDir, 'consensus-write-track');
 
         expect(result.workUnits[0].state).toBe(WorkUnitState.DONE);
