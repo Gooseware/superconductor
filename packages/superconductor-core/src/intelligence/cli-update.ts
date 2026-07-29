@@ -16,7 +16,8 @@ async function main() {
 
   // Resolve projectRoot via git — safe, no shell interpolation
   const projectRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
-  const outputDir = getSuperconductorHome();
+  const home = getSuperconductorHome();
+  const outputDir = path.join(home, 'intelligence');
 
   // Validate paths against projectRoot boundary (ADV-2: use resolvedRoot + sep to prevent traversal)
   const resolvedRoot = path.resolve(projectRoot);

@@ -26,7 +26,9 @@ export interface ToolRegistry {
 }
 
 export function getSuperconductorHome(): string {
-  return process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor');
+  return path.resolve(
+    process.env.SUPERCONDUCTOR_HOME || path.join(os.homedir(), '.superconductor')
+  );
 }
 
 export function ensureHomeDir(home: string) {
