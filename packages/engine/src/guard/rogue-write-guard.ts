@@ -16,15 +16,19 @@ export class RogueWriteAttemptError extends Error {
 export interface RogueWriteGuardOptions {
   // Protected path glob patterns. Default: ['packages/*/src/**', 'app/**']
   protectedPatterns?: readonly string[];
+  // Workspace root directory. Default: process.cwd()
+  workspaceDir?: string;
 }
 
 export const DEFAULT_PROTECTED_PATTERNS: readonly string[] = Object.freeze(['packages/*/src/**', 'app/**']);
 
 export class RogueWriteGuard {
   private readonly patterns: readonly string[];
+  private readonly workspaceDir: string;
 
   constructor(private readonly role: string, options: RogueWriteGuardOptions = {}) {
     this.patterns = options.protectedPatterns ?? DEFAULT_PROTECTED_PATTERNS;
+    this.workspaceDir = options.workspaceDir ?? process.cwd();
   }
 
   /**
@@ -36,8 +40,12 @@ export class RogueWriteGuard {
   assertWriteAllowed(filePath: string): void {
     if (this.role !== 'root') return;
 
-    // Normalize: strip leading slash, use forward slashes
-    const normalizedPath = path.normalize(filePath).replace(/\\/g, '/').replace(/^\//, '');
+    // Resolve path securely against workspace root
+    const resolvedPath = path.resolve(this.workspaceDir, filePath);
+    const relativePath = path.relative(this.workspaceDir, resolvedPath);
+
+    // If it points outside the workspace, we might want to block it, but for now we just check the patterns
+    const normalizedPath = relativePath.replace(/\\/g, '/');
 
     const isProtected = this.patterns.some(pattern =>
       path.matchesGlob(normalizedPath, pattern)

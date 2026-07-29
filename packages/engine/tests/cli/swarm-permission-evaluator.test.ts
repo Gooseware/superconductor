@@ -55,18 +55,14 @@ describe("SwarmPermissionEvaluator", () => {
     expect(evalInactive.getRevokedTools()).toEqual([]);
   });
 
-  it("assertRootModelRestricted() logs warning when swarm active + root and registers RogueWriteGuard", () => {
+  it("assertRootModelRestricted() throws when swarm active + root and registers RogueWriteGuard", () => {
     const evaluator = new SwarmPermissionEvaluator(activeConfig);
     process.env.SUPERCONDUCTOR_ROLE = "root";
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    evaluator.assertRootModelRestricted();
-    expect(warnSpy).toHaveBeenCalledWith("[Superconductor] Root model cannot execute tracks directly. Please use invoke_subagent or explicitly delegate.");
+    expect(() => evaluator.assertRootModelRestricted()).toThrow(SwarmPermissionViolationError);
     expect(evaluator.getRogueWriteGuard()).toBeInstanceOf(RogueWriteGuard);
 
     delete process.env.SUPERCONDUCTOR_ROLE;
-    evaluator.assertRootModelRestricted();
-    expect(warnSpy).toHaveBeenCalledTimes(2);
-    warnSpy.mockRestore();
+    expect(() => evaluator.assertRootModelRestricted()).toThrow(SwarmPermissionViolationError);
   });
 
   it("assertRootModelRestricted() does NOT throw when swarm active + processor", () => {

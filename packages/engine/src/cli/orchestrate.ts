@@ -326,7 +326,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         }
 
                         // All gates passed — safe to transition to DONE
-                        const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, diskArtifact);
+                        console.log("DISK ARTIFACT:", diskArtifact); const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, diskArtifact);
                         // Update reviewers to match the canonical REQUIRED_QUORUM_AGENTS (REV-7)
                         updatedWorkUnits[i] = { ...doneWu, reviewers: [...REQUIRED_QUORUM_AGENTS] };
 

@@ -79,13 +79,9 @@ export class ReviewerResponseBroker {
         try {
           const stat = fs.statSync(consensusPath);
           if (stat.size > byteOffset) {
-            const fd = fs.openSync(consensusPath, 'r');
-            const buf = Buffer.alloc(stat.size - byteOffset);
-            fs.readSync(fd, buf, 0, buf.length, byteOffset);
-            fs.closeSync(fd);
             byteOffset = stat.size;
-            const text = buf.toString('utf8');
-            const extracted = extractJsonBlock(text);
+            const fullText = fs.readFileSync(consensusPath, 'utf8');
+            const extracted = extractJsonBlock(fullText);
             if (extracted !== null) {
               const parsed = ReviewerFindingsSchema.safeParse(extracted);
               if (parsed.success) {
@@ -95,7 +91,6 @@ export class ReviewerResponseBroker {
             }
             // Also try parsing the whole file as JSON directly (non-markdown format)
             try {
-              const fullText = fs.readFileSync(consensusPath, 'utf8');
               const directParsed = ReviewerFindingsSchema.safeParse(JSON.parse(fullText));
               if (directParsed.success) {
                 settle(directParsed.data);

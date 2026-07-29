@@ -44,7 +44,7 @@ export class SwarmPermissionEvaluator {
       const role = process.env.SUPERCONDUCTOR_ROLE;
       if (!role || role === "root") {
         this.rogueWriteGuard = new RogueWriteGuard(role || "root");
-        console.warn(
+        throw new SwarmPermissionViolationError(
           "[Superconductor] Root model cannot execute tracks directly. Please use invoke_subagent or explicitly delegate."
         );
       }
