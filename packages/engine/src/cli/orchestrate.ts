@@ -18,6 +18,7 @@ import { TrackLifecycleManager } from './lifecycle-manager.js';
 
 import { AgyAgentSpawner } from './agy-agent-spawner.js';
 import type { IAgentSpawner, AgentSpawnConfig, SpawnedAgent } from './agent-spawner.js';
+import { notifyVerificationRequired, notifyRemediationLimitExceeded } from './attention-notifier.js';
 
 /** Transitions a work unit through IN_PROGRESS then to FAILED, respecting the state machine. */
 function transitionToFailed(wu: WorkUnit, sm: WorkUnitStateMachine): WorkUnit {
@@ -148,6 +149,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     //       provides a resume() callback.
                     this.guard!.assertInteractiveAllowed('Manual Verification checkpoint', false);
                     this.emit('verification_required', { wuId: wu.unitId, spec: wu.spec, autoApproved: false });
+                    notifyVerificationRequired(wu.unitId, wu.spec ?? wu.unitId);
                     allDispatches.push(Promise.resolve());
                     continue;
                 }

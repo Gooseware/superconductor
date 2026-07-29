@@ -63,18 +63,15 @@ describe('HeadlessModeGuard', () => {
   });
 
   // SEC-1: Shell metacharacters in context must NOT cause shell execution.
-  // execFileSync is non-configurable in ESM, so we verify the behaviour indirectly:
-  // the guard must (a) still throw NonInteractiveModeError and (b) not crash when
-  // notify-send is unavailable in test env (error is caught internally).
-  // The source-level change from execSync (shell=true) to execFileSync (shell=false)
-  // is the actual security fix; this test confirms the runtime contract is preserved.
-  it('SEC-1: FATAL call with shell metacharacters in context throws NonInteractiveModeError — no shell execution, no crash', () => {
+  // notify-send has been REMOVED from the guard entirely — notifications now go
+  // through attention-notifier.ts only for high-attention events.
+  // notifyOnFatal is a deprecated no-op retained for interface backward compat.
+  it('SEC-1: FATAL call in headless mode throws NonInteractiveModeError — no shell execution (notify-send removed from guard)', () => {
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
     const maliciousContext = '$(rm -rf /)';
-    // notifyOnFatal: true → will attempt execFileSync('notify-send', ['Superconductor', maliciousContext])
-    // notify-send is not available in test env → error is caught in the guard's catch block
-    // The malicious string is never interpolated into a shell command string
+    // notifyOnFatal is now a no-op — the guard never calls notify-send or any shell.
+    // Verify the guard still throws NonInteractiveModeError correctly.
     const guard = new HeadlessModeGuard(ExecutionMode.HEADLESS, { notifyOnFatal: true, stderrOnFatal: false });
     expect(() => guard.assertInteractiveAllowed(maliciousContext, true)).toThrow(NonInteractiveModeError);
   });

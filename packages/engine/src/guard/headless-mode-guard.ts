@@ -1,9 +1,9 @@
-import { execFileSync } from 'child_process';
 import { ExecutionMode, NonInteractiveModeError } from './execution-mode.js';
 import type { SwarmPermissionEvaluator } from '../cli/swarm-permission-evaluator.js';
 
 export interface HeadlessModeGuardOptions {
-  notifyOnFatal?: boolean; // default: true
+  // @deprecated notifications are now emitted by the orchestrator on attention-required events only
+  notifyOnFatal?: boolean; // no-op — retained for backward compatibility only
   stderrOnFatal?: boolean; // default: true
 }
 
@@ -17,7 +17,7 @@ export class HeadlessModeGuard {
    * Asserts that interactive input is allowed.
    * In HEADLESS/BATCH_OVERNIGHT mode: throws NonInteractiveModeError.
    * @param context - Human-readable description of what prompt was attempted
-   * @param isFatal - If true, also calls notify-send and writes to stderr before throwing
+   * @param isFatal - If true, writes to stderr before throwing
    */
   assertInteractiveAllowed(context: string, isFatal = false): void {
     if (this.mode === ExecutionMode.INTERACTIVE) return;
@@ -27,11 +27,9 @@ export class HeadlessModeGuard {
       if (this.options.stderrOnFatal !== false) {
         process.stderr.write(msg + '\n');
       }
-      if (this.options.notifyOnFatal !== false) {
-        try {
-          execFileSync('notify-send', ['Superconductor', context], { stdio: 'ignore' });
-        } catch (e) { console.debug('notify-send failed (expected in CI):', e instanceof Error ? e.message : String(e)); }
-      }
+      // notifyOnFatal is intentionally a no-op here.
+      // Desktop notifications are sent by attention-notifier.ts only for
+      // 'verification_required' and 'remediation_limit_exceeded' events.
     }
 
     throw new NonInteractiveModeError(this.mode, context);
