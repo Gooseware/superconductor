@@ -29,6 +29,13 @@ export class RogueWriteGuard {
   constructor(private readonly role: string, options: RogueWriteGuardOptions = {}) {
     this.patterns = options.protectedPatterns ?? DEFAULT_PROTECTED_PATTERNS;
     this.workspaceDir = options.workspaceDir ?? process.cwd();
+    // Layer 1: reject '/' as workspaceDir — it breaks path-relative glob matching
+    if (this.workspaceDir === path.sep || this.workspaceDir === '/') {
+      throw new Error(
+        '[RogueWriteGuard] workspaceDir cannot be the filesystem root "/". ' +
+        'This would break path-relative glob matching. Provide the project root directory.'
+      );
+    }
   }
 
   /**
@@ -36,6 +43,7 @@ export class RogueWriteGuard {
    * Root-role agents may NOT write to protected paths.
    * @param filePath - The path to write to (can be relative or absolute)
    * @throws RogueWriteAttemptError if role is 'root' and path matches a protected pattern
+   * @throws RogueWriteAttemptError if role is 'root' and path resolves outside the workspace
    */
   assertWriteAllowed(filePath: string): void {
     if (this.role !== 'root') return;
@@ -44,7 +52,11 @@ export class RogueWriteGuard {
     const resolvedPath = path.resolve(this.workspaceDir, filePath);
     const relativePath = path.relative(this.workspaceDir, resolvedPath);
 
-    // If it points outside the workspace, we might want to block it, but for now we just check the patterns
+    // Layer 2: deny-by-default when path escapes the workspace
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+      throw new RogueWriteAttemptError(filePath, this.role);
+    }
+
     const normalizedPath = relativePath.replace(/\\/g, '/');
 
     const isProtected = this.patterns.some(pattern =>

@@ -101,6 +101,34 @@ describe('RogueWriteGuard', () => {
     });
   });
 
+  describe('constructor — workspaceDir validation', () => {
+    it('throws Error with "filesystem root" when workspaceDir is "/"', () => {
+      expect(() => new RogueWriteGuard('root', { workspaceDir: '/' })).toThrow(Error);
+      expect(() => new RogueWriteGuard('root', { workspaceDir: '/' })).toThrow('filesystem root');
+    });
+
+    it('does NOT throw when workspaceDir is a valid project root', () => {
+      expect(() => new RogueWriteGuard('root', { workspaceDir: '/home/user/project' })).not.toThrow();
+    });
+  });
+
+  describe('assertWriteAllowed — paths escaping workspace (Layer 2)', () => {
+    it('throws RogueWriteAttemptError when root writes to an absolute path outside the workspace', () => {
+      const guard = new RogueWriteGuard('root', { workspaceDir: '/home/user/project' });
+      expect(() => guard.assertWriteAllowed('/absolute/path/outside/workspace')).toThrow(RogueWriteAttemptError);
+    });
+
+    it('throws RogueWriteAttemptError when root uses path traversal to escape workspace', () => {
+      const guard = new RogueWriteGuard('root', { workspaceDir: '/home/user/project' });
+      expect(() => guard.assertWriteAllowed('../../etc/passwd')).toThrow(RogueWriteAttemptError);
+    });
+
+    it('does NOT throw for processor writing an outside-workspace absolute path', () => {
+      const guard = new RogueWriteGuard('processor', { workspaceDir: '/home/user/project' });
+      expect(() => guard.assertWriteAllowed('/absolute/path/outside/workspace')).not.toThrow();
+    });
+  });
+
   describe('DEFAULT_PROTECTED_PATTERNS export', () => {
     it('exports DEFAULT_PROTECTED_PATTERNS array with expected values', () => {
       expect(DEFAULT_PROTECTED_PATTERNS).toContain('packages/*/src/**');
