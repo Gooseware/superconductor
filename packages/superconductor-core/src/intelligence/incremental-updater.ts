@@ -188,7 +188,12 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   if (changedFiles.some(PHASE_INVALIDATION['dependency-graph'])) {
     phasesRun.push('dependency-graph');
     const res = runDependencyGraph(projectRoot, outputDir, registry.capabilities.dependency_graph, changedFiles);
-    if (res.entries) mergeIntoJson(path.join(outputDir, '02_dependency_graph.json'), res.entries);
+    // res.entries is { nodes, edges, circularDeps } at runtime — extract nodes array for per-file merge
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const depEntries = res.entries as any;
+    if (depEntries && Array.isArray(depEntries.nodes)) {
+      mergeIntoJson(path.join(outputDir, '02_dependency_graph.json'), depEntries.nodes);
+    }
   }
 
   // complexity
