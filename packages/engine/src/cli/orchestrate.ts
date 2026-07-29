@@ -264,15 +264,38 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         },
                         remediateFn: async (payloads: unknown[]) => {
                             if (!capturedSpawner) {
-                                return 'Skipped remediation: no spawner';
+                                return 'Skipped remediation: no spawner available';
                             }
                             try {
-                                const prompt = `Remediate findings: ${JSON.stringify(payloads)}`;
-                                const agent = await capturedSpawner.spawn({ role: 'superconductor-remediation-processor', prompt });
-                                return `Dispatched remediator: ${agent.conversationId}`;
-                            } catch (err: any) {
-                                process.stderr.write(`[orchestrate] ERR: Failed to spawn remediator: ${err.message}\n`);
-                                return `Failed to dispatch remediator: ${err.message}`;
+                                // Partition findings by domain/file to enable parallel remediation.
+                                // Each distinct domain gets its own processor — one agent per fix domain.
+                                const domainGroups = new Map<string, unknown[]>();
+                                for (const finding of payloads as Array<Record<string, unknown>>) {
+                                    // Use finding.domain if present, fall back to filePath, then 'general'
+                                    const domain = (finding['domain'] as string)
+                                        || (finding['filePath'] as string)
+                                        || (finding['file'] as string)
+                                        || 'general';
+                                    if (!domainGroups.has(domain)) domainGroups.set(domain, []);
+                                    domainGroups.get(domain)!.push(finding);
+                                }
+
+                                // Spawn one remediation processor per domain concurrently (respects maxConcurrent via ParallelDispatcher)
+                                const spawnPromises = Array.from(domainGroups.entries()).map(
+                                    ([domain, domainFindings]) =>
+                                        capturedSpawner!.spawn({
+                                            role: 'superconductor-remediation-processor',
+                                            prompt: `Remediate findings for domain [${domain}]:\n${JSON.stringify(domainFindings, null, 2)}`,
+                                        })
+                                );
+
+                                const agents = await Promise.all(spawnPromises);
+                                const ids = agents.map((a) => a.conversationId).join(', ');
+                                return `Dispatched ${agents.length} parallel domain remediator(s) [${Array.from(domainGroups.keys()).join(', ')}]: ${ids}`;
+                            } catch (err: unknown) {
+                                const msg = err instanceof Error ? err.message : String(err);
+                                process.stderr.write(`[orchestrate] remediateFn ERR: ${msg}\n`);
+                                return `Failed to dispatch remediators: ${msg}`;
                             }
                         },
                     });
