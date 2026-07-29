@@ -10,6 +10,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "postbuild": "cp -r src/agents/skills dist/agents/skills",
     "test": "vitest run",
     "test:watch": "vitest"
   },

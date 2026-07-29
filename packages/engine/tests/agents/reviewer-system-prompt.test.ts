@@ -5,7 +5,7 @@ import {
   REVIEWER_FULL_SYSTEM_PROMPT,
   REVIEWER_ROLES,
 } from '../../src/agents/reviewer-system-prompt.js';
-import { loadRoleSkill, getRoleSkillMap } from '../../src/agents/skill-loader.js';
+import { loadRoleSkill, getRoleSkillMap, clearSkillCache } from '../../src/agents/skill-loader.js';
 
 describe('SHENANIGAN_CHECKLIST', () => {
   it('has exactly 8 items', () => {
@@ -151,6 +151,26 @@ describe('loadRoleSkill', () => {
     const content = loadRoleSkill('security-reviewer');
     // After stripping, should not start with ---
     expect(content.startsWith('---')).toBe(false);
+  });
+});
+
+describe('clearSkillCache', () => {
+  it('is exported and callable without throwing', () => {
+    expect(() => clearSkillCache()).not.toThrow();
+  });
+
+  it('after clearing, loadRoleSkill still returns correct content (re-reads from disk)', () => {
+    // Prime the cache
+    const before = loadRoleSkill('security-reviewer');
+    expect(before.length).toBeGreaterThan(0);
+
+    // Clear it
+    clearSkillCache();
+
+    // Re-read — must still return the same non-empty content
+    const after = loadRoleSkill('security-reviewer');
+    expect(after.length).toBeGreaterThan(0);
+    expect(after).toBe(before);
   });
 });
 
