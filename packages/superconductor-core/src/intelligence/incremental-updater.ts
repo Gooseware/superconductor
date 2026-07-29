@@ -95,7 +95,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   }
 
   if (!fs.existsSync(manifestPath)) {
-    await runPipeline([], projectRoot, options.outputDir);
+    await runPipeline([], projectRoot, path.dirname(outputDir)); // pipeline appends '/intelligence', so pass parent dir
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
@@ -121,7 +121,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   try {
     manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
   } catch (err) {
-    await runPipeline([], projectRoot, options.outputDir);
+    await runPipeline([], projectRoot, path.dirname(outputDir)); // pipeline appends '/intelligence', so pass parent dir
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
@@ -155,7 +155,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       try { fs.unlinkSync(tmpManifest); } catch {}
       throw e;
     }
-    await runPipeline([], projectRoot, options.outputDir); // full rescan overwrites all data
+    await runPipeline([], projectRoot, path.dirname(outputDir)); // pipeline appends '/intelligence', pass parent dir; full rescan overwrites all data
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
@@ -192,7 +192,9 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const depEntries = res.entries as any;
     if (depEntries && Array.isArray(depEntries.nodes)) {
-      mergeIntoJson(path.join(outputDir, '02_dependency_graph.json'), depEntries.nodes);
+      // Map { source, deps } -> { file, deps } to satisfy mergeIntoJson's `{ file: string }` constraint
+      const mappedNodes = depEntries.nodes.map((n: any) => ({ ...n, file: n.source ?? n.file }));
+      mergeIntoJson(path.join(outputDir, '02_dependency_graph.json'), mappedNodes);
     }
   }
 
@@ -214,7 +216,11 @@ export async function update(options: { projectRoot: string; changedFiles: strin
   if (changedFiles.some(PHASE_INVALIDATION['symbol-extraction'])) {
     phasesRun.push('symbol-extraction');
     const res = runSymbolExtraction(projectRoot, outputDir, registry.capabilities.symbol_extraction, changedFiles);
-    if (res.entries) mergeIntoJson(path.join(outputDir, '06_symbol_extraction.json'), res.entries);
+    // NOTE: runSymbolExtraction in scoped mode returns entries: [rawCtagsString] — not { file: string }[].
+    // Only call mergeIntoJson when entries are proper file-keyed objects to avoid ERR_INVALID_ARG_TYPE.
+    if (res.entries && Array.isArray(res.entries) && res.entries.length > 0 && typeof res.entries[0] === 'object' && res.entries[0] !== null && typeof (res.entries[0] as any).file === 'string') {
+      mergeIntoJson(path.join(outputDir, '06_symbol_extraction.json'), res.entries);
+    }
   }
 
   // test-gaps

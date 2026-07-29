@@ -31,8 +31,8 @@ vi.mock('../../src/intelligence/runners/fingerprint', () => ({
   runFingerprint: vi.fn(() => ({ status: 'ok', entries: [{ file: 'package.json', some: 'val' }] }))
 }));
 vi.mock('../../src/intelligence/runners/dependency-graph', () => ({
-  // Real shape: entries is { nodes, edges, circularDeps } — not a flat array
-  runDependencyGraph: vi.fn(() => ({ status: 'ok', entries: { nodes: [], edges: [], circularDeps: [] } }))
+  // Real shape: entries is { nodes, edges, circularDeps } — nodes use { source, deps } not { file, deps }
+  runDependencyGraph: vi.fn(() => ({ status: 'ok', entries: { nodes: [{ source: 'packages/foo/src/index.ts', deps: [] }], edges: [], circularDeps: [] } }))
 }));
 vi.mock('../../src/intelligence/runners/complexity', () => ({
   runComplexity: vi.fn(() => ({ status: 'ok', entries: [] }))
