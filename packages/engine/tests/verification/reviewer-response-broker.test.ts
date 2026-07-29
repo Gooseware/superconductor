@@ -340,4 +340,31 @@ describe('ReviewerResponseBroker', () => {
     expect(isResolved(results[2].findings)).toBe(false);
     expect(broker.isConsensusResolved(results)).toBe(false);
   });
+
+  // ── REGRESSION: mtime-based detection (REV-3) ────────────────────────────
+
+  it('detects valid JSON written after larger invalid content (mtime-based, not size-based)', async () => {
+    const workspaceDir = mkTmp();
+    const reviewerId = 'reviewer-1';
+    const consensusPath = path.join(
+      workspaceDir, '.superconductor', 'quorum', reviewerId, 'consensus.json',
+    );
+    fs.mkdirSync(path.dirname(consensusPath), { recursive: true });
+
+    // Write 200 bytes of garbage first (larger than the valid payload)
+    fs.writeFileSync(consensusPath, 'X'.repeat(200));
+
+    // Overwrite with valid small JSON after 100 ms
+    setTimeout(() => {
+      fs.writeFileSync(consensusPath, JSON.stringify({ status: 'RESOLVED' }));
+    }, 100);
+
+    const broker = new ReviewerResponseBroker({ workspaceDir, timeoutMs: 3000 });
+    const results = await broker.aggregate([reviewerId]);
+
+    expect(results[0].timedOut).toBe(false);
+    const findings = results[0].findings as { status: string };
+    expect(findings.status).toBe('RESOLVED');
+  }, 5000);
 });
+

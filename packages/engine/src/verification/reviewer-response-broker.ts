@@ -65,7 +65,7 @@ export class ReviewerResponseBroker {
 
     return new Promise<ReviewerResult>((resolve) => {
       let settled = false;
-      let byteOffset = 0;
+      let lastMtimeMs = 0;
 
       const settle = (findings: ReviewerFindings, timedOut = false) => {
         if (settled) return;
@@ -78,8 +78,9 @@ export class ReviewerResponseBroker {
       const checkFile = () => {
         try {
           const stat = fs.statSync(consensusPath);
-          if (stat.size > byteOffset) {
-            byteOffset = stat.size;
+          const currentMtimeMs = stat.mtimeMs;
+          if (currentMtimeMs !== lastMtimeMs) {
+            lastMtimeMs = currentMtimeMs;
             const fullText = fs.readFileSync(consensusPath, 'utf8');
             const extracted = extractJsonBlock(fullText);
             if (extracted !== null) {
