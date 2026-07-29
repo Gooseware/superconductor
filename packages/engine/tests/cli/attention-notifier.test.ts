@@ -10,7 +10,7 @@ vi.mock('child_process', async (importOriginal) => {
   };
 });
 
-import { notifyVerificationRequired, notifyRemediationLimitExceeded } from '../../src/cli/attention-notifier.js';
+import { notifyVerificationRequired, notifyRemediationLimitExceeded, sanitizeBody } from '../../src/cli/attention-notifier.js';
 
 describe('attention-notifier', () => {
   let execSpy: ReturnType<typeof vi.fn>;
@@ -25,12 +25,12 @@ describe('attention-notifier', () => {
     vi.clearAllMocks();
   });
 
-  it('notifyVerificationRequired calls notify-send with sanitized body', () => {
+  it('notifyVerificationRequired calls notify-send with sanitized title and body', () => {
     notifyVerificationRequired('track-123', 'Build the login page');
     expect(execSpy).toHaveBeenCalledOnce();
     expect(execSpy).toHaveBeenCalledWith(
       'notify-send',
-      ['🔔 Superconductor: Action Required', expect.stringContaining('track-123')],
+      [sanitizeBody('🔔 Superconductor: Action Required'), expect.stringContaining('track-123')],
       expect.objectContaining({ stdio: 'ignore' })
     );
   });
@@ -39,7 +39,7 @@ describe('attention-notifier', () => {
     notifyRemediationLimitExceeded('track-456', 7);
     expect(execSpy).toHaveBeenCalledOnce();
     const args = execSpy.mock.calls[0][1] as string[];
-    expect(args[0]).toBe('⚠️ Superconductor: Needs Triage');
+    expect(args[0]).toBe(sanitizeBody('⚠️ Superconductor: Needs Triage'));
     expect(args[1]).toContain('track-456');
     expect(args[1]).toContain('7');
   });
@@ -50,6 +50,10 @@ describe('attention-notifier', () => {
     expect(args[1]).not.toContain('$');
     expect(args[1]).not.toContain('(');
     expect(args[1]).not.toContain(')');
+  });
+
+  it('strips backslash from sanitizeBody', () => {
+    expect(sanitizeBody('test\\injection')).toBe('testinjection');
   });
 
   it('truncates body to 120 characters maximum', () => {

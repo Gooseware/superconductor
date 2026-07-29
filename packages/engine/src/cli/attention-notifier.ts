@@ -12,12 +12,8 @@ import { execFileSync } from 'child_process';
 
 const MAX_BODY_LENGTH = 120;
 
-/**
- * Sanitizes a string for use as a desktop notification body.
- * Strips characters that look alarming out of context.
- */
-function sanitizeBody(raw: string): string {
-  return raw.replace(/[$`();&|<>{}!]/g, '').substring(0, MAX_BODY_LENGTH);
+export function sanitizeBody(raw: string): string {
+  return raw.replace(/[$`\\();&|<>{}!]/g, '').substring(0, MAX_BODY_LENGTH);
 }
 
 /**
@@ -26,7 +22,11 @@ function sanitizeBody(raw: string): string {
  */
 function sendNotification(title: string, body: string): void {
   try {
-    execFileSync('notify-send', [title, sanitizeBody(body)], { stdio: 'ignore', timeout: 3000 });
+    execFileSync(
+      'notify-send',
+      [sanitizeBody(title), sanitizeBody(body)],
+      { stdio: 'ignore', timeout: 3000 }
+    );
   } catch {
     // notify-send not available (CI, headless server) — silently ignore
   }
