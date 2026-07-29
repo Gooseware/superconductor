@@ -6,7 +6,6 @@
  * NOTE: `update()` is declared async but the fallback to `runPipeline` is blocking.
  */
 import { update } from './incremental-updater.js';
-import { getSuperconductorHome } from './tool-registry.js';
 import { execFileSync } from 'child_process';
 import * as path from 'path';
 
@@ -16,8 +15,7 @@ async function main() {
 
   // Resolve projectRoot via git — safe, no shell interpolation
   const projectRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
-  const home = getSuperconductorHome();
-  const outputDir = path.join(home, 'intelligence');
+  const outputDir = path.join(process.cwd(), 'superconductor', 'intelligence');
 
   // Validate paths against projectRoot boundary (ADV-2: use resolvedRoot + sep to prevent traversal)
   const resolvedRoot = path.resolve(projectRoot);
