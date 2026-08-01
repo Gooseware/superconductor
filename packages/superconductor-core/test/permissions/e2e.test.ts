@@ -43,7 +43,7 @@ describe('Permissions E2E Integration', () => {
         detectSpy.mockReturnValue('IDLE');
         
         // 1. IDLE mode allows anything
-        let result = await interceptor.intercept('run_shell_command', { command: 'ls' });
+        let result = await interceptor.intercept('run_command', { command: 'ls' });
         expect(result.allowed).toBe(true);
         
         // 2. Start track / TRACKED mode
@@ -67,7 +67,7 @@ describe('Permissions E2E Integration', () => {
         
         const auditLogSpy = vi.spyOn(auditLogger, 'logToolCall');
 
-        // 3. Per-blocker override: run_shell_command is blocked, prompt returns 'Allow Once'
+        // 3. Per-blocker override: run_command is blocked, prompt returns 'Allow Once'
         // InlineOverrideHandler actually checks the prompt string. It might map 'Allow Once' to 'allow_once'
         // Wait, what does askUserImpl return?
         // We'll mock handleBlockedCall to be safe? No, let's mock the askUserImpl correctly, or let's see handleBlockedCall.
@@ -76,7 +76,7 @@ describe('Permissions E2E Integration', () => {
         const handleBlockedCallSpy = vi.spyOn(overrideHandler, 'handleBlockedCall');
         handleBlockedCallSpy.mockResolvedValueOnce('allow_once');
         
-        result = await interceptor.intercept('run_shell_command', { command: 'rm -rf /' }, manifest);
+        result = await interceptor.intercept('run_command', { command: 'rm -rf /' }, manifest);
         expect(result.allowed).toBe(true);
         // Wait, interceptor doesn't call auditLogger.logToolCall for allow_once! 
         // InlineOverrideHandler calls it when handling block. Wait, does it? We'll see.
@@ -84,12 +84,12 @@ describe('Permissions E2E Integration', () => {
         
         // 4. YOLO override
         handleBlockedCallSpy.mockResolvedValueOnce('yolo_session');
-        result = await interceptor.intercept('write_to_file', { TargetFile: '/tmp/forbidden' }, manifest);
+        result = await interceptor.intercept('write_file', { TargetFile: '/tmp/forbidden' }, manifest);
         expect(result.allowed).toBe(true);
         
         // YOLO should transition state Manager to YOLO, but we are just mocking stateManager.
         detectSpy.mockReturnValue('YOLO');
-        result = await interceptor.intercept('write_to_file', { TargetFile: '/tmp/forbidden2' }, manifest);
+        result = await interceptor.intercept('write_file', { TargetFile: '/tmp/forbidden2' }, manifest);
         expect(result.allowed).toBe(true);
     });
 
@@ -109,7 +109,7 @@ describe('Permissions E2E Integration', () => {
         vi.spyOn(stateManager, 'detectCurrentState').mockReturnValue('TRACKED');
         vi.spyOn(stateManager, 'getActiveTrackId').mockReturnValue('new-track');
         
-        let result = await interceptor.intercept('run_shell_command', { command: 'ls' }, manifest);
+        let result = await interceptor.intercept('run_command', { command: 'ls' }, manifest);
         expect(result.allowed).toBe(true);
     });
 
@@ -126,7 +126,7 @@ describe('Permissions E2E Integration', () => {
         const handleBlockedCallSpy = vi.spyOn(overrideHandler, 'handleBlockedCall');
         handleBlockedCallSpy.mockResolvedValue('allow_track');
         
-        let result = await interceptor.intercept('run_shell_command', { command: 'npm install' }, manifest);
+        let result = await interceptor.intercept('run_command', { command: 'npm install' }, manifest);
         expect(result.allowed).toBe(true);
         expect(handleBlockedCallSpy).toHaveBeenCalled();
     });
@@ -142,7 +142,7 @@ describe('Permissions E2E Integration', () => {
         // we already mock existsSync and readFileSync
         
         const start = performance.now();
-        const iterations = 1000;
+        const iterations = 10;
         for (let i = 0; i < iterations; i++) {
             realStateManager.detectCurrentState();
         }

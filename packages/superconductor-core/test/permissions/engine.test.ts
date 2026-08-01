@@ -18,7 +18,7 @@ describe('PolicyEngine', () => {
   describe('isToolCallPermitted', () => {
     it('always permits in IDLE state', () => {
       vi.mocked(stateManager.detectCurrentState).mockReturnValue('IDLE');
-      expect(engine.isToolCallPermitted('run_shell_command', { command: 'rm -rf /' })).toBe(true);
+      expect(engine.isToolCallPermitted('run_command', { command: 'rm -rf /' })).toBe(true);
     });
 
     it('always permits in YOLO state', () => {
@@ -41,7 +41,7 @@ describe('PolicyEngine', () => {
         allowlist: { shell_prefixes: [], domains: [], paths: [] }
       });
       
-      expect(engine.isToolCallPermitted('run_shell_command', { command: 'lsusb' })).toBe(false);
+      expect(engine.isToolCallPermitted('run_command', { command: 'lsusb' })).toBe(false);
     });
 
     it('permits if active manifest allows it', () => {
@@ -59,7 +59,7 @@ describe('PolicyEngine', () => {
         allowlist: { shell_prefixes: [], domains: [], paths: [] }
       });
 
-      expect(engine.isToolCallPermitted('run_shell_command', { command: 'lsusb' })).toBe(true);
+      expect(engine.isToolCallPermitted('run_command', { command: 'lsusb' })).toBe(true);
     });
   });
 

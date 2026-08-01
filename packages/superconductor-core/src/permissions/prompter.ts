@@ -2,6 +2,7 @@ import { TrackStateManager } from './track-state.js';
 import { YoloAuditLogger } from './audit.js';
 import { PolicyEngine } from './engine.js';
 import { KeywordPermissionInferrer } from './keyword-inferrer.js';
+import { PermissionManifestParser } from './providers/toml-provider.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -61,14 +62,12 @@ export class InlineOverrideHandler {
                 const trackId = this.stateManager.getActiveTrackId();
                 if (trackId) {
                     const manifestPath = path.join(this.workspacePath, 'superconductor', 'tracks', trackId, 'permission-manifest.toml');
-                    // In a real implementation we would write valid TOML, but for tests a mock or simple string is enough
-                    // Here we assume fs.writeFileSync works for testing purposes
-                    // (Our tests mock it)
-                    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
+                    const parser = new PermissionManifestParser(manifestPath);
+                    parser.write(manifest);
                 }
             }
         } else if (choice === 'yolo_session') {
-            this.stateManager.activateYoloMode(false);
+            this.stateManager.setYolo(true);
         }
 
         this.auditLogger.logOverride(choice, toolName, args);
