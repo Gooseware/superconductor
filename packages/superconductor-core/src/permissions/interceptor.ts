@@ -3,6 +3,7 @@ import { PolicyEngine } from './engine.js';
 import { PermissionManifest, PermissionState } from './schemas.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PermissionManifestParser } from './providers/toml-provider.js';
 
 import { InlineOverrideHandler } from './prompter.js';
 import { YoloAuditLogger } from './audit.js';
@@ -17,11 +18,10 @@ export class ToolCallInterceptor {
     ) {
         this.auditLogger = new YoloAuditLogger(workspacePath);
     }
-
     private getManifest(trackId: string): PermissionManifest | null {
         const manifestPath = path.join(this.workspacePath, 'superconductor', 'tracks', trackId, 'permission-manifest.toml');
-        // A minimal implementation for the test / Phase 2, in real world we'd parse TOML
-        return null;
+        const parser = new PermissionManifestParser(manifestPath);
+        return parser.read();
     }
 
     async intercept(toolName: string, args: any, manifest?: PermissionManifest): Promise<{ allowed: boolean, reason?: string }> {
@@ -32,8 +32,11 @@ export class ToolCallInterceptor {
                 return { allowed: false, reason: 'Security: Modification of yolo-audit.log is strictly prohibited' };
             }
         }
-        if (toolName === 'run_command' && args?.command?.includes('yolo-audit.log')) {
-            return { allowed: false, reason: 'Security: Shell access to yolo-audit.log is strictly prohibited' };
+        if (toolName === 'run_command') {
+            const cmd = args?.command || args?.CommandLine || '';
+            if (cmd.includes('yolo-audit.log') || cmd.includes('superconductor/logs')) {
+                return { allowed: false, reason: 'Security: Shell access to yolo-audit.log or logs directory is strictly prohibited' };
+            }
         }
 
         const state = this.stateManager.detectCurrentState();
@@ -43,6 +46,12 @@ export class ToolCallInterceptor {
                 const targetFile = args?.path || args?.TargetFile || '';
                 if (targetFile.includes('/superconductor/tracks.md') || targetFile.includes('permission-manifest.toml')) {
                     return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify tracks.md or permission-manifest.toml' };
+                }
+            }
+            if (toolName === 'run_command') {
+                const cmd = args?.command || args?.CommandLine || '';
+                if (cmd.includes('tracks.md') || cmd.includes('permission-manifest.toml') || cmd.includes('superconductor/')) {
+                    return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files via shell' };
                 }
             }
             return { allowed: true };
@@ -67,6 +76,10 @@ export class ToolCallInterceptor {
                     const choice = await this.overrideHandler.handleBlockedCall(toolName, args);
                     if (choice === 'allow_once' || choice === 'allow_track' || choice === 'yolo_session') {
                         isPermitted = true;
+                        if (choice === 'allow_once') {
+                            const argsHash = this.policyEngine.hashString(JSON.stringify(args));
+                            this.policyEngine.clearEphemeralAllow(toolName, argsHash);
+                        }
                     }
                 }
                 

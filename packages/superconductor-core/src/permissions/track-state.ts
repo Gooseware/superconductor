@@ -59,8 +59,8 @@ export class TrackStateManager {
         if (flags.yolo && flags.persistent) {
           this.isYolo = true;
         }
-      } catch (e) {
-        // ignore
+      } catch (e: any) {
+        console.error(`[Superconductor] Failed to load session flags: ${e.message}`);
       }
     }
   }

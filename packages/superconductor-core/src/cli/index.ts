@@ -147,8 +147,8 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
           process.exit(1);
         }
       } else {
-        // Just run in memory for this invocation (or whatever it is meant to do)
-        console.log('✅ YOLO mode activated for this session.');
+        console.error('❌ YOLO mode requires --persist to be activated via CLI, otherwise it has no effect on subsequent agent commands.');
+        process.exit(1);
       }
       break;
     }

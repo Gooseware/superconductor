@@ -94,13 +94,14 @@ describe('InlineOverrideHandler', () => {
 
     it('should handle "YOLO (Session)" and activate YOLO state', async () => {
         askUserMock.mockResolvedValue('yolo_session');
-        
+        // Mock setYolo
+        (stateManager.setYolo as any) = vi.fn();
+
         const args = { command: 'lsusb' };
-        const result = await handler.handleBlockedCall('run_shell_command', args);
-        
-        expect(result).toBe('yolo_session');
-        expect(stateManager.activateYoloMode).toHaveBeenCalledWith(false); // not persistent
-        expect(auditLogger.logOverride).toHaveBeenCalledWith('yolo_session', 'run_shell_command', args);
+        const choice = await handler.handleBlockedCall('danger_tool', { a: 1 });
+        expect(choice).toBe('yolo_session');
+        expect(stateManager.setYolo).toHaveBeenCalledWith(true); // not persistent
+        expect(auditLogger.logOverride).toHaveBeenCalledWith('yolo_session', 'danger_tool', { a: 1 });
     });
 
     it('should handle "Deny" and log the deny event', async () => {

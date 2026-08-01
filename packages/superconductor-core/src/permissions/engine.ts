@@ -1,5 +1,6 @@
 import { TrackStateManager } from './track-state.js';
 import { PermissionManifest } from './schemas.js';
+import * as path from 'path';
 
 export class PolicyEngine {
   private stateManager: TrackStateManager;
@@ -51,14 +52,19 @@ export class PolicyEngine {
 
       const caps = this.activeManifest.capabilities;
 
-      if (toolName === 'run_shell_command') {
-        const cmd = args.command as string || '';
+      if (toolName === 'run_command') {
+        const cmd = args.CommandLine || args.command || '';
         
         // Check arbitrary shell
         if (caps.arbitrary_shell) return true;
 
+        // Block shell metacharacters if arbitrary shell is not granted
+        if (/[;|&$()<>\n]/.test(cmd)) {
+          return false;
+        }
+
         // Check usb_access
-        if (cmd.includes('lsusb') || cmd.includes('udevadm')) {
+        if (/(^|\s)lsusb(\s|$)/.test(cmd) || /(^|\s)udevadm(\s|$)/.test(cmd)) {
           return caps.usb_access;
         }
 
@@ -76,18 +82,17 @@ export class PolicyEngine {
         return caps.network_unrestricted;
       }
       
-      if (toolName === 'write_to_file' || toolName === 'replace_file_content') {
+      if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
          // Check fs_outside_root if path is outside workspace
-         // Assuming absolute paths are provided in args.TargetFile or similar.
-         // This is a simplified check.
-         const targetFile = args.TargetFile || args.AbsolutePath || '';
-         if (targetFile.includes('..') || targetFile.startsWith('/tmp')) {
+         const targetFile = args.TargetFile || args.AbsolutePath || args.path || '';
+         const resolvedPath = path.resolve(targetFile);
+         if (!resolvedPath.startsWith(this.stateManager['workspacePath'])) {
            return caps.fs_outside_root;
          }
       }
 
-      // Default allow for tools that don't hit restricted capabilities
-      return true;
+      // Default deny for unhandled tools to ensure strictly-scoped access
+      return false;
     }
 
     return false;
