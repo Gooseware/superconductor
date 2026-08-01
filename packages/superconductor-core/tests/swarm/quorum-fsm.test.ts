@@ -12,16 +12,10 @@ vi.mock('node:fs', () => ({
     renameSync: vi.fn()
 }));
 
-vi.mock('node:child_process', () => ({
-    execFile: vi.fn()
-}));
-
-vi.mock('node:util', async (importOriginal) => {
-    const actual = await importOriginal<any>();
-    return {
-        ...actual,
-        promisify: (fn: any) => fn
-    };
+vi.mock('node:child_process', () => {
+    const execFile = vi.fn();
+    (execFile as any)[Symbol.for('nodejs.util.promisify.custom')] = vi.fn();
+    return { execFile };
 });
 
 import { QuorumFSM } from '../../../../scripts/quorum-review';
@@ -33,7 +27,7 @@ describe('QuorumFSM', () => {
 
     it('should transition through states and approve if no findings', async () => {
         // @ts-ignore
-        child_process.execFile.mockResolvedValue({ stdout: 'No errors' });
+        child_process.execFile[Symbol.for('nodejs.util.promisify.custom')].mockResolvedValue({ stdout: 'No errors', stderr: '' });
         
         const fsm = new QuorumFSM('test.ts');
         const res = await fsm.run(); console.log('res is:', res);
@@ -46,7 +40,7 @@ describe('QuorumFSM', () => {
     it('should deduplicate findings and reject if matches verbatim', async () => {
         // Mock with finding
         // @ts-ignore
-        child_process.execFile.mockResolvedValue({ stdout: '{"findings":["some error"]}' });
+        child_process.execFile[Symbol.for('nodejs.util.promisify.custom')].mockResolvedValue({ stdout: '{"findings":["some error"]}', stderr: '' });
 
         const fsm = new QuorumFSM('test.ts');
         fsm.stateData.history = ['some error']; // Already in history
@@ -59,14 +53,23 @@ describe('QuorumFSM', () => {
 
     it('should require human intervention after MAX_QUORUM_LOOPS', async () => {
         // @ts-ignore
-        child_process.execFile.mockResolvedValue({ stdout: '{"findings":["new error"]}' });
+        let loopCount = 0;
+        child_process.execFile[Symbol.for('nodejs.util.promisify.custom')].mockImplementation(async () => {
+            loopCount++;
+            return { stdout: `{"findings":["new error ${loopCount}"]}`, stderr: '' };
+        });
 
         const fsm = new QuorumFSM('test.ts');
-        fsm.stateData.loops = 2; // Next one will be 3
         
-        const res = await fsm.run();
+        const res1 = await fsm.run();
+        expect(res1.status).toBe('REMEDIATION_REQUIRED');
+
+        const res2 = await fsm.run();
+        expect(res2.status).toBe('REMEDIATION_REQUIRED');
+
+        const res3 = await fsm.run();
         
-        expect(res.status).toBe('REQUIRES_HUMAN_INTERVENTION');
+        expect(res3.status).toBe('REQUIRES_HUMAN_INTERVENTION');
         expect(fsm.stateData.state).toBe('REQUIRES_HUMAN_INTERVENTION');
     });
 });
