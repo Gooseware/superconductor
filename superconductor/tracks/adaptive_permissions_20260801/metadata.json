@@ -1,0 +1,25 @@
+{
+  "track_id": "adaptive_permissions_20260801",
+  "title": "Adaptive Permission System",
+  "type": "Feature",
+  "status": "pending",
+  "created_at": "2026-08-01T05:18:00+04:00",
+  "updated_at": "2026-08-01T05:18:00+04:00",
+  "target_branch": "main",
+  "branch": "track/adaptive_permissions_20260801",
+  "description": "Implements an Adaptive Permission State Machine that removes all restrictions in IDLE mode (no active track), auto-infers scoped permissions per track via permission-manifest.toml, and provides a YOLO mode with full audit trail for unrestricted developer access.",
+  "phases": [
+    "Phase 0: Swarm Preflight",
+    "Phase 1: Permission State Machine Core",
+    "Phase 2: IDLE Mode",
+    "Phase 3: YOLO Mode",
+    "Phase 4: Planner Permission Inference",
+    "Phase 5: Per-Blocker Inline Override",
+    "Phase 6: Integration & Finalization"
+  ],
+  "capabilities_required": [
+    "fs_write",
+    "shell_commands",
+    "git"
+  ]
+}

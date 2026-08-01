@@ -11,3 +11,4 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] [Scripted Swarm Orchestrator](./tracks/scripted_swarm_orchestrator/index.md) (COMPLETED (merged b6ffbed))
 - [x] [Gemini API Deep Research](./tracks/gemini_api_deep_research_20260728/index.md)
 - [ ] [Orchestrator Hardening & Quorum Integrity](./tracks/orchestrator_hardening_20260729/index.md)
+- [ ] [Adaptive Permission System](./tracks/adaptive_permissions_20260801/index.md)
