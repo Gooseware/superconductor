@@ -75,7 +75,7 @@ export class QuorumFSM {
             // Dispatch reviewers in parallel
             const reviewers = ['correctness-reviewer', 'security-reviewer', 'adversarial-reviewer'];
             const results = await Promise.allSettled(reviewers.map(reviewer => 
-                execFileAsync('antigravity', ['--skill', reviewer, '--file', '--', this.targetFile])
+                execFileAsync('antigravity', ['--skill', reviewer, '--file', this.targetFile])
             ));
 
             let allFindings: string[] = [];
@@ -84,7 +84,10 @@ export class QuorumFSM {
                 if (result.status === 'fulfilled') {
                     const output = result.value.stdout;
                     const lines = output.split('\n').map((l: string) => l.trim());
-                    const approved = lines.some((l: string) => /^APPROVED:\s*NO\s+FINDINGS$/i.test(l));
+                    const hasApprovalLine = lines.some((l: string) => /^APPROVED:\s*NO\s+FINDINGS$/i.test(l));
+                    const findingsBlock = output.match(/```json:review-findings([\s\S]*?)```/);
+                    const hasFindings = findingsBlock && findingsBlock[1].trim() !== '[]' && findingsBlock[1].trim() !== '';
+                    const approved = hasApprovalLine && !hasFindings;
                     if (approved) {
                         // 0 findings, valid pass
                         continue;
@@ -165,14 +168,13 @@ export class QuorumFSM {
             const remResults = await Promise.allSettled(remediationPromises);
             for (const res of remResults) {
                 if (res.status === 'rejected') {
-                    console.error('Remediator rejected:', res.reason);
                     this.transition('REQUIRES_HUMAN_INTERVENTION');
-                    return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'Remediator rejected: ' + (res.reason?.message || 'unknown error') };
-                } else {
-                    const output = (res.value as any)?.stdout ?? '';
-                    if ((res.value as any)?.exitCode !== 0 || output.includes('ERROR') || output.includes('FAILED')) {
-                        console.warn('Remediator warning:', output);
-                    }
+                    return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'Remediator process rejected', error: String(res.reason) };
+                }
+                const output = ((res.value as any)?.stdout ?? '') + ((res.value as any)?.stderr ?? '');
+                if (((res.value as any)?.exitCode ?? (res.value as any)?.code ?? 0) !== 0 || /ERROR|FAILED/i.test(output)) {
+                    this.transition('REQUIRES_HUMAN_INTERVENTION');
+                    return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'Remediator reported failure', output: output.slice(0, 500) };
                 }
             }
             
@@ -186,9 +188,12 @@ export class QuorumFSM {
 }
 
 function validateTargetFile(input: string): string {
-  const resolved = path.resolve(input);
+  const trimmed = input.trim();
+  const resolved = path.resolve(trimmed);
+  if (trimmed.startsWith('-') || path.basename(resolved).trimStart().startsWith('-')) {
+    throw new Error(`Invalid target file: argument injection risk in "${input}"`);
+  }
   if (!fs.existsSync(resolved)) throw new Error(`Target file not found: ${resolved}`);
-  if (path.basename(resolved).startsWith('-')) throw new Error(`Invalid target file name: ${resolved}`);
   return resolved;
 }
 
