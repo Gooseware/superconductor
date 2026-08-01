@@ -67,6 +67,13 @@ describe('Permissions E2E Integration', () => {
         
         const auditLogSpy = vi.spyOn(auditLogger, 'logToolCall');
 
+        // Verify native allow for safe workspace tools WITHOUT triggering the prompt
+        let safeResult = await interceptor.intercept('write_file', { TargetFile: '/workspace/safe.txt' }, manifest);
+        expect(safeResult.allowed).toBe(true);
+        safeResult = await interceptor.intercept('view_file', { AbsolutePath: '/workspace/safe2.txt' }, manifest);
+        expect(safeResult.allowed).toBe(true);
+
+
         // 3. Per-blocker override: run_command is blocked, prompt returns 'Allow Once'
         // InlineOverrideHandler actually checks the prompt string. It might map 'Allow Once' to 'allow_once'
         // Wait, what does askUserImpl return?

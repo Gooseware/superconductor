@@ -82,13 +82,14 @@ export class PolicyEngine {
         return caps.network_unrestricted;
       }
       
-      if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+      if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'view_file' || toolName === 'list_dir' || toolName === 'grep_search') {
          // Check fs_outside_root if path is outside workspace
-         const targetFile = args.TargetFile || args.AbsolutePath || args.path || '';
+         const targetFile = args.TargetFile || args.AbsolutePath || args.path || args.DirectoryPath || args.SearchPath || '';
          const resolvedPath = path.resolve(targetFile);
          if (!resolvedPath.startsWith(this.stateManager['workspacePath'])) {
            return caps.fs_outside_root;
          }
+         return true; // Path is safely inside workspace
       }
 
       // Default deny for unhandled tools to ensure strictly-scoped access

@@ -1,1 +1,7 @@
-[]
+[
+  {
+    "source": "packages/foo/src/index.ts",
+    "deps": [],
+    "file": "packages/foo/src/index.ts"
+  }
+]

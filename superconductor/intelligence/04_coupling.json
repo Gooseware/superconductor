@@ -12174,5 +12174,13 @@
   {
     "file": "0333d1e9759e7c10d10c8d5fd0f834c87a812cc2",
     "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/incremental-updater.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/intelligence/incremental-updater.test.ts",
+    "churn": 1
   }
 ]

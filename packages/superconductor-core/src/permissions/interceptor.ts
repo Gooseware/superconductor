@@ -28,13 +28,14 @@ export class ToolCallInterceptor {
         // Global block against modifying yolo-audit.log
         if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
             const targetFile = args?.path || args?.TargetFile || '';
-            if (targetFile.includes('yolo-audit.log')) {
+            const resolved = path.resolve(targetFile);
+            if (resolved.endsWith('yolo-audit.log')) {
                 return { allowed: false, reason: 'Security: Modification of yolo-audit.log is strictly prohibited' };
             }
         }
         if (toolName === 'run_command') {
             const cmd = args?.command || args?.CommandLine || '';
-            if (cmd.includes('yolo-audit.log') || cmd.includes('superconductor/logs')) {
+            if (cmd.includes('yolo-audit.log') || cmd.includes('superconductor/logs') || /yolo-audit/.test(cmd) || /logs?\*/.test(cmd)) {
                 return { allowed: false, reason: 'Security: Shell access to yolo-audit.log or logs directory is strictly prohibited' };
             }
         }
@@ -44,13 +45,20 @@ export class ToolCallInterceptor {
         if (state === 'IDLE') {
             if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
                 const targetFile = args?.path || args?.TargetFile || '';
-                if (targetFile.includes('/superconductor/tracks.md') || targetFile.includes('permission-manifest.toml')) {
+                const resolved = path.resolve(targetFile);
+                if (
+                    resolved.endsWith(path.join('superconductor', 'tracks.md')) || 
+                    resolved.endsWith('permission-manifest.toml') ||
+                    resolved.includes(path.join('.gemini', 'plugins', 'superconductor', 'skills'))
+                ) {
                     return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify tracks.md or permission-manifest.toml' };
                 }
             }
             if (toolName === 'run_command') {
                 const cmd = args?.command || args?.CommandLine || '';
-                if (cmd.includes('tracks.md') || cmd.includes('permission-manifest.toml') || cmd.includes('superconductor/')) {
+                // For shell commands we cannot perfectly resolve paths, but we must block typical bypasses
+                // This is a defense in depth since the shell can use 'cd' etc.
+                if (cmd.includes('tracks.md') || cmd.includes('permission-manifest.toml') || cmd.includes('superconductor')) {
                     return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files via shell' };
                 }
             }

@@ -41,7 +41,7 @@ export async function runDependencySurface(projectRoot: string, outputDir: strin
     try {
       return fs.readFileSync(filePath, 'utf8');
     } catch (e) {
-      console.warn(`Failed to read file ${filePath}`, e);
+      console.warn(`Failed to read file ${filePath}`, e instanceof Error ? e.message : String(e));
       return '';
     }
   });
