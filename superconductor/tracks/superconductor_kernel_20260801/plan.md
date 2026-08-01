@@ -109,10 +109,10 @@
     - [ ] Collect `APPROVED` / `NEEDS FIXES` responses from all reviewers
     - [ ] Transition to `REMEDIATION_REQUIRED` if ANY reviewer returns `NEEDS FIXES`
     - [ ] Transition to `APPROVED` only when ALL reviewers return `APPROVED`
-- [ ] Task: Implement parallel remediator dispatch [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Group findings by domain (file prefix + category)
-    - [ ] Dispatch ONE remediator per domain group in parallel
-    - [ ] Wait for all remediators to complete before re-entering `REVIEW_PENDING`
+- [x] Task: Implement parallel remediator dispatch [TIER-3] [AGENT:superconductor-processor]
+    - [x] Group findings by domain (file prefix + category)
+    - [x] Dispatch ONE remediator per domain group in parallel
+    - [x] Wait for all remediators to complete before re-entering `REVIEW_PENDING`
 - [ ] Task: Implement escalation and human intervention state [TIER-2] [AGENT:superconductor-processor]
     - [ ] On `MAX_QUORUM_LOOPS` exceeded: write `REQUIRES_HUMAN_INTERVENTION` to `quorum-state.json`
     - [ ] Emit clear user-facing message with loop history and unresolved findings
