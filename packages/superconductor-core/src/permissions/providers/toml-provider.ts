@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { parse, stringify } from 'smol-toml';
-import { PermissionManifest, PermissionManifestSchema, CapabilityFlags } from '../schemas';
+import { PermissionManifest, PermissionManifestSchema, CapabilityFlags } from '../schemas.js';
 
 export class PermissionManifestParser {
   private filePath: string;

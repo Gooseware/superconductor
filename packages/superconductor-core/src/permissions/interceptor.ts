@@ -1,6 +1,6 @@
-import { TrackStateManager } from './track-state';
-import { PolicyEngine } from './engine';
-import { PermissionManifest, PermissionState } from './schemas';
+import { TrackStateManager } from './track-state.js';
+import { PolicyEngine } from './engine.js';
+import { PermissionManifest, PermissionState } from './schemas.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,7 +27,9 @@ export class ToolCallInterceptor {
         if (state === 'TRACKED') {
             const trackId = this.stateManager.getActiveTrackId();
             if (manifest) {
-                return this.policyEngine.evaluate(toolName, args, manifest);
+                this.policyEngine.setActiveManifest(manifest);
+                const isPermitted = this.policyEngine.isToolCallPermitted(toolName, args);
+                return { allowed: isPermitted };
             }
         }
 

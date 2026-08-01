@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { PermissionState } from './schemas';
+import { PermissionState } from './schemas.js';
 
 export class TrackStateManager {
   private workspacePath: string;

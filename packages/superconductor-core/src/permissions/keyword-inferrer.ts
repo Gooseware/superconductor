@@ -1,4 +1,4 @@
-import { CapabilityFlags } from './schemas';
+import { CapabilityFlags } from './schemas.js';
 
 export class KeywordPermissionInferrer {
   private static readonly KEYWORDS = {

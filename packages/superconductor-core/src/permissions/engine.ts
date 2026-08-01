@@ -1,5 +1,5 @@
-import { TrackStateManager } from './track-state';
-import { PermissionManifest } from './schemas';
+import { TrackStateManager } from './track-state.js';
+import { PermissionManifest } from './schemas.js';
 
 export class PolicyEngine {
   private stateManager: TrackStateManager;
@@ -64,7 +64,7 @@ export class PolicyEngine {
 
         // Check allowlist shell_prefixes
         const allowedPrefixes = this.activeManifest.allowlist?.shell_prefixes || [];
-        if (allowedPrefixes.some(prefix => cmd.startsWith(prefix))) {
+        if (allowedPrefixes.some((prefix: string) => cmd.startsWith(prefix))) {
           return true;
         }
 

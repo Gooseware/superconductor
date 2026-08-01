@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { SessionFlags, SessionFlagsSchema } from '../schemas';
+import { SessionFlags, SessionFlagsSchema } from '../schemas.js';
 
 export class SessionProvider {
   private filePath: string;

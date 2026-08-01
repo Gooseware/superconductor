@@ -162,6 +162,39 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'infer-permissions': {
+      const { KeywordPermissionInferrer } = await import('../permissions/keyword-inferrer.js');
+      const specPath = args[1];
+      const outPath = args[2];
+      if (!specPath || !outPath) {
+        console.error('Usage: superconductor infer-permissions <spec.md path> <out manifest.toml path>');
+        process.exit(1);
+      }
+      const specText = fs.readFileSync(specPath, 'utf8');
+      const capabilities = KeywordPermissionInferrer.inferCapabilities(specText);
+      const toml = [
+        '[meta]',
+        `track_id = "${path.basename(path.dirname(outPath))}"`,
+        `generated_at = "${new Date().toISOString()}"`,
+        `inferred_by = "auto"`,
+        '',
+        '[capabilities]',
+        `usb_access = ${capabilities.usb_access}`,
+        `arbitrary_shell = ${capabilities.arbitrary_shell}`,
+        `network_unrestricted = ${capabilities.network_unrestricted}`,
+        `fs_outside_root = ${capabilities.fs_outside_root}`,
+        `persistent = false`,
+        '',
+        '[allowlist]',
+        'shell_prefixes = []',
+        'domains = []',
+        'paths = []'
+      ].join('\n');
+      fs.writeFileSync(outPath, toml, 'utf8');
+      console.log(`✅ Inferred permissions written to ${outPath}`);
+      break;
+    }
+
     default:
       console.log(`Superconductor Universal CLI
 
@@ -171,6 +204,7 @@ Usage:
   npx superconductor review [--staged|--branch <b>|--pr <url>]
   npx superconductor setup [--reset-registry]
   npx superconductor intelligence [--brownfield] [--target <path>]
+  npx superconductor infer-permissions <spec.md path> <out manifest.toml path>
 `);
       process.exit(1);
   }
