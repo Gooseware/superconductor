@@ -884,7 +884,7 @@
     "churnCount": 2
   },
   {
-    "file": "packages/design-os-kernel",
+    "file": "packages/superconductor-kernel",
     "churnCount": 2
   },
   {
@@ -1876,19 +1876,19 @@
     "churnCount": 1
   },
   {
-    "file": "skills/design-os-kernel-setup/SKILL.md",
+    "file": "skills/superconductor-kernel-setup/SKILL.md",
     "churnCount": 1
   },
   {
-    "file": "skills/design-os-kernel-dogma/SKILL.md",
+    "file": "skills/superconductor-kernel-dogma/SKILL.md",
     "churnCount": 1
   },
   {
-    "file": "skills/design-os-kernel-dogma.skill",
+    "file": "skills/superconductor-kernel-dogma.skill",
     "churnCount": 1
   },
   {
-    "file": "skills/design-os-kernel-dogma/references/dogma.md",
+    "file": "skills/superconductor-kernel-dogma/references/dogma.md",
     "churnCount": 1
   },
   {

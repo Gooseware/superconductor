@@ -1,7 +1,7 @@
 # Specification: Kernel Tool Synchronization in Oracle Fix Loop
 
 ## Overview
-Enhance the Oracle Code Review Loop to automatically identify when a modified tool was originally installed from the `design-os-kernel`. It must then classify the modification (Enhancement vs. Breaking Change) and propose a synchronization update back to the kernel registry.
+Enhance the Oracle Code Review Loop to automatically identify when a modified tool was originally installed from the `superconductor-kernel`. It must then classify the modification (Enhancement vs. Breaking Change) and propose a synchronization update back to the kernel registry.
 
 ## Functional Requirements
 1. **Origin Detection (Script-Based):** 
@@ -19,7 +19,7 @@ Enhance the Oracle Code Review Loop to automatically identify when a modified to
    - **Timing:** The "Sync to Kernel" proposal MUST only be presented after the local tests for the modification have passed.
 
 4. **Synchronization Proposal:**
-   - If approved by the user during the "Auto-Fix Loop" (after successful local verification), use `mcp_design-os-kernel_registry_propose_publish` to push the update with the suggested version increment.
+   - If approved by the user during the "Auto-Fix Loop" (after successful local verification), use `mcp_superconductor-kernel_registry_propose_publish` to push the update with the suggested version increment.
 
 ## Non-Functional Requirements
 - **Efficiency:** Use localized scripts for parsing to preserve context window space.

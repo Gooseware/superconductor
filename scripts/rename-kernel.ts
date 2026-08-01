@@ -25,19 +25,21 @@ function updateFile(filePath: string, updater: (content: string) => string) {
   }
 }
 
-function walkAndReplace(dirPath: string, replacements: {from: RegExp, to: string}[]) {
+function walkAndReplace(dirPath: string, replacements: {from: RegExp|string, to: string}[]) {
   if (!fs.existsSync(dirPath)) return;
   const files = fs.readdirSync(dirPath);
   for (const file of files) {
+    if (file === 'node_modules' || file === '.git' || file === 'dist' || file === '.vite') continue;
+    
     const fullPath = path.join(dirPath, file);
     const stat = fs.statSync(fullPath);
     if (stat.isDirectory()) {
       walkAndReplace(fullPath, replacements);
-    } else if (file.endsWith('.md')) {
+    } else {
       updateFile(fullPath, content => {
         let newContent = content;
         for (const {from, to} of replacements) {
-          newContent = newContent.replace(from, to);
+          newContent = newContent.replaceAll(from, to);
         }
         return newContent;
       });
@@ -72,29 +74,12 @@ function main() {
   });
 
   const replacements = [
-    { from: /@design-os\/mcp-server/g, to: '@superconductor/kernel' },
-    { from: /design-os-kernel/g, to: 'superconductor-kernel' }
+    { from: '@design-os/mcp-server', to: '@superconductor/kernel' },
+    { from: 'design-os-kernel', to: 'superconductor-kernel' }
   ];
 
-  updateFile(path.join(workspaceRoot, 'mcp_config.json'), content => {
-    let newContent = content;
-    for (const {from, to} of replacements) {
-      newContent = newContent.replace(from, to);
-    }
-    return newContent;
-  });
-
-  updateFile(path.join(workspaceRoot, 'GEMINI.md'), content => {
-    let newContent = content;
-    for (const {from, to} of replacements) {
-      newContent = newContent.replace(from, to);
-    }
-    return newContent;
-  });
-  
-  const homeDir = process.env.HOME || require('os').homedir();
-  const pluginDir = path.join(homeDir, '.gemini', 'config', 'plugins', 'design-os-kernel');
-  walkAndReplace(pluginDir, replacements);
+  // Update all tracked files, this ensures no grep matches are left
+  walkAndReplace(workspaceRoot, replacements);
 }
 
 main();

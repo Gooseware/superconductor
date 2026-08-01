@@ -5,7 +5,7 @@
 2. **Determine Mode**: Prompt user with recommended skills or hand-pick option.
 3. **Installation Action**: Download 1p / 3p skills to `.agents/skills/<skill-name>/` or `~/.agents/extensions/superconductor/skills/<skill-name>/`.
 4. **Skill Reload Confirmation**: Instruct user to run `/skills reload`.
-5. **Configure Design OS MCP Server**: Configure `mcp_config.json` to point `design-os-kernel` to component repository URL.
+5. **Configure Design OS MCP Server**: Configure `mcp_config.json` to point `superconductor-kernel` to component repository URL.
 
 ---
 

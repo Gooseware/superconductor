@@ -452,7 +452,7 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 
 ### 2.6 Select Skills & Design OS MCP Configuration (Interactive)
 1. **Analyze and Recommend**: Read `skills/catalog.md` from `~/.gemini/extensions/superconductor/skills/catalog.md`. Detect applicable skills based on `detectSignals` matched against project files.
-2. **Installation & MCP Server Setup**: Prompt user to select/install skills and configure `design-os-kernel` database repository in `mcp_config.json`.
+2. **Installation & MCP Server Setup**: Prompt user to select/install skills and configure `superconductor-kernel` database repository in `mcp_config.json`.
 3. **Reference Protocol**: Detailed step-by-step instructions are available in [references/setup-protocol.md#2.6-advanced-skill-selection--design-os-mcp-configuration](./references/setup-protocol.md).
 
 ### 2.7 Finalization

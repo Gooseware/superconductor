@@ -91,7 +91,7 @@
 - [x] Task: Implement `ComponentStagingWriter` in Superconductor [20329e7] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: manifest written to `~/.caduceus/staging/`; write is atomic (write-then-rename); fire-and-forget (does not block caller); validates against `ComponentStagingManifest` schema before write.
     - [ ] Implement `ComponentStagingWriter.write(payload: ComponentStagingManifest): Promise<void>` — creates `~/.caduceus/staging/` if missing (with `0700` perms); writes JSON atomically.
-    - [ ] Integrate into Superconductor workflow's Registry Inclusion Analysis (Step 2.1 of Phase Completion Protocol) as the primary `RegistryClientRouter` route, falling back to `design-os-kernel` MCP if `~/.caduceus/staging/` not accessible.
+    - [ ] Integrate into Superconductor workflow's Registry Inclusion Analysis (Step 2.1 of Phase Completion Protocol) as the primary `RegistryClientRouter` route, falling back to `superconductor-kernel` MCP if `~/.caduceus/staging/` not accessible.
 - [x] Task: Implement `StagingWatcher` in Caduceus MCP server [9d6119a] [TIER-3] [AGENT:caduceus-processor]
     - [ ] Write unit tests: watcher ingests new `.json` files; validates schema (rejects corrupt JSON); on success moves to `processed/`; on failure moves to `failed/` with error annotation; 60s poll interval correct.
     - [ ] Implement `StagingWatcher` class: polls `~/.caduceus/staging/` on startup and every 60 seconds; validates `ComponentStagingManifest` schema; ingests via Knowledge Graph API (new component node + edges to track and session); moves to `~/.caduceus/staging/processed/` on success, `~/.caduceus/staging/failed/` on error.

@@ -1,6 +1,6 @@
 # Design OS Kernel Dogma
 
-This document defines the core standards for components included in the `design-os-kernel`.
+This document defines the core standards for components included in the `superconductor-kernel`.
 
 ## Export Requirements
 - Components MUST be exported using named exports.

@@ -8,8 +8,8 @@
 
 ## Phase 1: Design OS Kernel Enhancements & Commenting
 - [x] Task: Setup the testing and development context within the `/home/gooseware/repos/hippos/design_os` repository. 5d3ae00
-- [x] Task: Implement a new MCP tool (e.g., `publish_vetted_component`) in `design-os-kernel` that accepts the `ComponentPayload`. 85ea8d4
-- [x] Task: Implement a commenting system within `design-os-kernel` to store and retrieve comments in component metadata files or a centralized JSON registry. 85ea8d4
+- [x] Task: Implement a new MCP tool (e.g., `publish_vetted_component`) in `superconductor-kernel` that accepts the `ComponentPayload`. 85ea8d4
+- [x] Task: Implement a commenting system within `superconductor-kernel` to store and retrieve comments in component metadata files or a centralized JSON registry. 85ea8d4
 - [x] Task: Integrate the atomic Git utility within the MCP tools to ensure the centralized registry stays continuously synced. 85ea8d4
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Design OS Kernel Enhancements & Commenting' (Protocol in workflow.md)
 

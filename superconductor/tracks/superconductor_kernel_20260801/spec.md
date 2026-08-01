@@ -9,7 +9,7 @@
 
 ## Overview
 
-This track delivers the **Superconductor Kernel** — a unified runtime package that absorbs the existing `design-os-kernel` MCP server, integrates Graphify-based code intelligence, and implements a deterministic quorum FSM that removes the need for human intervention in the swarm review loop.
+This track delivers the **Superconductor Kernel** — a unified runtime package that absorbs the existing `superconductor-kernel` MCP server, integrates Graphify-based code intelligence, and implements a deterministic quorum FSM that removes the need for human intervention in the swarm review loop.
 
 It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` track.
 
@@ -23,7 +23,7 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 ## Architecture Committee Recommendations
 
 ### Dreamer (Architecture)
-1. Rename `packages/design-os-kernel` → `packages/superconductor-kernel` (`@superconductor/kernel`). Keep all 14 Design OS MCP tools; group new Superconductor tools under a `kernel_` prefix to prevent namespace collision.
+1. Rename `packages/superconductor-kernel` → `packages/superconductor-kernel` (`@superconductor/kernel`). Keep all 14 Design OS MCP tools; group new Superconductor tools under a `kernel_` prefix to prevent namespace collision.
 2. Graphify integration as a **batch subprocess**: invoke `graphify .` during the intelligence pipeline scan, cache resulting `graph.json` in memory (or SQLite for large repos). Serve graph queries from TS — no always-on Python daemon.
 3. Quorum FSM as a deterministic state machine in `scripts/quorum-review.ts`: `IDLE → REVIEW_PENDING → ANALYSIS → REMEDIATION_REQUIRED → APPROVED / FAILED`. Max 3 remediation loops before escalation to `REQUIRES_HUMAN_INTERVENTION`.
 4. New kernel MCP tools: `kernel_graph_get_node`, `kernel_graph_get_neighbors`, `kernel_graph_shortest_path`, `kernel_intelligence_get_hotspots`, `kernel_intelligence_get_dependency_graph`.
@@ -40,7 +40,7 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 ## Research Notes
 
 - **Graphify** (`graphifyy` on PyPI): Python 3.10+, tree-sitter-based AST analysis, ~40 languages. Produces `graph.json` with Symbol/File/Package nodes and `calls`, `imports`, `inherits`, `depends_on` edges. Leiden community detection for domain clustering. Centrality scoring for "God node" detection. Already compatible with `uv tool install graphifyy`.
-- **MCP SDK** (`@modelcontextprotocol/sdk`): already present in design-os-kernel. Superconductor-kernel will reuse the same server bootstrap pattern.
+- **MCP SDK** (`@modelcontextprotocol/sdk`): already present in superconductor-kernel. Superconductor-kernel will reuse the same server bootstrap pattern.
 - **Quorum FSM best practices**: finite max iterations with forced human escalation is standard in agentic CI/CD (similar to GitHub Actions retry limits). Deduplication check on findings prevents infinite "same finding" loops.
 - **Audit log integrity without OS privileges**: `fs.appendFile` + mode `0o600` + startup validation (crash if writable by others) is the standard Node.js pattern for append-only logs in constrained environments.
 
@@ -48,12 +48,12 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 
 ## Functional Requirements
 
-### FR-1: Package Rename — `design-os-kernel` → `superconductor-kernel`
-- **FR-1.1**: Directory renamed from `packages/design-os-kernel` to `packages/superconductor-kernel`
+### FR-1: Package Rename — `superconductor-kernel` → `superconductor-kernel`
+- **FR-1.1**: Directory renamed from `packages/superconductor-kernel` to `packages/superconductor-kernel`
 - **FR-1.2**: `package.json` name changed to `@superconductor/kernel`, version bumped to `2.0.0`
 - **FR-1.3**: Atomic codemod script updates all references: `mcp_config.json`, GEMINI.md, all skill `.md` files under `~/.gemini/config/plugins/`, and workspace `package.json` files
 - **FR-1.4**: All 14 existing Design OS MCP tools retained and functional post-rename
-- **FR-1.5**: MCP server identifier in AGY config updated from `design-os-kernel` to `superconductor-kernel`
+- **FR-1.5**: MCP server identifier in AGY config updated from `superconductor-kernel` to `superconductor-kernel`
 
 ### FR-2: Graphify Intelligence Integration
 - **FR-2.1**: `uv tool install graphifyy` verified during setup; tool presence added to `tool-registry.ts`
@@ -105,7 +105,7 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `packages/superconductor-kernel` exists; `packages/design-os-kernel` does not
+- [ ] AC-1: `packages/superconductor-kernel` exists; `packages/superconductor-kernel` does not
 - [ ] AC-2: All 14 Design OS MCP tools respond correctly under new server identifier `superconductor-kernel`
 - [ ] AC-3: `graphify .` runs successfully; `09_graphify_graph.json` is generated
 - [ ] AC-4: `domain-partitioner.ts` uses Leiden communities from graph (not directory names)
@@ -113,7 +113,7 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 - [ ] AC-6: FSM halts at `REQUIRES_HUMAN_INTERVENTION` after `MAX_QUORUM_LOOPS = 3`
 - [ ] AC-7: `YoloAuditLogger` startup crashes if file permissions cannot be enforced
 - [ ] AC-8: Root agent write to `packages/superconductor-kernel/src/index.ts` in TRACKED mode is blocked with the required error message
-- [ ] AC-9: Codemod script produces zero remaining references to `design-os-kernel` or `@design-os/mcp-server`
+- [ ] AC-9: Codemod script produces zero remaining references to `superconductor-kernel` or `@superconductor/kernel`
 - [ ] AC-10: `scripted_swarm_orchestrator` track is closed/archived (absorbed)
 - [ ] AC-11: All 438+ tests pass
 

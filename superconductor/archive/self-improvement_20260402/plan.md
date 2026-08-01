@@ -30,11 +30,11 @@ Implement the logic to automatically propose and execute tracks based on identif
 - [x] Task: Superconductor - User Manual Verification 'Phase 2: Error Identification & Healing' (Protocol in workflow.md) [0a1b2c3]
 
 ## Phase 3: Proactive Optimization & Kernel Integration
-Expand the agent's capabilities to optimize existing code and leverage `design-os-kernel`.
+Expand the agent's capabilities to optimize existing code and leverage `superconductor-kernel`.
 
-- [~] Task: Implement `design-os-kernel` component analysis.
+- [~] Task: Implement `superconductor-kernel` component analysis.
     - [ ] Scan the current application for potential component extractions.
-    - [ ] Propose improvements to existing `design-os-kernel` blocks.
+    - [ ] Propose improvements to existing `superconductor-kernel` blocks.
 - [ ] Task: Develop an "Internal YOLO Mode" with safeguards.
     - [ ] Implement the tirelessly working loop for continuous improvement.
     - [ ] Define and implement strict safeguards to prevent low-benefit tasks (e.g., cost/time limits).

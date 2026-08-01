@@ -1127,98 +1127,98 @@
     "hotspot_score": 0.6931471805599453
   },
   {
-    "file": "packages/design-os-kernel/src/services/DogmaService.test.ts",
+    "file": "packages/superconductor-kernel/src/services/DogmaService.test.ts",
     "cyclomatic_complexity": 1,
     "nloc": 4,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/SyncManager.ts",
+    "file": "packages/superconductor-kernel/src/services/SyncManager.ts",
     "cyclomatic_complexity": 6,
     "nloc": 20,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/ConfigService.ts",
+    "file": "packages/superconductor-kernel/src/services/ConfigService.ts",
     "cyclomatic_complexity": 5,
     "nloc": 18,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/AtomicGitService.test.ts",
+    "file": "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
     "cyclomatic_complexity": 1,
     "nloc": 1,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/AtomicGitService.ts",
+    "file": "packages/superconductor-kernel/src/services/AtomicGitService.ts",
     "cyclomatic_complexity": 3,
     "nloc": 14,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/CentralizedPublishService.test.ts",
+    "file": "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
     "cyclomatic_complexity": 1,
     "nloc": 5,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/InstallerService.ts",
+    "file": "packages/superconductor-kernel/src/services/InstallerService.ts",
     "cyclomatic_complexity": 20,
     "nloc": 59,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/GitService.ts",
+    "file": "packages/superconductor-kernel/src/services/GitService.ts",
     "cyclomatic_complexity": 7,
     "nloc": 23,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/DogmaService.ts",
+    "file": "packages/superconductor-kernel/src/services/DogmaService.ts",
     "cyclomatic_complexity": 13,
     "nloc": 29,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/CentralizedPublishService.ts",
+    "file": "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
     "cyclomatic_complexity": 15,
     "nloc": 49,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/PublishService.ts",
+    "file": "packages/superconductor-kernel/src/services/PublishService.ts",
     "cyclomatic_complexity": 12,
     "nloc": 38,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/services/RegistryService.ts",
+    "file": "packages/superconductor-kernel/src/services/RegistryService.ts",
     "cyclomatic_complexity": 15,
     "nloc": 55,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/templates/skeleton-primitives.ts",
+    "file": "packages/superconductor-kernel/src/templates/skeleton-primitives.ts",
     "cyclomatic_complexity": 2,
     "nloc": 10,
     "churnCount": 0,
     "hotspot_score": 0
   },
   {
-    "file": "packages/design-os-kernel/src/index.ts",
+    "file": "packages/superconductor-kernel/src/index.ts",
     "cyclomatic_complexity": 45,
     "nloc": 265,
     "churnCount": 0,

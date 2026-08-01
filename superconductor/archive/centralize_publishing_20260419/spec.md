@@ -1,15 +1,15 @@
 # Specification: Centralize Component Publishing to Design OS Kernel
 
 ## Overview
-Currently, the Superconductor system publishes newly created, vetted UI components to a project-local directory. This track updates Superconductor to use a centralized `design-os-kernel` MCP server located at `/home/gooseware/repos/hippos/design_os`. It also introduces a commenting system for components and migrates the local component database/registry into the centralized repository, enabling shared knowledge of vetted components via continuous Git syncs.
+Currently, the Superconductor system publishes newly created, vetted UI components to a project-local directory. This track updates Superconductor to use a centralized `superconductor-kernel` MCP server located at `/home/gooseware/repos/hippos/design_os`. It also introduces a commenting system for components and migrates the local component database/registry into the centralized repository, enabling shared knowledge of vetted components via continuous Git syncs.
 
 ## Functional Requirements
 1. **Centralized Publishing via MCP:**
    - Update Superconductor's Phase Completion Protocol and Oracle Code Review loops to stop writing component files directly to local project paths.
-   - Modify publication logic to invoke an MCP tool provided by `design-os-kernel` with the vetted file contents and associated metadata.
+   - Modify publication logic to invoke an MCP tool provided by `superconductor-kernel` with the vetted file contents and associated metadata.
 
 2. **Design OS Kernel Enhancements & Commenting System:**
-   - Add an MCP tool (e.g., `publish_vetted_component`) to `design-os-kernel` to receive, save, commit, and push new components to its repository.
+   - Add an MCP tool (e.g., `publish_vetted_component`) to `superconductor-kernel` to receive, save, commit, and push new components to its repository.
    - Implement a commenting system allowing users/agents to attach, retrieve, and store comments for specific components within the centralized registry (e.g., within component metadata files).
 
 3. **Database Migration & Registry Synchronization:**

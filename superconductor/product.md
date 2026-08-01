@@ -1,7 +1,7 @@
 # Product Definition
 
 ## Vision
-Superconductor is a Gemini CLI extension that enables **Context-Driven Development**, turning the Gemini CLI into a proactive project manager that follows a strict protocol to specify, plan, and implement software. It aims to supercharge the development lifecycle by incorporating "superpowers" and advanced tool use, such as the `design-os-kernel` MCP tool for vetted components and expert `code review` skills to ensure all code meets rigorous project standards.
+Superconductor is a Gemini CLI extension that enables **Context-Driven Development**, turning the Gemini CLI into a proactive project manager that follows a strict protocol to specify, plan, and implement software. It aims to supercharge the development lifecycle by incorporating "superpowers" and advanced tool use, such as the `superconductor-kernel` MCP tool for vetted components and expert `code review` skills to ensure all code meets rigorous project standards.
 
 ## Target Audience
 - **Individual Developers:** Those seeking a disciplined, high-quality workflow.
@@ -12,7 +12,7 @@ Superconductor is a Gemini CLI extension that enables **Context-Driven Developme
 1. **Enforce Lifecycle:** Ensure every task has a clear specification and plan before any code is written (**Context -> Spec & Plan -> Implement**).
 2. **Maintain Context:** Provide a shared source of truth for all agent interactions, ensuring consistent project awareness.
 3. **Safely Iterate:** Facilitate safe code changes through structured reviews, reverts, and manual verification steps.
-4. **Leverage Vetted Components:** Integrate with `design-os-kernel` to utilize a library of high-quality, pre-tested UI components and logic.
+4. **Leverage Vetted Components:** Integrate with `superconductor-kernel` to utilize a library of high-quality, pre-tested UI components and logic.
 5. **Token Economics & Routing:** Intelligently manage context size, tool surfaces, and model selection to optimize cost and performance, dynamically escalating to frontier models only when necessary.
 6. **Ensure Standards:** Use specialized code review skills and standardized tech stacks to maintain consistency across different projects and teams.
 7. **Production-Grade Verification:** Enforce rigorous code quality with automated property-based testing (PBT), mutation testing, and headless VLM visual auditing to eliminate AI self-validation bias.

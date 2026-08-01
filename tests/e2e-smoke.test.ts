@@ -21,7 +21,7 @@ console.log('Running Phase 5 & 7 E2E Integration & Backward Compatibility Suite.
       `## Findings\n` +
       `- None (Clean pass)\n\n` +
       `## Central Registry Candidate\n` +
-      `- No components recommended for design-os-kernel promotion.\n`;
+      `- No components recommended for superconductor-kernel promotion.\n`;
   }
 
   const legacyReport = mockMonolithicOracleAudit('sample diff', 'sample spec');

@@ -143,9 +143,9 @@ Agent skills that power the automated, structured planning and component generat
 - **Detection Signals**:
     - **Keywords**: `colors`, `typography`, `tokens`, `design system`
 
-### design-os-kernel-setup
+### superconductor-kernel-setup
 - **Description**: Setup, build, and verify the Design OS Kernel MCP server.
-- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/design-os-kernel-setup/
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/superconductor-kernel-setup/
 - **Party**: 1p
 - **Detection Signals**:
     - **Keywords**: `MCP server`, `kernel setup`, `kernel not connected`

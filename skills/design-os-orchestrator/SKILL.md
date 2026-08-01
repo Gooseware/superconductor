@@ -14,7 +14,7 @@ Acts as the central nervous system of Design OS, ensuring the user follows the s
 - When the user is confused about the process.
 
 ## The Planning Flow
-1. **Kernel Setup** (`design-os-kernel-setup`) -> Connection check.
+1. **Kernel Setup** (`superconductor-kernel-setup`) -> Connection check.
 2. **Vision** (`design-os-vision`) -> `product/product-overview.md`
 3. **Inspiration Study** (`design-os-inspiration`) -> `product/design-study.md`
 4. **Registry Selection** -> Ensure `design-os.config.json` specifies the component registries, running `registry_recommend` using the Vibe Synthesis from the Design Study.

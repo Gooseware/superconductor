@@ -16,7 +16,7 @@ async function main() {
     // We throw a clear error asking the runner to use MCP directly if fallback occurs.
     const router = new RegistryClientRouter({
       executor: () => {
-        throw new Error('DesignOS MCP executor not available in CLI process. Please run the MCP tool mcp_design-os-kernel_publish_vetted_component directly.');
+        throw new Error('DesignOS MCP executor not available in CLI process. Please run the MCP tool mcp_superconductor-kernel_publish_vetted_component directly.');
       }
     });
 

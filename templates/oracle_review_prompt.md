@@ -15,7 +15,7 @@ Address the following areas with deep semantic reasoning:
 3. **Style & Tech Compliance:** Does the code strictly adhere to `tech-stack.md` and `superconductor/code_styleguides/`? Look for architectural "drift."
 4. **Feature Gap Identification:** Look beyond the written spec. Are there edge cases, security risks, or UX friction points overlooked in the original planning?
 5. **DRY Methodology & Reusability:** Analyze for repeated code or logic. Suggest specific refactors to create reusable abstractions.
-6. **Kernel Synchronization:** Proactively identify high-quality, reusable components or logic created during the track. If a candidate is found, suggest publication to the `design-os-kernel` and draft a `ComponentPayload`.
+6. **Kernel Synchronization:** Proactively identify high-quality, reusable components or logic created during the track. If a candidate is found, suggest publication to the `superconductor-kernel` and draft a `ComponentPayload`.
 
 ---
 

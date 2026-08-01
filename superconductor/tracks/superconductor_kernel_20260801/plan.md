@@ -18,30 +18,30 @@
 
 ---
 
-## Phase 1: Package Rename — design-os-kernel → superconductor-kernel
+## Phase 1: Package Rename — superconductor-kernel → superconductor-kernel
 
-- [ ] Task: Write rename codemod script [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Create `scripts/rename-kernel.ts` that:
-        - Renames `packages/design-os-kernel/` → `packages/superconductor-kernel/`
+- [x] Task: Write rename codemod script [TIER-2] [AGENT:superconductor-processor]
+    - [x] Create `scripts/rename-kernel.ts` that:
+        - Renames `packages/superconductor-kernel/` → `packages/superconductor-kernel/`
         - Updates `package.json` name → `@superconductor/kernel`, version → `2.0.0`
-        - Replaces all `@design-os/mcp-server` and `design-os-kernel` references in `mcp_config.json`, GEMINI.md, `~/.gemini/config/plugins/**/*.md` skill files
+        - Replaces all `@superconductor/kernel` and `superconductor-kernel` references in `mcp_config.json`, GEMINI.md, `~/.gemini/config/plugins/**/*.md` skill files
         - Is idempotent (running twice produces no diff)
-    - [ ] Script is committed but NOT yet executed
-- [ ] Task: Execute rename codemod and verify [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run `npx -y tsx scripts/rename-kernel.ts`
-    - [ ] Verify `packages/superconductor-kernel/` exists; `packages/design-os-kernel/` does not
-    - [ ] Verify zero remaining `grep` matches for `design-os-kernel` or `@design-os/mcp-server` in tracked files
-    - [ ] Update `package.json` `workspaces` array if needed
-- [ ] Task: Build and smoke-test renamed kernel [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run `cd packages/superconductor-kernel && npm run build`
-    - [ ] Verify all 14 Design OS MCP tools still listed in built `dist/index.js`
-    - [ ] Run existing kernel tests
-    - [ ] Commit: `feat(kernel): rename design-os-kernel to superconductor-kernel`
-- [ ] Task: Security review of rename blast radius [TIER-3] [AGENT:superconductor-reviewer]
-    - [ ] Verify no dangling references in active tracks, plan files, or skill invocations
-    - [ ] Verify `mcp_config.json` server identifier is `superconductor-kernel`
-    - [ ] Verify CI workflow still references correct package paths
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Package Rename' (Protocol in workflow.md)
+    - [x] Script is committed but NOT yet executed
+- [x] Task: Execute rename codemod and verify [TIER-2] [AGENT:superconductor-processor]
+    - [x] Run `npx -y tsx scripts/rename-kernel.ts`
+    - [x] Verify `packages/superconductor-kernel/` exists; `packages/superconductor-kernel/` does not
+    - [x] Verify zero remaining `grep` matches for `superconductor-kernel` or `@superconductor/kernel` in tracked files
+    - [x] Update `package.json` `workspaces` array if needed
+- [x] Task: Build and smoke-test renamed kernel [TIER-2] [AGENT:superconductor-processor]
+    - [x] Run `cd packages/superconductor-kernel && npm run build`
+    - [x] Verify all 14 Design OS MCP tools still listed in built `dist/index.js`
+    - [x] Run existing kernel tests
+    - [x] Commit: `feat(kernel): rename superconductor-kernel to superconductor-kernel`
+- [x] Task: Security review of rename blast radius [TIER-3] [AGENT:superconductor-reviewer]
+    - [x] Verify no dangling references in active tracks, plan files, or skill invocations
+    - [x] Verify `mcp_config.json` server identifier is `superconductor-kernel`
+    - [x] Verify CI workflow still references correct package paths
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Package Rename' (Protocol in workflow.md)
 
 ---
 
@@ -175,7 +175,7 @@
     - [ ] Run `cd packages/superconductor-kernel && npm run build && npm test`
     - [ ] Run `cd packages/superconductor-core && npm run build && npm test`
     - [ ] Verify test count ≥ 438 (new tests added in this track)
-    - [ ] Verify zero references to `design-os-kernel` or `@design-os/mcp-server` in tracked files
+    - [ ] Verify zero references to `superconductor-kernel` or `@superconductor/kernel` in tracked files
 - [ ] Task: Update documentation [TIER-2] [AGENT:superconductor-processor]
     - [ ] Update GEMINI.md SWARM GUARDRAILS section with new kernel tool names and quorum FSM state reference
     - [ ] Update `superconductor/agent-config.md` with new MCP tool inventory

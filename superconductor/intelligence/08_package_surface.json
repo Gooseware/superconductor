@@ -5,17 +5,17 @@
       "path"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
-      "packages/design-os-kernel/src/services/AtomicGitService.test.ts",
-      "packages/design-os-kernel/src/services/AtomicGitService.ts",
-      "packages/design-os-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/design-os-kernel/src/services/CentralizedPublishService.ts",
-      "packages/design-os-kernel/src/services/ConfigService.ts",
-      "packages/design-os-kernel/src/services/DogmaService.test.ts",
-      "packages/design-os-kernel/src/services/GitService.ts",
-      "packages/design-os-kernel/src/services/InstallerService.ts",
-      "packages/design-os-kernel/src/services/PublishService.ts",
-      "packages/design-os-kernel/src/services/RegistryService.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/InstallerService.ts",
+      "packages/superconductor-kernel/src/services/PublishService.ts",
+      "packages/superconductor-kernel/src/services/RegistryService.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/CacheManager.ts",
       "packages/engine/src/concurrency/lock-manager.ts",
@@ -88,9 +88,9 @@
       "vi"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/services/AtomicGitService.test.ts",
-      "packages/design-os-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/design-os-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/ModelFetcher.test.ts",
       "packages/engine/src/cache/ModelPrompt.test.ts",
@@ -156,8 +156,8 @@
       "fs"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
-      "packages/design-os-kernel/src/services/ConfigService.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/CacheManager.ts",
       "packages/engine/src/cli.ts",
@@ -223,13 +223,13 @@
       "os"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
-      "packages/design-os-kernel/src/services/AtomicGitService.test.ts",
-      "packages/design-os-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/design-os-kernel/src/services/ConfigService.ts",
-      "packages/design-os-kernel/src/services/DogmaService.test.ts",
-      "packages/design-os-kernel/src/services/InstallerService.ts",
-      "packages/design-os-kernel/src/services/RegistryService.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/InstallerService.ts",
+      "packages/superconductor-kernel/src/services/RegistryService.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/CacheManager.ts",
       "packages/engine/src/concurrency/worker-pool.ts",
@@ -319,14 +319,14 @@
       "fs"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/services/AtomicGitService.test.ts",
-      "packages/design-os-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/design-os-kernel/src/services/CentralizedPublishService.ts",
-      "packages/design-os-kernel/src/services/DogmaService.test.ts",
-      "packages/design-os-kernel/src/services/GitService.ts",
-      "packages/design-os-kernel/src/services/InstallerService.ts",
-      "packages/design-os-kernel/src/services/PublishService.ts",
-      "packages/design-os-kernel/src/services/RegistryService.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/InstallerService.ts",
+      "packages/superconductor-kernel/src/services/PublishService.ts",
+      "packages/superconductor-kernel/src/services/RegistryService.ts",
       "packages/engine/src/curator/skill-synthesizer.ts",
       "packages/engine/tests/curator-integration.test.ts"
     ],
@@ -339,10 +339,10 @@
       "type SimpleGit"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/services/AtomicGitService.test.ts",
-      "packages/design-os-kernel/src/services/AtomicGitService.ts",
-      "packages/design-os-kernel/src/services/GitService.ts",
-      "packages/design-os-kernel/src/services/PublishService.ts"
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.ts",
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/PublishService.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -352,7 +352,7 @@
       "Server"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/index.ts",
       "packages/superconductor-mcp-server/src/index.ts"
     ],
     "isNodeBuiltin": false
@@ -363,7 +363,7 @@
       "StdioServerTransport"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/index.ts",
       "packages/superconductor-mcp-server/src/index.ts"
     ],
     "isNodeBuiltin": false
@@ -375,7 +375,7 @@
       "ListToolsRequestSchema"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/index.ts",
       "packages/superconductor-mcp-server/src/index.ts"
     ],
     "isNodeBuiltin": false
@@ -386,8 +386,8 @@
       "z"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts",
-      "packages/design-os-kernel/src/services/ConfigService.ts"
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -397,8 +397,8 @@
       "crypto"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/services/GitService.ts",
-      "packages/design-os-kernel/src/services/SyncManager.ts"
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/SyncManager.ts"
     ],
     "isNodeBuiltin": true
   },
@@ -431,7 +431,7 @@
       "createClient"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts"
+      "packages/superconductor-kernel/src/index.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -441,7 +441,7 @@
       "fileURLToPath"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/index.ts"
+      "packages/superconductor-kernel/src/index.ts"
     ],
     "isNodeBuiltin": true
   },
@@ -451,7 +451,7 @@
       "useEffect"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/services/DogmaService.test.ts"
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -463,7 +463,7 @@
       "Node"
     ],
     "importedBy": [
-      "packages/design-os-kernel/src/services/DogmaService.ts"
+      "packages/superconductor-kernel/src/services/DogmaService.ts"
     ],
     "isNodeBuiltin": false
   },

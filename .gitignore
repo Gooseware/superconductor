@@ -214,8 +214,8 @@ superconductor/backlog.md
 /.gemini/tmp/
 
 # Design OS Kernel
-packages/design-os-kernel/dist/
-packages/design-os-kernel/node_modules/.vite/
+packages/superconductor-kernel/dist/
+packages/superconductor-kernel/node_modules/.vite/
 
 # Node / TypeScript build artifacts
 node_modules/

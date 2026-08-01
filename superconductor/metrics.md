@@ -27,4 +27,4 @@ These metrics track the quality and health of the target application being devel
 - **Lint/Static Analysis Density:** Number of static analysis warnings/errors per 100 lines of code.
 - **Code Coverage:** Percentage of code exercised by tests (Target: >80%).
 - **Documentation Coverage:** Percentage of public functions/classes with valid documentation.
-- **Component Reusability:** Number of components identified and proposed for `design-os-kernel` inclusion.
+- **Component Reusability:** Number of components identified and proposed for `superconductor-kernel` inclusion.

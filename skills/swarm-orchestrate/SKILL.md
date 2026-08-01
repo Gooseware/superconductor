@@ -69,7 +69,7 @@ The swarm consists of the following specialized roles (configured as subagents o
 4. **Oracle (Tier 4 - Final Verification & Periodic Cadence Audit):**
    - In `parallel` mode: conducts final audit of the completed track.
    - In `pipeline` mode: fires every `oracleCadence` tasks (default: 3) to render an advisory quality score without blocking progress, plus performs the final audit.
-   - Verifies plan compliance, DRY execution, security boundaries, and centralized component promotion (`design-os-kernel`).
+   - Verifies plan compliance, DRY execution, security boundaries, and centralized component promotion (`superconductor-kernel`).
    - Issues quality scores (1-10) and final "Ready" or "Needs Fixes" verdict.
 
 ---

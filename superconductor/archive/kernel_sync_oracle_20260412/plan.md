@@ -18,7 +18,7 @@
 - [ ] Task: Update `commands/superconductor/implement.toml`.
     - [ ] Integrate the execution of `analyze_kernel_origin.js` and `analyze_impact.js` into the `6.0 ORACLE CODE REVIEW LOOP`.
     - [ ] Update the **Auto-Fix Loop & Remediation** section.
-    - [ ] Add a conditional step: IF local tests have passed AND kernel sync candidate is found, propose `mcp_design-os-kernel_registry_propose_publish`.
+    - [ ] Add a conditional step: IF local tests have passed AND kernel sync candidate is found, propose `mcp_superconductor-kernel_registry_propose_publish`.
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Oracle & Logic Integration' (Protocol in workflow.md)
 
 ## Phase 3: Verification & Finalization [checkpoint: ]
