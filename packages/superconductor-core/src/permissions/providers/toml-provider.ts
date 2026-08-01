@@ -20,8 +20,7 @@ export class PermissionManifestParser {
       const result = PermissionManifestSchema.parse(parsed);
       return result;
     } catch (e) {
-      console.error('Failed to parse permission manifest:', e);
-      return null;
+      throw new Error(`Failed to parse permission manifest: ${(e as Error).message}`);
     }
   }
 

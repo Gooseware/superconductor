@@ -152,7 +152,7 @@ export class ArchiveManager {
         }
       }
     } catch (e) {
-      console.error(`Rollback failed to restore track directory:`, e);
+      console.error(`Rollback failed to restore track directory:`, e instanceof Error ? e.message : String(e));
     }
     
     try {
@@ -160,7 +160,7 @@ export class ArchiveManager {
         fs.writeFileSync(this.archiveRegistryPath, originalArchiveContent, 'utf8');
       }
     } catch (e) {
-      console.error(`Rollback failed to restore archive.md:`, e);
+      console.error(`Rollback failed to restore archive.md:`, e instanceof Error ? e.message : String(e));
     }
     
     try {
@@ -168,7 +168,7 @@ export class ArchiveManager {
         fs.writeFileSync(this.tracksRegistryPath, originalRegistry, 'utf8');
       }
     } catch (e) {
-      console.error(`Rollback failed to restore tracks.md:`, e);
+      console.error(`Rollback failed to restore tracks.md:`, e instanceof Error ? e.message : String(e));
     }
   }
 }

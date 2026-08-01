@@ -16,9 +16,11 @@ describe('PolicyEngine', () => {
   });
 
   describe('isToolCallPermitted', () => {
-    it('always permits in IDLE state', () => {
+    it('No active track -> isToolCallPermitted() returns true for any tool', () => {
       vi.mocked(stateManager.detectCurrentState).mockReturnValue('IDLE');
-      expect(engine.isToolCallPermitted('run_command', { command: 'rm -rf /' })).toBe(true);
+      expect(engine.isToolCallPermitted('write_file', { path: 'any' })).toBe(true);
+      expect(engine.isToolCallPermitted('run_shell_command', { command: 'any' })).toBe(true);
+      expect(engine.isToolCallPermitted('mcp_call', { method: 'any' })).toBe(true);
     });
 
     it('always permits in YOLO state', () => {

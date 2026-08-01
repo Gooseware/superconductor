@@ -30,12 +30,18 @@ describe('ToolCallInterceptor', () => {
         interceptor = new ToolCallInterceptor(stateManager, policyEngine, '/test/workspace');
     });
 
-    it('should allow all tool calls when in IDLE mode', async () => {
+    it('write_file, run_shell_command, MCP calls all pass without prompt in IDLE state', async () => {
         vi.mocked(stateManager.detectCurrentState).mockReturnValue('IDLE');
         
-        const result = await interceptor.intercept('write_file', { path: '/tmp/test' });
-        
+        let result = await interceptor.intercept('write_file', { path: '/tmp/test' });
         expect(result.allowed).toBe(true);
+
+        result = await interceptor.intercept('run_shell_command', { command: 'echo hello' });
+        expect(result.allowed).toBe(true);
+
+        result = await interceptor.intercept('mcp_call', { method: 'test' });
+        expect(result.allowed).toBe(true);
+        
         expect(policyEngine.isToolCallPermitted).not.toHaveBeenCalled();
     });
 
@@ -64,5 +70,24 @@ describe('ToolCallInterceptor', () => {
         const callArgs = vi.mocked(fs.appendFileSync).mock.calls[0];
         expect(callArgs[0]).toContain('yolo-audit.log');
         expect(callArgs[1]).toContain('danger_tool');
+    });
+
+    // REV-24: delete_file({}) must not be blocked by a false-positive ancestor check
+    it('REV-24: delete_file with no path arg should be allowed in YOLO mode', async () => {
+        vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+        const result = await interceptor.intercept('delete_file', {});
+
+        expect(result.allowed).toBe(true);
+    });
+
+    // REV-26: bare & (background-execution operator) must be blocked
+    it('REV-26: run_command with bare & should be blocked', async () => {
+        vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+        const result = await interceptor.intercept('run_command', { CommandLine: 'rm file &' });
+
+        expect(result.allowed).toBe(false);
+        expect(result.reason).toContain('globbing');
     });
 });

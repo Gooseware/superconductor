@@ -42,9 +42,9 @@ describe('Permissions E2E Integration', () => {
         const detectSpy = vi.spyOn(stateManager, 'detectCurrentState');
         detectSpy.mockReturnValue('IDLE');
         
-        // 1. IDLE mode allows anything
+        // 1. IDLE mode blocks run_command entirely
         let result = await interceptor.intercept('run_command', { command: 'ls' });
-        expect(result.allowed).toBe(true);
+        expect(result.allowed).toBe(false);
         
         // 2. Start track / TRACKED mode
         detectSpy.mockReturnValue('TRACKED');
@@ -62,33 +62,31 @@ describe('Permissions E2E Integration', () => {
             allowlist: { paths: ['/workspace'], shell_prefixes: [], domains: [] }
         };
 
-        const askUserMock = vi.fn().mockResolvedValue('Allow Once');
+        const askUserMock = vi.fn()
+            .mockResolvedValueOnce('allow_once')
+            .mockResolvedValueOnce('yolo_session');
         overrideHandler.setAskUserImpl(askUserMock);
         
         const auditLogSpy = vi.spyOn(auditLogger, 'logToolCall');
 
-        // 3. Per-blocker override: run_command is blocked, prompt returns 'Allow Once'
-        // InlineOverrideHandler actually checks the prompt string. It might map 'Allow Once' to 'allow_once'
-        // Wait, what does askUserImpl return?
-        // We'll mock handleBlockedCall to be safe? No, let's mock the askUserImpl correctly, or let's see handleBlockedCall.
-        
-        // Instead of askUserImpl, let's just spy on handleBlockedCall if we don't know the exact string.
-        const handleBlockedCallSpy = vi.spyOn(overrideHandler, 'handleBlockedCall');
-        handleBlockedCallSpy.mockResolvedValueOnce('allow_once');
-        
+        // Verify native allow for safe workspace tools WITHOUT triggering the prompt
+        let safeResult = await interceptor.intercept('write_file', { TargetFile: '/workspace/safe.txt' }, manifest);
+        expect(safeResult.allowed).toBe(true);
+        safeResult = await interceptor.intercept('view_file', { AbsolutePath: '/workspace/safe2.txt' }, manifest);
+        expect(safeResult.allowed).toBe(true);
+
+        // 3. Per-blocker override: run_command is blocked, prompt returns 'allow_once'
         result = await interceptor.intercept('run_command', { command: 'rm -rf /' }, manifest);
         expect(result.allowed).toBe(true);
-        // Wait, interceptor doesn't call auditLogger.logToolCall for allow_once! 
-        // InlineOverrideHandler calls it when handling block. Wait, does it? We'll see.
-        expect(handleBlockedCallSpy).toHaveBeenCalled();
+        expect(askUserMock).toHaveBeenCalledTimes(1);
         
         // 4. YOLO override
-        handleBlockedCallSpy.mockResolvedValueOnce('yolo_session');
         result = await interceptor.intercept('write_file', { TargetFile: '/tmp/forbidden' }, manifest);
         expect(result.allowed).toBe(true);
+        expect(askUserMock).toHaveBeenCalledTimes(2);
         
-        // YOLO should transition state Manager to YOLO, but we are just mocking stateManager.
-        detectSpy.mockReturnValue('YOLO');
+        // YOLO should transition state Manager to YOLO naturally
+        detectSpy.mockRestore();
         result = await interceptor.intercept('write_file', { TargetFile: '/tmp/forbidden2' }, manifest);
         expect(result.allowed).toBe(true);
     });
@@ -123,12 +121,12 @@ describe('Permissions E2E Integration', () => {
             allowlist: { shell_prefixes: [], domains: [], paths: [] }
         };
         
-        const handleBlockedCallSpy = vi.spyOn(overrideHandler, 'handleBlockedCall');
-        handleBlockedCallSpy.mockResolvedValue('allow_track');
+        const askUserMock = vi.fn().mockResolvedValue('allow_track');
+        overrideHandler.setAskUserImpl(askUserMock);
         
         let result = await interceptor.intercept('run_command', { command: 'npm install' }, manifest);
         expect(result.allowed).toBe(true);
-        expect(handleBlockedCallSpy).toHaveBeenCalled();
+        expect(askUserMock).toHaveBeenCalled();
     });
 
     it('Performance benchmark - state detection overhead <5ms per tool call', async () => {

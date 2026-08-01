@@ -25,34 +25,94 @@ export class ToolCallInterceptor {
     }
 
     async intercept(toolName: string, args: any, manifest?: PermissionManifest): Promise<{ allowed: boolean, reason?: string }> {
-        // Global block against modifying yolo-audit.log
-        if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+        // Global block against modifying yolo-audit.log, logs directory, or the superconductor root itself (all modes)
+        if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
             const targetFile = args?.path || args?.TargetFile || '';
-            if (targetFile.includes('yolo-audit.log')) {
-                return { allowed: false, reason: 'Security: Modification of yolo-audit.log is strictly prohibited' };
+            const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
+
+            // REV-24: only run path-based checks when a target path was actually supplied.
+            // An empty targetFile resolves to workspacePath itself, which is an ancestor of
+            // logsDir — causing a false-positive block for tools called with no path argument.
+            if (targetFile !== '') {
+                const resolved = path.resolve(this.workspacePath, targetFile);
+
+                // Block access into logs dir (child or exact match)
+                const relLogs = path.relative(logsDir, resolved);
+                if (!relLogs.startsWith('..') && !path.isAbsolute(relLogs)) {
+                    return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
+                }
+                // REV-21: also block if resolved is an ancestor of logsDir.
+                // path.relative(resolved, logsDir) not starting with '..' means resolved contains logsDir.
+                const relAncestor = path.relative(resolved, logsDir);
+                if (!relAncestor.startsWith('..') && !path.isAbsolute(relAncestor)) {
+                    return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
+                }
             }
         }
         if (toolName === 'run_command') {
             const cmd = args?.command || args?.CommandLine || '';
-            if (cmd.includes('yolo-audit.log') || cmd.includes('superconductor/logs')) {
-                return { allowed: false, reason: 'Security: Shell access to yolo-audit.log or logs directory is strictly prohibited' };
+            // REV-22: block substring patterns regardless of tokenisation / chained cd bypasses
+            if (cmd.includes('superconductor/logs') || cmd.includes('yolo-audit')) {
+                return { allowed: false, reason: 'Security: Shell access to logs directory is strictly prohibited' };
+            }
+            // REV-22: reject any command that chains sub-commands (&&, ;, ||)
+            if (/&&|;|\|\|/.test(cmd)) {
+                return { allowed: false, reason: 'Security: Shell chaining operators (&&, ;, ||) are prohibited in run_command' };
+            }
+            // REV-20: block globbing, variables, backtick substitution, and brace expansion
+            // REV-26: include bare & (background-execution operator) in the blocked set
+            if (/[*?$[\]\\`{}|~<>&]/.test(cmd)) {
+                return { allowed: false, reason: 'Security: Bash globbing and variables are prohibited in run_command' };
+            }
+            const cwd = args?.Cwd || args?.cwd || this.workspacePath;
+            const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
+            
+            const resolvedCwd = path.resolve(this.workspacePath, cwd);
+            const relCwd = path.relative(logsDir, resolvedCwd);
+            if (!relCwd.startsWith('..') && !path.isAbsolute(relCwd)) {
+                return { allowed: false, reason: 'Security: Shell execution inside logs directory is strictly prohibited' };
+            }
+
+            const tokens = cmd.split(/\s+/);
+            for (const token of tokens) {
+                const cleanToken = token.replace(/['"]/g, '');
+                if (!cleanToken || cleanToken.startsWith('-')) continue;
+                const resolved = path.resolve(resolvedCwd, cleanToken);
+                const rel = path.relative(logsDir, resolved);
+                if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+                    return { allowed: false, reason: 'Security: Shell access to logs directory is strictly prohibited' };
+                }
             }
         }
 
         const state = this.stateManager.detectCurrentState();
 
         if (state === 'IDLE') {
-            if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+            if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
                 const targetFile = args?.path || args?.TargetFile || '';
-                if (targetFile.includes('/superconductor/tracks.md') || targetFile.includes('permission-manifest.toml')) {
-                    return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify tracks.md or permission-manifest.toml' };
+                const resolved = path.resolve(this.workspacePath, targetFile);
+                
+                const sensitivePaths = [
+                    path.join(this.workspacePath, 'superconductor', 'tracks.md'),
+                    path.join(this.workspacePath, 'superconductor', 'tracks'),
+                    path.join(this.workspacePath, 'superconductor', 'session-flags.json'),
+                    path.join(this.workspacePath, '.gemini', 'plugins', 'superconductor', 'skills')
+                ];
+                
+                for (const sensitive of sensitivePaths) {
+                    const relParent = path.relative(resolved, sensitive);
+                    if (!relParent.startsWith('..') && !path.isAbsolute(relParent)) {
+                        return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files' };
+                    }
+                    
+                    const relChild = path.relative(sensitive, resolved);
+                    if (!relChild.startsWith('..') && !path.isAbsolute(relChild)) {
+                        return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files' };
+                    }
                 }
             }
             if (toolName === 'run_command') {
-                const cmd = args?.command || args?.CommandLine || '';
-                if (cmd.includes('tracks.md') || cmd.includes('permission-manifest.toml') || cmd.includes('superconductor/')) {
-                    return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files via shell' };
-                }
+                return { allowed: false, reason: 'IDLE mode spoofing protection: run_command is blocked entirely in IDLE mode' };
             }
             return { allowed: true };
         }
@@ -64,8 +124,12 @@ export class ToolCallInterceptor {
 
         if (state === 'TRACKED') {
             const trackId = this.stateManager.getActiveTrackId();
-            if (manifest) {
-                this.policyEngine.setActiveManifest(manifest);
+            let activeManifest = manifest;
+            if (!activeManifest && trackId) {
+                activeManifest = this.getManifest(trackId) || undefined;
+            }
+            if (activeManifest) {
+                this.policyEngine.setActiveManifest(activeManifest);
                 let isPermitted = this.policyEngine.isToolCallPermitted(toolName, args);
                 
                 if (isPermitted) {

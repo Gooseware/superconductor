@@ -87,10 +87,10 @@ packages/superconductor-core/src/
 ## Phase 2: IDLE Mode — Remove Restrictions When Inactive [checkpoint: pending]
 
 - [x] Task: Write failing tests for IDLE mode behavior [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: No active track → `isToolCallPermitted()` returns `true` for any tool
-    - [ ] Test: `write_file`, `run_shell_command`, MCP calls all pass without prompt in IDLE state
-    - [ ] Test: State machine correctly identifies IDLE when `tracks.md` has no `[~]` entries
-    - [ ] Test: State machine correctly identifies TRACKED when `tracks.md` has a `[~]` entry
+    - [x] Test: No active track → `isToolCallPermitted()` returns `true` for any tool
+    - [x] Test: `write_file`, `run_shell_command`, MCP calls all pass without prompt in IDLE state
+    - [x] Test: State machine correctly identifies IDLE when `tracks.md` has no `[~]` entries
+    - [x] Test: State machine correctly identifies TRACKED when `tracks.md` has a `[~]` entry
 
 - [x] Task: Implement Tool Call Interceptor middleware [TIER-3] [AGENT:superconductor-processor]
     - [ ] Create `packages/superconductor-core/src/permissions/interceptor.ts`

@@ -76,7 +76,7 @@ export class DependencyAnalyzer {
         comments: false,
       });
     } catch (e) {
-      console.warn('Failed to parse source code:', e);
+      console.warn('Failed to parse source code:', e instanceof Error ? e.message : String(e));
       return [];
     }
 
@@ -115,7 +115,7 @@ export class DependencyAnalyzer {
       return sourceCode
         .then(code => this.parseImports(code))
         .catch(e => {
-          console.warn(`Failed to read file ${filePath}:`, e);
+          console.warn(`Failed to read file ${filePath}:`, e instanceof Error ? e.message : String(e));
           return [];
         });
     }
