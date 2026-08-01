@@ -13,6 +13,23 @@ export class YoloAuditLogger {
         this.logFile = path.join(logDir, 'yolo-audit.log');
     }
 
+    public init() {
+        if (!fs.existsSync(this.logFile)) {
+            fs.appendFileSync(this.logFile, '', { mode: 0o600 });
+        }
+
+        try {
+            fs.chmodSync(this.logFile, 0o600);
+        } catch (error: any) {
+            throw new Error(`Failed to enforce permissions on audit log: ${error.message}`);
+        }
+
+        const stats = fs.statSync(this.logFile);
+        if ((stats.mode & 0o077) !== 0) {
+            throw new Error(`Audit log file permissions too open. Expected 0o600, got ${stats.mode.toString(8)}`);
+        }
+    }
+
     public logToolCall(tool: string, args: any, sessionId: string) {
         const argsString = JSON.stringify(args);
         const argsHash = crypto.createHash('sha256').update(argsString).digest('hex');
