@@ -32,12 +32,14 @@ export class InlineOverrideHandler {
 
         const promptPromise = this.askUserImpl({ prompt: promptText, options });
         
+        let timeoutId: NodeJS.Timeout;
         // 60-second timeout
         const timeoutPromise = new Promise<string>((resolve) => {
-            setTimeout(() => resolve('timeout_deny'), 60000);
+            timeoutId = setTimeout(() => resolve('timeout_deny'), 60000);
         });
 
         const choice = await Promise.race([promptPromise, timeoutPromise]) as InlineOverrideChoice | 'timeout_deny';
+        clearTimeout(timeoutId!);
 
         if (choice === 'timeout_deny') {
             this.auditLogger.logOverride('timeout_deny', toolName, args);

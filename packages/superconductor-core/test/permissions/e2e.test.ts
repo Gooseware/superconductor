@@ -42,9 +42,9 @@ describe('Permissions E2E Integration', () => {
         const detectSpy = vi.spyOn(stateManager, 'detectCurrentState');
         detectSpy.mockReturnValue('IDLE');
         
-        // 1. IDLE mode allows anything
+        // 1. IDLE mode blocks run_command entirely
         let result = await interceptor.intercept('run_command', { command: 'ls' });
-        expect(result.allowed).toBe(true);
+        expect(result.allowed).toBe(false);
         
         // 2. Start track / TRACKED mode
         detectSpy.mockReturnValue('TRACKED');

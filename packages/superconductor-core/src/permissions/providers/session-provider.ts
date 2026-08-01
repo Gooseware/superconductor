@@ -18,8 +18,7 @@ export class SessionProvider {
       const parsed = JSON.parse(content);
       return SessionFlagsSchema.parse(parsed);
     } catch (e) {
-      console.error('Failed to parse session flags:', e);
-      return null;
+      throw new Error(`Failed to parse session flags: ${(e as Error).message}`);
     }
   }
 
