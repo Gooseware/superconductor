@@ -216,3 +216,22 @@ superconductor/backlog.md
 # Design OS Kernel
 packages/design-os-kernel/dist/
 packages/design-os-kernel/node_modules/.vite/
+
+# Node / TypeScript build artifacts
+node_modules/
+packages/*/node_modules/
+packages/*/dist/
+packages/*/.vite/
+
+# Swarm scratch files (adversarial test scripts, temp diffs, one-off debug files)
+adv*.ts
+adv*.mjs
+adv*.js
+test_*.ts
+test_*.mjs
+test_*.js
+test-*.ts
+fix*.py
+diff.txt
+*.test-scratch.*
+quorum_agents.md
