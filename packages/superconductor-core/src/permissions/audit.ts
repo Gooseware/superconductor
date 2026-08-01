@@ -10,17 +10,16 @@ export class YoloAuditLogger {
         this.workspacePath = workspacePath;
         const logDir = path.join(this.workspacePath, 'superconductor', 'logs');
         if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir, { recursive: true });
+            fs.mkdirSync(logDir, { recursive: true, mode: 0o700 });
         }
         this.logFile = path.join(logDir, 'yolo-audit.log');
     }
 
     public init() {
         try {
-            if (!fs.existsSync(this.logFile)) {
-                fs.writeFileSync(this.logFile, '', { mode: 0o600 });
-            }
-            fs.chmodSync(this.logFile, 0o600);
+            const fd = fs.openSync(this.logFile, fs.constants.O_CREAT | fs.constants.O_APPEND);
+            fs.fchmodSync(fd, 0o600);
+            fs.closeSync(fd);
         } catch (e: any) {
             throw new Error(`Failed to secure audit log file: ${e.message}`);
         }
