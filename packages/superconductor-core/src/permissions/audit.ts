@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 
 export class YoloAuditLogger {
     private logFile: string;
+    private initialized: boolean = false;
     private workspacePath: string;
 
     constructor(workspacePath: string) {
@@ -16,6 +17,8 @@ export class YoloAuditLogger {
     }
 
     public init() {
+        if (this.initialized) return;
+
         try {
             const fd = fs.openSync(this.logFile, fs.constants.O_CREAT | fs.constants.O_APPEND);
             fs.fchmodSync(fd, 0o600);
@@ -26,11 +29,14 @@ export class YoloAuditLogger {
 
         const stats = fs.statSync(this.logFile);
         if ((stats.mode & 0o077) !== 0) {
-            throw new Error(`FATAL: Audit log file ${this.logFile} is writable by group/other. Permissions must be strictly 0o600.`);
+            throw new Error(`FATAL: Audit log file ${this.logFile} has excessive permissions. Permissions must be strictly 0o600.`);
         }
+
+        this.initialized = true;
     }
 
     public logToolCall(tool: string, args: any, sessionId: string) {
+        this.init();
         const argsString = JSON.stringify(args);
         const argsHash = crypto.createHash('sha256').update(argsString).digest('hex');
 
@@ -47,6 +53,7 @@ export class YoloAuditLogger {
     }
 
     public logOverride(choice: string, tool: string, args: any) {
+        this.init();
         const argsString = JSON.stringify(args);
         const argsHash = crypto.createHash('sha256').update(argsString).digest('hex');
 
