@@ -6,7 +6,7 @@ import { ToolCapability } from '../../../src/intelligence/tool-registry';
 
 // Mock child_process so we don't actually run graphify
 vi.mock('child_process', () => ({
-  execSync: vi.fn()
+  execFileSync: vi.fn()
 }));
 
 describe('runGraphify', () => {
@@ -41,7 +41,7 @@ describe('runGraphify', () => {
     
     const res = await runGraphify(projectRoot, testOutputDir, capability);
     
-    expect(childProcess.execSync).toHaveBeenCalledWith(`graphify extract "${projectRoot}" --code-only`, expect.any(Object));
+    expect(childProcess.execFileSync).toHaveBeenCalledWith('graphify', ['extract', projectRoot, '--code-only'], expect.any(Object));
     expect(res.status).toBe('available');
     expect(fs.existsSync(path.join(testOutputDir, '09_graphify_graph.json'))).toBe(true);
   });
@@ -49,7 +49,7 @@ describe('runGraphify', () => {
   it('should return degraded if graphify command fails', async () => {
     const capability: ToolCapability = { status: 'available', tool: 'graphify', version: '1.0' };
     const childProcess = await import('child_process');
-    vi.mocked(childProcess.execSync).mockImplementationOnce(() => {
+    vi.mocked(childProcess.execFileSync).mockImplementationOnce(() => {
       throw new Error('Command failed');
     });
 
