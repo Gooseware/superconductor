@@ -23,7 +23,7 @@ export function serializeBaselineTopography(
 
     // Run partitioner
     const partitioner = new DomainPartitioner(map);
-    partitioner.partition();
+    partitioner.partition(projectRoot);
 
     const outputDir = path.join(projectRoot, 'superconductor', 'tracks', trackId);
     if (!fs.existsSync(outputDir)) {

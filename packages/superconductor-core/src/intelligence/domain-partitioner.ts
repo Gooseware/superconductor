@@ -1,27 +1,50 @@
 import { TopographyMap, DomainPartition, Hotspot, CoverageGap } from './topography-map.js';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class DomainPartitioner {
     constructor(private map: TopographyMap) {}
 
-    partition(): DomainPartition[] {
+    partition(projectRoot: string = process.cwd()): DomainPartition[] {
         const graph = this.map.getDependencyGraph();
         const hotspots = this.map.getHotspots();
         const coverageGaps = this.map.getCoverageGaps();
 
-        const directories = new Map<string, string[]>();
+        const graphifyFile = path.join(projectRoot, 'superconductor', 'intelligence', '09_graphify_graph.json');
+        const communitiesMap = new Map<string, string>();
+
+        if (fs.existsSync(graphifyFile)) {
+            try {
+                const data = JSON.parse(fs.readFileSync(graphifyFile, 'utf8'));
+                if (data && Array.isArray(data.nodes)) {
+                    for (const node of data.nodes) {
+                        if (node.source_file && node.community !== undefined) {
+                            communitiesMap.set(node.source_file, `community-${node.community}`);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[DomainPartitioner] Failed to parse 09_graphify_graph.json, falling back to directory split');
+            }
+        }
+
+        const partitionsMap = new Map<string, string[]>();
         
         for (const node of graph.nodes) {
-            const dir = node.split('/')[0] || '.';
-            if (!directories.has(dir)) {
-                directories.set(dir, []);
+            let partitionKey = communitiesMap.get(node);
+            if (!partitionKey) {
+                partitionKey = node.split('/')[0] || '.';
             }
-            directories.get(dir)!.push(node);
+            if (!partitionsMap.has(partitionKey)) {
+                partitionsMap.set(partitionKey, []);
+            }
+            partitionsMap.get(partitionKey)!.push(node);
         }
 
         const partitions: DomainPartition[] = [];
         let idCounter = 1;
 
-        for (const [dir, files] of directories.entries()) {
+        for (const [key, files] of partitionsMap.entries()) {
             let totalHotspotScore = 0;
             let totalCoverageGap = 0;
             let gapCount = 0;
@@ -40,7 +63,7 @@ export class DomainPartitioner {
             }
 
             partitions.push({
-                id: `domain-${idCounter++}`,
+                id: key.startsWith('community-') ? key : `domain-${idCounter++}`,
                 files,
                 hotspotScore: totalHotspotScore,
                 coverageGapPercent: gapCount > 0 ? totalCoverageGap / gapCount : 0,
