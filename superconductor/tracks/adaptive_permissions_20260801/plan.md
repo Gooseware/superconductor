@@ -97,64 +97,64 @@ packages/superconductor-core/src/
     - [ ] Implement single `ToolCallInterceptor` hook in the agent execution loop
     - [ ] Hook invokes `PolicyEngine.isToolCallPermitted()` before delegating to actual tool logic
     - [ ] In IDLE state: interceptor short-circuits and permits all calls immediately
-    - [ ] In TRACKED state: interceptor evaluates against active manifest
-    - [ ] In YOLO state: interceptor permits but logs to audit trail
+    - [x] In TRACKED state: interceptor evaluates against active manifest
+    - [x] In YOLO state: interceptor permits but logs to audit trail
 
 - [x] Task: Add permission mode status banner [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Emit current permission mode banner when superconductor commands run
-    - [ ] Format: `🟢 IDLE MODE: No restrictions active`
-    - [ ] Format: `🔒 TRACKED [track_id]: Scoped permissions active (manifest: X capabilities)`
-    - [ ] Format: `⚠️ YOLO MODE: All restrictions bypassed — audit logging active`
-    - [ ] Update `superconductor/agent-config.md` to document the mode indicator
+    - [x] Emit current permission mode banner when superconductor commands run
+    - [x] Format: `🟢 IDLE MODE: No restrictions active`
+    - [x] Format: `🔒 TRACKED [track_id]: Scoped permissions active (manifest: X capabilities)`
+    - [x] Format: `⚠️ YOLO MODE: All restrictions bypassed — audit logging active`
+    - [x] Update `superconductor/agent-config.md` to document the mode indicator
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: IDLE Mode' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: IDLE Mode' (Protocol in workflow.md)
 
 ## Phase 3: YOLO Mode — Global Override with Audit Trail [checkpoint: pending]
 
 - [x] Task: Write failing tests for YOLO mode [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: `--yolo` flag activates YOLO state
-    - [ ] Test: Every tool call in YOLO mode writes to audit log with correct schema
-    - [ ] Test: `--persist` writes `session-flags.json` after double-confirmation
-    - [ ] Test: Session-scoped YOLO (no `--persist`) does NOT write `session-flags.json`
-    - [ ] Test: Audit log entries have correct schema (timestamp, tool, argsHash, bypass marker)
-    - [ ] Test: Concurrent writes to `session-flags.json` are atomic (no corruption)
+    - [x] Test: `--yolo` flag activates YOLO state
+    - [x] Test: Every tool call in YOLO mode writes to audit log with correct schema
+    - [x] Test: `--persist` writes `session-flags.json` after double-confirmation
+    - [x] Test: Session-scoped YOLO (no `--persist`) does NOT write `session-flags.json`
+    - [x] Test: Audit log entries have correct schema (timestamp, tool, argsHash, bypass marker)
+    - [x] Test: Concurrent writes to `session-flags.json` are atomic (no corruption)
 
 - [x] Task: Implement `YoloAuditLogger` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/permissions/audit.ts`
-    - [ ] Implement append-only logging to `superconductor/logs/yolo-audit.log`
-    - [ ] Log schema: `{ timestamp, mode: 'YOLO', tool, argsHash, sessionId, bypass: true }`
-    - [ ] Integrate with `TelemetryStore` for token tracking
+    - [x] Create `packages/superconductor-core/src/permissions/audit.ts`
+    - [x] Implement append-only logging to `superconductor/logs/yolo-audit.log`
+    - [x] Log schema: `{ timestamp, mode: 'YOLO', tool, argsHash, sessionId, bypass: true }`
+    - [x] Integrate with `TelemetryStore` for token tracking
 
-- [ ] Task: Implement YOLO mode activation, persistence, and `/superconductor:yolo` command [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add `--yolo [--persist]` flag handling to `PermissionStateManager`
-    - [ ] Create `commands/superconductor/yolo.toml` command shortcut
-    - [ ] Add double-confirmation prompt for `--persist` flag
-    - [ ] Implement atomic read/write for `.superconductor/session-flags.json`
-    - [ ] Schema: `{ yolo: boolean, activatedAt: string, sessionId: string, persistent: boolean }`
+- [x] Task: Implement YOLO mode activation, persistence, and `/superconductor:yolo` command [TIER-3] [AGENT:superconductor-processor]
+    - [x] Add `--yolo [--persist]` flag handling to `PermissionStateManager`
+    - [x] Create `commands/superconductor/yolo.toml` command shortcut
+    - [x] Add double-confirmation prompt for `--persist` flag
+    - [x] Implement atomic read/write for `.superconductor/session-flags.json`
+    - [x] Schema: `{ yolo: boolean, activatedAt: string, sessionId: string, persistent: boolean }`
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: YOLO Mode' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: YOLO Mode' (Protocol in workflow.md)
 
-## Phase 4: Planner Permission Inference [checkpoint: pending]
+## Phase 4: Planner Permission Inference [checkpoint: e1cbdca]
 
-- [ ] Task: Write failing tests for keyword inference [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: "USB", "lsusb", "udevadm", "/dev/bus" keywords → `usb_access = true`
-    - [ ] Test: "curl", "fetch", "HTTP", "API", "network" keywords → `network_unrestricted = true`
-    - [ ] Test: "shell", "bash", "exec", "spawn", "subprocess" keywords → `arbitrary_shell = true`
-    - [ ] Test: Paths outside project root mentioned → `fs_outside_root = true`
-    - [ ] Test: Output manifest matches defined Zod schema
+- [x] Task: Write failing tests for keyword inference [TIER-3] [AGENT:superconductor-processor]
+    - [x] Test: "USB", "lsusb", "udevadm", "/dev/bus" keywords → `usb_access = true`
+    - [x] Test: "curl", "fetch", "HTTP", "API", "network" keywords → `network_unrestricted = true`
+    - [x] Test: "shell", "bash", "exec", "spawn", "subprocess" keywords → `arbitrary_shell = true`
+    - [x] Test: Paths outside project root mentioned → `fs_outside_root = true`
+    - [x] Test: Output manifest matches defined Zod schema
 
-- [ ] Task: Implement `KeywordPermissionInferrer` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/permissions/keyword-inferrer.ts`
-    - [ ] Implement keyword dictionary for each capability flag (case-insensitive matching)
-    - [ ] Implement `inferFromText(specText: string): PermissionManifest` function
-    - [ ] Return manifest with `inferred_by = "auto"` metadata
+- [x] Task: Implement `KeywordPermissionInferrer` [TIER-3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-core/src/permissions/keyword-inferrer.ts`
+    - [x] Implement keyword dictionary for each capability flag (case-insensitive matching)
+    - [x] Implement `inferFromText(specText: string): PermissionManifest` function
+    - [x] Return manifest with `inferred_by = "auto"` metadata
 
-- [ ] Task: Integrate inference into new-track planning flow [TIER-3] [AGENT:superconductor-dreamer]
-    - [ ] Hook `KeywordPermissionInferrer` into the post-spec phase of `new-track` skill
-    - [ ] Emit `permission-manifest.toml` to track directory alongside `plan.md`
-    - [ ] Add manifest review to plan confirmation UI (show inferred capabilities to user)
-    - [ ] Allow user to edit/override manifest capabilities before approving plan
-    - [ ] Update `skills/new-track/SKILL.md` to document manifest emission step
+- [x] Task: Integrate inference into new-track planning flow [TIER-3] [AGENT:superconductor-dreamer]
+    - [x] Hook `KeywordPermissionInferrer` into the post-spec phase of `new-track` skill
+    - [x] Emit `permission-manifest.toml` to track directory alongside `plan.md`
+    - [x] Add manifest review to plan confirmation UI (show inferred capabilities to user)
+    - [x] Allow user to edit/override manifest capabilities before approving plan
+    - [x] Update `skills/new-track/SKILL.md` to document manifest emission step
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: Planner Permission Inference' (Protocol in workflow.md)
 
