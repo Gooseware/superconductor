@@ -48,7 +48,7 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
 **Escalation levels:**
 - Loops 1–3: Processor → Quorum → Remediator (standard)
 - Loop 4 (Level 2): Oracle direct fix → single Quorum pass
-- Loop 5: Human escalation
+- Loop 5: Human escalation — use `send_message` to the root agent (parent conversation) with the full failure report. NEVER use `ask_question`. NEVER freeze and wait silently.
 
 ---
 
