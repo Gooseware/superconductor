@@ -22,7 +22,7 @@ export class YoloAuditLogger {
     fs.mkdirSync(logDir, { recursive: true });
 
     const realLogDir = fs.realpathSync(logDir);
-    if (!realLogDir.startsWith(this.realWorkspace)) {
+    if (realLogDir !== this.realWorkspace && !realLogDir.startsWith(this.realWorkspace + path.sep)) {
       throw new Error(`[YoloAuditLogger] Audit log directory escapes workspace: ${realLogDir}`);
     }
 
@@ -45,6 +45,12 @@ export class YoloAuditLogger {
       );
     }
 
+    const postOpenRealLogDir = fs.realpathSync(logDir);
+    if (postOpenRealLogDir !== realLogDir) {
+      fs.closeSync(this.fd); this.fd = -1;
+      throw new Error(`[YoloAuditLogger] Audit log directory replaced during init: ${logDir}`);
+    }
+
     // fchmodSync(fd) — operates on the open file descriptor, zero TOCTOU window
     try {
       fs.fchmodSync(this.fd, 0o600);
@@ -54,7 +60,13 @@ export class YoloAuditLogger {
     }
 
     // fstatSync(fd) — reads stats of the exact open file, no path re-resolution
-    const stats = fs.fstatSync(this.fd);
+    let stats: fs.Stats;
+    try {
+      stats = fs.fstatSync(this.fd);
+    } catch (err: any) {
+      fs.closeSync(this.fd); this.fd = -1;
+      throw new Error(`[YoloAuditLogger] Cannot stat audit log fd: ${err.message}.`);
+    }
     if ((stats.mode & 0o077) !== 0) {
       fs.closeSync(this.fd); this.fd = -1;
       throw new Error(
