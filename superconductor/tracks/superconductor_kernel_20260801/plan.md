@@ -6,7 +6,26 @@
 
 ---
 
-## Phase 0: Swarm Preflight
+## Orchestration Protocol
+
+### Circuit Breaker — Level 2 Oracle Escalation (Self-Healing)
+
+When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST NOT** pause and wait for human input. Instead:
+
+1. **Synthesize failure history**: collect all findings across all 3 loops, identify the repeating root cause pattern
+2. **Dispatch Oracle** (`superconductor-oracle`, Pro model) with: all 3 loops of findings, root cause pattern, exact failing files, and phase DEFINITION_OF_DONE. Instruction: "Do a direct surgical fix. Do NOT repeat any approach tried in loops 1–3. Show exact command output as evidence before claiming done."
+3. **Run one final Quorum** on Oracle's output — this Quorum has a fresh loop counter of MAX 1
+4. **If Oracle Quorum → `APPROVED`**: continue to next phase, reset all counters
+5. **If Oracle Quorum → `NEEDS FIXES`**: ONLY NOW escalate to human with full failure summary (all 3 loop findings + Oracle finding + everything tried)
+
+**Escalation levels:**
+- Loops 1–3: Processor → Quorum → Remediator (standard)
+- Loop 4 (Level 2): Oracle direct fix → single Quorum pass
+- Loop 5: Human escalation
+
+---
+
+
 
 - [ ] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
     - [ ] Confirm `~/.gemini/config/skills/swarm-orchestrate/SKILL.md` exists
