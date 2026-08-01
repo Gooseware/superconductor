@@ -11,6 +11,7 @@ import { runSymbolExtraction, runToonSummary } from './runners/symbol-extraction
 import { runTestGaps } from './runners/test-gaps.js';
 import { runPackageSurface } from './runners/package-surface.js';
 import { runDependencySurface } from './runners/dependency-surface.js';
+import { runGraphify } from './runners/graphify.js';
 import { generateReport } from './report.js';
 export async function runPipeline(args: string[], projectRoot: string, baseOutputDir: string) {
   const skipSast = args.includes('--skip-sast');
@@ -73,6 +74,7 @@ export async function runPipeline(args: string[], projectRoot: string, baseOutpu
   await measure('p7_test_gaps', () => runTestGaps(projectRoot, outputDir));
   await measure('p8_package_surface', () => runPackageSurface(projectRoot, outputDir));
   await measure('p8_dependency_surface', () => runDependencySurface(projectRoot, outputDir));
+  await measure('p9_graphify', () => runGraphify(projectRoot, outputDir, registry.capabilities.domain_partition));
 
   // Always write manifest — even on partial failure
   fs.writeFileSync(path.join(outputDir, '00_manifest.json'), JSON.stringify(manifest, null, 2));

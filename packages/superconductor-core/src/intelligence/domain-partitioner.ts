@@ -1,27 +1,56 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { TopographyMap, DomainPartition, Hotspot, CoverageGap } from './topography-map.js';
 
 export class DomainPartitioner {
-    constructor(private map: TopographyMap) {}
+    constructor(private map: TopographyMap, private intelligenceDir: string = path.join(process.cwd(), 'superconductor', 'intelligence')) {}
 
     partition(): DomainPartition[] {
         const graph = this.map.getDependencyGraph();
         const hotspots = this.map.getHotspots();
         const coverageGaps = this.map.getCoverageGaps();
 
-        const directories = new Map<string, string[]>();
-        
-        for (const node of graph.nodes) {
-            const dir = node.split('/')[0] || '.';
-            if (!directories.has(dir)) {
-                directories.set(dir, []);
+        const groups = new Map<string, string[]>();
+        let usedGraphify = false;
+
+        const graphifyFile = path.join(this.intelligenceDir, '09_graphify_graph.json');
+        if (fs.existsSync(graphifyFile)) {
+            try {
+                const data = JSON.parse(fs.readFileSync(graphifyFile, 'utf8'));
+                if (data && data.nodes && Array.isArray(data.nodes)) {
+                    for (const node of data.nodes) {
+                        if (node.id && node.community !== undefined) {
+                            const comm = String(node.community);
+                            if (!groups.has(comm)) {
+                                groups.set(comm, []);
+                            }
+                            groups.get(comm)!.push(node.id);
+                        }
+                    }
+                    if (groups.size > 0) {
+                        usedGraphify = true;
+                    }
+                }
+            } catch (e) {
+                // fallback to directory split
             }
-            directories.get(dir)!.push(node);
+        }
+
+        if (!usedGraphify) {
+            groups.clear();
+            for (const node of graph.nodes) {
+                const dir = node.split('/')[0] || '.';
+                if (!groups.has(dir)) {
+                    groups.set(dir, []);
+                }
+                groups.get(dir)!.push(node);
+            }
         }
 
         const partitions: DomainPartition[] = [];
         let idCounter = 1;
 
-        for (const [dir, files] of directories.entries()) {
+        for (const [key, files] of groups.entries()) {
             let totalHotspotScore = 0;
             let totalCoverageGap = 0;
             let gapCount = 0;
@@ -40,7 +69,7 @@ export class DomainPartitioner {
             }
 
             partitions.push({
-                id: `domain-${idCounter++}`,
+                id: usedGraphify ? `leiden-community-${key}` : `domain-${idCounter++}`,
                 files,
                 hotspotScore: totalHotspotScore,
                 coverageGapPercent: gapCount > 0 ? totalCoverageGap / gapCount : 0,

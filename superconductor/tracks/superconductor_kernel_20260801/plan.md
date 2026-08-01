@@ -47,17 +47,17 @@
 
 ## Phase 2: Graphify Intelligence Integration
 
-- [ ] Task: Add Graphify to tool registry and pipeline [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Add Graphify to tool registry and pipeline [TIER-2] [AGENT:superconductor-processor]
     - [ ] Add `graphify` to `tool-registry.ts` discovery (check `graphify --version`)
     - [ ] Add `PHASE_INVALIDATION` regex for `p9_graphify` in `incremental-updater.ts`
     - [ ] Create `runners/graphify.ts`: invokes `graphify .` as subprocess, validates output, copies to `superconductor/intelligence/09_graphify_graph.json`
     - [ ] Register `p9_graphify` phase in `pipeline.ts` after `p8_dependency_surface`
     - [ ] Handle graceful degradation: if `graphify` not installed, skip phase and log warning (do NOT crash)
-- [ ] Task: Write failing tests for Graphify runner [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Write failing tests for Graphify runner [TIER-2] [AGENT:superconductor-processor]
     - [ ] Test: `p9_graphify` writes `09_graphify_graph.json` with valid schema
     - [ ] Test: Phase is skipped gracefully if `graphify` binary absent
     - [ ] Test: Incremental mode calls `graphify --update` instead of full scan
-- [ ] Task: Replace naive domain partitioner with Leiden communities [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Replace naive domain partitioner with Leiden communities [TIER-3] [AGENT:superconductor-processor]
     - [ ] Update `domain-partitioner.ts` to read Leiden community clusters from `09_graphify_graph.json`
     - [ ] Map Graphify community IDs → `DomainPartition` objects (id, files, hotspotScore, coverageGapPercent)
     - [ ] Fallback to directory-split if `09_graphify_graph.json` absent

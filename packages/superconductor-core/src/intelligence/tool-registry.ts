@@ -12,6 +12,7 @@ export const CAPABILITY_SLOTS = {
   sca: { preferred: 'trivy', alternatives: ['grype'], cmd: 'fs' },
   symbol_extraction: { preferred: 'tree-sitter-analyzer', alternatives: ['ctags'], cmd: '' },
   test_gaps: { preferred: 'static-test-gap-analyzer', alternatives: [], cmd: '', builtin: true },
+  domain_partition: { preferred: 'graphify', alternatives: [], cmd: '' },
 };
 
 export interface ToolCapability {
