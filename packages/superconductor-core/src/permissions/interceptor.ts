@@ -4,11 +4,14 @@ import { PermissionManifest, PermissionState } from './schemas.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { InlineOverrideHandler } from './prompter.js';
+
 export class ToolCallInterceptor {
     constructor(
         private stateManager: TrackStateManager,
         private policyEngine: PolicyEngine,
-        private workspacePath: string
+        private workspacePath: string,
+        private overrideHandler?: InlineOverrideHandler
     ) {}
 
     private getManifest(trackId: string): PermissionManifest | null {
@@ -28,8 +31,20 @@ export class ToolCallInterceptor {
             const trackId = this.stateManager.getActiveTrackId();
             if (manifest) {
                 this.policyEngine.setActiveManifest(manifest);
-                const isPermitted = this.policyEngine.isToolCallPermitted(toolName, args);
-                return { allowed: isPermitted };
+                let isPermitted = this.policyEngine.isToolCallPermitted(toolName, args);
+                
+                if (isPermitted) {
+                    // Consume ephemeral allow if it was used to permit this call
+                    const argsHash = this.policyEngine.hashString(JSON.stringify(args));
+                    this.policyEngine.clearEphemeralAllow(toolName, argsHash);
+                } else if (!isPermitted && this.overrideHandler) {
+                    const choice = await this.overrideHandler.handleBlockedCall(toolName, args);
+                    if (choice === 'allow_once' || choice === 'allow_track' || choice === 'yolo_session') {
+                        isPermitted = true;
+                    }
+                }
+                
+                return { allowed: isPermitted, reason: isPermitted ? undefined : 'denied by policy' };
             }
         }
 

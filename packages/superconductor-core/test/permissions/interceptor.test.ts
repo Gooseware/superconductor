@@ -15,7 +15,10 @@ describe('ToolCallInterceptor', () => {
         } as unknown as TrackStateManager;
         
         policyEngine = {
-            evaluate: vi.fn()
+            isToolCallPermitted: vi.fn(),
+            setActiveManifest: vi.fn(),
+            clearEphemeralAllow: vi.fn(),
+            hashString: vi.fn().mockReturnValue('testhash')
         } as unknown as PolicyEngine;
         
         interceptor = new ToolCallInterceptor(stateManager, policyEngine, '/test/workspace');
@@ -27,19 +30,19 @@ describe('ToolCallInterceptor', () => {
         const result = await interceptor.intercept('write_file', { path: '/tmp/test' });
         
         expect(result.allowed).toBe(true);
-        expect(policyEngine.evaluate).not.toHaveBeenCalled();
+        expect(policyEngine.isToolCallPermitted).not.toHaveBeenCalled();
     });
 
     it('should delegate to PolicyEngine when in TRACKED mode', async () => {
         vi.mocked(stateManager.detectCurrentState).mockReturnValue('TRACKED');
         vi.mocked(stateManager.getActiveTrackId).mockReturnValue('track-123');
         const manifest = { capabilities: { arbitrary_shell: false } };
-        vi.mocked(policyEngine.evaluate).mockReturnValue({ allowed: false, reason: 'blocked' });
+        vi.mocked(policyEngine.isToolCallPermitted).mockReturnValue(false);
         
         const result = await interceptor.intercept('run_command', { command: 'rm -rf /' }, manifest as any);
         
         expect(result.allowed).toBe(false);
-        expect(result.reason).toBe('blocked');
-        expect(policyEngine.evaluate).toHaveBeenCalledWith('run_command', { command: 'rm -rf /' }, manifest);
+        expect(policyEngine.setActiveManifest).toHaveBeenCalledWith(manifest);
+        expect(policyEngine.isToolCallPermitted).toHaveBeenCalledWith('run_command', { command: 'rm -rf /' });
     });
 });
