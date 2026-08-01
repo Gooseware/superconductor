@@ -123,7 +123,7 @@ packages/superconductor-core/src/
     - [x] Create `packages/superconductor-core/src/permissions/audit.ts`
     - [x] Implement append-only logging to `superconductor/logs/yolo-audit.log`
     - [x] Log schema: `{ timestamp, mode: 'YOLO', tool, argsHash, sessionId, bypass: true }`
-    - [x] Integrate with `TelemetryStore` for token tracking
+    - [ ] Integrate with `TelemetryStore` for token tracking
 
 - [x] Task: Implement YOLO mode activation, persistence, and `/superconductor:yolo` command [TIER-3] [AGENT:superconductor-processor]
     - [x] Add `--yolo [--persist]` flag handling to `PermissionStateManager`

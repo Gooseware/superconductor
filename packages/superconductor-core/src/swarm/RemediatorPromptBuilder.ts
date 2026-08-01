@@ -1,5 +1,5 @@
-import { LanguageAdapter, LanguageProfile } from './LanguageAdapter';
-import { ANTI_PATTERNS } from './anti-patterns';
+import { LanguageAdapter, LanguageProfile } from './LanguageAdapter.js';
+import { ANTI_PATTERNS } from './anti-patterns.js';
 
 export class RemediatorPromptBuilder {
     build(taskInfo: { task: string, scope: string, excluded: string, pattern: string, evidenceRequired: string, definitionOfDone: string }, workspacePath: string, language: string): string {

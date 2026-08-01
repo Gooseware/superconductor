@@ -4,7 +4,7 @@ import { execFileSync } from 'child_process';
 import { ToolCapability } from '../tool-registry.js';
 
 export async function runGraphify(projectRoot: string, outputDir: string, capability: ToolCapability): Promise<{ status: string }> {
-  if (capability.status === 'unavailable') {
+  if (capability.status === 'unavailable' || !capability.tool) {
     return { status: 'unavailable' };
   }
 
