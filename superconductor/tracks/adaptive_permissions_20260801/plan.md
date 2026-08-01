@@ -156,46 +156,46 @@ packages/superconductor-core/src/
     - [x] Allow user to edit/override manifest capabilities before approving plan
     - [x] Update `skills/new-track/SKILL.md` to document manifest emission step
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Planner Permission Inference' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Planner Permission Inference' (Protocol in workflow.md)
 
 ## Phase 5: Per-Blocker Inline Override [checkpoint: pending]
 
-- [ ] Task: Write failing tests for inline override prompt [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: Policy block triggers override prompt with 4 options
-    - [ ] Test: "Allow Once" → call proceeds, policy re-applies on next same call
-    - [ ] Test: "Allow for Track" → manifest updated, subsequent same calls pass without prompt
-    - [ ] Test: "YOLO (Session)" → activates YOLO state for entire session
-    - [ ] Test: "Deny" → call blocked, deny event logged
-    - [ ] Test: Prompt auto-denies after 60-second timeout
+- [x] Task: Write failing tests for inline override prompt [TIER-3] [AGENT:superconductor-processor] [checkpoint: 4de6067]
+    - [x] Test: Policy block triggers override prompt with 4 options
+    - [x] Test: "Allow Once" → call proceeds, policy re-applies on next same call
+    - [x] Test: "Allow for Track" → manifest updated, subsequent same calls pass without prompt
+    - [x] Test: "YOLO (Session)" → activates YOLO state for entire session
+    - [x] Test: "Deny" → call blocked, deny event logged
+    - [x] Test: Prompt auto-denies after 60-second timeout
 
-- [ ] Task: Implement `InlineOverrideHandler` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/permissions/prompter.ts`
-    - [ ] Implement `handleBlockedCall(toolName, args): Promise<InlineOverrideChoice>`
-    - [ ] Show `ask_user` prompt with 4 options on policy block
-    - [ ] Implement 60-second timeout using `Promise.race`; auto-resolve to `Deny`
-    - [ ] Route result to: ephemeral allow registry | manifest update | YOLO activation | deny log
+- [x] Task: Implement `InlineOverrideHandler` [TIER-3] [AGENT:superconductor-processor] [checkpoint: 4402a15]
+    - [x] Create `packages/superconductor-core/src/permissions/prompter.ts`
+    - [x] Implement `handleBlockedCall(toolName, args): Promise<InlineOverrideChoice>`
+    - [x] Show `ask_user` prompt with 4 options on policy block
+    - [x] Implement 60-second timeout using `Promise.race`; auto-resolve to `Deny`
+    - [x] Route result to: ephemeral allow registry | manifest update | YOLO activation | deny log
 
-- [ ] Task: Wire `InlineOverrideHandler` into `PolicyEngine` and `ToolCallInterceptor` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Update `interceptor.ts` to call `handleBlockedCall()` when `isToolCallPermitted()` returns false
-    - [ ] Ensure "Allow Once" state is ephemeral — cleared after single use via in-memory registry
-    - [ ] Log all override decisions (allow/deny) to audit trail
+- [x] Task: Wire `InlineOverrideHandler` into `PolicyEngine` and `ToolCallInterceptor` [TIER-3] [AGENT:superconductor-processor] [checkpoint: 472e0ed]
+    - [x] Update `interceptor.ts` to call `handleBlockedCall()` when `isToolCallPermitted()` returns false
+    - [x] Ensure "Allow Once" state is ephemeral — cleared after single use via in-memory registry
+    - [x] Log all override decisions (allow/deny) to audit trail
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Per-Blocker Inline Override' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Per-Blocker Inline Override' (Protocol in workflow.md)
 
 ## Phase 6: Integration & Finalization [checkpoint: pending]
 
-- [ ] Task: End-to-end integration testing [TIER-4] [AGENT:superconductor-oracle]
-    - [ ] Test full flow: IDLE mode → start track → TRACKED mode (manifest loaded) → per-blocker override → YOLO override → audit log verified
-    - [ ] Test: New-track flow emits permission manifest and user can review/edit it
-    - [ ] Test: `Allow for Track` updates manifest and persists across same-session calls
-    - [ ] Test: Performance benchmark — state detection overhead <5ms per tool call
-    - [ ] Run full test suite: `CI=true pnpm test`
+- [x] Task: End-to-end integration testing [TIER-4] [AGENT:superconductor-oracle]
+    - [x] Test full flow: IDLE mode → start track → TRACKED mode (manifest loaded) → per-blocker override → YOLO override → audit log verified
+    - [x] Test: New-track flow emits permission manifest and user can review/edit it
+    - [x] Test: `Allow for Track` updates manifest and persists across same-session calls
+    - [x] Test: Performance benchmark — state detection overhead <5ms per tool call
+    - [x] Run full test suite: `CI=true pnpm test`
 
-- [ ] Task: Update documentation [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Update `README.md` with Adaptive Permission System section
-    - [ ] Update `GEMINI.md` SWARM GUARDRAILS with new mode documentation
-    - [ ] Create `docs/permissions.md` with full capability reference and manifest schema
-    - [ ] Update `superconductor/agent-config.md` to document permission modes
+- [x] Task: Update documentation [TIER-2] [AGENT:superconductor-processor] [checkpoint: bb5bd34]
+    - [x] Update `README.md` with Adaptive Permission System section
+    - [x] Update `GEMINI.md` SWARM GUARDRAILS with new mode documentation
+    - [x] Create `docs/permissions.md` with full capability reference and manifest schema
+    - [x] Update `superconductor/agent-config.md` to document permission modes
 
 - [ ] Task: Security review of YOLO audit trail and session persistence [TIER-4] [AGENT:superconductor-reviewer]
     - [ ] Verify audit log is append-only and cannot be silently tampered
