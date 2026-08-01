@@ -136,16 +136,16 @@
 
 ## Phase 5: Audit Log Hardening
 
-- [ ] Task: Harden YoloAuditLogger with application-level append-only enforcement [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Update `audit.ts`: replace file write with `fs.appendFile` exclusively
-    - [ ] Add `init()` method: set file mode `0o600`, crash with descriptive error if permissions cannot be enforced
-    - [ ] Add startup validation: read file stats, crash if `mode & 0o077` (group/other writable)
-    - [ ] Interceptor regex guards remain as defense-in-depth but NOT as primary protection
-- [ ] Task: Write audit log tests [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test: `init()` crashes if file is writable by others
-    - [ ] Test: Multiple appends produce correct append-only log (no overwrites)
-    - [ ] Test: Startup error message is descriptive and actionable
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Audit Log Hardening' (Protocol in workflow.md)
+- [x] Task: Harden YoloAuditLogger with application-level append-only enforcement [TIER-2] [AGENT:superconductor-processor]
+    - [x] Update `audit.ts`: replace file write with `fs.appendFile` exclusively
+    - [x] Add `init()` method: set file mode `0o600`, crash with descriptive error if permissions cannot be enforced
+    - [x] Add startup validation: read file stats, crash if `mode & 0o077` (group/other writable)
+    - [x] Interceptor regex guards remain as defense-in-depth but NOT as primary protection
+- [x] Task: Write audit log tests [TIER-2] [AGENT:superconductor-processor]
+    - [x] Test: `init()` crashes if file is writable by others
+    - [x] Test: Multiple appends produce correct append-only log (no overwrites)
+    - [x] Test: Startup error message is descriptive and actionable
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Audit Log Hardening' (Protocol in workflow.md)
 
 ---
 
