@@ -71,4 +71,23 @@ describe('ToolCallInterceptor', () => {
         expect(callArgs[0]).toContain('yolo-audit.log');
         expect(callArgs[1]).toContain('danger_tool');
     });
+
+    // REV-24: delete_file({}) must not be blocked by a false-positive ancestor check
+    it('REV-24: delete_file with no path arg should be allowed in YOLO mode', async () => {
+        vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+        const result = await interceptor.intercept('delete_file', {});
+
+        expect(result.allowed).toBe(true);
+    });
+
+    // REV-26: bare & (background-execution operator) must be blocked
+    it('REV-26: run_command with bare & should be blocked', async () => {
+        vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+        const result = await interceptor.intercept('run_command', { CommandLine: 'rm file &' });
+
+        expect(result.allowed).toBe(false);
+        expect(result.reason).toContain('globbing');
+    });
 });

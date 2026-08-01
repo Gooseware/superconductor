@@ -28,19 +28,25 @@ export class ToolCallInterceptor {
         // Global block against modifying yolo-audit.log, logs directory, or the superconductor root itself (all modes)
         if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
             const targetFile = args?.path || args?.TargetFile || '';
-            const resolved = path.resolve(this.workspacePath, targetFile);
             const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
 
-            // Block access into logs dir (child or exact match)
-            const relLogs = path.relative(logsDir, resolved);
-            if (!relLogs.startsWith('..') && !path.isAbsolute(relLogs)) {
-                return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
-            }
-            // REV-21: also block if resolved is an ancestor of logsDir.
-            // path.relative(resolved, logsDir) not starting with '..' means resolved contains logsDir.
-            const relAncestor = path.relative(resolved, logsDir);
-            if (!relAncestor.startsWith('..') && !path.isAbsolute(relAncestor)) {
-                return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
+            // REV-24: only run path-based checks when a target path was actually supplied.
+            // An empty targetFile resolves to workspacePath itself, which is an ancestor of
+            // logsDir — causing a false-positive block for tools called with no path argument.
+            if (targetFile !== '') {
+                const resolved = path.resolve(this.workspacePath, targetFile);
+
+                // Block access into logs dir (child or exact match)
+                const relLogs = path.relative(logsDir, resolved);
+                if (!relLogs.startsWith('..') && !path.isAbsolute(relLogs)) {
+                    return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
+                }
+                // REV-21: also block if resolved is an ancestor of logsDir.
+                // path.relative(resolved, logsDir) not starting with '..' means resolved contains logsDir.
+                const relAncestor = path.relative(resolved, logsDir);
+                if (!relAncestor.startsWith('..') && !path.isAbsolute(relAncestor)) {
+                    return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
+                }
             }
         }
         if (toolName === 'run_command') {
@@ -54,7 +60,8 @@ export class ToolCallInterceptor {
                 return { allowed: false, reason: 'Security: Shell chaining operators (&&, ;, ||) are prohibited in run_command' };
             }
             // REV-20: block globbing, variables, backtick substitution, and brace expansion
-            if (/[*?$[\]\\`{}|~<>]/.test(cmd)) {
+            // REV-26: include bare & (background-execution operator) in the blocked set
+            if (/[*?$[\]\\`{}|~<>&]/.test(cmd)) {
                 return { allowed: false, reason: 'Security: Bash globbing and variables are prohibited in run_command' };
             }
             const cwd = args?.Cwd || args?.cwd || this.workspacePath;
