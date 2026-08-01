@@ -8,6 +8,15 @@
 
 ## Orchestration Protocol
 
+### Agent Lifetime Policy — No Zombies
+
+- **Processor timeout**: if a processor has not reported back within **30 minutes**, presume it stalled. Kill it via `manage_subagents kill` and immediately dispatch an Oracle-level replacement with the same task + note: "Previous agent stalled after 30min — do NOT repeat its approach."
+- **Research / audit agents**: kill immediately once their result has been consumed. Never leave idle agents alive.
+- **Quorum reviewers**: expected to return within **15 minutes**. If not, kill and re-dispatch.
+- **After each phase**: kill any child agents still alive but `state: idle`. Do not accumulate zombie agents.
+
+---
+
 ### Parallel Dispatch — Aggressive Speed Policy
 
 **Default assumption: ALL tasks are parallel unless an explicit input→output dependency exists.**
