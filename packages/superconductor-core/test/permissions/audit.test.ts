@@ -44,10 +44,23 @@ describe('YoloAuditLogger', () => {
     fs.symlinkSync(victim, logFile); // place symlink where the log file would be created
 
     const logger = new YoloAuditLogger(workspacePath);
-    expect(() => logger.init()).toThrow(); // O_NOFOLLOW rejects symlink
+    expect(() => logger.init()).toThrow(/\[YoloAuditLogger\] Cannot open audit log at/); // O_NOFOLLOW rejects symlink
 
     // Victim file must be untouched
     expect(fs.readFileSync(victim, 'utf8')).toBe('secret');
+  });
+
+  it.skip('init() throws when permissions are too open (cannot spy on fs without vi.mock)', () => {
+    const logger = new YoloAuditLogger(workspacePath);
+    
+    // Mock fstatSync to return overly open permissions
+    const originalFstatSync = fs.fstatSync;
+    vi.spyOn(fs, 'fstatSync').mockImplementation((fd) => {
+      const stats = originalFstatSync(fd);
+      return { ...stats, mode: 0o100644 } as any;
+    });
+
+    expect(() => logger.init()).toThrow(/\[YoloAuditLogger\] Audit log permissions too open: 0o644\. Expected 0o600\./);
   });
 
   it('init() is idempotent — calling twice does not throw or duplicate fd', () => {
@@ -66,6 +79,7 @@ describe('YoloAuditLogger', () => {
 
   it('multiple appends produce ordered log entries', () => {
     const logger = new YoloAuditLogger(workspacePath);
+    logger.init();
     logger.logToolCall('tool1', { a: 1 }, 'sess-1');
     logger.logToolCall('tool2', { b: 2 }, 'sess-1');
     logger.logToolCall('tool3', { c: 3 }, 'sess-1');
@@ -82,19 +96,17 @@ describe('YoloAuditLogger', () => {
     expect(entries[2].tool).toBe('tool3');
   });
 
-  it('logToolCall before init() auto-initializes', () => {
+  it('logToolCall before init() throws', () => {
     const logger = new YoloAuditLogger(workspacePath);
-    logger.logToolCall('auto-init-test', {}, 'sess-1');
+    expect(() => {
+      logger.logToolCall('auto-init-test', {}, 'sess-1');
+    }).toThrow(/\[YoloAuditLogger\] Audit logger is not initialized/);
     logger.close();
-
-    const logFile = path.join(workspacePath, LOG_SUBPATH);
-    const content = fs.readFileSync(logFile, 'utf8').trim();
-    const entry = JSON.parse(content);
-    expect(entry.tool).toBe('auto-init-test');
   });
 
   it('logOverride writes INLINE_OVERRIDE entry', () => {
     const logger = new YoloAuditLogger(workspacePath);
+    logger.init();
     logger.logOverride('APPROVE', 'write_file', { path: '/tmp/x' });
     logger.close();
 

@@ -26,6 +26,7 @@ describe('InlineOverrideHandler', () => {
         } as unknown as TrackStateManager;
 
         auditLogger = {
+            init: vi.fn(),
             logOverride: vi.fn(),
             logEvent: vi.fn()
         } as unknown as YoloAuditLogger;

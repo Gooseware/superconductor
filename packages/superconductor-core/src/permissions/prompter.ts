@@ -42,6 +42,7 @@ export class InlineOverrideHandler {
         clearTimeout(timeoutId!);
 
         if (choice === 'timeout_deny') {
+            this.auditLogger.init();
             this.auditLogger.logOverride('timeout_deny', toolName, args);
             return 'deny';
         }
@@ -72,6 +73,7 @@ export class InlineOverrideHandler {
             this.stateManager.setYolo(true);
         }
 
+        this.auditLogger.init();
         this.auditLogger.logOverride(choice, toolName, args);
 
         return choice;

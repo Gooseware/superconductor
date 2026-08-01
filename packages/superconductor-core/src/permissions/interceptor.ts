@@ -118,6 +118,7 @@ export class ToolCallInterceptor {
         }
         
         if (state === 'YOLO') {
+            this.auditLogger.init();
             this.auditLogger.logToolCall(toolName, args, 'session-yolo');
             return { allowed: true };
         }

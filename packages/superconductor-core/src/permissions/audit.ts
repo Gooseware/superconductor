@@ -15,16 +15,18 @@ export class YoloAuditLogger {
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
-    // lstatSync: does NOT follow symlinks — rejects symlinked logDir
-    const logDirStat = fs.lstatSync(logDir);
-    if (logDirStat.isSymbolicLink()) {
-      throw new Error(`[YoloAuditLogger] Audit log directory is a symlink, refusing to use: ${logDir}`);
-    }
     this.logFile = path.join(logDir, 'yolo-audit.log');
   }
 
   public init(): void {
     if (this.initialized) return;
+
+    const logDir = path.dirname(this.logFile);
+    // lstatSync: does NOT follow symlinks — rejects symlinked logDir
+    const logDirStat = fs.lstatSync(logDir);
+    if (logDirStat.isSymbolicLink()) {
+      throw new Error(`[YoloAuditLogger] Audit log directory is a symlink, refusing to use: ${logDir}`);
+    }
 
     // O_NOFOLLOW: fails if final component is a symlink — prevents symlink substitution
     // O_CREAT | O_WRONLY | O_APPEND: create if absent, append-only
@@ -60,12 +62,10 @@ export class YoloAuditLogger {
     this.initialized = true;
   }
 
-  private ensureInitialized(): void {
-    if (!this.initialized) this.init();
-  }
-
   private writeEntry(entry: object): void {
-    this.ensureInitialized();
+    if (!this.initialized) {
+      throw new Error(`[YoloAuditLogger] Audit logger is not initialized`);
+    }
     // writeSync(fd) — no path re-resolution, no symlink follow possible
     fs.writeSync(this.fd, JSON.stringify(entry) + '\n');
   }
