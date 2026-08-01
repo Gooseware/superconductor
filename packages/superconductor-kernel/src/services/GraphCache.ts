@@ -35,6 +35,7 @@ export class GraphCache {
         this.data = { nodes: [], edges: [] };
       }
     } catch (e) {
+      console.error('Failed to load graph data:', e);
       this.data = { nodes: [], edges: [] };
     }
   }
