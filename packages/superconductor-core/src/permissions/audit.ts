@@ -28,4 +28,19 @@ export class YoloAuditLogger {
 
         fs.appendFileSync(this.logFile, JSON.stringify(logEntry) + '\n');
     }
+
+    public logOverride(choice: string, tool: string, args: any) {
+        const argsString = JSON.stringify(args);
+        const argsHash = crypto.createHash('sha256').update(argsString).digest('hex');
+
+        const logEntry = {
+            timestamp: new Date().toISOString(),
+            event: 'INLINE_OVERRIDE',
+            choice,
+            tool,
+            argsHash
+        };
+
+        fs.appendFileSync(this.logFile, JSON.stringify(logEntry) + '\n');
+    }
 }
