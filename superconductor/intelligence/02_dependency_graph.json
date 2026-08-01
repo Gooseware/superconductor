@@ -1,0 +1,67 @@
+[
+  {
+    "source": "packages/superconductor-core/src/index.ts",
+    "deps": [
+      "./cli/index.js",
+      "./context/splicer.js",
+      "./intelligence/index.js",
+      "./protocol/index.js",
+      "./review/index.js",
+      "./schema/index.js",
+      "./telemetry/index.js",
+      "./track/index.js",
+      "./types/index.js"
+    ],
+    "file": "packages/superconductor-core/src/index.ts"
+  },
+  {
+    "source": "./cli/index.js",
+    "deps": [],
+    "file": "./cli/index.js"
+  },
+  {
+    "source": "./context/splicer.js",
+    "deps": [],
+    "file": "./context/splicer.js"
+  },
+  {
+    "source": "./intelligence/index.js",
+    "deps": [],
+    "file": "./intelligence/index.js"
+  },
+  {
+    "source": "./protocol/index.js",
+    "deps": [],
+    "file": "./protocol/index.js"
+  },
+  {
+    "source": "./review/index.js",
+    "deps": [],
+    "file": "./review/index.js"
+  },
+  {
+    "source": "./schema/index.js",
+    "deps": [],
+    "file": "./schema/index.js"
+  },
+  {
+    "source": "./telemetry/index.js",
+    "deps": [],
+    "file": "./telemetry/index.js"
+  },
+  {
+    "source": "./track/index.js",
+    "deps": [],
+    "file": "./track/index.js"
+  },
+  {
+    "source": "./types/index.js",
+    "deps": [],
+    "file": "./types/index.js"
+  },
+  {
+    "source": "package.json",
+    "deps": [],
+    "file": "package.json"
+  }
+]
