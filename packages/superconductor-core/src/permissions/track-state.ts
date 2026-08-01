@@ -16,6 +16,7 @@ export class TrackStateManager {
     this.workspacePath = workspacePath;
     this.tracksFilePath = path.join(this.workspacePath, 'superconductor', 'tracks.md');
     this.setupWatcher();
+    this.loadSessionFlags();
   }
 
   private setupWatcher() {
@@ -29,9 +30,41 @@ export class TrackStateManager {
     }
   }
 
-  public setYolo(yolo: boolean) {
+  public setYolo(yolo: boolean, sessionId?: string, persist: boolean = false) {
     this.isYolo = yolo;
+    if (persist && sessionId) {
+      const configDir = path.join(this.workspacePath, '.superconductor');
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+      }
+      const flagsPath = path.join(configDir, 'session-flags.json');
+      const tempPath = flagsPath + '.tmp';
+      const flags = {
+        yolo,
+        activatedAt: new Date().toISOString(),
+        sessionId,
+        persistent: true
+      };
+      fs.writeFileSync(tempPath, JSON.stringify(flags, null, 2));
+      fs.renameSync(tempPath, flagsPath);
+    }
   }
+  
+  public loadSessionFlags() {
+    const flagsPath = path.join(this.workspacePath, '.superconductor', 'session-flags.json');
+    if (fs.existsSync(flagsPath)) {
+      try {
+        const data = fs.readFileSync(flagsPath, 'utf-8');
+        const flags = JSON.parse(data);
+        if (flags.yolo && flags.persistent) {
+          this.isYolo = true;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
 
   private reevaluateState(): void {
     const now = Date.now();

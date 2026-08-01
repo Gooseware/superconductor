@@ -39,61 +39,60 @@ packages/superconductor-core/src/
 ---
 
 ## Phase 0: Swarm Preflight
-
-- [ ] Task: Verify `swarm-orchestrate` skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Check for skill at `~/.gemini/config/skills/swarm-orchestrate/`
-    - [ ] Confirm extension is at version >= 0.4.1
-    - [ ] Validate `policies/superconductor.toml` is the current policy entry point
+- [x] Task: Verify `swarm-orchestrate` skill is installed and loaded. [checkpoint: verified]
+  - [x] Check for skill at `~/.gemini/config/skills/swarm-orchestrate/`
+  - [x] Confirm extension is at version >= 0.4.1
+  - [x] Validate policies
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ## Phase 1: Permission State Machine Core [checkpoint: pending]
 
-- [ ] Task: Define permission types, schemas and module scaffold [TIER-3] [AGENT:superconductor-dreamer]
-    - [ ] Create `packages/superconductor-core/src/permissions/` directory structure
-    - [ ] Create `packages/superconductor-core/src/permissions/schemas.ts` with Zod schemas for:
+- [x] Task: Define permission types, schemas and module scaffold [checkpoint: bfe6884b]
+    - [x] Create `packages/superconductor-core/src/permissions/` directory structure
+    - [x] Create `packages/superconductor-core/src/permissions/schemas.ts` with Zod schemas for:
           `PermissionState`, `PermissionManifest`, `CapabilityFlags`, `SessionFlags`, `InlineOverrideChoice`
-    - [ ] Define `permission-manifest.toml` JSON Schema in `schemas/permission-manifest.schema.json`
-    - [ ] Write failing tests for type guards and schema validation
-    - [ ] Implement type guards and validators; confirm tests pass
+    - [x] Define `permission-manifest.toml` JSON Schema in `schemas/permission-manifest.schema.json`
+    - [x] Write failing tests for type guards and schema validation
+    - [x] Implement type guards and validators; confirm tests pass
 
-- [ ] Task: Implement `TrackStateManager` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/permissions/track-state.ts`
-    - [ ] Implement `fs.watch` on `superconductor/tracks.md` for `[~]` entry detection
-    - [ ] Implement 200ms TTL in-memory cache for `isIdle` boolean
-    - [ ] Implement `detectCurrentState()`: IDLE | TRACKED | YOLO
-    - [ ] Implement `getActiveTrackId()`: returns active track ID or null
-    - [ ] Write unit tests for all state transitions with mocked file system
+- [x] Task: Implement `TrackStateManager` [checkpoint: 88459b1]
+    - [x] Create `packages/superconductor-core/src/permissions/track-state.ts`
+    - [x] Implement `fs.watch` on `superconductor/tracks.md` for `[~]` entry detection
+    - [x] Implement 200ms TTL in-memory cache for `isIdle` boolean
+    - [x] Implement `detectCurrentState()`: IDLE | TRACKED | YOLO
+    - [x] Implement `getActiveTrackId()`: returns active track ID or null
+    - [x] Write unit tests for all state transitions with mocked file system
 
-- [ ] Task: Implement `PolicyEngine` with layered evaluation [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/permissions/engine.ts`
-    - [ ] Implement 4-layer evaluation pipeline:
+- [x] Task: Implement `PolicyEngine` with layered evaluation [TIER-3] [AGENT:superconductor-processor] [checkpoint: d325b3c]
+    - [x] Create `packages/superconductor-core/src/permissions/engine.ts`
+    - [x] Implement 4-layer evaluation pipeline:
           1. Base: `policies/superconductor.toml`
           2. Track: `permission-manifest.toml` for active track
           3. Session: `.superconductor/session-flags.json`
           4. Immediate: In-memory "allow once" registry
-    - [ ] Implement `isToolCallPermitted(toolName, args): boolean`
-    - [ ] Implement `getActiveManifest(): PermissionManifest | null`
-    - [ ] Write unit tests for all 4 evaluation layers
+    - [x] Implement `isToolCallPermitted(toolName, args): boolean`
+    - [x] Implement `getActiveManifest(): PermissionManifest | null`
+    - [x] Write unit tests for all 4 evaluation layers
 
-- [ ] Task: Implement `PermissionManifestParser` and `SessionProvider` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/permissions/providers/toml-provider.ts`
-    - [ ] Create `packages/superconductor-core/src/permissions/providers/session-provider.ts`
-    - [ ] Implement TOML read/write for `permission-manifest.toml` with Zod validation
-    - [ ] Implement atomic writes for `session-flags.json` (temp file + rename)
-    - [ ] Implement `updateCapability(key, value)` for dynamic `Allow for Track` updates
-    - [ ] Write unit tests with fixture manifests and session files
+- [x] Task: Implement `PermissionManifestParser` and `SessionProvider` [checkpoint: 14d0a13]
+    - [x] Create `packages/superconductor-core/src/permissions/providers/toml-provider.ts`
+    - [x] Create `packages/superconductor-core/src/permissions/providers/session-provider.ts`
+    - [x] Implement TOML read/write for `permission-manifest.toml` with Zod validation
+    - [x] Implement atomic writes for `session-flags.json` (temp file + rename)
+    - [x] Implement `updateCapability(key, value)` for dynamic `Allow for Track` updates
+    - [x] Write unit tests with fixture manifests and session files
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Permission State Machine Core' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Permission State Machine Core' (Protocol in workflow.md)
 
 ## Phase 2: IDLE Mode — Remove Restrictions When Inactive [checkpoint: pending]
 
-- [ ] Task: Write failing tests for IDLE mode behavior [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Write failing tests for IDLE mode behavior [TIER-3] [AGENT:superconductor-processor]
     - [ ] Test: No active track → `isToolCallPermitted()` returns `true` for any tool
     - [ ] Test: `write_file`, `run_shell_command`, MCP calls all pass without prompt in IDLE state
     - [ ] Test: State machine correctly identifies IDLE when `tracks.md` has no `[~]` entries
     - [ ] Test: State machine correctly identifies TRACKED when `tracks.md` has a `[~]` entry
 
-- [ ] Task: Implement Tool Call Interceptor middleware [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Implement Tool Call Interceptor middleware [TIER-3] [AGENT:superconductor-processor]
     - [ ] Create `packages/superconductor-core/src/permissions/interceptor.ts`
     - [ ] Implement single `ToolCallInterceptor` hook in the agent execution loop
     - [ ] Hook invokes `PolicyEngine.isToolCallPermitted()` before delegating to actual tool logic
@@ -101,7 +100,7 @@ packages/superconductor-core/src/
     - [ ] In TRACKED state: interceptor evaluates against active manifest
     - [ ] In YOLO state: interceptor permits but logs to audit trail
 
-- [ ] Task: Add permission mode status banner [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Add permission mode status banner [TIER-2] [AGENT:superconductor-processor]
     - [ ] Emit current permission mode banner when superconductor commands run
     - [ ] Format: `🟢 IDLE MODE: No restrictions active`
     - [ ] Format: `🔒 TRACKED [track_id]: Scoped permissions active (manifest: X capabilities)`
@@ -112,7 +111,7 @@ packages/superconductor-core/src/
 
 ## Phase 3: YOLO Mode — Global Override with Audit Trail [checkpoint: pending]
 
-- [ ] Task: Write failing tests for YOLO mode [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Write failing tests for YOLO mode [TIER-3] [AGENT:superconductor-processor]
     - [ ] Test: `--yolo` flag activates YOLO state
     - [ ] Test: Every tool call in YOLO mode writes to audit log with correct schema
     - [ ] Test: `--persist` writes `session-flags.json` after double-confirmation
@@ -120,7 +119,7 @@ packages/superconductor-core/src/
     - [ ] Test: Audit log entries have correct schema (timestamp, tool, argsHash, bypass marker)
     - [ ] Test: Concurrent writes to `session-flags.json` are atomic (no corruption)
 
-- [ ] Task: Implement `YoloAuditLogger` [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Implement `YoloAuditLogger` [TIER-3] [AGENT:superconductor-processor]
     - [ ] Create `packages/superconductor-core/src/permissions/audit.ts`
     - [ ] Implement append-only logging to `superconductor/logs/yolo-audit.log`
     - [ ] Log schema: `{ timestamp, mode: 'YOLO', tool, argsHash, sessionId, bypass: true }`
