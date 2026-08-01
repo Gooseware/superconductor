@@ -83,4 +83,20 @@ export class TrackStateManager {
       this.watcher = null;
     }
   }
+
+  public getStatusBanner(): string {
+    const state = this.detectCurrentState();
+    if (state === 'IDLE') {
+      return `🟢 IDLE MODE: No restrictions active`;
+    }
+    if (state === 'YOLO') {
+      return `⚠️ YOLO MODE: All restrictions bypassed — audit logging active`;
+    }
+    if (state === 'TRACKED') {
+      const trackId = this.getActiveTrackId();
+      return `🔒 TRACKED [${trackId}]: Scoped permissions active`;
+    }
+    return '';
+  }
 }
+
