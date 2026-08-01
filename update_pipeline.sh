@@ -1,0 +1,3 @@
+sed -i "s/import { runDependencySurface } from '.\/runners\/dependency-surface.js';/import { runDependencySurface } from '.\/runners\/dependency-surface.js';\nimport { runGraphify } from '.\/runners\/graphify.js';/g" packages/superconductor-core/src/intelligence/pipeline.ts
+
+sed -i "s/await measure('p8_dependency_surface', () => runDependencySurface(projectRoot, outputDir));/await measure('p8_dependency_surface', () => runDependencySurface(projectRoot, outputDir));\n  await measure('p9_graphify', () => runGraphify(projectRoot, outputDir, registry.capabilities.domain_partition));/g" packages/superconductor-core/src/intelligence/pipeline.ts

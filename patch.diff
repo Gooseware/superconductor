@@ -1,0 +1,13 @@
+--- scripts/quorum-review.ts
++++ scripts/quorum-review.ts
+@@ -67,7 +67,9 @@
+                                 if (parsed.findings && Array.isArray(parsed.findings)) {
+                                     allFindings.push(...parsed.findings.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
+                                 }
+-                            } catch (err) { allFindings.push(); }
++                            } catch (err: any) {
++                                allFindings.push(`Failed to parse reviewer output: ${err.message || 'Invalid JSON'}`);
++                            }
+                         } else {
+                             allFindings.push('Review panel reported findings');
+                         }

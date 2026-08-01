@@ -24,7 +24,19 @@ export class QuorumFSM {
         history: []
     };
     
-    constructor(private targetFile: string) {}
+    constructor(private targetFile: string) { this.loadState(); }
+
+    private loadState() {
+        const stateFile = require('node:path').join(process.cwd(), 'superconductor/logs/quorum-state.json');
+        if (require('node:fs').existsSync(stateFile)) {
+            try {
+                const data = require('node:fs').readFileSync(stateFile, 'utf8');
+                this.stateData = JSON.parse(data);
+            } catch (err) {
+                console.error("Failed to load state", err);
+            }
+        }
+    }
 
     private persistState() {
         const logDir = path.join(process.cwd(), 'superconductor/logs');
@@ -38,7 +50,19 @@ export class QuorumFSM {
     }
 
     public transition(newState: FSMState) {
-        this.stateData.state = newState;
+        switch (newState) {
+            case 'IDLE':
+            case 'REVIEW_PENDING':
+            case 'ANALYSIS':
+            case 'REMEDIATION_REQUIRED':
+            case 'APPROVED':
+            case 'FAILED':
+            case 'REQUIRES_HUMAN_INTERVENTION':
+                this.stateData.state = newState;
+                break;
+            default:
+                throw new Error(`Invalid FSM transition: ${newState}`);
+        }
         this.persistState();
     }
 
@@ -51,7 +75,7 @@ export class QuorumFSM {
             // Dispatch reviewers in parallel
             const reviewers = ['correctness-reviewer', 'security-reviewer', 'adversarial-reviewer'];
             const results = await Promise.allSettled(reviewers.map(reviewer => 
-                execFileAsync('antigravity', ['--skill', reviewer, '--file', this.targetFile])
+                execFileAsync('antigravity', ['--skill', reviewer, '--file', '--', this.targetFile])
             ));
 
             let allFindings: string[] = [];
@@ -124,13 +148,13 @@ export class QuorumFSM {
             
             const remediationPromises = Object.values(groupedFindings).map(group => {
                 const findingsArg = JSON.stringify(group);
-                return execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', this.targetFile, '--findings', findingsArg]);
+                return execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', '--', this.targetFile, '--findings', findingsArg]);
             });
             
             await Promise.allSettled(remediationPromises);
             
-            // Halt FSM - do NOT continue looping
-            return { status: 'REMEDIATION_REQUIRED', findings: this.stateData.findings };
+            // Wait for all remediators to complete before re-entering REVIEW_PENDING
+            this.transition('REVIEW_PENDING');
         }
         
         this.transition('REQUIRES_HUMAN_INTERVENTION');
