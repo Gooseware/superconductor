@@ -99,7 +99,7 @@ describe('Adversarial Tests', () => {
 
       const res = await interceptor.intercept('delete_file', { TargetFile: 'superconductor/logs' });
       expect(res.allowed, `delete_file on superconductor/logs should be blocked in ${mode} mode`).toBe(false);
-      expect(res.reason).toMatch(/logs directory|prohibited/i);
+      expect(res.reason).toMatch(/logs directory.*prohibited/i);
     }
   });
 
