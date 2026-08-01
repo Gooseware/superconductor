@@ -88,10 +88,10 @@ export class QuorumFSM {
                     const findingsBlock = output.match(/```json:review-findings([\s\S]*?)```/);
                     const hasStructuredFindings = !!(findingsBlock && findingsBlock[1].trim() !== '[]' && findingsBlock[1].trim() !== '');
                     // Also catch plain-text finding indicators outside the fenced block.
-                    // Allows optional bullet/quote prefix (- * >) and narrows to known finding ID prefixes
-                    // to avoid false positives on tags like NOTE-1, TODO-1.
+                    // Allows optional bullet/quote prefix (- * + > or numbered 1. 1)) and narrows to known
+                    // finding ID prefixes to avoid false positives on tags like NOTE-1, TODO-1.
                     const hasPlainTextFindings = lines.some((l: string) =>
-                        /^([-*>]\s*)?(NEEDS\s+FIXES|(ADV|SEC|COR|REG|REV)-\d+[\s:—])/i.test(l));
+                        /^(([-*+>]|\d+[.)])\s*)?(NEEDS\s+FIXES|(ADV|SEC|COR|REG|REV)-\d+[\s:—])/i.test(l));
                     const approved = hasApprovalLine && !hasStructuredFindings && !hasPlainTextFindings;
                     if (approved) {
                         // 0 findings, valid pass
