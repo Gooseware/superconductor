@@ -1,0 +1,10 @@
+[command]
+name = "yolo"
+description = "Activate YOLO mode to bypass permission boundaries with full audit logging."
+usage = "/superconductor:yolo [--persist]"
+
+[[arguments]]
+name = "persist"
+type = "boolean"
+description = "Persist YOLO mode across sessions (requires double confirmation)"
+default = false

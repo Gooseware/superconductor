@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Permission Manifest",
+  "description": "Schema for permission-manifest.toml",
+  "type": "object",
+  "required": ["meta", "capabilities"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["track_id", "generated_at", "inferred_by"],
+      "properties": {
+        "track_id": { "type": "string" },
+        "generated_at": { "type": "string" },
+        "inferred_by": { "type": "string", "enum": ["auto", "manual"] }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "usb_access",
+        "arbitrary_shell",
+        "network_unrestricted",
+        "fs_outside_root",
+        "persistent"
+      ],
+      "properties": {
+        "usb_access": { "type": "boolean" },
+        "arbitrary_shell": { "type": "boolean" },
+        "network_unrestricted": { "type": "boolean" },
+        "fs_outside_root": { "type": "boolean" },
+        "persistent": { "type": "boolean" }
+      }
+    },
+    "allowlist": {
+      "type": "object",
+      "properties": {
+        "shell_prefixes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "domains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

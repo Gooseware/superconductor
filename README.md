@@ -136,6 +136,16 @@ During implementation, you can also:
   /superconductor:review
   ```
 
+## Adaptive Permission System
+
+Superconductor employs an Adaptive Permission System to secure agent tool execution based on the active state:
+
+- **🟢 IDLE MODE**: Active when no track is being implemented. Restrictions are lifted for general exploration and setup.
+- **🔒 TRACKED MODE**: Active during track implementation. Tool execution is strictly scoped to capabilities defined in the track's `permission-manifest.toml`. Blocked calls trigger an interactive inline prompt.
+- **⚠️ YOLO MODE**: Global override bypassing all restrictions. Actions are written to an append-only audit log.
+
+For a full reference, see [docs/permissions.md](docs/permissions.md).
+
 ## Commands Reference
 
 | Command | Description | Artifacts |

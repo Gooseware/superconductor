@@ -51,3 +51,7 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - When Superconductor is active (any mode): root agent MUST NOT commit a track branch until Quorum loop is complete and green.
 - If the root agent catches itself violating this rule, it must emit the following exact error message:
   "[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."
+- **Adaptive Permission Guardrails**:
+  - **IDLE MODE bypass**: In IDLE mode, general exploration is permitted, but the root agent MUST NOT modify `superconductor/tracks.md` directly to spoof or bypass IDLE mode checks without prior authorization.
+  - **TRACKED MODE**: Adhere to the capabilities granted in `permission-manifest.toml`. The Tool Call Interceptor will block unauthorized access and prompt the user.
+  - **YOLO MODE**: All restrictions are bypassed, but activities are tracked in the append-only `yolo-audit.log`. Use YOLO only when explicitly authorized or persistently required.

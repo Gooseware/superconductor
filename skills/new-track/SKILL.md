@@ -209,6 +209,7 @@ After generating the plan draft:
     *   Write the confirmed specification content to `<Tracks Directory>/<track_id>/spec.md`.
     *   Write the confirmed plan content to `<Tracks Directory>/<track_id>/plan.md`.
     *   Write the index file to `<Tracks Directory>/<track_id>/index.md`.
+    *   **CRITICAL:** Generate the permission manifest by running `npx superconductor infer-permissions <Tracks Directory>/<track_id>/spec.md <Tracks Directory>/<track_id>/permission-manifest.toml`.
 6.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `<Tracks Directory>/<track_id>/index.md`.
 7.  **Update Tracks Registry:** Append a new section for the track to the end of the tracks file.
 8.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.

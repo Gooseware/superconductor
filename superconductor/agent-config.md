@@ -66,3 +66,17 @@ Any reviewer agent receiving `REVIEWER_FULL_SYSTEM_PROMPT` will **always** check
 8. Dependency Laundering
 
 Failure to check all 8 items is itself a Critical finding.
+
+## Permission Mode Indicator
+The agent will emit a permission mode status banner reflecting the active restrictions of the Adaptive Permission System:
+
+- `🟢 IDLE MODE: No restrictions active`
+  Active when no track is currently being implemented. Allows for general project exploration and setup tasks.
+
+- `🔒 TRACKED [track_id]: Scoped permissions active`
+  Active during track implementation. Actions are restricted by the `permission-manifest.toml` of the active track.
+
+- `⚠️ YOLO MODE: All restrictions bypassed — audit logging active`
+  Global override that disables capability constraints, logging all executed tools to `yolo-audit.log`.
+
+For more details on capabilities and the manifest schema, see `docs/permissions.md`.
