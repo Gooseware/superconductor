@@ -86,8 +86,10 @@ export class QuorumFSM {
                     const lines = output.split('\n').map((l: string) => l.trim());
                     const hasApprovalLine = lines.some((l: string) => /^APPROVED:\s*NO\s+FINDINGS$/i.test(l));
                     const findingsBlock = output.match(/```json:review-findings([\s\S]*?)```/);
-                    const hasFindings = findingsBlock && findingsBlock[1].trim() !== '[]' && findingsBlock[1].trim() !== '';
-                    const approved = hasApprovalLine && !hasFindings;
+                    const hasStructuredFindings = !!(findingsBlock && findingsBlock[1].trim() !== '[]' && findingsBlock[1].trim() !== '');
+                    // Also catch plain-text finding indicators outside the fenced block (e.g. "REV-1 critical...", "NEEDS FIXES")
+                    const hasPlainTextFindings = lines.some((l: string) => /^(NEEDS\s+FIXES|[A-Z]+-\d+[\s:—])/i.test(l));
+                    const approved = hasApprovalLine && !hasStructuredFindings && !hasPlainTextFindings;
                     if (approved) {
                         // 0 findings, valid pass
                         continue;
