@@ -61,6 +61,7 @@ export class TrackStateManager {
         }
       } catch (e: any) {
         console.error(`[Superconductor] Failed to load session flags: ${e.message}`);
+        throw new Error(`Failed to parse session flags: ${e.message}`);
       }
     }
   }

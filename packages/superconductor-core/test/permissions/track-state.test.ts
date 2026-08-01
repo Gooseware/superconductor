@@ -22,9 +22,14 @@ describe('TrackStateManager', () => {
     (fs.existsSync as any).mockReturnValue(true);
     
     // Default mock implementation returning IDLE state (no `[~]`)
-    (fs.readFileSync as any).mockReturnValue(`
+    (fs.readFileSync as any).mockImplementation((filePath: string) => {
+      if (filePath.endsWith('session-flags.json')) {
+        return JSON.stringify({ yolo: false, persistent: false });
+      }
+      return `
       - [ ] track/some_old_track
-    `);
+    `;
+    });
     
     manager = new TrackStateManager('/fake/workspace');
   });
@@ -34,12 +39,19 @@ describe('TrackStateManager', () => {
     vi.useRealTimers();
   });
 
-  it('initializes in IDLE state', () => {
+  it('State machine correctly identifies IDLE when tracks.md has no [~] entries', () => {
+    (fs.readFileSync as any).mockReturnValue(`
+      - [ ] track/unstarted_track
+      - [x] track/completed_track
+    `);
+    
+    if (watchCallback) watchCallback('change', 'tracks.md');
+    
     expect(manager.detectCurrentState()).toBe('IDLE');
     expect(manager.getActiveTrackId()).toBeNull();
   });
 
-  it('detects TRACKED state when [~] is present', () => {
+  it('State machine correctly identifies TRACKED when tracks.md has a [~] entry', () => {
     (fs.readFileSync as any).mockReturnValue(`
       - [x] track/completed_track
       - [~] track/active_track_123
