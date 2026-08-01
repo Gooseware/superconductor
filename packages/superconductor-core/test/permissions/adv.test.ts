@@ -102,4 +102,85 @@ describe('Adversarial Tests', () => {
       expect(res.reason).toMatch(/logs directory|prohibited/i);
     }
   });
+
+  // REV-21: The ancestor check — resolved is a parent of logsDir (not just a child/inside it)
+  it('should block delete_file on ancestor of logsDir in YOLO mode (REV-21)', async () => {
+    const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
+    const ws = '/tmp/adv-workspace';
+    // logsDir = /tmp/adv-workspace/superconductor/logs
+    // 'superconductor' resolves to /tmp/adv-workspace/superconductor — an ancestor
+    const stateManager = new TrackStateManager(ws);
+    stateManager.detectCurrentState = () => 'YOLO';
+    const engine = new PolicyEngine(stateManager);
+    const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
+
+    const res1 = await interceptor.intercept('delete_file', { TargetFile: 'superconductor' });
+    expect(res1.allowed).toBe(false);
+    expect(res1.reason).toMatch(/logs directory/i);
+
+    // Also verify superconductor/logs itself is still blocked (child-check still works)
+    const res2 = await interceptor.intercept('delete_file', { TargetFile: 'superconductor/logs' });
+    expect(res2.allowed).toBe(false);
+    expect(res2.reason).toMatch(/logs directory/i);
+  });
+
+  it('should block delete_file on workspace root (broad ancestor of logsDir) in YOLO mode (REV-21)', async () => {
+    const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
+    const ws = '/tmp/adv-workspace';
+    const stateManager = new TrackStateManager(ws);
+    stateManager.detectCurrentState = () => 'YOLO';
+    const engine = new PolicyEngine(stateManager);
+    const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
+
+    // The workspace root /tmp/adv-workspace is also an ancestor of logsDir
+    const res = await interceptor.intercept('delete_file', { TargetFile: ws });
+    expect(res.allowed).toBe(false);
+    expect(res.reason).toMatch(/logs directory/i);
+  });
+
+  // REV-20: backtick command substitution and brace expansion bypass
+  it('REV-20: should block backtick command substitution bypass (e.g. cat superconductor/`echo logs`/test)', async () => {
+    const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
+    const ws = '/tmp/adv-workspace';
+    const stateManager = new TrackStateManager(ws);
+    stateManager.detectCurrentState = () => 'TRACKED';
+    const engine = new PolicyEngine(stateManager);
+    const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
+
+    // Backtick command substitution: cat superconductor/`echo logs`/test
+    const res1 = await interceptor.intercept('run_command', { CommandLine: 'cat superconductor/`echo logs`/test' });
+    expect(res1.allowed).toBe(false);
+    expect(res1.reason).toMatch(/globbing/i);
+
+    // Brace expansion: rm -rf {superconductor,/tmp}
+    const res2 = await interceptor.intercept('run_command', { CommandLine: 'rm -rf {superconductor,/tmp}' });
+    expect(res2.allowed).toBe(false);
+    expect(res2.reason).toMatch(/globbing/i);
+  });
+
+  // REV-22: chained cd bypass via shell operators
+  it('REV-22: should block chained cd bypass (e.g. cd superconductor && cd logs && rm yolo-audit.log)', async () => {
+    const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
+    const ws = '/tmp/adv-workspace';
+    const stateManager = new TrackStateManager(ws);
+    stateManager.detectCurrentState = () => 'TRACKED';
+    const engine = new PolicyEngine(stateManager);
+    const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
+
+    // && chaining: cd superconductor && cd logs && rm yolo-audit.log
+    const res1 = await interceptor.intercept('run_command', { CommandLine: 'cd superconductor && cd logs && rm yolo-audit.log' });
+    expect(res1.allowed).toBe(false);
+    // Caught by substring 'yolo-audit' or chaining check
+    expect(res1.reason).toMatch(/chaining|logs directory/i);
+
+    // Semicolon chaining: cd superconductor; rm yolo-audit.log
+    const res2 = await interceptor.intercept('run_command', { CommandLine: 'cd superconductor; rm yolo-audit.log' });
+    expect(res2.allowed).toBe(false);
+    expect(res2.reason).toMatch(/chaining|logs directory/i);
+
+    // || chaining (no yolo-audit/logs substring): false || cat /etc/passwd
+    const res3 = await interceptor.intercept('run_command', { CommandLine: 'false || cat /etc/passwd' });
+    expect(res3.allowed).toBe(false);
+    expect(res3.reason).toMatch(/chaining/i);
+  });
 });
