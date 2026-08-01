@@ -70,7 +70,7 @@ describe('Adversarial Tests', () => {
   });
 
   // REV-18: Test the REAL exploit vectors — parent directory deletion in ALL modes
-  it('should block delete_file on superconductor parent directory in all modes (REV-18)', async () => {
+  it('should block delete_file on superconductor parent directory — REV-21 ancestor-check fires when TargetFile is the parent of logsDir (all modes)', async () => {
     const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
     const ws = '/tmp/adv-workspace';
     const engine = new PolicyEngine(new TrackStateManager(ws));
