@@ -182,7 +182,7 @@ packages/superconductor-core/src/
 
 - [x] Task: Superconductor - User Manual Verification 'Phase 5: Per-Blocker Inline Override' (Protocol in workflow.md)
 
-## Phase 6: Integration & Finalization [checkpoint: bdf264d]
+## Phase 6: Integration & Finalization [checkpoint: c79fa3a]
 
 - [x] Task: End-to-end integration testing [TIER-4] [AGENT:superconductor-oracle] [checkpoint: 4d811ee]
     - [x] Test full flow: IDLE mode -> start track -> TRACKED mode (manifest loaded) -> per-blocker override -> YOLO override -> audit log verified
@@ -204,7 +204,7 @@ packages/superconductor-core/src/
     - [x] Verify IDLE mode spoofing protection: `tracks.md` modification requires prior grant
     - [x] Verify atomic write pattern prevents session flag corruption
 
-- [ ] Task: Integrate track 'adaptive_permissions_20260801' into main branch. [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Integrate track 'adaptive_permissions_20260801' into main branch. [TIER-2] [AGENT:superconductor-processor]
 
 ---
 
