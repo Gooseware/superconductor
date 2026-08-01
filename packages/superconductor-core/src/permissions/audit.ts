@@ -45,7 +45,13 @@ export class YoloAuditLogger {
       );
     }
 
-    const postOpenRealLogDir = fs.realpathSync(logDir);
+    let postOpenRealLogDir: string;
+    try {
+      postOpenRealLogDir = fs.realpathSync(logDir);
+    } catch (err: any) {
+      fs.closeSync(this.fd); this.fd = -1;
+      throw new Error(`[YoloAuditLogger] Audit log directory became unresolvable during init: ${err.message}`);
+    }
     if (postOpenRealLogDir !== realLogDir) {
       fs.closeSync(this.fd); this.fd = -1;
       throw new Error(`[YoloAuditLogger] Audit log directory replaced during init: ${logDir}`);

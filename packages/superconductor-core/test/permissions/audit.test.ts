@@ -88,6 +88,27 @@ describe('YoloAuditLogger', () => {
     vi.resetModules();
   });
 
+  it('init() throws when fstatSync fails', async () => {
+    vi.resetModules();
+    vi.doMock('fs', async (importOriginal) => {
+      const mod = await importOriginal<typeof import('fs')>();
+      return {
+        ...mod,
+        fstatSync: vi.fn(() => {
+          throw new Error('mock stat error');
+        })
+      };
+    });
+
+    // Dynamically import the module AFTER mocking
+    const { YoloAuditLogger } = await import('../../src/permissions/audit');
+    const logger = new YoloAuditLogger(workspacePath);
+    expect(() => logger.init()).toThrow(/\[YoloAuditLogger\] Cannot stat audit log fd:/);
+
+    vi.doUnmock('fs');
+    vi.resetModules();
+  });
+
   it('init() is idempotent — calling twice does not throw or duplicate fd', () => {
     const logger = new YoloAuditLogger(workspacePath);
     logger.init();
