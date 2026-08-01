@@ -98,12 +98,12 @@
 
 ## Phase 4: Quorum FSM (absorbs scripted_swarm_orchestrator)
 
-- [ ] Task: Design and implement Quorum FSM in quorum-review.ts [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define FSM states: `IDLE | REVIEW_PENDING | ANALYSIS | REMEDIATION_REQUIRED | APPROVED | FAILED | REQUIRES_HUMAN_INTERVENTION`
+- [x] Task: Design and implement Quorum FSM in quorum-review.ts [TIER-4] [AGENT:superconductor-dreamer]
+    - [x] Define FSM states: `IDLE | REVIEW_PENDING | ANALYSIS | REMEDIATION_REQUIRED | APPROVED | FAILED | REQUIRES_HUMAN_INTERVENTION`
     - [ ] Implement state transitions as explicit switch-case (no implicit jumps)
     - [ ] Implement `MAX_QUORUM_LOOPS = 3` circuit breaker
     - [ ] Implement finding deduplication check (reject finding if matches previous loop verbatim)
-    - [ ] Persist FSM state atomically to `superconductor/logs/quorum-state.json` (write-tmp → rename)
+    - [x] Persist FSM state atomically to `superconductor/logs/quorum-state.json` (write-tmp → rename)
 - [ ] Task: Implement parallel reviewer dispatch [TIER-3] [AGENT:superconductor-processor]
     - [ ] Dispatch Security, Correctness, Adversarial reviewers via `invoke_subagent` in parallel (not sequential)
     - [ ] Collect `APPROVED` / `NEEDS FIXES` responses from all reviewers
@@ -116,10 +116,10 @@
 - [ ] Task: Implement escalation and human intervention state [TIER-2] [AGENT:superconductor-processor]
     - [ ] On `MAX_QUORUM_LOOPS` exceeded: write `REQUIRES_HUMAN_INTERVENTION` to `quorum-state.json`
     - [ ] Emit clear user-facing message with loop history and unresolved findings
-    - [ ] Halt FSM — do NOT continue looping
-- [ ] Task: Write FSM tests [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: FSM transitions through full happy path to `APPROVED`
-    - [ ] Test: FSM halts at `REQUIRES_HUMAN_INTERVENTION` after 3 loops
+    - [x] Halt FSM — do NOT continue looping
+- [x] Task: Write FSM tests [TIER-3] [AGENT:superconductor-processor]
+    - [x] Test: FSM transitions through full happy path to `APPROVED`
+    - [x] Test: FSM halts at `REQUIRES_HUMAN_INTERVENTION` after 3 loops
     - [ ] Test: Duplicate finding from previous loop is rejected (reviewer forced to acknowledge)
     - [ ] Test: State file is written atomically (simulated crash during write)
     - [ ] Test: Reviewers dispatched in parallel (not sequential)
