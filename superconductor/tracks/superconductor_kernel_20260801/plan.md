@@ -8,6 +8,24 @@
 
 ## Orchestration Protocol
 
+### Parallel Dispatch — Aggressive Speed Policy
+
+**Default assumption: ALL tasks are parallel unless an explicit input→output dependency exists.**
+
+- **Processors**: At the start of each phase, identify dependency groups. Dispatch ALL tasks in group 1 as a single `invoke_subagent` array. Do NOT wait for one processor before starting another. Only wait when a hard dependency exists (e.g. tests that import implementation code must come after the implementation).
+- **Quorum Reviewers**: Security + Correctness + Adversarial always dispatched as one parallel `invoke_subagent` batch. Never serialized.
+- **Remediators**: ALL remediators for a given loop dispatched as one parallel batch — one per finding domain, all at once.
+- **Oracle (CB Level 2)**: Dispatched immediately when CB fires — pass failure history directly, no re-summarizing.
+
+**Wave pattern within a phase:**
+```
+Wave 1: [task-A] [task-B] [task-C]  ← all independent, dispatched simultaneously
+Wave 2: [task-D depends on A] [task-E depends on B]  ← dispatched as soon as wave 1 completes
+Quorum: [Security] [Correctness] [Adversarial]  ← single parallel batch after all waves
+```
+
+---
+
 ### Circuit Breaker — Level 2 Oracle Escalation (Self-Healing)
 
 When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST NOT** pause and wait for human input. Instead:
