@@ -77,7 +77,8 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 - **FR-4.5**: Deduplication check: if reviewer finding matches a finding from a previous loop verbatim, it is rejected (forces reviewer to acknowledge fix)
 - **FR-4.6**: FSM state persisted to `superconductor/logs/quorum-state.json` (survives process restart)
 - **FR-4.7**: Exit condition is exclusively `APPROVED` verdict from all reviewers — never test pass rate alone
-- **FR-4.8**: `RemediatorPromptBuilder` enriches every raw `QuorumFinding` into a structured 7-field `RemediatorPrompt` before dispatch: `TASK`, `SCOPE`, `EXCLUDED`, `PATTERN`, `ANTI_PATTERNS`, `EVIDENCE_REQUIRED`, `DEFINITION_OF_DONE`. Remediators MUST receive a structured prompt — raw Quorum finding text is never passed directly
+- **FR-4.8**: `LanguageAdapter.detect(projectRoot, techStack)` resolves a `LanguageProfile` from `tech-stack.md` first, then manifest file detection (`package.json` → `pyproject.toml` → `go.mod` → `Cargo.toml`). Profile exposes: `testCommand`, `manifestFiles`, `generatedDirs`, `testTheatreAntiPatterns`, `siblingsWithTests()`
+- **FR-4.9**: `RemediatorPromptBuilder` consumes `LanguageAdapter` output. All 7 prompt fields are populated using the detected `LanguageProfile` — no field may hardcode a language-specific value (e.g. `npm test`, `node_modules/`, `echo`)
 
 ### FR-5: Audit Log Hardening
 - **FR-5.1**: Replace regex string-matching guards for `yolo-audit.log` in `interceptor.ts` with application-level append-only enforcement
@@ -101,6 +102,7 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 - **NFR-4**: All 438 existing tests continue to pass post-rename
 - **NFR-5**: The codemod script is idempotent (running twice produces no diff)
 - **NFR-6**: `uv` and Python 3.10+ are prerequisites; setup fails with actionable error message if absent
+- **NFR-7**: Swarm infrastructure (`LanguageAdapter`, `RemediatorPromptBuilder`, `anti-patterns.ts`) is language-agnostic. No swarm component may hardcode assumptions about any specific language, package manager, or test runner. All language-specific behaviour is encapsulated in `LanguageAdapter` and derived from `tech-stack.md` or manifest detection. A Superconductor track running against a pure Python, Go, or Rust project must produce correctly scoped, correctly evidenced remediator prompts without modification
 
 ---
 

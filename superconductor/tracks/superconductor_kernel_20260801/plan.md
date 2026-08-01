@@ -109,21 +109,36 @@
     - [ ] Collect `APPROVED` / `NEEDS FIXES` responses from all reviewers
     - [ ] Transition to `REMEDIATION_REQUIRED` if ANY reviewer returns `NEEDS FIXES`
     - [ ] Transition to `APPROVED` only when ALL reviewers return `APPROVED`
-- [ ] Task: Implement RemediatorPromptBuilder — structured context injection layer [TIER-4] [AGENT:superconductor-processor]
+- [ ] Task: Implement LanguageAdapter — language-agnostic project inspector [TIER-3] [AGENT:superconductor-processor]
+    - [ ] Create `packages/superconductor-core/src/swarm/LanguageAdapter.ts`
+    - [ ] `LanguageAdapter.detect(projectRoot, techStack)` → returns `LanguageProfile` by reading `tech-stack.md` first, then falling back to manifest detection
+    - [ ] `LanguageProfile` interface contains:
+        - `language`: `'typescript' | 'python' | 'go' | 'rust' | 'java' | 'unknown'`
+        - `testCommand`: e.g. `npm test`, `pytest`, `go test ./...`, `cargo test`, `mvn test`
+        - `manifestFiles`: e.g. `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
+        - `generatedDirs`: e.g. `dist/`, `__pycache__/`, `target/`, `.venv/`, `build/`
+        - `testTheatreAntiPatterns`: language-specific fake-test signatures (TS: `echo`/`exit 0`; Python: empty `def test_*(): pass`; Go: `t.Skip()`-only tests; Rust: `todo!()` bodies)
+        - `siblingsWithTests(root)`: finds sibling packages/modules that have real tests as `PATTERN` examples
+    - [ ] Manifest detection priority order: `tech-stack.md` declaration → `package.json` → `pyproject.toml` → `go.mod` → `Cargo.toml`
+    - [ ] Write unit tests: TS project → `npm test`, `node_modules/` excluded; Python project → `pytest`, `__pycache__/` excluded; unknown project → graceful fallback with explicit warning in prompt
+- [ ] Task: Implement RemediatorPromptBuilder using LanguageAdapter [TIER-4] [AGENT:superconductor-processor]
     - [ ] Create `packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts`
-    - [ ] Builder accepts a raw `QuorumFinding[]` + `RepoContext` + current `TrackState` and produces a structured `RemediatorPrompt` per finding domain
-    - [ ] Each `RemediatorPrompt` MUST include all 7 required fields:
-        - `TASK`: Specific action, derived from the finding `recommendation` field
-        - `SCOPE`: Explicit file glob list — only files the remediator is allowed to touch (derived from finding `file` + sibling source files)
-        - `EXCLUDED`: Explicit exclusion list — `plan.md`, `spec.md`, `archive/`, `*.lock`, `node_modules/`, intelligence snapshots, any file whose reference is descriptive rather than functional
-        - `PATTERN`: What the correct solution looks like, with a concrete example drawn from `RepoContext` (e.g. existing test script in a sibling package)
-        - `ANTI_PATTERNS`: Explicit list of prohibited approaches (e.g. "Do NOT use `echo`, `exit 0`, or stubs as test scripts")
-        - `EVIDENCE_REQUIRED`: Exact command the remediator must run and show stdout of before claiming done
-        - `DEFINITION_OF_DONE`: Objective, verifiable criteria — not "tests pass" but "show `npm test` output with ≥1 passing test and 0 failing"
-    - [ ] Builder extracts `PATTERN` from `RepoContext`: for a test-script finding, reads sibling `package.json` test scripts; for a naming finding, reads the correct name from `package.json`
-    - [ ] Builder populates `EXCLUDED` by scanning for: spec/plan files, archive dirs, generated intelligence files, lock files — auto-detected from repo structure
-    - [ ] `ANTI_PATTERNS` populated from a static registry in `anti-patterns.ts` keyed by finding `category` (e.g. `adversarial` → test-theatre patterns; `correctness` → phantom-implementation patterns)
-    - [ ] Write unit tests: given a `test-theatre` finding → builder produces prompt with `ANTI_PATTERNS` containing `echo`/`exit 0` prohibition; given a `naming` finding → builder excludes `plan.md`/`spec.md`
+    - [ ] Builder accepts `QuorumFinding[]` + `RepoContext` + `TrackState` → calls `LanguageAdapter.detect()` first → produces `RemediatorPrompt` per finding domain
+    - [ ] Each `RemediatorPrompt` MUST include all 7 fields, all language-aware:
+        - `TASK`: specific action from `finding.recommendation`
+        - `SCOPE`: explicit file globs the remediator may touch (from finding `file` + sibling sources)
+        - `EXCLUDED`: always includes `plan.md`, `spec.md`, `archive/` + language-specific generated dirs from `LanguageProfile.generatedDirs`
+        - `PATTERN`: correct-solution example from `LanguageProfile.siblingsWithTests()` — never hardcoded
+        - `ANTI_PATTERNS`: `LanguageProfile.testTheatreAntiPatterns` + category-keyed entries from `anti-patterns.ts`
+        - `EVIDENCE_REQUIRED`: uses `LanguageProfile.testCommand` — never hardcodes `npm test`
+        - `DEFINITION_OF_DONE`: objective criteria using the language's test output format
+    - [ ] `anti-patterns.ts`: static registry keyed by `(language, findingCategory)` — e.g. `('python', 'adversarial')` → `["Do NOT use empty test bodies (def test_x(): pass)", "Do NOT use pytest.skip() as sole test body"]`
+    - [ ] Write unit tests:
+        - TS test-theatre finding → ANTI_PATTERNS contains `echo`/`exit 0`; EVIDENCE uses `npm test`
+        - Python test-theatre finding → ANTI_PATTERNS contains `pass` body prohibition; EVIDENCE uses `pytest`
+        - Go naming finding → EXCLUDED contains `__pycache__/` is absent, `vendor/` is present; EVIDENCE uses `go test ./...`
+        - Unknown language → prompt includes explicit warning: `"Language could not be detected from tech-stack.md. Verify test command manually before claiming done."`
+
 - [ ] Task: Implement parallel remediator dispatch using RemediatorPromptBuilder [TIER-3] [AGENT:superconductor-processor]
     - [ ] Group findings by domain (file prefix + category)
     - [ ] Run each finding group through `RemediatorPromptBuilder.build()` BEFORE dispatching
