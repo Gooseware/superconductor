@@ -45,7 +45,7 @@ export function runDependencyGraph(projectRoot: string, outputDir: string, capab
         );
         data = JSON.parse(runResult.stdout || '{}');
       } else {
-        const candidates = ['packages/superconductor-core/src', 'packages/superconductor-mcp-server/src', 'scripts'];
+        const candidates = ['packages/superconductor-core/src', 'packages/superconductor-kernel/src', 'scripts'];
         const srcDirs = candidates.filter(d => fs.existsSync(path.join(projectRoot, d))).join(' ');
         const target = srcDirs || 'src';
 

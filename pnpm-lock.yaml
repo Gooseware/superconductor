@@ -113,7 +113,7 @@ importers:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@20.19.43)
 
-  packages/superconductor-mcp-server:
+  packages/superconductor-kernel:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.6.0

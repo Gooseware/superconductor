@@ -1,9 +1,9 @@
 {
   "mcpServers": {
-    "design-os-kernel": {
+    "superconductor-kernel": {
       "command": "node",
       "args": [
-        "${extensionPath}/packages/design-os-kernel/dist/index.js"
+        "${extensionPath}/packages/superconductor-kernel/dist/index.js"
       ]
     }
   }
