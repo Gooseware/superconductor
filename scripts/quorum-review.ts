@@ -67,7 +67,9 @@ export class QuorumFSM {
                                 if (parsed.findings && Array.isArray(parsed.findings)) {
                                     allFindings.push(...parsed.findings.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
                                 }
-                            } catch (err) {}
+                            } catch (err: any) {
+                                allFindings.push(`Failed to parse reviewer output: ${err.message || 'Invalid JSON'}`);
+                            }
                         } else {
                             allFindings.push('Review panel reported findings');
                         }
@@ -101,14 +103,34 @@ export class QuorumFSM {
 
             this.transition('REMEDIATION_REQUIRED');
             
-            // Dispatch remediators in parallel
-            const remediationPromises = this.stateData.findings.map(finding => {
-                return execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', this.targetFile, '--findings', finding]);
+            // Dispatch remediators in parallel grouped by domain (file prefix + category)
+            const groupedFindings: Record<string, any[]> = {};
+            this.stateData.findings.forEach(findingStr => {
+                let parsedFinding: any;
+                try {
+                    parsedFinding = JSON.parse(findingStr);
+                } catch {
+                    parsedFinding = { description: findingStr };
+                }
+                const file = parsedFinding.file || this.targetFile;
+                const category = parsedFinding.category || 'general';
+                const domain = `${file}-${category}`;
+                
+                if (!groupedFindings[domain]) {
+                    groupedFindings[domain] = [];
+                }
+                groupedFindings[domain].push(parsedFinding);
+            });
+            
+            const remediationPromises = Object.values(groupedFindings).map(group => {
+                const findingsArg = JSON.stringify(group);
+                return execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', this.targetFile, '--findings', findingsArg]);
             });
             
             await Promise.allSettled(remediationPromises);
             
-            this.transition('REVIEW_PENDING');
+            // Halt FSM - do NOT continue looping
+            return { status: 'REMEDIATION_REQUIRED', findings: this.stateData.findings };
         }
         
         this.transition('REQUIRES_HUMAN_INTERVENTION');
