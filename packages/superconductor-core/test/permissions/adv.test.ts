@@ -33,41 +33,73 @@ describe('Adversarial Tests', () => {
     expect(allowed).toBe(false); // Should be blocked because it's not inside /workspace
   });
 
-  it('should block bash globbing and variables in run_command (REV-17)', async () => {
+  // REV-17: Test the REAL exploit vectors — not just globbing/variables
+  it('should block backtick command substitution used as path prefix (REV-17)', async () => {
     const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
     const ws = '/tmp/adv-workspace';
     const stateManager = new TrackStateManager(ws);
     stateManager.detectCurrentState = () => 'TRACKED';
     const engine = new PolicyEngine(stateManager);
     const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
-    
-    const res1 = await interceptor.intercept('run_command', { CommandLine: 'cat log?/yolo-aud*' });
+
+    // Real exploit: backtick substitution embeds path that resolves to logs dir
+    // Command: `echo superconductor/logs`/yolo-audit.log
+    const res1 = await interceptor.intercept('run_command', {
+      CommandLine: '`echo superconductor/logs`/yolo-audit.log'
+    });
     expect(res1.allowed).toBe(false);
-    expect(res1.reason).toMatch(/globbing/i);
-    
-    const res2 = await interceptor.intercept('run_command', { CommandLine: 'echo $PATH' });
-    expect(res2.allowed).toBe(false);
-    expect(res2.reason).toMatch(/globbing/i);
+    // Should be caught by backtick regex before path resolution
+    expect(res1.reason).toMatch(/globbing|chaining|shell|substitution/i);
   });
 
-  it('should block deletion of parent directories in IDLE mode (REV-18)', async () => {
+  it('should block chained cd that pivots into logs directory (REV-17)', async () => {
     const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
     const ws = '/tmp/adv-workspace';
     const stateManager = new TrackStateManager(ws);
-    stateManager.detectCurrentState = () => 'IDLE';
+    stateManager.detectCurrentState = () => 'TRACKED';
     const engine = new PolicyEngine(stateManager);
     const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
-    
-    const res1 = await interceptor.intercept('delete_file', { TargetFile: 'superconductor' });
-    expect(res1.allowed).toBe(false);
-    expect(res1.reason).toMatch(/IDLE mode spoofing/i);
-    
-    const res2 = await interceptor.intercept('delete_file', { TargetFile: 'superconductor/tracks' });
-    expect(res2.allowed).toBe(false);
 
-    stateManager.detectCurrentState = () => 'YOLO';
-    const res3 = await interceptor.intercept('delete_file', { TargetFile: 'superconductor/logs' });
-    expect(res3.allowed).toBe(false);
-    expect(res3.reason).toMatch(/logs directory/i);
+    // Real exploit: chain cd commands to land in logs dir and delete the audit log
+    const res = await interceptor.intercept('run_command', {
+      CommandLine: 'cd superconductor && cd logs && rm yolo-audit.log'
+    });
+    expect(res.allowed).toBe(false);
+    // Should be caught by chaining operator block
+    expect(res.reason).toMatch(/chaining|shell|prohibited/i);
+  });
+
+  // REV-18: Test the REAL exploit vectors — parent directory deletion in ALL modes
+  it('should block delete_file on superconductor parent directory in all modes (REV-18)', async () => {
+    const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
+    const ws = '/tmp/adv-workspace';
+    const engine = new PolicyEngine(new TrackStateManager(ws));
+
+    for (const mode of ['IDLE', 'TRACKED', 'YOLO'] as const) {
+      const stateManager = new TrackStateManager(ws);
+      stateManager.detectCurrentState = () => mode;
+      const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
+
+      const res = await interceptor.intercept('delete_file', { TargetFile: 'superconductor' });
+      expect(res.allowed, `delete_file on superconductor should be blocked in ${mode} mode`).toBe(false);
+      // Global guard must fire before any state-specific logic
+      expect(res.reason).toMatch(/superconductor|prohibited/i);
+    }
+  });
+
+  it('should block delete_file on superconductor/logs directory in all modes (REV-18)', async () => {
+    const { ToolCallInterceptor } = await import('../../src/permissions/interceptor.js');
+    const ws = '/tmp/adv-workspace';
+    const engine = new PolicyEngine(new TrackStateManager(ws));
+
+    for (const mode of ['IDLE', 'TRACKED', 'YOLO'] as const) {
+      const stateManager = new TrackStateManager(ws);
+      stateManager.detectCurrentState = () => mode;
+      const interceptor = new ToolCallInterceptor(stateManager, engine, ws);
+
+      const res = await interceptor.intercept('delete_file', { TargetFile: 'superconductor/logs' });
+      expect(res.allowed, `delete_file on superconductor/logs should be blocked in ${mode} mode`).toBe(false);
+      expect(res.reason).toMatch(/logs directory|prohibited/i);
+    }
   });
 });

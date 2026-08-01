@@ -25,22 +25,36 @@ export class ToolCallInterceptor {
     }
 
     async intercept(toolName: string, args: any, manifest?: PermissionManifest): Promise<{ allowed: boolean, reason?: string }> {
-        // Global block against modifying yolo-audit.log and logs directory
+        // Global block against modifying yolo-audit.log, logs directory, or the superconductor root itself (all modes)
         if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
             const targetFile = args?.path || args?.TargetFile || '';
             const resolved = path.resolve(this.workspacePath, targetFile);
             const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
-            const rel = path.relative(logsDir, resolved);
-            if (!rel.startsWith('..') && !path.isAbsolute(rel)) {
+
+            // Block access into logs dir (child or exact match)
+            const relLogs = path.relative(logsDir, resolved);
+            if (!relLogs.startsWith('..') && !path.isAbsolute(relLogs)) {
+                return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
+            }
+            // REV-21: also block if resolved is an ancestor of logsDir.
+            // path.relative(resolved, logsDir) not starting with '..' means resolved contains logsDir.
+            const relAncestor = path.relative(resolved, logsDir);
+            if (!relAncestor.startsWith('..') && !path.isAbsolute(relAncestor)) {
                 return { allowed: false, reason: 'Security: Modification of logs directory is strictly prohibited' };
             }
         }
         if (toolName === 'run_command') {
             const cmd = args?.command || args?.CommandLine || '';
-            if (cmd.match(/superconductor\/logs/) || cmd.match(/yolo-audit/)) {
+            // REV-22: block substring patterns regardless of tokenisation / chained cd bypasses
+            if (cmd.includes('superconductor/logs') || cmd.includes('yolo-audit')) {
                 return { allowed: false, reason: 'Security: Shell access to logs directory is strictly prohibited' };
             }
-            if (cmd.match(/[*?$[\]\\]/)) {
+            // REV-22: reject any command that chains sub-commands (&&, ;, ||)
+            if (/&&|;|\|\|/.test(cmd)) {
+                return { allowed: false, reason: 'Security: Shell chaining operators (&&, ;, ||) are prohibited in run_command' };
+            }
+            // REV-20: block globbing, variables, backtick substitution, and brace expansion
+            if (/[*?$[\]\\`{}|~<>]/.test(cmd)) {
                 return { allowed: false, reason: 'Security: Bash globbing and variables are prohibited in run_command' };
             }
             const cwd = args?.Cwd || args?.cwd || this.workspacePath;
