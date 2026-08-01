@@ -14,19 +14,24 @@ export class DomainPartitioner {
         const communitiesMap = new Map<string, string>();
 
         if (fs.existsSync(graphifyFile)) {
+            let data: any;
             try {
-                const data = JSON.parse(fs.readFileSync(graphifyFile, 'utf8'));
-                if (data && Array.isArray(data.nodes)) {
-                    for (const node of data.nodes) {
-                        if (node.source_file && node.community !== undefined) {
-                            communitiesMap.set(node.source_file, `community-${node.community}`);
-                        }
+                data = JSON.parse(fs.readFileSync(graphifyFile, 'utf8'));
+            } catch (e: any) {
+                throw new Error(
+                    `[DomainPartitioner] Failed to parse 09_graphify_graph.json: ${e.message}. ` +
+                    'Delete the file and re-run the intelligence pipeline to regenerate it.'
+                );
+            }
+            if (data && Array.isArray(data.nodes)) {
+                for (const node of data.nodes) {
+                    if (node.source_file && node.community !== undefined) {
+                        communitiesMap.set(node.source_file, `community-${node.community}`);
                     }
                 }
-            } catch (e) {
-                console.warn('[DomainPartitioner] Failed to parse 09_graphify_graph.json, falling back to directory split');
             }
         }
+
 
         const partitionsMap = new Map<string, string[]>();
         
