@@ -37,6 +37,9 @@ export class ToolCallInterceptor {
         }
         if (toolName === 'run_command') {
             const cmd = args?.command || args?.CommandLine || '';
+            if (cmd.match(/superconductor\/logs/) || cmd.match(/yolo-audit/)) {
+                return { allowed: false, reason: 'Security: Shell access to logs directory is strictly prohibited' };
+            }
             const cwd = args?.Cwd || args?.cwd || this.workspacePath;
             const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
             
@@ -61,7 +64,7 @@ export class ToolCallInterceptor {
         const state = this.stateManager.detectCurrentState();
 
         if (state === 'IDLE') {
-            if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+            if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
                 const targetFile = args?.path || args?.TargetFile || '';
                 const resolved = path.resolve(this.workspacePath, targetFile);
                 if (
