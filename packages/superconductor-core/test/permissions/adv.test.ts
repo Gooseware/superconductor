@@ -83,7 +83,7 @@ describe('Adversarial Tests', () => {
       const res = await interceptor.intercept('delete_file', { TargetFile: 'superconductor' });
       expect(res.allowed, `delete_file on superconductor should be blocked in ${mode} mode`).toBe(false);
       // Global guard must fire before any state-specific logic
-      expect(res.reason).toMatch(/superconductor|prohibited/i);
+      expect(res.reason).toMatch(/logs directory.*prohibited/i);
     }
   });
 
