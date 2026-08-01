@@ -8,23 +8,32 @@ import { SessionProvider } from '../../src/permissions/providers/session-provide
 import { PermissionManifest } from '../../src/permissions/schemas';
 import * as crypto from 'crypto';
 
+
+// vi.mock must be at module top level for Vitest hoisting to work correctly
+vi.mock('fs', () => ({
+    existsSync: vi.fn().mockReturnValue(true),
+    readFileSync: vi.fn().mockReturnValue('{}'),
+    writeFileSync: vi.fn(),
+    renameSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    appendFileSync: vi.fn(),
+    watch: vi.fn().mockReturnValue({ close: vi.fn() }),
+    realpathSync: vi.fn().mockImplementation((p: string) => p),
+    lstatSync: vi.fn().mockReturnValue({ isSymbolicLink: () => false }),
+    openSync: vi.fn().mockReturnValue(3),
+    fchmodSync: vi.fn(),
+    fstatSync: vi.fn().mockReturnValue({ mode: 0o100600 }),
+    writeSync: vi.fn(),
+    closeSync: vi.fn(),
+    constants: { O_CREAT: 64, O_WRONLY: 1, O_APPEND: 1024, O_NOFOLLOW: 131072 }
+}));
+
 describe('Permissions E2E Integration', () => {
     let stateManager: TrackStateManager;
     let policyEngine: PolicyEngine;
     let interceptor: ToolCallInterceptor;
     let overrideHandler: InlineOverrideHandler;
     let auditLogger: YoloAuditLogger;
-    
-    // We mock fs to prevent actual file writes
-    vi.mock('fs', () => ({
-        existsSync: vi.fn().mockReturnValue(true),
-        readFileSync: vi.fn().mockReturnValue('{}'),
-        writeFileSync: vi.fn(),
-        renameSync: vi.fn(),
-        mkdirSync: vi.fn(),
-        appendFileSync: vi.fn(),
-        watch: vi.fn().mockReturnValue({ close: vi.fn() })
-    }));
 
     beforeEach(() => {
         stateManager = new TrackStateManager('/workspace');
@@ -35,7 +44,7 @@ describe('Permissions E2E Integration', () => {
     });
 
     afterEach(() => {
-        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('Test full flow: IDLE mode -> start track -> TRACKED mode (manifest loaded) -> per-blocker override -> YOLO override -> audit log verified', async () => {

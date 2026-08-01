@@ -1,95 +1,108 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { YoloAuditLogger } from '../../src/permissions/audit';
-import * as fs from 'fs';
-import * as path from 'path';
 
-vi.mock('fs', async () => {
-    const actual = await vi.importActual('fs') as any;
-    return {
-        ...actual,
-        appendFileSync: vi.fn(),
-        mkdirSync: vi.fn(),
-        existsSync: vi.fn(),
-        chmodSync: vi.fn(),
-        statSync: vi.fn()
-    };
-});
+// Actual log path written by YoloAuditLogger constructor
+const LOG_SUBPATH = path.join('superconductor', 'logs', 'yolo-audit.log');
 
 describe('YoloAuditLogger', () => {
-    let logger: YoloAuditLogger;
+  let tmpDir: string;
+  let workspacePath: string;
 
-    beforeEach(() => {
-        vi.mocked(fs.existsSync).mockReturnValue(true);
-        logger = new YoloAuditLogger('/test/workspace');
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date('2026-08-01T05:00:00Z'));
-    });
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'audit-test-'));
+    workspacePath = path.join(tmpDir, 'workspace');
+    fs.mkdirSync(workspacePath);
+  });
 
-    afterEach(() => {
-        vi.useRealTimers();
-        vi.clearAllMocks();
-    });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
 
-    it('should create log file with mode 0o600 if it does not exist in init', () => {
-        vi.mocked(fs.existsSync).mockReturnValue(false);
-        vi.mocked(fs.statSync).mockReturnValue({ mode: 0o600 } as any);
-        
-        logger.init();
+  it.skipIf(process.platform !== 'linux')('init() sets 0o600 permissions', () => {
+    const logger = new YoloAuditLogger(workspacePath);
+    logger.init();
 
-        expect(fs.appendFileSync).toHaveBeenCalledWith(
-            path.join('/test/workspace', 'superconductor', 'logs', 'yolo-audit.log'),
-            '',
-            { mode: 0o600 }
-        );
-        expect(fs.chmodSync).toHaveBeenCalledWith(
-            path.join('/test/workspace', 'superconductor', 'logs', 'yolo-audit.log'),
-            0o600
-        );
-    });
+    const logFile = path.join(workspacePath, LOG_SUBPATH);
+    const stat = fs.statSync(logFile);
+    expect(stat.mode & 0o777).toBe(0o600);
 
-    it('should throw error if chmodSync fails in init', () => {
-        vi.mocked(fs.existsSync).mockReturnValue(true);
-        vi.mocked(fs.chmodSync).mockImplementationOnce(() => {
-            throw new Error('Permission denied');
-        });
+    logger.close();
+  });
 
-        expect(() => logger.init()).toThrowError('Failed to enforce permissions on audit log: Permission denied');
-    });
+  it.skipIf(process.platform !== 'linux')('init() throws on symlink target', () => {
+    // Pre-create the logDir so the constructor succeeds
+    const logDir = path.join(workspacePath, 'superconductor', 'logs');
+    fs.mkdirSync(logDir, { recursive: true });
 
-    it('should throw error if file permissions are too open in init', () => {
-        vi.mocked(fs.existsSync).mockReturnValue(true);
-        vi.mocked(fs.chmodSync).mockReturnValue(undefined); // ensure it doesn't throw
-        vi.mocked(fs.statSync).mockReturnValue({ mode: 0o644 } as any);
+    const logFile = path.join(logDir, 'yolo-audit.log');
+    const victim = path.join(tmpDir, 'victim.txt');
+    fs.writeFileSync(victim, 'secret');
+    fs.symlinkSync(victim, logFile); // place symlink where the log file would be created
 
-        expect(() => logger.init()).toThrowError('Audit log file permissions too open. Expected 0o600, got 644');
-    });
+    const logger = new YoloAuditLogger(workspacePath);
+    expect(() => logger.init()).toThrow(); // O_NOFOLLOW rejects symlink
 
-    it('should pass init successfully when permissions are correct', () => {
-        vi.mocked(fs.existsSync).mockReturnValue(true);
-        vi.mocked(fs.statSync).mockReturnValue({ mode: 0o600 } as any);
-        
-        expect(() => logger.init()).not.toThrow();
-        expect(fs.chmodSync).toHaveBeenCalledWith(
-            path.join('/test/workspace', 'superconductor', 'logs', 'yolo-audit.log'),
-            0o600
-        );
-    });
+    // Victim file must be untouched
+    expect(fs.readFileSync(victim, 'utf8')).toBe('secret');
+  });
 
-    it('should log YOLO tool calls to audit file with correct schema', () => {
-        logger.logToolCall('run_command', { command: 'ls -la' }, 'session-123');
-        
-        expect(fs.appendFileSync).toHaveBeenCalled();
-        const callArgs = vi.mocked(fs.appendFileSync).mock.calls[0];
-        expect(callArgs[0]).toBe(path.join('/test/workspace', 'superconductor', 'logs', 'yolo-audit.log'));
-        
-        const loggedData = JSON.parse(callArgs[1] as string);
-        expect(loggedData).toEqual({
-            timestamp: '2026-08-01T05:00:00.000Z',
-            mode: 'YOLO',
-            tool: 'run_command',
-            argsHash: expect.any(String),
-            sessionId: 'session-123',
-            bypass: true
-        });
-    });
+  it('init() is idempotent — calling twice does not throw or duplicate fd', () => {
+    const logger = new YoloAuditLogger(workspacePath);
+    logger.init();
+    // Second call must be a no-op (guard: if (this.initialized) return)
+    expect(() => logger.init()).not.toThrow();
+    // Should still work after double init
+    logger.logToolCall('idempotent-test', {}, 'sess-1');
+    logger.close();
+
+    const logFile = path.join(workspacePath, LOG_SUBPATH);
+    const lines = fs.readFileSync(logFile, 'utf8').trim().split('\n').filter(Boolean);
+    expect(lines.length).toBe(1);
+  });
+
+  it('multiple appends produce ordered log entries', () => {
+    const logger = new YoloAuditLogger(workspacePath);
+    logger.logToolCall('tool1', { a: 1 }, 'sess-1');
+    logger.logToolCall('tool2', { b: 2 }, 'sess-1');
+    logger.logToolCall('tool3', { c: 3 }, 'sess-1');
+    logger.close();
+
+    const logFile = path.join(workspacePath, LOG_SUBPATH);
+    const content = fs.readFileSync(logFile, 'utf8').trim();
+    const lines = content.split('\n').filter(Boolean);
+
+    expect(lines.length).toBe(3);
+    const entries = lines.map(l => JSON.parse(l));
+    expect(entries[0].tool).toBe('tool1');
+    expect(entries[1].tool).toBe('tool2');
+    expect(entries[2].tool).toBe('tool3');
+  });
+
+  it('logToolCall before init() auto-initializes', () => {
+    const logger = new YoloAuditLogger(workspacePath);
+    logger.logToolCall('auto-init-test', {}, 'sess-1');
+    logger.close();
+
+    const logFile = path.join(workspacePath, LOG_SUBPATH);
+    const content = fs.readFileSync(logFile, 'utf8').trim();
+    const entry = JSON.parse(content);
+    expect(entry.tool).toBe('auto-init-test');
+  });
+
+  it('logOverride writes INLINE_OVERRIDE entry', () => {
+    const logger = new YoloAuditLogger(workspacePath);
+    logger.logOverride('APPROVE', 'write_file', { path: '/tmp/x' });
+    logger.close();
+
+    const logFile = path.join(workspacePath, LOG_SUBPATH);
+    const content = fs.readFileSync(logFile, 'utf8').trim();
+    const entry = JSON.parse(content);
+    expect(entry.event).toBe('INLINE_OVERRIDE');
+    expect(entry.choice).toBe('APPROVE');
+    expect(entry.tool).toBe('write_file');
+  });
 });

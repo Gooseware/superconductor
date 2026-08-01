@@ -6,7 +6,15 @@ import { PolicyEngine } from '../../src/permissions/engine';
 vi.mock('fs', () => ({
     existsSync: vi.fn().mockReturnValue(true),
     mkdirSync: vi.fn(),
-    appendFileSync: vi.fn()
+    appendFileSync: vi.fn(),
+    realpathSync: vi.fn().mockImplementation((p: string) => p),
+    lstatSync: vi.fn().mockReturnValue({ isSymbolicLink: () => false }),
+    openSync: vi.fn().mockReturnValue(3),
+    fchmodSync: vi.fn(),
+    fstatSync: vi.fn().mockReturnValue({ mode: 0o100600 }),
+    writeSync: vi.fn(),
+    closeSync: vi.fn(),
+    constants: { O_CREAT: 64, O_WRONLY: 1, O_APPEND: 1024, O_NOFOLLOW: 131072 }
 }));
 
 describe('ToolCallInterceptor', () => {
@@ -66,10 +74,10 @@ describe('ToolCallInterceptor', () => {
         const result = await interceptor.intercept('danger_tool', { a: 1 });
         
         expect(result.allowed).toBe(true);
-        expect(fs.appendFileSync).toHaveBeenCalled();
-        const callArgs = vi.mocked(fs.appendFileSync).mock.calls[0];
-        expect(callArgs[0]).toContain('yolo-audit.log');
-        expect(callArgs[1]).toContain('danger_tool');
+        expect(fs.writeSync).toHaveBeenCalled();
+        // writeSync(fd, data) — check the data argument (index 1) contains the tool name
+        const callArgs = vi.mocked(fs.writeSync).mock.calls[0];
+        expect(String(callArgs[1])).toContain('danger_tool');
     });
 
     // REV-24: delete_file({}) must not be blocked by a false-positive ancestor check
