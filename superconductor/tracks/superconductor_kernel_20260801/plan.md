@@ -229,21 +229,21 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
 
 ## Phase 6: SWARM GUARDRAIL Enforcement
 
-- [ ] Task: Enforce SWARM GUARDRAIL in PolicyEngine [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add rule to `engine.ts`: in TRACKED mode, block `write_file`, `replace_file_content`, `multi_replace_file_content` targeting `packages/*/src/**`
-    - [ ] Block emits: `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
-    - [ ] Rule is bypassed in YOLO mode (with audit log entry)
-    - [ ] Rule is not active in IDLE mode
-- [ ] Task: Write SWARM GUARDRAIL tests [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test: Root agent write to `packages/superconductor-kernel/src/index.ts` in TRACKED mode is blocked
-    - [ ] Test: Same write is allowed in YOLO mode (with audit entry)
-    - [ ] Test: Same write is allowed in IDLE mode
-    - [ ] Test: Write to `packages/superconductor-kernel/test/` (not `src/`) is allowed in TRACKED mode
-- [ ] Task: Security review of GUARDRAIL implementation [TIER-4] [AGENT:superconductor-reviewer]
-    - [ ] Verify glob pattern `packages/*/src/**` cannot be bypassed via symlinks or relative path traversal
-    - [ ] Verify YOLO audit entry is written before allowing the bypassed call
-    - [ ] Verify the error message matches the exact string in GEMINI.md
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: SWARM GUARDRAIL Enforcement' (Protocol in workflow.md)
+- [x] Task: Enforce SWARM GUARDRAIL in PolicyEngine [TIER-3] [AGENT:superconductor-processor]
+    - [x] Add rule to `engine.ts`: in TRACKED mode, block `write_file`, `replace_file_content`, `multi_replace_file_content` targeting `packages/*/src/**`
+    - [x] Block emits: `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
+    - [x] Rule is bypassed in YOLO mode (with audit log entry)
+    - [x] Rule is not active in IDLE mode
+- [x] Task: Write SWARM GUARDRAIL tests [TIER-2] [AGENT:superconductor-processor]
+    - [x] Test: Root agent write to `packages/superconductor-kernel/src/index.ts` in TRACKED mode is blocked
+    - [x] Test: Same write is allowed in YOLO mode (with audit entry)
+    - [x] Test: Same write is allowed in IDLE mode
+    - [x] Test: Write to `packages/superconductor-kernel/test/` (not `src/`) is allowed in TRACKED mode
+- [x] Task: Security review of GUARDRAIL implementation [TIER-4] [AGENT:superconductor-reviewer]
+    - [x] Verify glob pattern `packages/*/src/**` cannot be bypassed via symlinks or relative path traversal
+    - [x] Verify YOLO audit entry is written before allowing the bypassed call
+    - [x] Verify the error message matches the exact string in GEMINI.md
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: SWARM GUARDRAIL Enforcement' (Protocol in workflow.md)
 
 ---
 

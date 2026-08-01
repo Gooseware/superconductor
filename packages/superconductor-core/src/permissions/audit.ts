@@ -22,7 +22,8 @@ export class YoloAuditLogger {
     fs.mkdirSync(logDir, { recursive: true });
 
     const realLogDir = fs.realpathSync(logDir);
-    if (realLogDir !== this.realWorkspace && !realLogDir.startsWith(this.realWorkspace + path.sep)) {
+    const workspacePrefix = this.realWorkspace.endsWith(path.sep) ? this.realWorkspace : this.realWorkspace + path.sep;
+    if (realLogDir !== this.realWorkspace && !realLogDir.startsWith(workspacePrefix)) {
       throw new Error(`[YoloAuditLogger] Audit log directory escapes workspace: ${realLogDir}`);
     }
 
@@ -89,7 +90,12 @@ export class YoloAuditLogger {
       throw new Error(`[YoloAuditLogger] Audit logger is not initialized`);
     }
     // writeSync(fd) — no path re-resolution, no symlink follow possible
-    fs.writeSync(this.fd, JSON.stringify(entry) + '\n');
+    try {
+      fs.writeSync(this.fd, JSON.stringify(entry) + '\n');
+    } catch (err) {
+      this.close();
+      throw err;
+    }
   }
 
   private getArgsStr(args: any): string {
@@ -111,6 +117,15 @@ export class YoloAuditLogger {
   }
 
   public close(): void {
-    if (this.fd !== -1) { fs.closeSync(this.fd); this.fd = -1; this.initialized = false; }
+    if (this.fd !== -1) {
+      const fdToClose = this.fd;
+      this.fd = -1;
+      this.initialized = false;
+      try {
+        fs.closeSync(fdToClose);
+      } catch {
+        // ignore or handle error
+      }
+    }
   }
 }

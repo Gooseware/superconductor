@@ -1,6 +1,7 @@
 import { TrackStateManager } from './track-state.js';
 import { PermissionManifest } from './schemas.js';
 import * as path from 'path';
+import * as fs from 'fs';
 
 export class PolicyEngine {
   private stateManager: TrackStateManager;
@@ -30,6 +31,33 @@ export class PolicyEngine {
   public isToolCallPermitted(toolName: string, args: Record<string, any>): boolean {
     const state = this.stateManager.detectCurrentState();
     
+    // Swarm Guardrail
+    const isWriteTool = toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content';
+    if (isWriteTool && state !== 'IDLE') {
+      const targetFile = args.TargetFile || args.AbsolutePath || args.path || args.DirectoryPath || args.SearchPath || '';
+      if (targetFile) {
+        let resolvedPath = path.resolve(targetFile);
+        try {
+          resolvedPath = fs.realpathSync(resolvedPath);
+        } catch (e) {
+          const dir = path.dirname(resolvedPath);
+          try {
+            resolvedPath = path.join(fs.realpathSync(dir), path.basename(resolvedPath));
+          } catch (e2) {}
+        }
+
+        const pathParts = resolvedPath.split(path.sep);
+        const packagesIndex = pathParts.lastIndexOf('packages');
+        if (packagesIndex !== -1 && pathParts.length > packagesIndex + 2 && pathParts[packagesIndex + 2] === 'src') {
+          if (state === 'YOLO') {
+            console.warn("[Superconductor Audit] Bypassed rogue write prevention due to YOLO mode.");
+          } else if (state === 'TRACKED') {
+            throw new Error("[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead.");
+          }
+        }
+      }
+    }
+
     // Layer 1: Base (IDLE Mode removes all restrictions according to FR-1)
     if (state === 'IDLE') return true;
 
