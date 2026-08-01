@@ -26,7 +26,7 @@ export class ToolCallInterceptor {
 
     async intercept(toolName: string, args: any, manifest?: PermissionManifest): Promise<{ allowed: boolean, reason?: string }> {
         // Global block against modifying yolo-audit.log and logs directory
-        if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+        if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
             const targetFile = args?.path || args?.TargetFile || '';
             const resolved = path.resolve(this.workspacePath, targetFile);
             const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
@@ -39,6 +39,9 @@ export class ToolCallInterceptor {
             const cmd = args?.command || args?.CommandLine || '';
             if (cmd.match(/superconductor\/logs/) || cmd.match(/yolo-audit/)) {
                 return { allowed: false, reason: 'Security: Shell access to logs directory is strictly prohibited' };
+            }
+            if (cmd.match(/[*?$[\]\\]/)) {
+                return { allowed: false, reason: 'Security: Bash globbing and variables are prohibited in run_command' };
             }
             const cwd = args?.Cwd || args?.cwd || this.workspacePath;
             const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
@@ -67,13 +70,24 @@ export class ToolCallInterceptor {
             if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
                 const targetFile = args?.path || args?.TargetFile || '';
                 const resolved = path.resolve(this.workspacePath, targetFile);
-                if (
-                    path.basename(resolved) === 'tracks.md' || 
-                    path.basename(resolved) === 'permission-manifest.toml' ||
-                    path.basename(resolved) === 'session-flags.json' ||
-                    resolved.includes(path.join('.gemini', 'plugins', 'superconductor', 'skills'))
-                ) {
-                    return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files' };
+                
+                const sensitivePaths = [
+                    path.join(this.workspacePath, 'superconductor', 'tracks.md'),
+                    path.join(this.workspacePath, 'superconductor', 'tracks'),
+                    path.join(this.workspacePath, 'superconductor', 'session-flags.json'),
+                    path.join(this.workspacePath, '.gemini', 'plugins', 'superconductor', 'skills')
+                ];
+                
+                for (const sensitive of sensitivePaths) {
+                    const relParent = path.relative(resolved, sensitive);
+                    if (!relParent.startsWith('..') && !path.isAbsolute(relParent)) {
+                        return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files' };
+                    }
+                    
+                    const relChild = path.relative(sensitive, resolved);
+                    if (!relChild.startsWith('..') && !path.isAbsolute(relChild)) {
+                        return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify sensitive state files' };
+                    }
                 }
             }
             if (toolName === 'run_command') {
