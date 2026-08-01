@@ -109,9 +109,26 @@
     - [ ] Collect `APPROVED` / `NEEDS FIXES` responses from all reviewers
     - [ ] Transition to `REMEDIATION_REQUIRED` if ANY reviewer returns `NEEDS FIXES`
     - [ ] Transition to `APPROVED` only when ALL reviewers return `APPROVED`
-- [ ] Task: Implement parallel remediator dispatch [TIER-3] [AGENT:superconductor-processor]
+- [ ] Task: Implement RemediatorPromptBuilder — structured context injection layer [TIER-4] [AGENT:superconductor-processor]
+    - [ ] Create `packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts`
+    - [ ] Builder accepts a raw `QuorumFinding[]` + `RepoContext` + current `TrackState` and produces a structured `RemediatorPrompt` per finding domain
+    - [ ] Each `RemediatorPrompt` MUST include all 7 required fields:
+        - `TASK`: Specific action, derived from the finding `recommendation` field
+        - `SCOPE`: Explicit file glob list — only files the remediator is allowed to touch (derived from finding `file` + sibling source files)
+        - `EXCLUDED`: Explicit exclusion list — `plan.md`, `spec.md`, `archive/`, `*.lock`, `node_modules/`, intelligence snapshots, any file whose reference is descriptive rather than functional
+        - `PATTERN`: What the correct solution looks like, with a concrete example drawn from `RepoContext` (e.g. existing test script in a sibling package)
+        - `ANTI_PATTERNS`: Explicit list of prohibited approaches (e.g. "Do NOT use `echo`, `exit 0`, or stubs as test scripts")
+        - `EVIDENCE_REQUIRED`: Exact command the remediator must run and show stdout of before claiming done
+        - `DEFINITION_OF_DONE`: Objective, verifiable criteria — not "tests pass" but "show `npm test` output with ≥1 passing test and 0 failing"
+    - [ ] Builder extracts `PATTERN` from `RepoContext`: for a test-script finding, reads sibling `package.json` test scripts; for a naming finding, reads the correct name from `package.json`
+    - [ ] Builder populates `EXCLUDED` by scanning for: spec/plan files, archive dirs, generated intelligence files, lock files — auto-detected from repo structure
+    - [ ] `ANTI_PATTERNS` populated from a static registry in `anti-patterns.ts` keyed by finding `category` (e.g. `adversarial` → test-theatre patterns; `correctness` → phantom-implementation patterns)
+    - [ ] Write unit tests: given a `test-theatre` finding → builder produces prompt with `ANTI_PATTERNS` containing `echo`/`exit 0` prohibition; given a `naming` finding → builder excludes `plan.md`/`spec.md`
+- [ ] Task: Implement parallel remediator dispatch using RemediatorPromptBuilder [TIER-3] [AGENT:superconductor-processor]
     - [ ] Group findings by domain (file prefix + category)
-    - [ ] Dispatch ONE remediator per domain group in parallel
+    - [ ] Run each finding group through `RemediatorPromptBuilder.build()` BEFORE dispatching
+    - [ ] Dispatch ONE remediator per domain group in parallel, passing the structured `RemediatorPrompt` (NOT the raw finding)
+    - [ ] Remediator receives the full 7-field prompt — never raw Quorum text
     - [ ] Wait for all remediators to complete before re-entering `REVIEW_PENDING`
 - [ ] Task: Implement escalation and human intervention state [TIER-2] [AGENT:superconductor-processor]
     - [ ] On `MAX_QUORUM_LOOPS` exceeded: write `REQUIRES_HUMAN_INTERVENTION` to `quorum-state.json`

@@ -77,6 +77,7 @@ It also absorbs the scope of the now-obsolete `scripted_swarm_orchestrator` trac
 - **FR-4.5**: Deduplication check: if reviewer finding matches a finding from a previous loop verbatim, it is rejected (forces reviewer to acknowledge fix)
 - **FR-4.6**: FSM state persisted to `superconductor/logs/quorum-state.json` (survives process restart)
 - **FR-4.7**: Exit condition is exclusively `APPROVED` verdict from all reviewers — never test pass rate alone
+- **FR-4.8**: `RemediatorPromptBuilder` enriches every raw `QuorumFinding` into a structured 7-field `RemediatorPrompt` before dispatch: `TASK`, `SCOPE`, `EXCLUDED`, `PATTERN`, `ANTI_PATTERNS`, `EVIDENCE_REQUIRED`, `DEFINITION_OF_DONE`. Remediators MUST receive a structured prompt — raw Quorum finding text is never passed directly
 
 ### FR-5: Audit Log Hardening
 - **FR-5.1**: Replace regex string-matching guards for `yolo-audit.log` in `interceptor.ts` with application-level append-only enforcement
