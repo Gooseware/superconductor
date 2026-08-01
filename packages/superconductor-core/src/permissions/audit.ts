@@ -6,15 +6,12 @@ export class YoloAuditLogger {
   private logFile: string;
   private fd: number = -1;
   private initialized = false;
+  private realWorkspace: string;
 
   constructor(private workspacePath: string) {
     // realpathSync validates workspace is real, not a symlink chain
-    const realWorkspace = fs.realpathSync(workspacePath);
-    const logDir = path.join(realWorkspace, 'superconductor', 'logs');
-
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
+    this.realWorkspace = fs.realpathSync(workspacePath);
+    const logDir = path.join(this.realWorkspace, 'superconductor', 'logs');
     this.logFile = path.join(logDir, 'yolo-audit.log');
   }
 
@@ -22,6 +19,13 @@ export class YoloAuditLogger {
     if (this.initialized) return;
 
     const logDir = path.dirname(this.logFile);
+    fs.mkdirSync(logDir, { recursive: true });
+
+    const realLogDir = fs.realpathSync(logDir);
+    if (!realLogDir.startsWith(this.realWorkspace)) {
+      throw new Error(`[YoloAuditLogger] Audit log directory escapes workspace: ${realLogDir}`);
+    }
+
     // lstatSync: does NOT follow symlinks — rejects symlinked logDir
     const logDirStat = fs.lstatSync(logDir);
     if (logDirStat.isSymbolicLink()) {
@@ -70,13 +74,21 @@ export class YoloAuditLogger {
     fs.writeSync(this.fd, JSON.stringify(entry) + '\n');
   }
 
+  private getArgsStr(args: any): string {
+    try {
+      return JSON.stringify(args ?? {});
+    } catch {
+      return "{}";
+    }
+  }
+
   public logToolCall(tool: string, args: any, sessionId: string): void {
-    const argsHash = crypto.createHash('sha256').update(JSON.stringify(args)).digest('hex');
+    const argsHash = crypto.createHash('sha256').update(this.getArgsStr(args)).digest('hex');
     this.writeEntry({ timestamp: new Date().toISOString(), mode: 'YOLO', tool, argsHash, sessionId, bypass: true });
   }
 
   public logOverride(choice: string, tool: string, args: any): void {
-    const argsHash = crypto.createHash('sha256').update(JSON.stringify(args)).digest('hex');
+    const argsHash = crypto.createHash('sha256').update(this.getArgsStr(args)).digest('hex');
     this.writeEntry({ timestamp: new Date().toISOString(), event: 'INLINE_OVERRIDE', choice, tool, argsHash });
   }
 

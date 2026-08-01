@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import * as fs from 'fs';
 import path from 'node:path';
 import os from 'node:os';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -50,17 +50,42 @@ describe('YoloAuditLogger', () => {
     expect(fs.readFileSync(victim, 'utf8')).toBe('secret');
   });
 
-  it.skip('init() throws when permissions are too open (cannot spy on fs without vi.mock)', () => {
+  it.skipIf(process.platform !== 'linux')('init() throws if log directory is a symlink', () => {
+    // We want the logger to see 'workspacePath/superconductor/logs' as a symlink
+    const conductorDir = path.join(workspacePath, 'superconductor');
+    fs.mkdirSync(conductorDir, { recursive: true });
+
+    // The target must be inside the workspace to pass the escape check
+    const realLogsDir = path.join(workspacePath, 'real-logs');
+    fs.mkdirSync(realLogsDir, { recursive: true });
+
+    const symlinkLogsDir = path.join(conductorDir, 'logs');
+    fs.symlinkSync(realLogsDir, symlinkLogsDir);
+
     const logger = new YoloAuditLogger(workspacePath);
-    
-    // Mock fstatSync to return overly open permissions
-    const originalFstatSync = fs.fstatSync;
-    vi.spyOn(fs, 'fstatSync').mockImplementation((fd) => {
-      const stats = originalFstatSync(fd);
-      return { ...stats, mode: 0o100644 } as any;
+    expect(() => logger.init()).toThrow(/\[YoloAuditLogger\] Audit log directory is a symlink, refusing to use:/);
+  });
+
+  it('init() throws when permissions are too open', async () => {
+    vi.resetModules();
+    vi.doMock('fs', async (importOriginal) => {
+      const mod = await importOriginal<typeof import('fs')>();
+      return {
+        ...mod,
+        fstatSync: vi.fn((fd: number) => {
+          const stats = mod.fstatSync(fd);
+          return { ...stats, mode: 0o100644 };
+        })
+      };
     });
 
+    // Dynamically import the module AFTER mocking
+    const { YoloAuditLogger } = await import('../../src/permissions/audit');
+    const logger = new YoloAuditLogger(workspacePath);
     expect(() => logger.init()).toThrow(/\[YoloAuditLogger\] Audit log permissions too open: 0o644\. Expected 0o600\./);
+
+    vi.doUnmock('fs');
+    vi.resetModules();
   });
 
   it('init() is idempotent — calling twice does not throw or duplicate fd', () => {
