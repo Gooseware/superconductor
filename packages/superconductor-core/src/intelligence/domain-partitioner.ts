@@ -16,22 +16,28 @@ export class DomainPartitioner {
         const graphifyFile = path.join(this.intelligenceDir, '09_graphify_graph.json');
         if (fs.existsSync(graphifyFile)) {
             try {
-                const data = JSON.parse(fs.readFileSync(graphifyFile, 'utf8'));
-                if (data && data.nodes && Array.isArray(data.nodes)) {
-                    for (const node of data.nodes) {
-                        if (node.id && node.community !== undefined) {
-                            const comm = String(node.community);
-                            if (!groups.has(comm)) {
-                                groups.set(comm, []);
+                const stats = fs.statSync(graphifyFile);
+                if (stats.size > 50 * 1024 * 1024) {
+                    console.warn(`[DomainPartitioner] File too large (${stats.size} bytes). Skipping to prevent memory leak.`);
+                } else {
+                    const data = JSON.parse(fs.readFileSync(graphifyFile, 'utf8'));
+                    if (data && data.nodes && Array.isArray(data.nodes)) {
+                        for (const node of data.nodes) {
+                            if (node.id && node.community !== undefined) {
+                                const comm = String(node.community);
+                                if (!groups.has(comm)) {
+                                    groups.set(comm, []);
+                                }
+                                groups.get(comm)!.push(node.id);
                             }
-                            groups.get(comm)!.push(node.id);
                         }
-                    }
-                    if (groups.size > 0) {
-                        usedGraphify = true;
+                        if (groups.size > 0) {
+                            usedGraphify = true;
+                        }
                     }
                 }
             } catch (e) {
+                console.warn(`[DomainPartitioner] Failed to parse JSON, falling back to directory split: ${e}`);
                 // fallback to directory split
             }
         }

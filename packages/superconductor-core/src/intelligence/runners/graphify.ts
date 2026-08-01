@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { ToolCapability } from '../tool-registry.js';
 
 export async function runGraphify(projectRoot: string, outputDir: string, capability: ToolCapability): Promise<{ status: string }> {
@@ -11,8 +11,8 @@ export async function runGraphify(projectRoot: string, outputDir: string, capabi
   const graphifyOut = path.join(outputDir, '09_graphify_graph.json');
   
   try {
-    const cmd = `${capability.tool} extract "${projectRoot}" --code-only`;
-    execSync(cmd, { stdio: 'ignore', cwd: projectRoot });
+    
+    execFileSync(capability.tool, ['extract', projectRoot, '--code-only'], { stdio: 'ignore', cwd: projectRoot });
     
     const defaultGraphOut = path.join(projectRoot, 'graphify-out', 'graph.json');
     if (fs.existsSync(defaultGraphOut)) {
@@ -22,6 +22,7 @@ export async function runGraphify(projectRoot: string, outputDir: string, capabi
     
     return { status: 'degraded' };
   } catch (err) {
+    console.warn(`[graphify] execution failed: ${err}`);
     return { status: 'degraded' };
   }
 }
