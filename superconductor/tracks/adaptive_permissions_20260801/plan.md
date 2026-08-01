@@ -182,9 +182,9 @@ packages/superconductor-core/src/
 
 - [x] Task: Superconductor - User Manual Verification 'Phase 5: Per-Blocker Inline Override' (Protocol in workflow.md)
 
-## Phase 6: Integration & Finalization [checkpoint: pending]
+## Phase 6: Integration & Finalization [checkpoint: bdf264d]
 
-- [x] Task: End-to-end integration testing [TIER-4] [AGENT:superconductor-oracle]
+- [x] Task: End-to-end integration testing [TIER-4] [AGENT:superconductor-oracle] [checkpoint: 4d811ee]
     - [x] Test full flow: IDLE mode -> start track -> TRACKED mode (manifest loaded) -> per-blocker override -> YOLO override -> audit log verified
     - [x] Test: New-track flow emits permission manifest and user can review/edit it
     - [x] Test: `Allow for Track` updates manifest and persists across same-session calls
