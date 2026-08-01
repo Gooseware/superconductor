@@ -25,6 +25,9 @@ import {
   IntelligenceSnapshotReader
 } from "@superconductor/core";
 
+import { GraphCache } from "./services/GraphCache.js";
+import { TrackStateManager } from "./services/TrackStateManager.js";
+
 class TelemetrySession {
   private promptTokens = 0;
   private completionTokens = 0;
@@ -81,7 +84,39 @@ const server = new Server(
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
-    tools: SUPERCONDUCTOR_MCP_TOOLS
+    tools: [
+      ...SUPERCONDUCTOR_MCP_TOOLS,
+      {
+        name: "kernel_graph_get_node",
+        description: "Get a node from the graph",
+        inputSchema: { type: "object", properties: { node_id: { type: "string" } }, required: ["node_id"] }
+      },
+      {
+        name: "kernel_graph_get_neighbors",
+        description: "Get neighbors of a node",
+        inputSchema: { type: "object", properties: { node_id: { type: "string" }, max_depth: { type: "number" } }, required: ["node_id", "max_depth"] }
+      },
+      {
+        name: "kernel_graph_shortest_path",
+        description: "Get shortest path between two nodes",
+        inputSchema: { type: "object", properties: { source: { type: "string" }, target: { type: "string" } }, required: ["source", "target"] }
+      },
+      {
+        name: "kernel_intelligence_get_hotspots",
+        description: "Get top hotspots based on a metric",
+        inputSchema: { type: "object", properties: { metric: { type: "string", enum: ["churn", "complexity", "pagerank"] } }, required: ["metric"] }
+      },
+      {
+        name: "kernel_intelligence_get_dependency_graph",
+        description: "Get dependency graph for a community",
+        inputSchema: { type: "object", properties: { community_id: { type: "string" } }, required: ["community_id"] }
+      },
+      {
+        name: "kernel_policy_get_mode",
+        description: "Get current kernel policy mode",
+        inputSchema: { type: "object", properties: {} }
+      }
+    ]
   };
 });
 
@@ -253,6 +288,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
     case "superconductor_get_dependency_surface":
       return handleGetDependencySurface(projectRoot, args ?? {});
+
+    case "kernel_graph_get_node": {
+      const cache = new GraphCache(projectRoot);
+      const res = cache.getNode((args as any).node_id as string);
+      return { content: [{ type: "text", text: JSON.stringify(res, null, 2) }] };
+    }
+    case "kernel_graph_get_neighbors": {
+      const cache = new GraphCache(projectRoot);
+      const res = cache.getNeighbors((args as any).node_id as string, (args as any).max_depth as number);
+      return { content: [{ type: "text", text: JSON.stringify(res, null, 2) }] };
+    }
+    case "kernel_graph_shortest_path": {
+      const cache = new GraphCache(projectRoot);
+      const res = cache.shortestPath((args as any).source as string, (args as any).target as string);
+      return { content: [{ type: "text", text: JSON.stringify(res, null, 2) }] };
+    }
+    case "kernel_intelligence_get_hotspots": {
+      const cache = new GraphCache(projectRoot);
+      const res = cache.getHotspots((args as any).metric as "churn" | "complexity" | "pagerank");
+      return { content: [{ type: "text", text: JSON.stringify(res, null, 2) }] };
+    }
+    case "kernel_intelligence_get_dependency_graph": {
+      const cache = new GraphCache(projectRoot);
+      const res = cache.getDependencyGraph((args as any).community_id as string);
+      return { content: [{ type: "text", text: JSON.stringify(res, null, 2) }] };
+    }
+    case "kernel_policy_get_mode": {
+      const sm = new TrackStateManager(projectRoot);
+      const res = sm.getMode();
+      return { content: [{ type: "text", text: JSON.stringify({ mode: res }, null, 2) }] };
+    }
 
     default:
       throw new Error(`Unknown tool: ${name}`);
