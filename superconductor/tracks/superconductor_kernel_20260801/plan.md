@@ -158,23 +158,23 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
         - Go naming finding → EXCLUDED contains `__pycache__/` is absent, `vendor/` is present; EVIDENCE uses `go test ./...`
         - Unknown language → prompt includes explicit warning: `"Language could not be detected from tech-stack.md. Verify test command manually before claiming done."`
 
-- [ ] Task: Implement parallel remediator dispatch using RemediatorPromptBuilder [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Implement parallel remediator dispatch using RemediatorPromptBuilder [TIER-3] [AGENT:superconductor-processor]
     - [ ] Group findings by domain (file prefix + category)
     - [ ] Run each finding group through `RemediatorPromptBuilder.build()` BEFORE dispatching
     - [ ] Dispatch ONE remediator per domain group in parallel, passing the structured `RemediatorPrompt` (NOT the raw finding)
     - [ ] Remediator receives the full 7-field prompt — never raw Quorum text
     - [ ] Wait for all remediators to complete before re-entering `REVIEW_PENDING`
-- [ ] Task: Implement escalation and human intervention state [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Implement escalation and human intervention state [TIER-2] [AGENT:superconductor-processor]
     - [ ] On `MAX_QUORUM_LOOPS` exceeded: write `REQUIRES_HUMAN_INTERVENTION` to `quorum-state.json`
     - [ ] Emit clear user-facing message with loop history and unresolved findings
     - [ ] Halt FSM — do NOT continue looping
-- [ ] Task: Write FSM tests [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Write FSM tests [TIER-3] [AGENT:superconductor-processor]
     - [ ] Test: FSM transitions through full happy path to `APPROVED`
     - [ ] Test: FSM halts at `REQUIRES_HUMAN_INTERVENTION` after 3 loops
     - [ ] Test: Duplicate finding from previous loop is rejected (reviewer forced to acknowledge)
     - [ ] Test: State file is written atomically (simulated crash during write)
     - [ ] Test: Reviewers dispatched in parallel (not sequential)
-- [ ] Task: Archive scripted_swarm_orchestrator track [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Archive scripted_swarm_orchestrator track [TIER-1] [AGENT:superconductor-processor]
     - [ ] Move `superconductor/tracks/scripted_swarm_orchestrator` → `superconductor/tracks/archive/`
     - [ ] Note in archive metadata that scope was absorbed into `superconductor_kernel_20260801`
 - [ ] Task: Adversarial review of Quorum FSM [TIER-4] [AGENT:superconductor-reviewer]

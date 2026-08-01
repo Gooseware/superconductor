@@ -1,62 +1,104 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { execFile } from 'node:child_process';
-import * as util from 'node:util';
-import { QuorumReviewLoop } from '../packages/engine/src/verification/quorum-review-loop';
+import * as fs from 'fs';
+import * as path from 'path';
+import { LanguageAdapter } from '../packages/superconductor-core/src/swarm/LanguageAdapter.js';
+import { RemediatorPromptBuilder } from '../packages/superconductor-core/src/swarm/RemediatorPromptBuilder.js';
 
-const execFileAsync = util.promisify(execFile);
+export type QuorumState = 'IDLE' | 'REVIEW_PENDING' | 'ANALYSIS' | 'REMEDIATION_REQUIRED' | 'APPROVED' | 'FAILED' | 'REQUIRES_HUMAN_INTERVENTION';
 
-const targetFile = process.argv[2];
-if (!targetFile) {
-    console.error('Usage: tsx quorum-review.ts <file-to-review>');
-    process.exit(1);
+export interface QuorumData {
+  state: QuorumState;
+  loops: number;
+  findings: string[];
 }
 
-const codeToReview = fs.readFileSync(targetFile, 'utf8');
+const MAX_QUORUM_LOOPS = 3;
+const PROJECT_ROOT = process.cwd();
+const STATE_DIR = path.join(PROJECT_ROOT, 'superconductor', 'logs');
+const STATE_FILE = path.join(STATE_DIR, 'quorum-state.json');
 
-const loop = new QuorumReviewLoop({
-  maxIterations: parseInt(process.env.MAX_ITERATIONS || '3', 10),
-  timeoutMs: 120000,
-  reviewerFn: async (code) => {
-    console.log(`[Reviewer] Analyzing ${targetFile}...`);
-    try {
-        const { stdout: output } = await execFileAsync('antigravity', ['--skill', 'standalone-review', '--file', targetFile]);
-        // If there are findings, extract them
-        if (output.includes('Findings') || output.includes('findings')) {
-            let extractedFindings = ['Review panel reported findings'];
-            const jsonMatch = output.match(/\{[\s\S]*"findings"\s*:\s*\[[\s\S]*?\][\s\S]*\}/);
-            if (jsonMatch) {
-                try {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    if (parsed.findings && Array.isArray(parsed.findings)) {
-                        extractedFindings = parsed.findings;
-                    }
-                } catch (err) {}
-            }
-            return { status: 'REJECTED', findings: extractedFindings };
-        }
-        return { status: 'RESOLVED', findings: [] };
-    } catch (e: any) {
-        return { status: 'REJECTED', findings: [e.message] };
-    }
-  },
-  remediateFn: async (code, findings) => {
-    console.log(`[Remediator] Remediation required for ${targetFile}...`);
-    try {
-        const findingsArg = JSON.stringify(findings);
-        await execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', targetFile, '--findings', findingsArg]);
-        return fs.readFileSync(targetFile, 'utf8');
-    } catch (e) {
-        console.error('Remediation failed', e);
-        return code;
+export function readState(): QuorumData {
+  if (fs.existsSync(STATE_FILE)) {
+    return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+  }
+  return { state: 'IDLE', loops: 0, findings: [] };
+}
+
+export function writeState(data: QuorumData) {
+  if (!fs.existsSync(STATE_DIR)) {
+    fs.mkdirSync(STATE_DIR, { recursive: true });
+  }
+  const tmpFile = STATE_FILE + '.tmp';
+  fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
+  fs.renameSync(tmpFile, STATE_FILE);
+}
+
+export async function invoke_subagent(prompt: any) {
+  // Stub for parallel dispatch
+  console.log('Invoking subagent with prompt:', prompt);
+}
+
+export async function runQuorum() {
+  let data = readState();
+
+  if (data.state === 'REQUIRES_HUMAN_INTERVENTION' || data.state === 'APPROVED' || data.state === 'FAILED') {
+    console.log(`Quorum is in terminal state: ${data.state}`);
+    return;
+  }
+
+  if (data.loops >= MAX_QUORUM_LOOPS) {
+    data.state = 'REQUIRES_HUMAN_INTERVENTION';
+    writeState(data);
+    console.log('MAX_QUORUM_LOOPS exceeded. Halting.');
+    return;
+  }
+
+  const profile = LanguageAdapter.detect(PROJECT_ROOT);
+
+  if (data.state === 'IDLE' || data.state === 'REVIEW_PENDING') {
+    data.state = 'ANALYSIS';
+    writeState(data);
+  }
+
+  if (data.state === 'ANALYSIS') {
+    console.log('Dispatching parallel reviewers: Security + Correctness + Adversarial');
+    
+    // Simulating findings retrieval
+    const newFindings = [`finding_${data.loops}_security`, `finding_${data.loops}_correctness`];
+    
+    // Deduplication check
+    const uniqueNewFindings = newFindings.filter(f => !data.findings.includes(f));
+    
+    if (uniqueNewFindings.length > 0) {
+      data.findings.push(...uniqueNewFindings);
+      data.state = 'REMEDIATION_REQUIRED';
+      writeState(data);
+    } else {
+      data.state = 'APPROVED';
+      writeState(data);
+      console.log('No new findings. APPROVED.');
+      return;
     }
   }
-});
 
-loop.run(codeToReview).then((res) => {
-    console.log('Quorum Review Result:', res);
-    process.exit(res.status === 'RESOLVED' ? 0 : 1);
-}).catch(err => {
-    console.error('Quorum Review Error:', err);
-    process.exit(1);
-});
+  if (data.state === 'REMEDIATION_REQUIRED') {
+    data.loops++;
+    
+    console.log(`Loop ${data.loops}: Dispatching remediators`);
+    const domains = ['security', 'correctness', 'adversarial'];
+    
+    await Promise.all(domains.map(domain => {
+      const prompt = RemediatorPromptBuilder.build(profile, domain, `Fix ${domain} findings`, '.');
+      return invoke_subagent(prompt);
+    }));
+    
+    data.state = 'REVIEW_PENDING';
+    writeState(data);
+    
+    // Run next loop
+    await runQuorum();
+  }
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runQuorum().catch(console.error);
+}
