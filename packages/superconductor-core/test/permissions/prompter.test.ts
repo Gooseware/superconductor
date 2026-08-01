@@ -33,7 +33,8 @@ describe('InlineOverrideHandler', () => {
         policyEngine = {
             grantEphemeralAllow: vi.fn(),
             getActiveManifest: vi.fn(),
-            setActiveManifest: vi.fn()
+            setActiveManifest: vi.fn(),
+            hashString: vi.fn().mockImplementation(() => 'testhash')
         } as unknown as PolicyEngine;
 
         askUserMock = vi.fn();

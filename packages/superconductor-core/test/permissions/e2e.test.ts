@@ -22,6 +22,7 @@ describe('Permissions E2E Integration', () => {
         writeFileSync: vi.fn(),
         renameSync: vi.fn(),
         mkdirSync: vi.fn(),
+        appendFileSync: vi.fn(),
         watch: vi.fn().mockReturnValue({ close: vi.fn() })
     }));
 
@@ -132,15 +133,8 @@ describe('Permissions E2E Integration', () => {
 
     it('Performance benchmark - state detection overhead <5ms per tool call', async () => {
         // We use real track state manager without mocking for performance
-        vi.restoreAllMocks(); // Restore fs mock to test real performance if we want, but wait, it might need fs mock
-        vi.mock('fs', () => ({
-            existsSync: vi.fn().mockReturnValue(true),
-            readFileSync: vi.fn().mockReturnValue('{}'),
-            writeFileSync: vi.fn(),
-            renameSync: vi.fn(),
-            mkdirSync: vi.fn(),
-        watch: vi.fn().mockReturnValue({ close: vi.fn() })
-        }));
+        // We use real track state manager without mocking for performance
+        // (fs is already mocked globally in this file)
 
         const realStateManager = new TrackStateManager('/workspace');
         

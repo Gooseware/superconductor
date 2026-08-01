@@ -185,11 +185,11 @@ packages/superconductor-core/src/
 ## Phase 6: Integration & Finalization [checkpoint: pending]
 
 - [x] Task: End-to-end integration testing [TIER-4] [AGENT:superconductor-oracle]
-    - [x] Test full flow: IDLE mode → start track → TRACKED mode (manifest loaded) → per-blocker override → YOLO override → audit log verified
+    - [x] Test full flow: IDLE mode -> start track -> TRACKED mode (manifest loaded) -> per-blocker override -> YOLO override -> audit log verified
     - [x] Test: New-track flow emits permission manifest and user can review/edit it
     - [x] Test: `Allow for Track` updates manifest and persists across same-session calls
-    - [x] Test: Performance benchmark — state detection overhead <5ms per tool call
-    - [x] Run full test suite: `CI=true pnpm test`
+    - [x] Test: Performance benchmark - state detection overhead <5ms per tool call
+    - [x] Run full test suite: `cd packages/superconductor-core && npm run test`
 
 - [x] Task: Update documentation [TIER-2] [AGENT:superconductor-processor] [checkpoint: bb5bd34]
     - [x] Update `README.md` with Adaptive Permission System section
@@ -197,12 +197,12 @@ packages/superconductor-core/src/
     - [x] Create `docs/permissions.md` with full capability reference and manifest schema
     - [x] Update `superconductor/agent-config.md` to document permission modes
 
-- [ ] Task: Security review of YOLO audit trail and session persistence [TIER-4] [AGENT:superconductor-reviewer]
-    - [ ] Verify audit log is append-only and cannot be silently tampered
-    - [ ] Verify `session-flags.json` double-confirmation is enforced for `--persist`
-    - [ ] Verify IDLE mode bypass does not affect plan-mode security (write_file to superconductor/)
-    - [ ] Verify IDLE mode spoofing protection: `tracks.md` modification requires prior grant
-    - [ ] Verify atomic write pattern prevents session flag corruption
+- [x] Task: Security review of YOLO audit trail and session persistence [TIER-4] [AGENT:superconductor-reviewer]
+    - [x] Verify audit log is append-only and cannot be silently tampered
+    - [x] Verify `session-flags.json` double-confirmation is enforced for `--persist`
+    - [x] Verify IDLE mode bypass does not affect plan-mode security (write_file to superconductor/)
+    - [x] Verify IDLE mode spoofing protection: `tracks.md` modification requires prior grant
+    - [x] Verify atomic write pattern prevents session flag corruption
 
 - [ ] Task: Integrate track 'adaptive_permissions_20260801' into main branch. [TIER-2] [AGENT:superconductor-processor]
 

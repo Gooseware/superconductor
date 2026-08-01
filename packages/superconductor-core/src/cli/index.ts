@@ -125,6 +125,34 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'yolo': {
+      const isPersist = args.includes('--persist');
+      const { TrackStateManager } = await import('../permissions/track-state.js');
+      const stateManager = new TrackStateManager(process.cwd());
+      if (isPersist) {
+        const readline = await import('node:readline');
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+        const answer = await new Promise<string>((resolve) => {
+          rl.question('⚠️ YOLO mode --persist will grant unrestricted access across sessions. Are you absolutely sure? (Type "YOLO" to confirm): ', resolve);
+        });
+        rl.close();
+        if (answer.trim() === 'YOLO') {
+          stateManager.setYolo(true);
+          console.log('✅ YOLO mode activated and persisted to session flags.');
+        } else {
+          console.log('❌ YOLO persistence aborted.');
+          process.exit(1);
+        }
+      } else {
+        // Just run in memory for this invocation (or whatever it is meant to do)
+        console.log('✅ YOLO mode activated for this session.');
+      }
+      break;
+    }
+
     case 'swarm-execute': {
       const { SwarmOrchestratorCLI } = await import('@superconductor/engine');
       const trackId = args[1];

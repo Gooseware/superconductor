@@ -3,6 +3,12 @@ import { ToolCallInterceptor } from '../../src/permissions/interceptor';
 import { TrackStateManager } from '../../src/permissions/track-state';
 import { PolicyEngine } from '../../src/permissions/engine';
 
+vi.mock('fs', () => ({
+    existsSync: vi.fn().mockReturnValue(true),
+    mkdirSync: vi.fn(),
+    appendFileSync: vi.fn()
+}));
+
 describe('ToolCallInterceptor', () => {
     let stateManager: TrackStateManager;
     let policyEngine: PolicyEngine;
@@ -44,5 +50,19 @@ describe('ToolCallInterceptor', () => {
         expect(result.allowed).toBe(false);
         expect(policyEngine.setActiveManifest).toHaveBeenCalledWith(manifest);
         expect(policyEngine.isToolCallPermitted).toHaveBeenCalledWith('run_command', { command: 'rm -rf /' });
+    });
+
+    it('should log tool calls to audit logger when in YOLO mode', async () => {
+        vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+        
+        const fs = await import('fs');
+        
+        const result = await interceptor.intercept('danger_tool', { a: 1 });
+        
+        expect(result.allowed).toBe(true);
+        expect(fs.appendFileSync).toHaveBeenCalled();
+        const callArgs = vi.mocked(fs.appendFileSync).mock.calls[0];
+        expect(callArgs[0]).toContain('yolo-audit.log');
+        expect(callArgs[1]).toContain('danger_tool');
     });
 });

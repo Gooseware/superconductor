@@ -45,7 +45,7 @@ export class InlineOverrideHandler {
 
         if (choice === 'allow_once') {
             const argsStr = JSON.stringify(args);
-            const argsHash = this.hashString(argsStr);
+            const argsHash = this.policyEngine.hashString(argsStr);
             this.policyEngine.grantEphemeralAllow(toolName, argsHash);
         } else if (choice === 'allow_track') {
             const manifest = this.policyEngine.getActiveManifest();
@@ -74,17 +74,5 @@ export class InlineOverrideHandler {
         this.auditLogger.logOverride(choice, toolName, args);
 
         return choice;
-    }
-
-    private hashString(str: string): string {
-        // Duplicate the hash function for test purposes or make it public in policy engine
-        // Making simple hash
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-          const char = str.charCodeAt(i);
-          hash = ((hash << 5) - hash) + char;
-          hash |= 0;
-        }
-        return hash.toString();
     }
 }

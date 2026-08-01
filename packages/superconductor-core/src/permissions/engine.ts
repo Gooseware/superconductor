@@ -93,7 +93,7 @@ export class PolicyEngine {
     return false;
   }
 
-  private hashString(str: string): string {
+  public hashString(str: string): string {
     // Simple hash for ephemeral caching
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

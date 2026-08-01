@@ -5,14 +5,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { InlineOverrideHandler } from './prompter.js';
+import { YoloAuditLogger } from './audit.js';
 
 export class ToolCallInterceptor {
+    private auditLogger: YoloAuditLogger;
     constructor(
         private stateManager: TrackStateManager,
         private policyEngine: PolicyEngine,
         private workspacePath: string,
         private overrideHandler?: InlineOverrideHandler
-    ) {}
+    ) {
+        this.auditLogger = new YoloAuditLogger(workspacePath);
+    }
 
     private getManifest(trackId: string): PermissionManifest | null {
         const manifestPath = path.join(this.workspacePath, 'superconductor', 'tracks', trackId, 'permission-manifest.toml');
@@ -21,9 +25,31 @@ export class ToolCallInterceptor {
     }
 
     async intercept(toolName: string, args: any, manifest?: PermissionManifest): Promise<{ allowed: boolean, reason?: string }> {
+        // Global block against modifying yolo-audit.log
+        if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+            const targetFile = args?.path || args?.TargetFile || '';
+            if (targetFile.includes('yolo-audit.log')) {
+                return { allowed: false, reason: 'Security: Modification of yolo-audit.log is strictly prohibited' };
+            }
+        }
+        if (toolName === 'run_command' && args?.command?.includes('yolo-audit.log')) {
+            return { allowed: false, reason: 'Security: Shell access to yolo-audit.log is strictly prohibited' };
+        }
+
         const state = this.stateManager.detectCurrentState();
 
-        if (state === 'IDLE' || state === 'YOLO') {
+        if (state === 'IDLE') {
+            if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content') {
+                const targetFile = args?.path || args?.TargetFile || '';
+                if (targetFile.includes('/superconductor/tracks.md') || targetFile.includes('permission-manifest.toml')) {
+                    return { allowed: false, reason: 'IDLE mode spoofing protection: cannot modify tracks.md or permission-manifest.toml' };
+                }
+            }
+            return { allowed: true };
+        }
+        
+        if (state === 'YOLO') {
+            this.auditLogger.logToolCall(toolName, args, 'session-yolo');
             return { allowed: true };
         }
 
