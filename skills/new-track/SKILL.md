@@ -11,6 +11,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as they will be blocked by Plan Mode security policies. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.**
 
 **FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Best Practices Research Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
+**GRILL MODE**: If `{{args}}` contains `--grill`, you MUST optionally trigger the Grilling Phase (2.0.4) to enforce standards and extract domain language.
 
 ---
 
@@ -61,6 +62,14 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - Execute a web search query for current state-of-the-art best practices and common pitfalls regarding those keywords (e.g., "modern Next.js auth patterns 2026").
    - Synthesize the findings into a brief "Research Notes" summary to be directly injected into the Specification.
    - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
+
+### 2.0.4 Grilling Phase (Optional)
+1. **Trigger:** This phase runs only if `--grill` is provided in `{{args}}`.
+2. **Action:**
+   - Execute an in-depth contextual analysis (Grilling) against existing documentation to enforce standards.
+   - Generate and update `superconductor/CONTEXT.md` (ubiquitous language) based on the Grilling output.
+   - Synthesize the findings into a brief "Grilling Report" to be directly injected into the Specification.
+   - Do NOT prompt the user for confirmation during this cycle.
 
 ### 2.0.5 Architecture Committee Phase (NEW)
 1. **Trigger:** This phase runs automatically before spec generation, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
@@ -224,7 +233,10 @@ graph TD
     B -->|Missing| C[Ask to run setup]
     B -->|Valid| D[Get Track Description]
     D --> E[Best Practices Research Phase]
-    E --> F[Architecture Committee Phase]
+    E --> E2{--grill flag?}
+    E2 -->|Yes| E3[Grilling Phase & Update CONTEXT.md]
+    E3 --> F
+    E2 -->|No| F[Architecture Committee Phase]
     F --> G[Ask Clarifying Questions]
     G --> H[Draft spec.md]
     H --> I{User Confirms Spec?}
