@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
-import { SkillTriggerEngine } from '../packages/engine/src/skills/skill-trigger-engine.js';
-import type { DagNode } from '../packages/engine/src/types/dag.types.js';
+import { SkillTriggerEngine } from '../src/skills/skill-trigger-engine.js';
+import type { DagNode } from '../src/types/dag.types.js';
 
 describe('Grilling Phase Rule Enforcement', () => {
   it('should inject --grill flag rules and CONTEXT.md creation instructions when new-track is triggered', () => {
-    const skillsDir = path.resolve(__dirname, '../skills');
+    const skillsDir = path.resolve(__dirname, '../../../skills');
     const engine = new SkillTriggerEngine(skillsDir);
 
     const task: DagNode = {
