@@ -23,6 +23,13 @@ export class ResearchBriefSynthesizer {
     this.outputDir = sanitizePath(outputDir);
     // Default to a functional mock if none provided for testing
     this.executeLlm = executeLlm || (async (prompt: string) => {
+      if (prompt.includes('Synthesize')) {
+        return { 
+          executiveSummary: 'Based on high-confidence findings, we observed consistent trends. This is a short summary.', 
+          recommendedPatterns: ['Event-Driven Architecture'], 
+          antiPatterns: ['God Object'] 
+        };
+      }
       if (prompt.includes('Extract')) {
         return [
           {
@@ -38,13 +45,6 @@ export class ResearchBriefSynthesizer {
             confidenceScore: 0.4
           }
         ];
-      }
-      if (prompt.includes('Synthesize')) {
-        return { 
-          executiveSummary: 'Based on high-confidence findings, we observed consistent trends. This is a short summary.', 
-          recommendedPatterns: ['Event-Driven Architecture'], 
-          antiPatterns: ['God Object'] 
-        };
       }
       return {};
     });
@@ -77,7 +77,6 @@ export class ResearchBriefSynthesizer {
       if (queriesExecuted) actualQueries = queriesExecuted;
       if (skillsAlreadyInstalled) actualSkills = skillsAlreadyInstalled;
     }
-
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
     }
@@ -150,7 +149,8 @@ ${source.content || ''}`;
   }
 
   public async llmMapSource(source: IResearchSource): Promise<ResearchFindingWithScore[]> {
-    const res = await this.executeLlm(`Extract structured findings from ${source.url}`);
+    const prompt = `Extract structured findings from ${source.url}\nTitle: ${source.title || ''}\nContent:\n${source.content || ''}`;
+    const res = await this.executeLlm(prompt);
     if (Array.isArray(res)) return res;
     
     throw new Error('LLM did not return an array of findings');
@@ -161,7 +161,9 @@ ${source.content || ''}`;
     recommendedPatterns: string[];
     antiPatterns: string[];
   }> {
-    const res = await this.executeLlm(`Synthesize ${findings.length} findings into a brief.`);
+    const serializedFindings = JSON.stringify(findings, null, 2);
+    const prompt = `Synthesize ${findings.length} findings into a brief:\n${serializedFindings}`;
+    const res = await this.executeLlm(prompt);
     if (res && res.executiveSummary) {
         return res;
     }

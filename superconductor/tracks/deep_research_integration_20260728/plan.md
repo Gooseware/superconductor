@@ -110,6 +110,7 @@
     - [ ] Transition track WorkUnit to RESEARCHING state before dispatch
     - [ ] On success: pass through BriefSynthesizer, save brief.json + *.md artifacts, update cache
     - [ ] On unavailable: fall back to standard search_web, log degraded mode
+    - [ ] Log telemetry: record queries, sources, and cache hits/misses to TelemetryStore
     - [ ] Write tests: cache hit skips provider, cost cap enforced, fallback on unavailable, artifacts saved
 - [ ] Task: Integrate research phase into new-track SKILL.md [TIER-3] [AGENT:superconductor-processor]
     - [ ] Read skills/new-track/SKILL.md
