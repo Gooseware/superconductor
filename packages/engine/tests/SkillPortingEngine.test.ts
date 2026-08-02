@@ -82,7 +82,7 @@ Body content goes here.`;
     expect(outputContent).toContain('name: improve-architecture');
   });
 
-  it('should copy other .md files in the directory', () => {
+  it('should copy other files in the directory', () => {
     fs.writeFileSync(path.join(inputDir, 'SKILL.md'), 'Content');
     fs.writeFileSync(path.join(inputDir, 'HTML-REPORT.md'), 'Report content');
     fs.writeFileSync(path.join(inputDir, 'ignore.txt'), 'Text file');
@@ -91,7 +91,8 @@ Body content goes here.`;
 
     expect(fs.existsSync(path.join(outputDir, 'HTML-REPORT.md'))).toBe(true);
     expect(fs.readFileSync(path.join(outputDir, 'HTML-REPORT.md'), 'utf-8')).toBe('Report content');
-    expect(fs.existsSync(path.join(outputDir, 'ignore.txt'))).toBe(false);
+    expect(fs.existsSync(path.join(outputDir, 'ignore.txt'))).toBe(true);
+    expect(fs.readFileSync(path.join(outputDir, 'ignore.txt'), 'utf-8')).toBe('Text file');
   });
 
   it('should throw an error if SKILL.md is missing', () => {
