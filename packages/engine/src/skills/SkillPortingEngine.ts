@@ -28,10 +28,10 @@ export class SkillPortingEngine {
       body = match[2].trim();
       
       const nameMatch = frontmatter.match(/name:\s*(.*)/);
-      if (nameMatch) name = nameMatch[1].trim();
+      if (nameMatch) name = nameMatch[1].trim().replace(/^["']|["']$/g, '');
       
       const descMatch = frontmatter.match(/description:\s*(.*)/);
-      if (descMatch) description = descMatch[1].trim();
+      if (descMatch) description = descMatch[1].trim().replace(/^["']|["']$/g, '');
     }
 
     // Rename grill-with-docs to grill if necessary
@@ -62,7 +62,7 @@ ${body}
     // Copy any other assets if they exist (like HTML-REPORT.md, .json, .png, .svg)
     const files = fs.readdirSync(inputDir);
     for (const file of files) {
-      if (file !== 'SKILL.md') {
+      if (file !== 'SKILL.md' && file.match(/\.(md|json|png|svg)$/i)) {
         const sourcePath = path.join(inputDir, file);
         if (fs.statSync(sourcePath).isFile()) {
           fs.copyFileSync(sourcePath, path.join(outputDir, file));
