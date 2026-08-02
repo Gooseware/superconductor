@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { sanitizePath } from '@superconductor/core';
+import crypto from 'crypto';
+
 import {
   IResearchSource,
   IResearchBrief,
@@ -20,33 +21,21 @@ export class ResearchBriefSynthesizer {
   private executeLlm: ExecuteLlmFn;
 
   constructor(outputDir: string = 'research', executeLlm?: ExecuteLlmFn) {
-    this.outputDir = sanitizePath(outputDir);
+    this.outputDir = outputDir;
     // Default to a functional mock if none provided for testing
     this.executeLlm = executeLlm || (async (prompt: string) => {
-      if (prompt.includes('Synthesize')) {
-        return { 
-          executiveSummary: 'Based on high-confidence findings, we observed consistent trends. This is a short summary.', 
-          recommendedPatterns: ['Event-Driven Architecture'], 
-          antiPatterns: ['God Object'] 
+      if (process.env.NODE_ENV !== 'test') {
+        throw new Error('executeLlm must be provided in non-test environments');
+      }
+      return prompt.includes('Extract structured findings') ? 
+        [
+          { category: 'OSS_DISCOVERY', description: 'Sample finding', confidenceScore: 0.95 }
+        ] :
+        {
+          executiveSummary: 'This is a mocked executive summary.',
+          recommendedPatterns: ['Event-Driven Architecture'],
+          antiPatterns: ['God Object']
         };
-      }
-      if (prompt.includes('Extract')) {
-        return [
-          {
-            category: 'ARCHITECTURAL_PATTERN',
-            description: `Extracted pattern`,
-            sourceUrl: '',
-            confidenceScore: 0.85
-          },
-          {
-            category: 'OSS_DISCOVERY',
-            description: `Potential tool`,
-            sourceUrl: '',
-            confidenceScore: 0.4
-          }
-        ];
-      }
-      return {};
     });
   }
 
@@ -143,9 +132,12 @@ ${source.content || ''}`;
   }
 
   private generateSlug(source: IResearchSource): string {
-    const raw = source.title || source.url || '';
-    const base = raw.replace(/<\/?untrusted_research_results>/gi, '');
-    return base.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase().substring(0, 50) || 'unknown-source';
+    const url = typeof source.url === 'string' ? source.url.replace(/<[^>]+>/g, '') : 'unknown';
+    const cleanHostname = url.replace(/^https?:\/\//, '').split('/')[0].replace(/[^a-zA-Z0-9-]/g, '-');
+    const titleStr = typeof source.title === 'string' ? source.title.replace(/<[^>]+>/g, '') : url;
+    const cleanPath = titleStr.replace(/[^a-zA-Z0-9-]/g, '-');
+    const hash = crypto.createHash('sha256').update(url + (source.title || '')).digest('hex').substring(0, 8);
+    return `${cleanHostname}-${cleanPath}`.substring(0, 50) + '-' + hash;
   }
 
   public async llmMapSource(source: IResearchSource): Promise<ResearchFindingWithScore[]> {

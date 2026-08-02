@@ -123,12 +123,9 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
 
       if (host === 'github.com' || host === 'www.github.com') {
         return {
-          type: 'github',
+          type: 'community',
           url: urlStr,
           title: title || 'GitHub Repository',
-          stars: 100,
-          lastCommitDaysAgo: 30,
-          license: 'MIT',
           content: fullText
         };
       }

@@ -42,7 +42,7 @@ export const ResearchFindingSchema = z.object({
   ]),
   description: z.string(),
   sourceUrl: z.string().optional()
-});
+}).strict();
 
 export const ResearchBriefSchema = z.object({
   trackId: z.string(),
@@ -56,6 +56,6 @@ export const ResearchBriefSchema = z.object({
   antiPatterns: z.array(z.string()),
   skillsAlreadyInstalled: z.array(z.string()),
   artifactPointers: z.array(z.string())
-});
+}).strict();
 
 export interface IResearchBrief extends z.infer<typeof ResearchBriefSchema> {}
