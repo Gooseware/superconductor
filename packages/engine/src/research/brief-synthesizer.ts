@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { sanitizePath } from '@superconductor/core';
 import {
   IResearchSource,
   IResearchBrief,
@@ -19,7 +20,7 @@ export class ResearchBriefSynthesizer {
   private executeLlm: ExecuteLlmFn;
 
   constructor(outputDir: string = 'research', executeLlm?: ExecuteLlmFn) {
-    this.outputDir = outputDir;
+    this.outputDir = sanitizePath(outputDir);
     // Default to a functional mock if none provided for testing
     this.executeLlm = executeLlm || (async (prompt: string) => {
       if (prompt.includes('Extract')) {
@@ -54,7 +55,29 @@ export class ResearchBriefSynthesizer {
    * Maps sources to findings, filters by confidence, reduces to brief,
    * saves chunked artifacts, and validates against Zod schema.
    */
-  async synthesize(rawResults: IResearchSource[]): Promise<IResearchBrief> {
+  async synthesize(
+    rawResults: IResearchSource[],
+    trackIdOrOptions?: string | { trackId?: string; queriesExecuted?: string[]; skillsAlreadyInstalled?: string[] },
+    queriesExecuted?: string[],
+    skillsAlreadyInstalled?: string[]
+  ): Promise<IResearchBrief> {
+    let trackId = 'track-' + Date.now();
+    let actualQueries: string[] = [];
+    let actualSkills: string[] = [];
+
+    if (typeof trackIdOrOptions === 'string') {
+      trackId = trackIdOrOptions;
+      if (queriesExecuted) actualQueries = queriesExecuted;
+      if (skillsAlreadyInstalled) actualSkills = skillsAlreadyInstalled;
+    } else if (trackIdOrOptions && typeof trackIdOrOptions === 'object') {
+      if (trackIdOrOptions.trackId) trackId = trackIdOrOptions.trackId;
+      if (trackIdOrOptions.queriesExecuted) actualQueries = trackIdOrOptions.queriesExecuted;
+      if (trackIdOrOptions.skillsAlreadyInstalled) actualSkills = trackIdOrOptions.skillsAlreadyInstalled;
+    } else {
+      if (queriesExecuted) actualQueries = queriesExecuted;
+      if (skillsAlreadyInstalled) actualSkills = skillsAlreadyInstalled;
+    }
+
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
     }
@@ -67,7 +90,11 @@ export class ResearchBriefSynthesizer {
       
       // Save chunked artifact file
       const artifactPath = path.join(this.outputDir, `${slug}.md`);
-      const artifactContent = `# ${source.title || slug}\n\nURL: ${source.url}\n\n${source.content || ''}`;
+      const artifactContent = `# ${source.title || slug}
+
+URL: ${source.url}
+
+${source.content || ''}`;
       fs.writeFileSync(artifactPath, artifactContent, 'utf-8');
 
       // LLM extracting finding and assigning a confidence score
@@ -97,19 +124,17 @@ export class ResearchBriefSynthesizer {
         executiveSummary = words.slice(0, 400).join(' ');
       }
     }
-
-    const skillsAlreadyInstalled = ['aws-cli', 'docker'];
     
     // Create the final object
     const brief = {
-      trackId: 'track-' + Date.now(),
+      trackId,
       generatedAt: new Date().toISOString(),
-      queriesExecuted: ['query1', 'query2'],
+      queriesExecuted: actualQueries,
       executiveSummary,
       keyFindings,
       recommendedPatterns,
       antiPatterns,
-      skillsAlreadyInstalled,
+      skillsAlreadyInstalled: actualSkills,
       artifactPointers: rawResults.map(r => path.join(this.outputDir, `${this.generateSlug(r)}.md`))
     };
 

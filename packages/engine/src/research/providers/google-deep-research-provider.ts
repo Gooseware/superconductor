@@ -1,5 +1,5 @@
 import { IResearchProvider, IResearchQuery, IResearchSource } from '../types.js';
-import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
+import { sanitizeUntrustedText } from '@superconductor/core';
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
 import { ResearchSourceQualityGate, ResearchSource } from '../source-quality-gate.js';
 
@@ -28,8 +28,14 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
         if (typeof rawResults === 'string') {
           try {
             parsedResults = JSON.parse(rawResults);
+            if (!Array.isArray(parsedResults)) {
+              parsedResults = [parsedResults];
+            }
           } catch {
-            parsedResults = [{ type: 'unknown', content: rawResults }];
+            return [{
+              url: `<untrusted_research_results>search_web_results</untrusted_research_results>`,
+              title: `<untrusted_research_results>${sanitizeUntrustedText(rawResults)}</untrusted_research_results>`,
+            }];
           }
         } else if (Array.isArray(rawResults)) {
           parsedResults = rawResults;
@@ -55,7 +61,15 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
            }
         }
 
-        return validSources;
+        if (validSources.length > 0) {
+          return validSources;
+        }
+
+        const fallbackString = typeof rawResults === 'string' ? rawResults : JSON.stringify(rawResults);
+        return [{
+          url: `<untrusted_research_results>search_web_results</untrusted_research_results>`,
+          title: `<untrusted_research_results>${sanitizeUntrustedText(fallbackString)}</untrusted_research_results>`,
+        }];
       } catch (err) {
         retries++;
         if (retries > maxRetries) {

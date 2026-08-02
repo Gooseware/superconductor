@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GoogleDeepResearchProvider } from '../../src/research/providers/google-deep-research-provider.js';
 import { ResearchProviderUnavailableError } from '../../src/research/errors/research-provider-unavailable-error.js';
 
-vi.mock('@superconductor/core/src/utils/input-sanitizer.js', () => ({
+vi.mock('@superconductor/core', () => ({
   sanitizeUntrustedText: vi.fn((text: string) => `sanitized_${text}`),
 }));
 
