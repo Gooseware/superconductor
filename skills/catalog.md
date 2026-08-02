@@ -221,3 +221,24 @@ Skills focused on orchestrating autonomous agent swarms and integrating with Sup
 - **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/superconductor-agents/
 - **Aliases**: `superconductor-swarm`, `superconductor-orchestrate`
 - **Keywords**: `superconductor`, `swarm`, `multi-agent`, `code generation`, `parallel agents`
+
+### grill
+- **Description**: A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/grill/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `grill`, `grilling`, `interview`, `glossary`, `ADR`
+
+### improve-architecture
+- **Description**: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/improve-architecture/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `improve architecture`, `refactoring`, `decoupling`, `codebase architecture`
+
+### to-tickets
+- **Description**: Provide a utility to break specs into tracer-bullet tickets.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/to-tickets/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `tickets`, `tracer-bullet`, `spec to tickets`, `breakdown`
