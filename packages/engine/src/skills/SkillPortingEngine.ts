@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as yaml from 'yaml';
 
 export class SkillPortingEngine {
   public static portSkill(inputDir: string, outputDir: string): void {
@@ -17,7 +18,7 @@ export class SkillPortingEngine {
     // Parse frontmatter
     let frontmatter = '';
     let body = content;
-    const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
+    const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
     
     let name = path.basename(inputDir);
@@ -27,11 +28,15 @@ export class SkillPortingEngine {
       frontmatter = match[1];
       body = match[2].trim();
       
-      const nameMatch = frontmatter.match(/name:\s*(.*)/);
-      if (nameMatch) name = nameMatch[1].trim().replace(/^["']|["']$/g, '');
-      
-      const descMatch = frontmatter.match(/description:\s*(.*)/);
-      if (descMatch) description = descMatch[1].trim().replace(/^["']|["']$/g, '');
+      try {
+        const parsed = yaml.parse(frontmatter);
+        if (parsed && typeof parsed === 'object') {
+          if (parsed.name) name = parsed.name.toString();
+          if (parsed.description) description = parsed.description.toString();
+        }
+      } catch (err) {
+        console.error('Failed to parse frontmatter YAML', err);
+      }
     }
 
     // Rename grill-with-docs to grill if necessary
@@ -59,12 +64,12 @@ ${body}
     fs.writeFileSync(outputSkillMdPath, newSkillMdContent);
     console.log(`Ported skill ${name} to ${outputSkillMdPath}`);
     
-    // Copy any other assets if they exist (like HTML-REPORT.md, .json, .png, .svg)
+    // Copy any other assets if they exist
     const files = fs.readdirSync(inputDir);
     for (const file of files) {
-      if (file !== 'SKILL.md' && file.match(/\.(md|json|png|svg)$/i)) {
+      if (file !== 'SKILL.md') {
         const sourcePath = path.join(inputDir, file);
-        if (fs.statSync(sourcePath).isFile()) {
+        if (fs.lstatSync(sourcePath).isFile()) {
           fs.copyFileSync(sourcePath, path.join(outputDir, file));
           console.log(`Copied ${file} to ${outputDir}`);
         }
