@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["to-tickets", "tickets"],
+    "fileGlobs": [],
+    "intentPatterns": ["^to-tickets.*"],
+    "executionEvents": ["UserPromptSubmit"]
+  },
+  "metadata": {
+    "name": "to-tickets",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}

@@ -59,12 +59,15 @@ ${body}
     fs.writeFileSync(outputSkillMdPath, newSkillMdContent);
     console.log(`Ported skill ${name} to ${outputSkillMdPath}`);
     
-    // Copy any other .md files if they exist (like HTML-REPORT.md)
+    // Copy any other assets if they exist (like HTML-REPORT.md, .json, .png, .svg)
     const files = fs.readdirSync(inputDir);
     for (const file of files) {
-      if (file.endsWith('.md') && file !== 'SKILL.md') {
-        fs.copyFileSync(path.join(inputDir, file), path.join(outputDir, file));
-        console.log(`Copied ${file} to ${outputDir}`);
+      if (file !== 'SKILL.md') {
+        const sourcePath = path.join(inputDir, file);
+        if (fs.statSync(sourcePath).isFile()) {
+          fs.copyFileSync(sourcePath, path.join(outputDir, file));
+          console.log(`Copied ${file} to ${outputDir}`);
+        }
       }
     }
   }

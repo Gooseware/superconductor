@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["improve-architecture", "architecture"],
+    "fileGlobs": [],
+    "intentPatterns": ["^improve-architecture.*"],
+    "executionEvents": ["UserPromptSubmit"]
+  },
+  "metadata": {
+    "name": "improve-architecture",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}
