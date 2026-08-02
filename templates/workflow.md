@@ -90,7 +90,11 @@ All tasks follow a strict lifecycle:
     -   Before execution, you **must** announce the exact shell command you will use to run the tests.
     -   **Example Announcement:** "I will now run the automated test suite to verify the phase. **Command:** `CI=true npm test`"
     -   Execute the announced command.
-    -   If tests fail, you **must** inform the user and begin debugging. You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure, and ask the user for guidance.
+    -   If tests fail, you **must** inform the user and apply **Systematic Bug Diagnosis heuristics**. Do not blindly guess or trial-and-error. Instead:
+        1. Isolate the failure to the exact failing component.
+        2. Trace the data flow to identify where it deviates from assumptions.
+        3. Formulate a hypothesis and verify it before proposing a fix.
+        You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure along with your diagnostic findings, and ask the user for guidance.
 
 5.  **Propose a Detailed, Actionable Manual Verification Plan:**
     -   **CRITICAL:** To generate the plan, first analyze `product.md`, `product-guidelines.md`, and `plan.md` to determine the user-facing goals of the completed phase.
