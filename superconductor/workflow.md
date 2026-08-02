@@ -33,15 +33,17 @@ The Superconductor engine operates in either Interactive or Headless mode.
 3. **Write Failing Tests (Red Phase):**
    - Create a new test file for the feature or bug fix.
    - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
+   - **CRITICAL:** Assertions MUST verify a state change in the System Under Test. Test theatre (assertions that cannot fail) is an anti-pattern.
    - **CRITICAL:** Run the tests and confirm that they fail as expected. This is the "Red" phase of TDD. Do not proceed until you have failing tests.
 
 4. **Implement to Pass Tests (Green Phase):**
    - Write the minimum amount of application code necessary to make the failing tests pass.
    - Run the test suite again and confirm that all tests now pass. This is the "Green" phase.
 
-5. **Refactor (Optional but Recommended):**
+5. **Refactor (Strict Refactor Phase):**
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
    - Rerun tests to ensure they still pass after refactoring.
+   - **CRITICAL:** The strict Red-Green-Refactor cycle must be followed. Do not add new features during the refactor phase.
 
 6. **Verify Coverage:** Run coverage reports using the project's chosen tools. 
    - **Target: >80% coverage for new code.**
@@ -98,7 +100,11 @@ The Superconductor engine operates in either Interactive or Headless mode.
     -   Before execution, you **must** announce the exact shell command you will use to run the tests.
     -   **Example Announcement:** "I will now run the automated test suite to verify the phase. **Command:** `CI=true npm test`"
     -   Execute the announced command.
-    -   If tests fail, you **must** inform the user and begin debugging. You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure, and ask the user for guidance.
+    -   If tests fail, you **must** inform the user and apply **Systematic Bug Diagnosis heuristics**. Do not blindly guess or trial-and-error. Instead:
+        1. Isolate the failure to the exact failing component.
+        2. Trace the data flow to identify where it deviates from assumptions.
+        3. Formulate a hypothesis and verify it before proposing a fix.
+        You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure along with your diagnostic findings, and ask the user for guidance.
 
 5.  **Propose a Detailed, Actionable Manual Verification Plan:**
     -   **CRITICAL:** To generate the plan, first analyze `product.md`, `product-guidelines.md`, and `plan.md` to determine the user-facing goals of the completed phase.
