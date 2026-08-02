@@ -3,7 +3,7 @@
     "superconductor-kernel": {
       "command": "node",
       "args": [
-        "${extensionPath}/packages/superconductor-kernel/dist/index.js"
+        "./packages/superconductor-kernel/dist/index.js"
       ]
     }
   }

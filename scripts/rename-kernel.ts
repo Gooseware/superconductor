@@ -3,7 +3,7 @@ import path from 'path';
 import { globSync } from 'glob';
 
 const REPO_ROOT = path.resolve(__dirname, '..');
-const OLD_KERNEL_DIR = path.join(REPO_ROOT, 'packages', 'design-os-kernel');
+const OLD_KERNEL_DIR = path.join(REPO_ROOT, 'packages', 'superconductor-kernel');
 const NEW_KERNEL_DIR = path.join(REPO_ROOT, 'packages', 'superconductor-kernel');
 
 // 1. Rename directory
@@ -45,7 +45,7 @@ const filesToUpdate = [
 
 // Add skill files if they exist
 const homeDir = process.env.HOME || require('os').homedir();
-const skillsDir = path.join(homeDir, '.gemini/config/plugins/design-os-kernel');
+const skillsDir = path.join(homeDir, '.gemini/config/plugins/superconductor-kernel');
 if (fs.existsSync(skillsDir)) {
   // Use a simple recursive function instead of glob if glob isn't installed
   const findMdFiles = (dir: string): string[] => {
@@ -70,7 +70,7 @@ for (const file of filesToUpdate) {
     const content = fs.readFileSync(file, 'utf8');
     const newContent = content
       .replace(/@design-os\/mcp-server/g, '@superconductor/kernel')
-      .replace(/design-os-kernel/g, 'superconductor-kernel');
+      .replace(/superconductor-kernel/g, 'superconductor-kernel');
     if (content !== newContent) {
       fs.writeFileSync(file, newContent, 'utf8');
       console.log(`Updated strings in ${file}`);

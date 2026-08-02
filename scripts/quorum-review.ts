@@ -2,6 +2,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { execFile } from 'node:child_process';
 import * as util from 'node:util';
+import { RemediatorPromptBuilder } from '../packages/superconductor-core/src/swarm/RemediatorPromptBuilder.js';
+import { LanguageAdapter } from '../packages/superconductor-core/src/swarm/LanguageAdapter.js';
 
 const execFileAsync = util.promisify(execFile);
 
@@ -96,6 +98,21 @@ export class QuorumFSM {
                     if (approved) {
                         // 0 findings, valid pass
                         continue;
+                    } else if (findingsBlock) {
+                        try {
+                            const parsed = JSON.parse(findingsBlock[1]);
+                            if (Array.isArray(parsed)) {
+                                allFindings.push(...parsed.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
+                            } else if (parsed && typeof parsed === 'object') {
+                                if (parsed.findings && Array.isArray(parsed.findings)) {
+                                    allFindings.push(...parsed.findings.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
+                                } else {
+                                    allFindings.push(JSON.stringify(parsed));
+                                }
+                            }
+                        } catch (err: any) {
+                            allFindings.push(`Failed to parse reviewer output: ${err.message || 'Invalid JSON'}`);
+                        }
                     } else if (output.includes('Findings') || output.includes('findings')) {
                         const jsonMatch = output.match(/\{[\s\S]*"findings"\s*:\s*\[[\s\S]*?\][\s\S]*\}/);
                         if (jsonMatch) {
@@ -165,8 +182,12 @@ export class QuorumFSM {
                 groupedFindings[domain].push(parsedFinding);
             });
             
+            const profile = LanguageAdapter.detect(process.cwd());
+            
             const remediationPromises = Object.values(groupedFindings).map(group => {
-                const findingsArg = JSON.stringify(group);
+                const category = group[0]?.category || 'general';
+                const prompt = RemediatorPromptBuilder.build(profile, category, JSON.stringify(group), this.targetFile);
+                const findingsArg = JSON.stringify(prompt);
                 return execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', this.targetFile, '--findings', findingsArg]);
             });
             

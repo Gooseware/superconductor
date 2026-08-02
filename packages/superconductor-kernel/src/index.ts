@@ -122,7 +122,7 @@ async function initDb() {
 
 const server = new Server(
   {
-    name: "design-os-kernel",
+    name: "superconductor-kernel",
     version: "1.0.0",
   },
   {
@@ -519,15 +519,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "analyze_visual_inspiration") {
-    const { imageUrl, description } = AnalyzeInspirationSchema.parse(args);
-    const suggestion = {
-      primary: "oklch(0.6 0.2 250)",
-      radius: "1rem",
-      reasoning: "Based on the cool tones and modern aesthetic described.",
-    };
-    return {
-      content: [{ type: "text", text: `Analysis complete. Suggested tokens: ${JSON.stringify(suggestion, null, 2)}` }],
-    };
+    throw new Error("analyze_visual_inspiration is not fully implemented in the current kernel version.");
   }
 
   if (name === "registry_sync") {
@@ -846,11 +838,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "kernel_intelligence_get_hotspots") {
     const { metric } = z.object({ metric: z.enum(["churn", "complexity", "pagerank"]) }).parse(args);
-    // Mock implementation for getting hotspots
     const data = graphCache.load();
-    const sorted = [...data.nodes].sort((a, b) => {
-      const valA = a.metadata?.[metric] || 0;
-      const valB = b.metadata?.[metric] || 0;
+    const sorted = [...data.nodes].sort((a: any, b: any) => {
+      const valA = a[metric] || 0;
+      const valB = b[metric] || 0;
       return valB - valA;
     }).slice(0, 10);
     return { content: [{ type: "text", text: JSON.stringify(sorted, null, 2) }] };
@@ -858,10 +849,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "kernel_intelligence_get_dependency_graph") {
     const { community_id } = z.object({ community_id: z.string() }).parse(args);
-    // Mock implementation for dependency graph
     const data = graphCache.load();
-    const nodes = data.nodes.filter(n => n.metadata?.community_id === community_id);
-    return { content: [{ type: "text", text: JSON.stringify(nodes, null, 2) }] };
+    const nodes = data.nodes.filter((n: any) => n.community === community_id);
+    const nodeIds = new Set(nodes.map(n => n.id));
+    const edges = data.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+    return { content: [{ type: "text", text: JSON.stringify({ nodes, edges }, null, 2) }] };
   }
 
   if (name === "kernel_policy_get_mode") {

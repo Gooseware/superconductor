@@ -27,8 +27,8 @@ export class GraphCache {
     if (customPath) {
       this.filePath = customPath;
     } else {
-      const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, "../../../..");
-      this.filePath = path.join(PROJECT_ROOT, "intelligence", "09_graphify_graph.json");
+      const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
+      this.filePath = path.join(PROJECT_ROOT, "superconductor", "intelligence", "09_graphify_graph.json");
     }
   }
 

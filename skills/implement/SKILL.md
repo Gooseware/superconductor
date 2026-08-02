@@ -433,8 +433,8 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
             iii. **Generate Phase:** Use the **PhaseGenerator** utility to append a new `## Review Remediation (Iteration X)` phase to the track's `plan.md`.
             iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
     - If the report suggests **Kernel Sync Candidates**:
-        - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `design-os-kernel`. Would you like me to publish them now?" (type: "yesno")
-        - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_design-os-kernel_publish_vetted_component` tool.
+        - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `superconductor-kernel`. Would you like me to publish them now?" (type: "yesno")
+        - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_superconductor-kernel_publish_vetted_component` tool.
     - If "Ready" verdict:
         - Proceed to finalization.
 

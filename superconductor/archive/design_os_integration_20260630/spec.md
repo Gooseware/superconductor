@@ -1,10 +1,10 @@
 # Specification: Design OS Integration
 
 ## Overview
-Bring the complete Design OS system — Kernel MCP server and the full suite of companion agent skills — into the Superconductor extension as a first-class, bundled experience. The Kernel is added as a **git submodule** (sourced from `git@gitlab.com:socialhippos/design-os-kernel`) at `packages/design-os-kernel/`. All Design OS skills currently living in the user's global `~/.gemini/config/skills/` are copied into Superconductor's `skills/` directory so they ship with the extension for any user who installs it. The `gemini-extension.json` is updated to wire the local Kernel build as an MCP server.
+Bring the complete Design OS system — Kernel MCP server and the full suite of companion agent skills — into the Superconductor extension as a first-class, bundled experience. The Kernel is added as a **git submodule** (sourced from `git@gitlab.com:socialhippos/superconductor-kernel`) at `packages/superconductor-kernel/`. All Design OS skills currently living in the user's global `~/.gemini/config/skills/` are copied into Superconductor's `skills/` directory so they ship with the extension for any user who installs it. The `gemini-extension.json` is updated to wire the local Kernel build as an MCP server.
 
 ## Motivation
-Currently a new Superconductor user gets the `design-heuristics` visual rules skill and the `design-os-kernel-dogma` authoring guidelines skill, but **not** the live Design OS Kernel (MCP server) or the workflow-level skills (theming, i18n, design system, orchestrator, etc.). This means the full Design OS workflow — the structured product planning and component generation system — is unavailable out of the box. This track closes that gap.
+Currently a new Superconductor user gets the `design-heuristics` visual rules skill and the `superconductor-kernel-dogma` authoring guidelines skill, but **not** the live Design OS Kernel (MCP server) or the workflow-level skills (theming, i18n, design system, orchestrator, etc.). This means the full Design OS workflow — the structured product planning and component generation system — is unavailable out of the box. This track closes that gap.
 
 ## Scope: Skills to Bundle
 
@@ -16,7 +16,7 @@ The following skills from `~/.gemini/config/skills/` are in scope for bundling:
 - `design-os-roadmap` — Breaking vision into development sections
 - `design-os-data-model` — Core entities and relationships
 - `design-os-design-system` — Colors, typography, semantic token selection
-- `design-os-kernel-setup` — Kernel initialization, build verification, MCP wiring
+- `superconductor-kernel-setup` — Kernel initialization, build verification, MCP wiring
 
 ### Theming Skills (HIGH PRIORITY — explicitly requested)
 - `theme-manager-flow` — Dark mode, brand themes, contextual overrides
@@ -34,27 +34,27 @@ The following skills from `~/.gemini/config/skills/` are in scope for bundling:
 
 ### Already Bundled (DO NOT duplicate)
 - `design-heuristics` — Already in `skills/` ✅
-- `design-os-kernel-dogma` — Already in `skills/` ✅
+- `superconductor-kernel-dogma` — Already in `skills/` ✅
 
 ## Functional Requirements
 
 ### FR-1: Git Submodule for the Kernel
-- Add `git@gitlab.com:socialhippos/design-os-kernel` as a submodule at `packages/design-os-kernel/`.
+- Add `git@gitlab.com:socialhippos/superconductor-kernel` as a submodule at `packages/superconductor-kernel/`.
 - Pin to the current HEAD of the `main` branch.
 - The submodule must be initialized with `git submodule update --init --recursive`.
 - The `.gitmodules` file must be committed to the Superconductor repo.
 
 ### FR-2: Local Kernel Build
-- After submodule init, run `npm install && npm run build` inside `packages/design-os-kernel/`.
-- Verify that `packages/design-os-kernel/dist/` exists after the build.
+- After submodule init, run `npm install && npm run build` inside `packages/superconductor-kernel/`.
+- Verify that `packages/superconductor-kernel/dist/` exists after the build.
 - Document these build steps in a new `packages/README.md`.
 
 ### FR-3: MCP Server Wiring in `gemini-extension.json`
 - Add a `mcpServers` section to `gemini-extension.json`.
 - The MCP server entry must use `${extensionPath}` as the root prefix so the path works whether installed via `link` or `install`.
-- Server name: `design-os-kernel`
+- Server name: `superconductor-kernel`
 - Command: `node`
-- Args: `["${extensionPath}/packages/design-os-kernel/dist/index.js"]`
+- Args: `["${extensionPath}/packages/superconductor-kernel/dist/index.js"]`
 
 ### FR-4: Bundle All In-Scope Design OS Skills
 - Copy all skills listed in "Scope: Skills to Bundle" into `skills/` within the Superconductor repo.
@@ -74,11 +74,11 @@ The following skills from `~/.gemini/config/skills/` are in scope for bundling:
   - What Design OS is
   - That the Kernel MCP server is bundled
   - How to init the submodule (`git submodule update --init --recursive`)
-  - That the kernel must be built once (`cd packages/design-os-kernel && npm install && npm run build`)
+  - That the kernel must be built once (`cd packages/superconductor-kernel && npm install && npm run build`)
   - The list of bundled Design OS skills
 
 ### FR-8: Update `GEMINI.md` Universal File Resolution Protocol
-- Register `design-os-kernel` MCP server in the GEMINI.md context file so the agent knows it is available.
+- Register `superconductor-kernel` MCP server in the GEMINI.md context file so the agent knows it is available.
 - Add a note that Design OS skills are available when the extension is installed.
 
 ### FR-9: Create `packages/README.md`
@@ -94,12 +94,12 @@ The following skills from `~/.gemini/config/skills/` are in scope for bundling:
 - `gemini extensions validate` must pass after all changes.
 
 ## Acceptance Criteria
-- `packages/design-os-kernel/dist/index.js` exists after `npm install && npm run build`.
+- `packages/superconductor-kernel/dist/index.js` exists after `npm install && npm run build`.
 - `gemini-extension.json` `mcpServers` section is present and `gemini extensions validate` passes.
 - All 12 in-scope Design OS skills exist as directories under `skills/`.
 - `skills/catalog.md` has entries for all newly bundled skills.
 - README.md explains the Design OS integration and build steps.
-- `gemini extensions list` shows `design-os-kernel` as an MCP server for the superconductor extension.
+- `gemini extensions list` shows `superconductor-kernel` as an MCP server for the superconductor extension.
 
 ## Out of Scope
 - Automatic kernel build on extension install (AGY does not support post-install hooks).

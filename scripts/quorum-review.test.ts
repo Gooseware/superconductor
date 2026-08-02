@@ -24,19 +24,27 @@ describe('Quorum Review', () => {
 
     it('should pass --findings as a named flag, not after --', async () => {
         const mockExecFile = execFile as any;
+        let correctnessCalls = 0;
         // Mock reviewer failing with a finding
         mockExecFile.mockImplementation((cmd: string, args: string[], cb: any) => {
-            if (args.includes('correctness-reviewer')) {
-                cb(null, { stdout: '{"findings": [{"msg": "error"}]}' });
-            } else if (args.includes('remediation-processor')) {
+            if (args.includes('remediation-processor')) {
                 cb(null, { stdout: 'fixed' });
+                return;
+            }
+            if (args.includes('correctness-reviewer')) {
+                correctnessCalls++;
+                if (correctnessCalls === 1) {
+                    cb(null, { stdout: '```json:review-findings\n[{"msg": "error", "category": "correctness"}]\n```' });
+                } else {
+                    cb(null, { stdout: 'APPROVED: NO FINDINGS' });
+                }
             } else {
                 cb(null, { stdout: 'APPROVED: NO FINDINGS' });
             }
         });
 
         const fsm = new QuorumFSM('test.ts');
-        await fsm.run();
+        const result = await fsm.run();
 
         const remediatorCalls = mockExecFile.mock.calls.filter((call: any) => call[1].includes('remediation-processor'));
         expect(remediatorCalls.length).toBeGreaterThan(0);
@@ -44,6 +52,10 @@ describe('Quorum Review', () => {
         const args = remediatorCalls[0][1];
         expect(args.includes('--')).toBe(false); // Should not have --
         expect(args.indexOf('--findings')).toBeGreaterThan(args.indexOf('--file'));
+
+        // Assert FSM run result status and verify complete multi-loop transition behavior.
+        expect(result.status).toBe('APPROVED');
+        expect(fsm.stateData.loops).toBe(1);
     });
 
     it('should transition to REQUIRES_HUMAN_INTERVENTION if reviewer process fails', async () => {

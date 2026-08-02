@@ -4,10 +4,10 @@ This directory contains external package repositories integrated as Git submodul
 
 ## Packages Included
 
-### `design-os-kernel`
+### `superconductor-kernel`
 The core Model Context Protocol (MCP) server that powers Design OS.
-- **Repository:** `git@gitlab.com:socialhippos/design-os-kernel`
-- **Path:** `packages/design-os-kernel`
+- **Repository:** `git@gitlab.com:socialhippos/superconductor-kernel`
+- **Path:** `packages/superconductor-kernel`
 
 ---
 
@@ -24,7 +24,7 @@ git submodule update --init --recursive
 ### 2. Build the Kernel
 The MCP server needs to be built locally before use:
 ```bash
-cd packages/design-os-kernel
+cd packages/superconductor-kernel
 npm install
 npm run build
 ```
@@ -33,6 +33,6 @@ This compiles the TypeScript source code into `dist/index.js`.
 ### 3. Updating the Kernel
 To update the submodule to the latest upstream main:
 ```bash
-git submodule update --remote packages/design-os-kernel
+git submodule update --remote packages/superconductor-kernel
 ```
 Remember to rebuild the kernel (`npm run build`) after updating!

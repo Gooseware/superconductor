@@ -28,7 +28,7 @@
   Add a `/superconductor:fork` command. The engine clones the worker pool into three distinct universes to try different UI or architectural approaches. By utilizing a **Storyboard-type system**, you can visually map out and compare the alternative universes side-by-side. Once you test the different local deployments and pick a winner on the storyboard, `/superconductor:merge` drops the rest.
 
 - [ ] **Visual Regression Oracle (VLM Verification)**
-  The current headless verification checks test coverage >80%. We can add a phase that launches a headless browser, screenshots the rendered UI, and uses a Vision-Language Model (VLM) to grade its aesthetic alignment against the `design-os-kernel` constraints. It catches hardcoded margins and visual flaws automatically, bouncing the track back to the editor before a human ever sees it.
+  The current headless verification checks test coverage >80%. We can add a phase that launches a headless browser, screenshots the rendered UI, and uses a Vision-Language Model (VLM) to grade its aesthetic alignment against the `superconductor-kernel` constraints. It catches hardcoded margins and visual flaws automatically, bouncing the track back to the editor before a human ever sees it.
 
 ## Sci-Fi & Autonomous Features
 

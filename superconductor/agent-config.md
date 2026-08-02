@@ -80,3 +80,10 @@ The agent will emit a permission mode status banner reflecting the active restri
   Global override that disables capability constraints, logging all executed tools to `yolo-audit.log`.
 
 For more details on capabilities and the manifest schema, see `docs/permissions.md`.
+
+## MCP Tool Inventory
+
+The `superconductor-kernel` MCP server exposes several sets of tools:
+
+- **Original Design OS Tools (14 tools):** Provides 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.).
+- **Kernel Tools:** `kernel_graph_get_node`, `kernel_policy_get_mode`, and other low-level orchestration and state management APIs.

@@ -32,7 +32,7 @@ This track accomplishes four tightly related objectives:
 ### Dreamer's Vision
 - Model switcher as a middleware layer behind an `IModelRouter` interface — decouples the TUI/caching mechanics from the engine.
 - Caduceus `WorkspaceContextSensor` (`SuperconductorSensor`) auto-detects Superconductor and maps tracks to Caduceus epics in the Knowledge Graph.
-- Shared registry protocol: `design-os-kernel` MCP acts as producer, Caduceus MCP server at port 1691 acts as consumer/persistence layer.
+- Shared registry protocol: `superconductor-kernel` MCP acts as producer, Caduceus MCP server at port 1691 acts as consumer/persistence layer.
 - Event bus for `AgentTurnCompleted` events from Superconductor → Caduceus Knowledge Graph → future query + routing decisions.
 - History-driven model routing: Caduceus's `AdaptiveRouter` queries past task outcomes to suggest optimal models to Superconductor's `SmartModelResolver`.
 

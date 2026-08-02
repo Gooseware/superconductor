@@ -5,7 +5,7 @@ Establish the foundational context for the Superconductor extension project, inc
 
 ## Requirements
 - Defined project vision and target audience.
-- Standardized tech stack documenting TOML-based command architecture and `design-os-kernel` integration.
+- Standardized tech stack documenting TOML-based command architecture and `superconductor-kernel` integration.
 - Custom development workflow with TDD, >80% test coverage, and per-task commits.
 - Library of code style guides for `general` and `javascript` standards.
 

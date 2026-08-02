@@ -2,34 +2,34 @@
 
 ## Phase 0: Submodule Setup & Local Kernel Build
 
-- [x] Task: Add design-os-kernel as a git submodule [TIER-1] (e50e564)
-    - [x] Sub-task: Run `git submodule add git@gitlab.com:socialhippos/design-os-kernel packages/design-os-kernel` in the superconductor repo root
+- [x] Task: Add superconductor-kernel as a git submodule [TIER-1] (e50e564)
+    - [x] Sub-task: Run `git submodule add git@gitlab.com:socialhippos/superconductor-kernel packages/superconductor-kernel` in the superconductor repo root
     - [x] Sub-task: Verify `.gitmodules` file is created correctly
-    - [x] Sub-task: Verify `packages/design-os-kernel/` directory is populated
-    - [x] Sub-task: Commit `.gitmodules` and the submodule pointer with message `chore(packages): add design-os-kernel as git submodule`
+    - [x] Sub-task: Verify `packages/superconductor-kernel/` directory is populated
+    - [x] Sub-task: Commit `.gitmodules` and the submodule pointer with message `chore(packages): add superconductor-kernel as git submodule`
 - [x] Task: Build the kernel locally [TIER-1] (566a474)
-    - [x] Sub-task: Run `npm install` inside `packages/design-os-kernel/`
-    - [x] Sub-task: Run `npm run build` inside `packages/design-os-kernel/`
-    - [x] Sub-task: Verify `packages/design-os-kernel/dist/index.js` exists
-    - [x] Sub-task: Add `packages/design-os-kernel/dist/` and `packages/design-os-kernel/node_modules/` to `.gitignore`
+    - [x] Sub-task: Run `npm install` inside `packages/superconductor-kernel/`
+    - [x] Sub-task: Run `npm run build` inside `packages/superconductor-kernel/`
+    - [x] Sub-task: Verify `packages/superconductor-kernel/dist/index.js` exists
+    - [x] Sub-task: Add `packages/superconductor-kernel/dist/` and `packages/superconductor-kernel/node_modules/` to `.gitignore`
 - [x] Task: Create `packages/README.md` [TIER-3] (ed3017f)
     - [x] Sub-task: Document purpose of the `packages/` directory
     - [x] Sub-task: Document one-time submodule init command: `git submodule update --init --recursive`
-    - [x] Sub-task: Document kernel build steps: `cd packages/design-os-kernel && npm install && npm run build`
-    - [x] Sub-task: Document how to update the kernel: `git submodule update --remote packages/design-os-kernel`
+    - [x] Sub-task: Document kernel build steps: `cd packages/superconductor-kernel && npm install && npm run build`
+    - [x] Sub-task: Document how to update the kernel: `git submodule update --remote packages/superconductor-kernel`
 - [x] Task: User Manual Verification 'Phase 0: Submodule Setup & Local Kernel Build' (Protocol in workflow.md)
 
 ## Phase 1: MCP Server Wiring
 
 - [x] Task: Update `gemini-extension.json` to add mcpServers section [TIER-3] (4d83d5a)
-    - [x] Sub-task: Add `mcpServers` key with `design-os-kernel` entry
-    - [x] Sub-task: Set command to `node` and args to `["${extensionPath}/packages/design-os-kernel/dist/index.js"]`
+    - [x] Sub-task: Add `mcpServers` key with `superconductor-kernel` entry
+    - [x] Sub-task: Set command to `node` and args to `["${extensionPath}/packages/superconductor-kernel/dist/index.js"]`
     - [x] Sub-task: Confirm the full updated JSON is valid
 - [x] Task: Validate extension with updated manifest [TIER-1] (4d83d5a)
     - [x] Sub-task: Run `gemini extensions validate /home/gooseware/repos/gemini/extensions/superconductor`
     - [x] Sub-task: Confirm output: `Extension ... has been successfully validated.`
 - [x] Task: Reload extension to verify MCP server is surfaced [TIER-1] (4d83d5a)
-    - [x] Sub-task: Run `gemini extensions list` and confirm `design-os-kernel` appears as an MCP server under superconductor
+    - [x] Sub-task: Run `gemini extensions list` and confirm `superconductor-kernel` appears as an MCP server under superconductor
 - [x] Task: User Manual Verification 'Phase 1: MCP Server Wiring' (Protocol in workflow.md)
 
 ## Phase 2: Bundle Design OS Skills
@@ -40,7 +40,7 @@
     - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-roadmap/` → `skills/design-os-roadmap/`
     - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-data-model/` → `skills/design-os-data-model/`
     - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-design-system/` → `skills/design-os-design-system/`
-    - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-kernel-setup/` → `skills/design-os-kernel-setup/`
+    - [x] Sub-task: Copy `~/.gemini/config/skills/superconductor-kernel-setup/` → `skills/superconductor-kernel-setup/`
 - [x] Task: Copy theming skills into `skills/` [TIER-1] (39f1ce1)
     - [x] Sub-task: Copy `~/.gemini/config/skills/theme-manager-flow/` → `skills/theme-manager-flow/`
     - [x] Sub-task: Copy `~/.gemini/config/skills/design-os-inspiration/` → `skills/design-os-inspiration/`
@@ -65,7 +65,7 @@
     - [x] Sub-task: Add entry for `design-os-roadmap` (detection: `roadmap, milestones, development sections`)
     - [x] Sub-task: Add entry for `design-os-data-model` (detection: `data model, entities, relationships, schema`)
     - [x] Sub-task: Add entry for `design-os-design-system` (detection: `colors, typography, tokens, design system`)
-    - [x] Sub-task: Add entry for `design-os-kernel-setup` (detection: `MCP server, kernel setup, kernel not connected`)
+    - [x] Sub-task: Add entry for `superconductor-kernel-setup` (detection: `MCP server, kernel setup, kernel not connected`)
     - [x] Sub-task: Add entry for `theme-manager-flow` (detection: `dark mode, theme, brand colors`)
     - [x] Sub-task: Add entry for `design-os-inspiration` (detection: `inspiration, moodboard, visual reference`)
     - [x] Sub-task: Add entry for `design-os-enhance` (detection: `refactor UI, upgrade design, brownfield`)
@@ -81,7 +81,7 @@
     - [x] Sub-task: Document the one-time submodule init step
     - [x] Sub-task: Document the one-time kernel build step
 - [x] Task: Update `GEMINI.md` Universal File Resolution Protocol [TIER-3] (978b72e)
-    - [x] Sub-task: Add `design-os-kernel` MCP server to the Agent Configuration section
+    - [x] Sub-task: Add `superconductor-kernel` MCP server to the Agent Configuration section
     - [x] Sub-task: Note that Design OS skills are auto-available when the extension is installed
 - [x] Task: User Manual Verification 'Phase 3: Catalog & Documentation Updates' (Protocol in workflow.md)
 

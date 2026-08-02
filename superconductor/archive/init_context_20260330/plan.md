@@ -9,7 +9,7 @@
     - [x] Document UX and interaction principles
 - [x] Task: Create tech stack documentation (`tech-stack.md`) [0c5ad1e]
     - [x] Document TOML-based command architecture
-    - [x] Define `design-os-kernel` and skill management requirements
+    - [x] Define `superconductor-kernel` and skill management requirements
 - [x] Task: Superconductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md) [3977f48]
 
 ## Phase 2: Workflow & Standards [checkpoint: 883a56f]

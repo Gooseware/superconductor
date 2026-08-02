@@ -23,7 +23,6 @@ export class RemediatorPromptBuilder {
       'spec.md',
       'archive/',
       '*.lock',
-      'node_modules/',
       '.superconductor/' // intelligence snapshots usually go in .superconductor or similar
     ];
     
@@ -49,7 +48,7 @@ export class RemediatorPromptBuilder {
       TASK: taskDescription,
       SCOPE: scope,
       EXCLUDED: combinedExcludes,
-      PATTERN: profile.manifestFiles, // simplistic
+      PATTERN: profile.siblingsWithTests() ? ['**/*.test.*', '**/*.spec.*'] : ['**/*'],
       ANTI_PATTERNS: antiPatternsList,
       EVIDENCE_REQUIRED: `Provide output from running: ${profile.testCommand}`,
       DEFINITION_OF_DONE: `All findings addressed, ${profile.testCommand} passes, no anti-patterns present.`

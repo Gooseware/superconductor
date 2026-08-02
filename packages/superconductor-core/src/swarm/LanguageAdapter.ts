@@ -21,17 +21,26 @@ export class LanguageAdapter {
     
     const hasTechStack = techStackContent.length > 0;
     
-    if (hasTechStack && techStackContent.includes('typescript') || techStack === 'ts' || techStack === 'typescript') {
+    if (techStack === 'ts' || techStack === 'typescript') {
       return this.getProfile('typescript');
     }
-    if (hasTechStack && techStackContent.includes('python') || techStack === 'python') {
+    if (techStack === 'python') {
       return this.getProfile('python');
     }
-    if (hasTechStack && techStackContent.includes('go') || techStack === 'go') {
+    if (techStack === 'go') {
       return this.getProfile('go');
     }
-    if (hasTechStack && techStackContent.includes('rust') || techStack === 'rust') {
+    if (techStack === 'rust') {
       return this.getProfile('rust');
+    }
+
+    if (hasTechStack) {
+      if (techStackContent.includes('typescript')) return this.getProfile('typescript');
+      if (techStackContent.includes('python')) return this.getProfile('python');
+      if (/\b(golang|go\s+lang|go\s+1\.\d+)\b/i.test(techStackContent) || /(?:language|lang):\s*go\b/i.test(techStackContent)) {
+        return this.getProfile('go');
+      }
+      if (techStackContent.includes('rust')) return this.getProfile('rust');
     }
 
     // Manifest fallback

@@ -22,9 +22,9 @@ The philosophy behind Superconductor is simple: control your code. By treating c
 Superconductor bundles the complete **Design OS** system to provide a structured, automated planning and component generation workflow out of the box.
 
 ### Bundled Components
-1. **Design OS Kernel (MCP Server):** Sourced from the `design-os-kernel` submodule. Exposes automated design-system, theming, and component-adaptation tools to your agents.
+1. **Design OS Kernel (MCP Server):** Sourced from the `superconductor-kernel` submodule. Exposes automated design-system, theming, and component-adaptation tools to your agents.
 2. **Companion Skills Suite:** 14 workflow-level skills copied directly into the extension's skills directory:
-   - **Core Workflow:** `design-os-orchestrator`, `design-os-vision`, `design-os-roadmap`, `design-os-data-model`, `design-os-kernel-setup`
+   - **Core Workflow:** `design-os-orchestrator`, `design-os-vision`, `design-os-roadmap`, `design-os-data-model`, `superconductor-kernel-setup`
    - **Theming & Aesthetics:** `theme-manager-flow`, `design-os-inspiration`, `design-os-enhance`, `design-os-design-system`
    - **Internationalization:** `design-os-i18n`
    - **UI Construction:** `design-os-app-shell`, `design-os-spec-ingest`, `component-adapter`, `design-os-extractor`
@@ -36,12 +36,12 @@ When checking out this repository or developing locally, you must initialize and
 # 1. Initialize the submodule
 git submodule update --init --recursive
 
-# 2. Build the design-os-kernel package
-cd packages/design-os-kernel
+# 2. Build the superconductor-kernel package
+cd packages/superconductor-kernel
 npm install
 npm run build
 ```
-This will compile the TypeScript source into `packages/design-os-kernel/dist/index.js`, making the MCP server available to your client.
+This will compile the TypeScript source into `packages/superconductor-kernel/dist/index.js`, making the MCP server available to your client.
 
 ## Installation
 

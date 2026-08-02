@@ -792,133 +792,133 @@
     "riskLevel": "medium"
   },
   {
-    "file": "packages/design-os-kernel/dist/index.js",
+    "file": "packages/superconductor-kernel/dist/index.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/AtomicGitService.js",
+    "file": "packages/superconductor-kernel/dist/services/AtomicGitService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/CentralizedPublishService.js",
+    "file": "packages/superconductor-kernel/dist/services/CentralizedPublishService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/ConfigService.js",
+    "file": "packages/superconductor-kernel/dist/services/ConfigService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/DogmaService.js",
+    "file": "packages/superconductor-kernel/dist/services/DogmaService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/GitService.js",
+    "file": "packages/superconductor-kernel/dist/services/GitService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/InstallerService.js",
+    "file": "packages/superconductor-kernel/dist/services/InstallerService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/PublishService.js",
+    "file": "packages/superconductor-kernel/dist/services/PublishService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/RegistryService.js",
+    "file": "packages/superconductor-kernel/dist/services/RegistryService.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/services/SyncManager.js",
+    "file": "packages/superconductor-kernel/dist/services/SyncManager.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/dist/templates/skeleton-primitives.js",
+    "file": "packages/superconductor-kernel/dist/templates/skeleton-primitives.js",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/index.ts",
+    "file": "packages/superconductor-kernel/src/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/AtomicGitService.ts",
+    "file": "packages/superconductor-kernel/src/services/AtomicGitService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/CentralizedPublishService.ts",
+    "file": "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/ConfigService.ts",
+    "file": "packages/superconductor-kernel/src/services/ConfigService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/DogmaService.ts",
+    "file": "packages/superconductor-kernel/src/services/DogmaService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/GitService.ts",
+    "file": "packages/superconductor-kernel/src/services/GitService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/InstallerService.ts",
+    "file": "packages/superconductor-kernel/src/services/InstallerService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/PublishService.ts",
+    "file": "packages/superconductor-kernel/src/services/PublishService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/RegistryService.ts",
+    "file": "packages/superconductor-kernel/src/services/RegistryService.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/services/SyncManager.ts",
+    "file": "packages/superconductor-kernel/src/services/SyncManager.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"
   },
   {
-    "file": "packages/design-os-kernel/src/templates/skeleton-primitives.ts",
+    "file": "packages/superconductor-kernel/src/templates/skeleton-primitives.ts",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"

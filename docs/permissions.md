@@ -12,6 +12,7 @@ Superconductor uses an Adaptive Permission System to manage agent capabilities d
 2. **TRACKED Mode** (`🔒 TRACKED [track_id]`):
    - Active when implementing a specific track.
    - Tool execution is scoped strictly to the capabilities defined in the track's `permission-manifest.toml`.
+   - **SWARM GUARDRAIL Enforcement**: Blocks writes to `packages/*/src/**` and requires `remediation-processor` dispatch to resolve issues or perform writes in restricted paths.
    - Any blocked tool call triggers a 60-second inline override prompt for the user (Allow Once, Allow for Track, YOLO, or Deny).
 
 3. **YOLO Mode** (`⚠️ YOLO MODE`):

@@ -107,7 +107,7 @@
       fields when context budget is tight (for Tier-2 models)
 - [x] Task: Implement `src/protocol/mcp-schema.ts` [TIER-2] [AGENT:caduceus-processor]
     - [x] Define MCP tool schemas for all 6 superconductor tools
-    - [x] Use `zod` for schema validation (matching design-os-kernel pattern)
+    - [x] Use `zod` for schema validation (matching superconductor-kernel pattern)
     - [x] Export `SUPERCONDUCTOR_MCP_TOOLS` array
 - [x] Task: Export protocol module from `src/index.ts` barrel [TIER-1] [AGENT:caduceus-triage]
 - [x] Task: Superconductor - User Manual Verification 'Phase 4: Agent Context Protocol' (Protocol in workflow.md)
@@ -124,12 +124,12 @@
 - [x] Task: Implement `packages/superconductor-mcp-server/` [TIER-2] [AGENT:caduceus-processor]
     - [x] `package.json` — name `@superconductor/mcp-server`
     - [x] `src/index.ts` — MCP server using `@modelcontextprotocol/sdk`
-      (follow design-os-kernel pattern exactly)
+      (follow superconductor-kernel pattern exactly)
     - [x] Register 6 tools from `SUPERCONDUCTOR_MCP_TOOLS` schemas
     - [x] Each tool handler calls into `@superconductor/core` functions
     - [x] `build` script: `tsc` → `dist/index.js`
 - [x] Task: Register `superconductor-mcp-server` in `gemini-extension.json` [TIER-1] [AGENT:caduceus-triage]
-    - [x] Add alongside existing `design-os-kernel` entry:
+    - [x] Add alongside existing `superconductor-kernel` entry:
       ```json
       "superconductor": {
         "command": "node",
@@ -191,7 +191,7 @@
     - [x] All existing review pipeline tests pass via shims
 - [x] Task: Verify AGY plugin loads correctly after migration [TIER-1] [AGENT:caduceus-triage]
     - [x] AGY CLI can invoke all 28 skills without error
-    - [x] Both MCP servers (design-os-kernel, superconductor) register in AGY
+    - [x] Both MCP servers (superconductor-kernel, superconductor) register in AGY
 - [x] Task: Integrate track `core_harness_abstraction_20260723` into main [TIER-1] [AGENT:caduceus-triage]
 
 ---

@@ -12,7 +12,7 @@ a stable, versioned API. Adding a new harness requires zero changes to core logi
 ```
 packages/
   engine/              ← @superconductor/engine (ALREADY harness-agnostic ✅)
-  design-os-kernel/    ← @design-os/mcp-server (MCP pattern ESTABLISHED ✅)
+  superconductor-kernel/    ← @superconductor/kernel (MCP pattern ESTABLISHED ✅)
 
 scripts/               ← 7 review pipeline scripts (AGY-coupled ⚠️)
   aggregate-coverage-manifest.ts
@@ -45,7 +45,7 @@ The engine package is a model to follow. The gap is:
 ```
 packages/
   engine/                        ← @superconductor/engine (unchanged, planning)
-  design-os-kernel/              ← @design-os/mcp-server (unchanged, design OS)
+  superconductor-kernel/              ← @superconductor/kernel (unchanged, design OS)
   superconductor-core/           ← @superconductor/core (NEW — all business logic)
     src/
       review/                    ← review pipeline (migrated from scripts/)
@@ -102,9 +102,9 @@ harnesses/
       setup.ts
 ```
 
-## The MCP Bridge Pattern (Established by design-os-kernel)
+## The MCP Bridge Pattern (Established by superconductor-kernel)
 
-`packages/design-os-kernel` already demonstrates the correct pattern:
+`packages/superconductor-kernel` already demonstrates the correct pattern:
 - Core logic in TypeScript
 - Exposed as an MCP server via `@modelcontextprotocol/sdk`
 - Registered in `gemini-extension.json` for AGY harness
@@ -172,7 +172,7 @@ Desktop, OpenCode, any future tool) instant access to all capabilities.
   | `superconductor_run_review` | `review.runPanel()` |
   | `superconductor_check_plan_gap` | `track.checkPlanGap()` |
   | `superconductor_run_abi_retrospective` | `track.runABIRetrospective()` |
-- Registered in `gemini-extension.json` for AGY (alongside design-os-kernel)
+- Registered in `gemini-extension.json` for AGY (alongside superconductor-kernel)
 - Any Claude Desktop, OpenCode, or future harness adds `mcp_config.json` entry
 
 ### FR-7: AGY Harness Adapter (Thin Shims Only)
@@ -237,7 +237,7 @@ Desktop, OpenCode, any future tool) instant access to all capabilities.
 
 ### MCP Server
 - [ ] `superconductor-mcp-server` registers all 6 MCP tools
-- [ ] `gemini-extension.json` registers both `design-os-kernel` and `superconductor-mcp-server`
+- [ ] `gemini-extension.json` registers both `superconductor-kernel` and `superconductor-mcp-server`
 - [ ] Claude Desktop can connect to `superconductor-mcp-server` via `mcp_config.json`
 
 ### CLI Adapter
@@ -259,5 +259,5 @@ Desktop, OpenCode, any future tool) instant access to all capabilities.
 ## Out of Scope
 - Implementing Claude harness adapter beyond README scaffold
 - Implementing OpenCode harness adapter beyond README scaffold
-- Migrating design-os-kernel (it is already correctly structured)
+- Migrating superconductor-kernel (it is already correctly structured)
 - Changing AGY skill SKILL.md content (only the underlying scripts change)

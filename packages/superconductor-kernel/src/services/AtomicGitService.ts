@@ -31,8 +31,9 @@ export class AtomicGitService {
       
       return { success: true };
     } catch (error: any) {
-      console.error('Atomic Git operation failed:', error instanceof Error ? error.message : String(error));
-      throw new Error(`Git operation failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Atomic Git operation failed:', errorMessage);
+      throw new Error(`Git operation failed: ${errorMessage}`);
     }
   }
 }

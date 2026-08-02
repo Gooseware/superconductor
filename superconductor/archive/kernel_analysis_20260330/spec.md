@@ -1,7 +1,7 @@
-# Specification: design-os-kernel Inclusion Analysis
+# Specification: superconductor-kernel Inclusion Analysis
 
 ## Overview
-Enhance the Superconductor workflow by adding an automatic analysis step at the end of each phase/track. This step will identify newly created componentry that could be added to the `design-os-kernel` to maintain a high-quality, reusable Golden Source of components.
+Enhance the Superconductor workflow by adding an automatic analysis step at the end of each phase/track. This step will identify newly created componentry that could be added to the `superconductor-kernel` to maintain a high-quality, reusable Golden Source of components.
 
 ## Functional Requirements
 1. **Trigger:** Automatically trigger the analysis during the "Phase Completion Verification and Checkpointing Protocol" and the final track finalization.
@@ -11,7 +11,7 @@ Enhance the Superconductor workflow by adding an automatic analysis step at the 
     - **Theme Usage Scan:** Check if the identified components utilize `design-os` tokens, themes, or primitives.
 3. **Draft Proposal:** If a candidate is identified, the agent must:
     - Explain the rationale for the recommendation.
-    - Draft a proposal for `design-os-kernel` publication (ready for user approval).
+    - Draft a proposal for `superconductor-kernel` publication (ready for user approval).
 4. **Workflow Integration:** Officially document this step in `superconductor/workflow.md`.
 
 ## Non-Functional Requirements

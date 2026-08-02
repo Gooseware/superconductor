@@ -9,10 +9,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Fixture: realistic graphify-style graph with 4 nodes and 3 edges
 const FIXTURE: { nodes: GraphNode[]; edges: { source: string; target: string }[] } = {
   nodes: [
-    { id: 'src/auth/login.ts',   type: 'file', metadata: { churn: 42, community_id: 'c0', pagerank: 0.9 } },
-    { id: 'src/auth/token.ts',   type: 'file', metadata: { churn: 12, community_id: 'c0', pagerank: 0.4 } },
-    { id: 'src/api/routes.ts',   type: 'file', metadata: { churn: 7,  community_id: 'c1', pagerank: 0.3 } },
-    { id: 'src/db/connection.ts',type: 'file', metadata: { churn: 3,  community_id: 'c1', pagerank: 0.1 } },
+    { id: 'src/auth/login.ts',   type: 'file', churn: 42, community: 'c0', pagerank: 0.9 },
+    { id: 'src/auth/token.ts',   type: 'file', churn: 12, community: 'c0', pagerank: 0.4 },
+    { id: 'src/api/routes.ts',   type: 'file', churn: 7,  community: 'c1', pagerank: 0.3 },
+    { id: 'src/db/connection.ts',type: 'file', churn: 3,  community: 'c1', pagerank: 0.1 },
   ],
   edges: [
     { source: 'src/auth/login.ts', target: 'src/auth/token.ts' },
@@ -45,8 +45,8 @@ describe('GraphCache — MCP tool backing store', () => {
       expect(node).toBeDefined();
       expect(node!.id).toBe('src/auth/login.ts');
       expect(node!.type).toBe('file');
-      expect(node!.metadata?.churn).toBe(42);
-      expect(node!.metadata?.community_id).toBe('c0');
+      expect((node as any).churn).toBe(42);
+      expect((node as any).community).toBe('c0');
     });
 
     it('returns undefined for an unknown node id', () => {
@@ -56,7 +56,12 @@ describe('GraphCache — MCP tool backing store', () => {
   });
 
   describe('getNeighbors', () => {
-    it('returns direct neighbours at depth 1', () => {
+    it('returns empty array when maxDepth is 0 (boundary N=0)', () => {
+      const neighbours = cache.getNeighbors('src/auth/login.ts', 0);
+      expect(neighbours).toEqual([]);
+    });
+
+    it('returns direct neighbours at depth 1 (boundary N=1)', () => {
       const neighbours = cache.getNeighbors('src/auth/login.ts', 1);
       // login.ts → token.ts and login.ts → routes.ts
       expect(neighbours.sort()).toEqual(['src/api/routes.ts', 'src/auth/token.ts'].sort());

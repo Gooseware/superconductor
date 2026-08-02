@@ -74,7 +74,7 @@ All tasks follow a strict lifecycle:
         -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
         -   **Theme Usage Scan:** Check for usage of `design-os` tokens and primitives.
     -   **Step 2.2: Draft Publication Proposals:** For any high-quality, reusable component identified:
-        -   Draft a publication proposal for the `design-os-kernel`.
+        -   Draft a publication proposal for the `superconductor-kernel`.
         -   Explain the rationale for why this component is a good candidate.
         -   Await user approval before any further kernel actions.
 

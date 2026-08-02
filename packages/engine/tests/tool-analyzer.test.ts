@@ -5,7 +5,7 @@ import { DagNode } from '../src/types/dag.types.js';
 
 describe('ToolAnalyzer', () => {
   const mockAgyOutput = `
-Plugin: design-os-kernel
+Plugin: superconductor-kernel
 Capabilities: design, layout
 
 Plugin: notebook-viewer
@@ -23,7 +23,7 @@ Capabilities: read, fs
     const plugins = analyzer.parsePluginList(mockAgyOutput);
     
     expect(plugins).toHaveLength(4);
-    expect(plugins[0].name).toBe('design-os-kernel');
+    expect(plugins[0].name).toBe('superconductor-kernel');
     expect(plugins[0].capabilities).toEqual(['design', 'layout']);
     expect(plugins[3].name).toBe('fs-reader');
     expect(plugins[3].capabilities).toEqual(['read', 'fs']);
@@ -44,11 +44,11 @@ Capabilities: read, fs
 
     const result = analyzer.analyze(editorTask, plugins);
     
-    expect(result.disabledPlugins).toContain('design-os-kernel');
+    expect(result.disabledPlugins).toContain('superconductor-kernel');
     expect(result.disabledPlugins).toContain('notebook-viewer');
     expect(result.disabledPlugins).not.toContain('fs-writer');
     
-    expect(result.flags).toContain('--disable-plugin=design-os-kernel');
+    expect(result.flags).toContain('--disable-plugin=superconductor-kernel');
     expect(result.flags).toContain('--disable-plugin=notebook-viewer');
   });
 
@@ -84,11 +84,11 @@ Capabilities: read, fs
       contextFiles: []
     };
 
-    // Editor normally disables design-os-kernel, but allowlist explicitly allows it
-    const result = analyzer.analyze(editorTask, plugins, { allowedPlugins: ['design-os-kernel'] });
+    // Editor normally disables superconductor-kernel, but allowlist explicitly allows it
+    const result = analyzer.analyze(editorTask, plugins, { allowedPlugins: ['superconductor-kernel'] });
     
-    expect(result.disabledPlugins).not.toContain('design-os-kernel');
-    expect(result.flags).not.toContain('--disable-plugin=design-os-kernel');
+    expect(result.disabledPlugins).not.toContain('superconductor-kernel');
+    expect(result.flags).not.toContain('--disable-plugin=superconductor-kernel');
   });
 
   it('emits telemetry event with estimated token savings', () => {

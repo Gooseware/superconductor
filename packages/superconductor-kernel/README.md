@@ -20,8 +20,8 @@ The "Brain" of the Design OS. This Model Context Protocol (MCP) server provides 
 
 1.  **Clone the repository** (if using standalone):
     ```bash
-    git clone git@gitlab.com:socialhippos/design-os-kernel.git
-    cd design-os-kernel
+    git clone git@gitlab.com:socialhippos/superconductor-kernel.git
+    cd superconductor-kernel
     ```
 
 2.  **Install dependencies**:
@@ -47,9 +47,9 @@ Add the following to your MCP settings file:
 ```json
 {
   "mcpServers": {
-    "design-os-kernel": {
+    "superconductor-kernel": {
       "command": "node",
-      "args": ["/path/to/design-os-kernel/dist/index.js"],
+      "args": ["/path/to/superconductor-kernel/dist/index.js"],
       "env": {
         "PROJECT_ROOT": "/your/app/path"
       }
