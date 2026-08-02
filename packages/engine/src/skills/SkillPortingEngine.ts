@@ -17,7 +17,7 @@ export class SkillPortingEngine {
     // Parse frontmatter
     let frontmatter = '';
     let body = content;
-    const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+    const frontmatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
     
     let name = path.basename(inputDir);
