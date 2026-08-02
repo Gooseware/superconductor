@@ -1,0 +1,21 @@
+# Track Permission Manifest
+[permissions]
+file_read = [
+    "superconductor/tracks/pocock_skills_20260802/*",
+    "superconductor/index.md",
+    "superconductor/product.md",
+    "superconductor/tech-stack.md",
+    "superconductor/workflow.md",
+    "superconductor/tracks.md",
+    "skills/*",
+    "packages/superconductor-core/*",
+    "packages/superconductor-kernel/*"
+]
+file_write = [
+    "superconductor/tracks/pocock_skills_20260802/*",
+    "superconductor/tracks.md",
+    "skills/*",
+    "packages/superconductor-core/*",
+    "packages/superconductor-kernel/*"
+]
+run_commands = true
