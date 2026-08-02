@@ -8,7 +8,7 @@
 | `[ ]` | `deep_research_integration_20260728` | Deep Research Integration | `track/deep_research_integration_20260728` |
 | `[ ]` | `gemini_api_deep_research_20260728` | Gemini API Deep Research Provider | `track/gemini_api_deep_research_20260728` |
 | `[ ]` | `superconductor_kernel_20260801` | Superconductor Kernel | `track/superconductor_kernel_20260801` |
-| `[ ]` | `pocock_skills_20260802` | Matt Pocock Skills Integration | `track/pocock_skills_20260802` |
+| `[~]` | `pocock_skills_20260802` | Matt Pocock Skills Integration | `track/pocock_skills_20260802` |
 
 ## Absorbed / Closed Tracks
 
