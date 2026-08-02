@@ -95,4 +95,37 @@ describe('ResearchBriefSynthesizer', () => {
     const content = fs.readFileSync(expectedFile, 'utf8');
     expect(content).toContain('Test Article');
   });
+
+  it('accepts trackId, queriesExecuted, and skillsAlreadyInstalled in synthesize()', async () => {
+    const mockResults: IResearchSource[] = [
+      { url: 'https://example.com/1', title: 'Example 1' }
+    ];
+
+    const brief = await synthesizer.synthesize(
+      mockResults,
+      'custom-track-123',
+      ['queryA', 'queryB'],
+      ['git', 'npm']
+    );
+
+    expect(brief.trackId).toBe('custom-track-123');
+    expect(brief.queriesExecuted).toEqual(['queryA', 'queryB']);
+    expect(brief.skillsAlreadyInstalled).toEqual(['git', 'npm']);
+  });
+
+  it('strips XML tags <untrusted_research_results> in generateSlug', async () => {
+    const mockResults: IResearchSource[] = [
+      { 
+        url: '<untrusted_research_results>https://example.com/wrapped-article</untrusted_research_results>', 
+        title: '<untrusted_research_results>Wrapped Article</untrusted_research_results>' 
+      }
+    ];
+
+    const brief = await synthesizer.synthesize(mockResults);
+
+    const expectedFile = path.join(testOutputDir, 'wrapped-article.md');
+    expect(fs.existsSync(expectedFile)).toBe(true);
+    expect(brief.artifactPointers[0]).not.toContain('untrusted_research_results');
+    expect(brief.artifactPointers[0]).toContain('wrapped-article.md');
+  });
 });

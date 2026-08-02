@@ -54,7 +54,7 @@ export class ResearchBriefSynthesizer {
    * Maps sources to findings, filters by confidence, reduces to brief,
    * saves chunked artifacts, and validates against Zod schema.
    */
-  async synthesize(rawResults: IResearchSource[]): Promise<IResearchBrief> {
+  async synthesize(rawResults: IResearchSource[], trackId?: string, queriesExecuted?: string[], skillsAlreadyInstalled?: string[]): Promise<IResearchBrief> {
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
     }
@@ -98,18 +98,16 @@ export class ResearchBriefSynthesizer {
       }
     }
 
-    const skillsAlreadyInstalled = ['aws-cli', 'docker'];
-    
     // Create the final object
     const brief = {
-      trackId: 'track-' + Date.now(),
+      trackId: trackId || ('track-' + Date.now()),
       generatedAt: new Date().toISOString(),
-      queriesExecuted: ['query1', 'query2'],
+      queriesExecuted: queriesExecuted ?? [],
       executiveSummary,
       keyFindings,
       recommendedPatterns,
       antiPatterns,
-      skillsAlreadyInstalled,
+      skillsAlreadyInstalled: skillsAlreadyInstalled ?? [],
       artifactPointers: rawResults.map(r => path.join(this.outputDir, `${this.generateSlug(r)}.md`))
     };
 
@@ -120,7 +118,8 @@ export class ResearchBriefSynthesizer {
   }
 
   private generateSlug(source: IResearchSource): string {
-    const base = source.title || source.url;
+    const raw = source.title || source.url || '';
+    const base = raw.replace(/<\/?untrusted_research_results>/gi, '');
     return base.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase().substring(0, 50) || 'unknown-source';
   }
 
