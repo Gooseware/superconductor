@@ -22,20 +22,22 @@ All tasks follow a strict lifecycle:
 
 1. **Select Task:** Choose the next available task from `plan.md` in sequential order
 
-2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch.
+2. **Mark In Progress & Load Context:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch. Using the **Universal File Resolution Protocol**, resolve and read `superconductor/CONTEXT.md` so ubiquitous language is active during implementation.
 
 3. **Write Failing Tests (Red Phase):**
    - Create a new test file for the feature or bug fix.
    - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
+   - **CRITICAL:** Assertions MUST verify a state change in the System Under Test. Test theatre (assertions that cannot fail) is an anti-pattern.
    - **CRITICAL:** Run the tests and confirm that they fail as expected. This is the "Red" phase of TDD. Do not proceed until you have failing tests.
 
 4. **Implement to Pass Tests (Green Phase):**
    - Write the minimum amount of application code necessary to make the failing tests pass.
    - Run the test suite again and confirm that all tests now pass. This is the "Green" phase.
 
-5. **Refactor (Optional but Recommended):**
+5. **Refactor (Strict Refactor Phase):**
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
    - Rerun tests to ensure they still pass after refactoring.
+   - **CRITICAL:** The strict Red-Green-Refactor cycle must be followed. Do not add new features during the refactor phase.
 
 6. **Verify Coverage:** Run coverage reports using the project's chosen tools. 
    - **Target: >80% coverage for new code.**
