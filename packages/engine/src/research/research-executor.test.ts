@@ -30,7 +30,7 @@ vi.mock('fs', async (importOriginal) => {
 describe('ResearchExecutor', () => {
     let mockProvider: IResearchProvider;
     let mockExecuteTool: any;
-    const workspaceDir = '/test/workspace';
+    const workspaceDir = 'test-workspace';
 
     beforeEach(() => {
         vi.clearAllMocks();

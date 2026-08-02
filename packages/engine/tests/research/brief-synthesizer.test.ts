@@ -5,7 +5,7 @@ import { ResearchBriefSynthesizer } from '../../src/research/brief-synthesizer.j
 import { IResearchSource } from '../../src/research/types.js';
 
 describe('ResearchBriefSynthesizer', () => {
-  const testOutputDir = path.join(__dirname, '.test_research_output');
+  const testOutputDir = '.test_research_output';
   let synthesizer: ResearchBriefSynthesizer;
   let mockExecuteLlm: any;
 
@@ -30,6 +30,21 @@ describe('ResearchBriefSynthesizer', () => {
     if (fs.existsSync(testOutputDir)) {
       fs.rmSync(testOutputDir, { recursive: true, force: true });
     }
+  });
+
+  it('sanitizes outputDir in constructor and throws on path traversal', () => {
+    expect(() => new ResearchBriefSynthesizer('../etc/passwd')).toThrow('Path traversal detected');
+  });
+
+  it('passes actual queriesExecuted and skillsAlreadyInstalled into the synthesized brief', async () => {
+    const mockResults: IResearchSource[] = [];
+    const queries = ['query: react 19 features', 'query: async server components'];
+    const skills = ['react-skill', 'typescript-skill'];
+
+    const brief = await synthesizer.synthesize(mockResults, 'track-100', queries, skills);
+
+    expect(brief.queriesExecuted).toEqual(queries);
+    expect(brief.skillsAlreadyInstalled).toEqual(skills);
   });
 
   it('filters out findings with confidenceScore < 0.6', async () => {
