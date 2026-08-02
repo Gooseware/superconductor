@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["grill"],
+    "fileGlobs": [],
+    "intentPatterns": ["^grill.*"],
+    "executionEvents": ["UserPromptSubmit"]
+  },
+  "metadata": {
+    "name": "grill",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}

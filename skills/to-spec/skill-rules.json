@@ -1,0 +1,15 @@
+{
+  "$schema": "../../superconductor/schema/skill-rules.schema.json",
+  "version": "1.0",
+  "triggers": {
+    "keywords": ["to-spec", "spec"],
+    "fileGlobs": [],
+    "intentPatterns": ["^to-spec.*"],
+    "executionEvents": ["UserPromptSubmit"]
+  },
+  "metadata": {
+    "name": "to-spec",
+    "marketplace": "1p",
+    "version": "1.0.0"
+  }
+}
