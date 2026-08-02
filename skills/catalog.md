@@ -242,3 +242,10 @@ Skills focused on orchestrating autonomous agent swarms and integrating with Sup
 - **Party**: 1p
 - **Detection Signals**:
     - **Keywords**: `tickets`, `tracer-bullet`, `spec to tickets`, `breakdown`
+
+### to-spec
+- **Description**: Convert conversational requirements and rough ideas into a formal spec.md document.
+- **URL**: https://raw.githubusercontent.com/superconductor/skills/main/skills/to-spec/
+- **Party**: 1p
+- **Detection Signals**:
+    - **Keywords**: `to-spec`, `formal spec`, `requirements`, `spec.md`
