@@ -176,6 +176,8 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
             - **For `[TIER-2]` and `[TIER-3]` Tasks:** Execute standard tool calls and logic with no special announcements.
         iv. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
            - **CRITICAL:** To minimize human-in-the-loop interruptions, phase completion checkpoints in the workflow must run all tests and verify test coverage automatically. Do NOT prompt the user for manual verification checkpoints during intermediate phases. All human-in-the-loop checks must be deferred to the final track review and cleanup phase at the very end of the track.
+           - **STRICT TDD ENFORCEMENT:** You MUST strictly enforce Red-Green-Refactor cycles. You are forbidden from implementing feature logic without first writing and running a failing test (Red phase).
+           - **SYSTEMATIC BUG DIAGNOSIS:** During the testing feedback loop, if tests fail, you MUST employ Systematic Bug Diagnosis heuristics (isolate variables, trace execution, state assumptions clearly) rather than blindly patching code.
 
 5.  **Finalize Track:**
     -   After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
