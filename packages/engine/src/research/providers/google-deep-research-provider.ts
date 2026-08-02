@@ -1,11 +1,13 @@
 import { IResearchProvider, IResearchQuery, IResearchSource } from '../types.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
+import { ResearchSourceQualityGate, ResearchSource } from '../source-quality-gate.js';
 
 export type ExecuteToolFn = (toolName: string, args: any) => Promise<any>;
 
 export class GoogleDeepResearchProvider implements IResearchProvider {
   private consecutiveFailures = 0;
+  private qualityGate = new ResearchSourceQualityGate();
 
   constructor(private executeTool: ExecuteToolFn = async () => "") {}
 
@@ -22,12 +24,38 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
         const rawResults = await this.executeTool('search_web', { query: query.term });
         this.consecutiveFailures = 0;
 
-        const rawString = typeof rawResults === 'string' ? rawResults : String(rawResults);
+        let parsedResults: any[] = [];
+        if (typeof rawResults === 'string') {
+          try {
+            parsedResults = JSON.parse(rawResults);
+          } catch {
+            parsedResults = [{ type: 'unknown', content: rawResults }];
+          }
+        } else if (Array.isArray(rawResults)) {
+          parsedResults = rawResults;
+        } else if (rawResults && typeof rawResults === 'object') {
+          parsedResults = rawResults.results || [rawResults];
+        }
 
-        return [{
-          url: `<untrusted_research_results>search_web_results</untrusted_research_results>`,
-          title: `<untrusted_research_results>${sanitizeUntrustedText(rawString)}</untrusted_research_results>`,
-        }];
+        const validSources: IResearchSource[] = [];
+
+        for (const res of parsedResults) {
+           const qualityCheck = this.qualityGate.evaluate(res as ResearchSource);
+           if (qualityCheck.passed) {
+              const urlStr = typeof res.url === 'string' ? res.url : 'unknown';
+              const titleStr = typeof res.title === 'string' ? res.title : '';
+              const contentStr = typeof res.content === 'string' ? res.content : 
+                                 (typeof res.snippet === 'string' ? res.snippet : JSON.stringify(res));
+
+              validSources.push({
+                url: `<untrusted_research_results>${sanitizeUntrustedText(urlStr)}</untrusted_research_results>`,
+                title: titleStr ? `<untrusted_research_results>${sanitizeUntrustedText(titleStr)}</untrusted_research_results>` : undefined,
+                content: contentStr ? `<untrusted_research_results>${sanitizeUntrustedText(contentStr)}</untrusted_research_results>` : undefined
+              });
+           }
+        }
+
+        return validSources;
       } catch (err) {
         retries++;
         if (retries > maxRetries) {
