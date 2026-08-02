@@ -11,7 +11,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as they will be blocked by Plan Mode security policies. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.**
 
 **FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Best Practices Research Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
-**GRILL MODE**: If `{{args}}` contains `--grill`, you MUST optionally trigger the Grilling Phase (2.0.4) to enforce standards and extract domain language.
+**GRILL MODE**: If `{{args}}` contains `--grill`, you MUST trigger the Grilling Phase (2.0.4) to enforce standards and extract domain language. If the initial track description is highly ambiguous, you MUST dynamically suggest that the user run with `--grill`.
 
 ---
 
@@ -64,7 +64,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
 
 ### 2.0.4 Grilling Phase (Optional)
-1. **Trigger:** This phase runs only if `--grill` is provided in `{{args}}`.
+1. **Trigger:** This phase runs if `--grill` is provided in `{{args}}`. If the user's initial description is highly ambiguous or lacks domain clarity, you MUST dynamically suggest running with `--grill` to clarify requirements.
 2. **Action:**
    - Execute an in-depth contextual analysis (Grilling) against existing documentation to enforce standards.
    - Generate and update `superconductor/CONTEXT.md` (ubiquitous language) based on the Grilling output.
@@ -98,7 +98,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
     *   *Wait for the user's response to the single batched tool call.*
 
-3.  **Draft `spec.md`:** Once the response is received, draft the content for the track's `spec.md` file, including sections like Overview, Architectural Committee Recommendations, Research Notes, Functional Requirements, Non-Functional Requirements, Acceptance Criteria, and Out of Scope.
+3.  **Draft `spec.md`:** Once the response is received, draft the content for the track's `spec.md` file, including sections like Overview, Architectural Committee Recommendations, Research Notes, Grilling Report, Functional Requirements, Non-Functional Requirements, Acceptance Criteria, and Out of Scope.
 
 4.  **User Confirmation:**
     -   **Headless Mode:** If in headless mode, automatically approve the specification.
@@ -109,6 +109,8 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
                 If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
                 [✓] Best Practices Researched
                 [✓] Architecture Committee Convened
+                If `--grill` was used, you MUST also render:
+                [✓] Grilling Phase Completed
 
                 Please review the drafted Specification below. Does this accurately capture the requirements?
                 ---
