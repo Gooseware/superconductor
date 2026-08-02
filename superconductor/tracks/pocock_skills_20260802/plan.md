@@ -2,7 +2,7 @@
 
 ## Oracle Proactive Planning
 - **Pattern:** Create a unified `SkillPortingEngine` rather than porting skills manually one-by-one. This engine will ingest Matt Pocock's prompt templates and translate them into Superconductor-compatible formats automatically.
-- **Modularity:** When augmenting `workflow.md` and `implement.toml`, use declarative extensions rather than hardcoding. Introduce a `GrillingContext` model in `TrackStateManager` to persist the domain language across sessions.
+- **Modularity:** When augmenting `workflow.md` and `skills/implement/SKILL.md`, use declarative extensions rather than hardcoding. Introduce a `GrillingContext` model in `TrackStateManager` to persist the domain language across sessions.
 
 ## Swarm Blueprint
 
@@ -37,10 +37,10 @@
 
 ## Phase 2: Core Workflow Enhancements (Grilling & TDD)
 - [ ] Task: Implement Grilling phase in newTrack [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Modify `commands/superconductor/newTrack.toml` or relevant agent logic to optionally trigger a Grilling phase. [TIER-1:TCS=3]
+    - [ ] Modify `skills/new-track/SKILL.md` or relevant agent logic to optionally trigger a Grilling phase. [TIER-1:TCS=3]
     - [ ] Create logic to generate and update `CONTEXT.md` (ubiquitous language) based on Grilling output. [TIER-1:TCS=3]
 - [ ] Task: Augment TDD and Diagnosing loops in Implement [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Update `workflow.md` and `implement.toml` to enforce strict Red-Green-Refactor cycles. [TIER-1:TCS=3]
+    - [ ] Update `workflow.md` and `skills/implement/SKILL.md` to enforce strict Red-Green-Refactor cycles. [TIER-1:TCS=3]
     - [ ] Integrate Systematic Bug Diagnosis heuristics into the testing feedback loop. [TIER-1:TCS=3]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Core Workflow Enhancements (Grilling & TDD)' (Protocol in workflow.md) [TIER-1:TCS=3]
 

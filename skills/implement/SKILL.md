@@ -43,6 +43,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
     -   **Product Definition**
     -   **Tech Stack**
     -   **Workflow**
+    -   **Ubiquitous Language Context** (`superconductor/CONTEXT.md`)
 
 2.  **Handle Failure:** 
     -   If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
@@ -122,6 +123,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
     c. **Read Files:**
         -   **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** and **Implementation Plan** for the selected track.
         -   **Workflow:** Resolve **Workflow** (via the **Universal File Resolution Protocol** using the project's index file).
+        -   **Ubiquitous Language:** Resolve and read `superconductor/CONTEXT.md` (via the **Universal File Resolution Protocol**) so ubiquitous language is active during implementation.
     d. **Error Handling:** If you fail to read any of these files, you MUST stop and inform the user of the error.
     e. **Activate Relevant Skills:**
         - Check for the existence of installed skills in `.agents/skills/` (Workspace tier) and `~/.agents/extensions/superconductor/skills/` (Extension tier).
