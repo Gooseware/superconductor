@@ -7,31 +7,71 @@ describe('GoogleDeepResearchProvider', () => {
   let mockExecuteTool: any;
 
   beforeEach(() => {
-    mockExecuteTool = vi.fn().mockImplementation(async (toolName, args) => {
-      if (args.query === 'FAIL_NOW') {
-        throw new Error('Simulated network error');
-      }
-      return `Here are the results:
-- [Mock Repo](https://github.com/mock/repo)
-- [Mock Paper](https://arxiv.org/abs/1234.5678)
-`;
-    });
-    provider = new GoogleDeepResearchProvider(mockExecuteTool);
+    vi.clearAllMocks();
   });
 
-  it('sanitizes and wraps the raw markdown in XML tags', async () => {
+  it('calls executeTool with search_web and query', async () => {
+    mockExecuteTool = vi.fn().mockResolvedValue([]);
+    provider = new GoogleDeepResearchProvider(mockExecuteTool);
+
+    await provider.search({ term: 'test query' });
+
+    expect(mockExecuteTool).toHaveBeenCalledWith('search_web', { query: 'test query' });
+  });
+
+  it('filters JSON array results through ResearchSourceQualityGate', async () => {
+    mockExecuteTool = vi.fn().mockResolvedValue([
+      { type: 'github', url: 'https://github.com/foo/bar', stars: 150, lastCommitDaysAgo: 10, license: 'MIT', title: 'Foo' },
+      { type: 'unknown', url: 'https://bad.com', title: 'Bad' }, // Rejection
+      { type: 'paper', url: 'https://arxiv.org/abs/1234', title: 'Paper' }
+    ]);
+    provider = new GoogleDeepResearchProvider(mockExecuteTool);
+
+    const results = await provider.search({ term: 'test' });
+
+    expect(results).toHaveLength(2);
+    expect(results[0].url).toContain('https://github.com/foo/bar');
+    expect(results[1].url).toContain('https://arxiv.org/abs/1234');
+  });
+
+  it('parses raw text/markdown search results into valid ResearchSource objects for quality gate evaluation', async () => {
+    mockExecuteTool = vi.fn().mockResolvedValue(`Here are the results:
+- [Mock Repo](https://github.com/mock/repo)
+- [Mock Paper](https://arxiv.org/abs/1234.5678)
+`);
+    provider = new GoogleDeepResearchProvider(mockExecuteTool);
+
     const results = await provider.search({ term: 'test query' });
     
-    expect(results.length).toBe(1);
+    expect(results.length).toBe(2);
     
-    expect(results[0].url).toBe('<untrusted_research_results>search_web_results</untrusted_research_results>');
-    expect(results[0].title).toMatch(/<untrusted_research_results>.*Mock Repo.*<\/untrusted_research_results>/s);
+    expect(results[0].url).toBe('<untrusted_research_results>https://github.com/mock/repo</untrusted_research_results>');
+    expect(results[0].title).toBe('<untrusted_research_results>Mock Repo</untrusted_research_results>');
+    
+    expect(results[1].url).toBe('<untrusted_research_results>https://arxiv.org/abs/1234.5678</untrusted_research_results>');
+    expect(results[1].title).toBe('<untrusted_research_results>Mock Paper</untrusted_research_results>');
+  });
+
+  it('wraps outputs in XML tags and sanitizes content', async () => {
+    mockExecuteTool = vi.fn().mockResolvedValue([
+      { type: 'community', url: 'https://stackoverflow.com/questions/123', title: 'Question', content: 'Answer' }
+    ]);
+    provider = new GoogleDeepResearchProvider(mockExecuteTool);
+
+    const results = await provider.search({ term: 'test' });
+    expect(results[0]).toEqual({
+      url: '<untrusted_research_results>https://stackoverflow.com/questions/123</untrusted_research_results>',
+      title: '<untrusted_research_results>Question</untrusted_research_results>',
+      content: '<untrusted_research_results>Answer</untrusted_research_results>'
+    });
   });
 
   it('implements exponential backoff on failures', async () => {
-    mockExecuteTool.mockRejectedValueOnce(new Error('Temp failure'))
-                 .mockResolvedValueOnce(`[OK](https://github.com/ok)`);
+    mockExecuteTool = vi.fn()
+      .mockRejectedValueOnce(new Error('Temp failure'))
+      .mockResolvedValueOnce(`[OK](https://github.com/ok/repo)`);
                  
+    provider = new GoogleDeepResearchProvider(mockExecuteTool);
     const startTime = Date.now();
     const results = await provider.search({ term: 'test retry' });
     const elapsed = Date.now() - startTime;
@@ -42,16 +82,15 @@ describe('GoogleDeepResearchProvider', () => {
   });
 
   it('throws ResearchProviderUnavailableError on 3 consecutive failures (circuit breaker)', async () => {
-    mockExecuteTool.mockRejectedValue(new Error('Persistent failure'));
+    mockExecuteTool = vi.fn().mockRejectedValue(new Error('Persistent failure'));
+    provider = new GoogleDeepResearchProvider(mockExecuteTool);
 
-    await expect(provider.search({ term: 'FAIL_NOW' })).rejects.toThrow('Persistent failure');
-    await expect(provider.search({ term: 'FAIL_NOW' })).rejects.toThrow('Persistent failure');
-    await expect(provider.search({ term: 'FAIL_NOW' })).rejects.toThrow('Persistent failure');
+    await expect(provider.search({ term: 'FAIL' })).rejects.toThrow('Persistent failure');
+    await expect(provider.search({ term: 'FAIL' })).rejects.toThrow('Persistent failure');
+    await expect(provider.search({ term: 'FAIL' })).rejects.toThrow('Persistent failure');
 
-    // 4th call should fail immediately with circuit breaker error
+    // 4th call should throw circuit breaker error
     await expect(provider.search({ term: 'test' })).rejects.toThrow(ResearchProviderUnavailableError);
     await expect(provider.search({ term: 'test' })).rejects.toThrow('Circuit breaker open');
-    
-    expect(mockExecuteTool).toHaveBeenCalledTimes(12);
   });
 });

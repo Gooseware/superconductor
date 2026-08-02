@@ -1,99 +1,152 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ResearchBriefSynthesizer, ExecuteLlmFn } from '../src/research/brief-synthesizer.js';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
-import { z } from 'zod';
-import { ResearchBriefSchema } from '../src/research/types.js';
-
-vi.mock('fs', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('fs')>();
-    return {
-        ...actual,
-        existsSync: vi.fn().mockReturnValue(true),
-        mkdirSync: vi.fn(),
-        writeFileSync: vi.fn()
-    };
-});
+import * as path from 'path';
+import { ResearchBriefSynthesizer, ExecuteLlmFn } from '../src/research/brief-synthesizer.js';
+import { IResearchSource, ResearchBriefSchema } from '../src/research/types.js';
 
 describe('ResearchBriefSynthesizer', () => {
+  const testOutputDir = path.join(__dirname, '.test_brief_synthesizer_output');
   let synthesizer: ResearchBriefSynthesizer;
-  const artifactDir = 'test-research-artifacts';
+  let mockExecuteLlm: any;
 
   beforeEach(() => {
-    synthesizer = new ResearchBriefSynthesizer(artifactDir);
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should filter findings with confidenceScore < 0.6', async () => {
-    const rawResults = [
-      {
-        url: 'https://example.com/test',
-        title: 'Test Source',
-        content: 'This is a test source'
-      }
-    ];
-
-    const result = await synthesizer.synthesize(rawResults);
-
-    expect(result.keyFindings).toHaveLength(1);
-    expect(result.keyFindings[0].category).toBe('ARCHITECTURAL_PATTERN');
-    expect(fs.writeFileSync).toHaveBeenCalled();
-  });
-
-  it('should validate output against ResearchBriefSchema', async () => {
-    const rawResults = [
-      {
-        url: 'https://example.com/test2',
-        title: 'Schema Source',
-        content: 'Content for schema source'
-      }
-    ];
-
-    const result = await synthesizer.synthesize(rawResults);
-
-    expect(() => ResearchBriefSchema.parse(result)).not.toThrow();
-    
-    expect(result.trackId).toMatch(/^track-/);
-    expect(result.artifactPointers.length).toBeGreaterThan(0);
-    expect(result.artifactPointers[0]).toContain('schema-source.md');
-  });
-
-  it('should enforce executiveSummary <= 400 words', async () => {
-    const mockExecuteLlm: ExecuteLlmFn = async (prompt: string) => {
-      if (prompt.includes('Extract')) {
+    mockExecuteLlm = vi.fn().mockImplementation(async (prompt: string) => {
+      if (prompt.includes('Extract structured findings')) {
         return [
-          {
-            category: 'ARCHITECTURAL_PATTERN',
-            description: `Extracted pattern`,
-            sourceUrl: '',
-            confidenceScore: 0.85
-          }
+          { category: 'OSS_DISCOVERY', description: 'High confidence finding', confidenceScore: 0.85 },
+          { category: 'ARCHITECTURAL_PATTERN', description: 'Low confidence finding', confidenceScore: 0.4 }
         ];
       }
       if (prompt.includes('Synthesize')) {
-        return { 
-          executiveSummary: Array(405).fill('word').join(' '), 
-          recommendedPatterns: ['Event-Driven Architecture'], 
-          antiPatterns: ['God Object'] 
+        return {
+          executiveSummary: 'This is a valid executive summary synthesized from high confidence findings.',
+          recommendedPatterns: ['Microservices'],
+          antiPatterns: ['Monolith']
         };
       }
       return {};
+    });
+
+    synthesizer = new ResearchBriefSynthesizer(testOutputDir, mockExecuteLlm);
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(testOutputDir)) {
+      fs.rmSync(testOutputDir, { recursive: true, force: true });
+    }
+  });
+
+  it('passes source.content and source.title to LLM in llmMapSource', async () => {
+    const source: IResearchSource = {
+      url: 'https://example.com/spec',
+      title: 'Awesome Spec Title',
+      content: 'Detailed content of the spec for analysis'
     };
 
-    const badSynthesizer = new ResearchBriefSynthesizer(artifactDir, mockExecuteLlm);
+    await synthesizer.llmMapSource(source);
 
-    const rawResults = [
-      {
-        url: 'https://example.com/test3',
-        title: 'Too Long Source',
-        content: 'Content'
-      }
+    expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
+    const calledPrompt = mockExecuteLlm.mock.calls[0][0];
+    expect(calledPrompt).toContain('https://example.com/spec');
+    expect(calledPrompt).toContain('Awesome Spec Title');
+    expect(calledPrompt).toContain('Detailed content of the spec for analysis');
+  });
+
+  it('passes serialized findings to LLM in llmReduceFindings', async () => {
+    const findings = [
+      { category: 'OSS_DISCOVERY' as const, description: 'Tool A', confidenceScore: 0.9, sourceUrl: 'https://example.com' }
     ];
 
-    const result = await badSynthesizer.synthesize(rawResults);
-    expect(result.executiveSummary.split(/\s+/).length).toBe(400);
+    await synthesizer.llmReduceFindings(findings);
+
+    expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
+    const calledPrompt = mockExecuteLlm.mock.calls[0][0];
+    expect(calledPrompt).toContain('Synthesize 1 findings into a brief:');
+    expect(calledPrompt).toContain('"category": "OSS_DISCOVERY"');
+    expect(calledPrompt).toContain('"description": "Tool A"');
+  });
+
+  it('filters out findings with confidenceScore < 0.6', async () => {
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/source1', title: 'Source 1', content: 'Content 1' }
+    ];
+
+    const brief = await synthesizer.synthesize(rawResults);
+
+    expect(brief.keyFindings).toHaveLength(1);
+    expect(brief.keyFindings[0].description).toBe('High confidence finding');
+    expect((brief.keyFindings[0] as any).confidenceScore).toBeUndefined();
+  });
+
+  it('removes dummy hardcoded values and respects passed values in ResearchBrief', async () => {
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/source1', title: 'Source 1' }
+    ];
+
+    const brief = await synthesizer.synthesize(
+      rawResults,
+      'track-custom-123',
+      ['query-alpha', 'query-beta'],
+      ['installed-skill-1']
+    );
+
+    expect(brief.trackId).toBe('track-custom-123');
+    expect(brief.queriesExecuted).toEqual(['query-alpha', 'query-beta']);
+    expect(brief.skillsAlreadyInstalled).toEqual(['installed-skill-1']);
+    // Verify default dummy arrays ('aws-cli', 'docker', 'query1', 'query2') are NOT forced
+    expect(brief.skillsAlreadyInstalled).not.toContain('aws-cli');
+  });
+
+  it('validates output against ResearchBriefSchema', async () => {
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/valid', title: 'Valid' }
+    ];
+
+    const brief = await synthesizer.synthesize(rawResults);
+
+    expect(() => ResearchBriefSchema.parse(brief)).not.toThrow();
+  });
+
+  it('enforces executiveSummary <= 400 words by truncating', async () => {
+    const longSummary = Array(450).fill('word').join(' ');
+
+    mockExecuteLlm.mockImplementation(async (prompt: string) => {
+      if (prompt.includes('Extract')) {
+        return [{ category: 'WHITE_PAPER', description: 'Sample', confidenceScore: 0.8 }];
+      }
+      if (prompt.includes('Synthesize')) {
+        return {
+          executiveSummary: longSummary,
+          recommendedPatterns: [],
+          antiPatterns: []
+        };
+      }
+      return {};
+    });
+
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/long', title: 'Long Summary Source' }
+    ];
+
+    const brief = await synthesizer.synthesize(rawResults);
+    const words = brief.executiveSummary.trim().split(/\s+/);
+
+    expect(words.length).toBe(400);
+  });
+
+  it('writes chunked artifact files to disk for each source', async () => {
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/test-article', title: 'Test Article', content: 'Sample article body' }
+    ];
+
+    await synthesizer.synthesize(rawResults);
+
+    const expectedFile = path.join(testOutputDir, 'test-article.md');
+    expect(fs.existsSync(expectedFile)).toBe(true);
+
+    const fileContent = fs.readFileSync(expectedFile, 'utf8');
+    expect(fileContent).toContain('# Test Article');
+    expect(fileContent).toContain('URL: https://example.com/test-article');
+    expect(fileContent).toContain('Sample article body');
   });
 });

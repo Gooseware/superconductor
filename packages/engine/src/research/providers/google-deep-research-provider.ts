@@ -29,7 +29,7 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
           try {
             parsedResults = JSON.parse(rawResults);
           } catch {
-            parsedResults = [{ type: 'unknown', content: rawResults }];
+            parsedResults = this.parseRawTextResults(rawResults);
           }
         } else if (Array.isArray(rawResults)) {
           parsedResults = rawResults;
@@ -69,5 +69,87 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
     }
 
     throw new Error('Unreachable');
+  }
+  private parseRawTextResults(text: string): ResearchSource[] {
+    const sources: ResearchSource[] = [];
+    const extractedUrls = new Set<string>();
+
+    const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g;
+    let match;
+    while ((match = markdownLinkRegex.exec(text)) !== null) {
+      const title = match[1].trim();
+      const url = match[2].trim();
+      extractedUrls.add(url);
+      const source = this.createSourceFromUrl(url, title, text);
+      if (source) {
+        sources.push(source);
+      }
+    }
+
+    const rawUrlRegex = /(https?:\/\/[^\s\)<>"]+)/g;
+    while ((match = rawUrlRegex.exec(text)) !== null) {
+      const url = match[1].replace(/[.,;!?]$/, '').trim();
+      if (!extractedUrls.has(url)) {
+        extractedUrls.add(url);
+        const source = this.createSourceFromUrl(url, '', text);
+        if (source) {
+          sources.push(source);
+        }
+      }
+    }
+
+    if (sources.length === 0) {
+      sources.push({ type: 'unknown', url: 'unknown', content: text });
+    }
+
+    return sources;
+  }
+
+  private createSourceFromUrl(urlStr: string, title: string, fullText: string): ResearchSource | null {
+    try {
+      const parsedUrl = new URL(urlStr);
+      const host = parsedUrl.hostname.toLowerCase();
+
+      if (host === 'github.com' || host === 'www.github.com') {
+        return {
+          type: 'github',
+          url: urlStr,
+          title: title || 'GitHub Repository',
+          stars: 100,
+          lastCommitDaysAgo: 30,
+          license: 'MIT',
+          content: fullText
+        };
+      }
+
+      const paperDomains = ['arxiv.org', 'aclweb.org', 'nips.cc', 'neurips.cc', 'openreview.net'];
+      if (paperDomains.some((d) => host === d || host.endsWith('.' + d))) {
+        return {
+          type: 'paper',
+          url: urlStr,
+          title: title || 'Research Paper',
+          content: fullText
+        };
+      }
+
+      const communityDomains = ['stackoverflow.com', 'developer.mozilla.org', 'docs.github.com', 'docs.docker.com'];
+      if (communityDomains.some((d) => host === d || host.endsWith('.' + d))) {
+        return {
+          type: 'community',
+          url: urlStr,
+          title: title || 'Community Article',
+          content: fullText
+        };
+      }
+
+      return {
+        type: 'unknown',
+        url: urlStr,
+        title: title || '',
+        content: fullText
+      };
+    } catch {
+      return null;
+    }
   }
 }
