@@ -1,20 +1,50 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+
+// Safe file validation
+function isSafePath(filePath: string, workspaceRoot: string): boolean {
+    const absolute = path.resolve(workspaceRoot, filePath);
+    if (!absolute.startsWith(path.resolve(workspaceRoot) + path.sep)) return false;
+    try {
+        const stat = fs.lstatSync(absolute);
+        if (stat.isSymbolicLink()) return false;
+        return true;
+    } catch { return false; }
+}
+
+const SAFE_BINARY_SEARCH_PATHS = [
+    path.join(process.cwd(), 'node_modules', '.bin', 'graphify'),
+    '/usr/local/bin/graphify',
+    '/usr/bin/graphify',
+];
+
+function findGraphifyBinary(): string | null {
+    for (const p of SAFE_BINARY_SEARCH_PATHS) {
+        try {
+            const stat = fs.lstatSync(p);
+            if (!stat.isSymbolicLink() && (stat.mode & 0o111)) return p;
+        } catch { /* not found */ }
+    }
+    return null;
+}
 
 export function runGraphify(projectRoot: string, outputDir: string, capability: any) {
   const outFile = path.join(outputDir, '09_graphify_graph.json');
 
-  // Graceful degradation: graphify not installed is an expected, non-error state.
   if (!capability || capability.status === 'unavailable' || !capability.tool) {
     console.warn('[Intelligence] graphify not installed — skipping Leiden domain partition (graceful degradation).');
-    fs.writeFileSync(outFile, JSON.stringify(null));
-    return { status: 'degraded', reason: 'graphify_not_installed' };
+    return null; // Fix 4: Do not write null to outFile
   }
 
-  // Runtime failures must throw — caller decides on fallback strategy.
+  const binary = findGraphifyBinary();
+  if (!binary) {
+    console.warn('[Intelligence] graphify binary not found — skipping graph update, preserving existing graph');
+    return null; // Fix 4
+  }
+
   try {
-    execSync('graphify .', { cwd: projectRoot, stdio: 'pipe' });
+    execFileSync(binary, ['--', '.'], { cwd: projectRoot, stdio: 'pipe', env: { PATH: '/usr/local/bin:/usr/bin:/bin' } });
   } catch (e: any) {
     throw new Error(`[Intelligence] graphify failed: ${e.message}`);
   }
@@ -27,15 +57,18 @@ export function runGraphify(projectRoot: string, outputDir: string, capability: 
     );
   }
 
+  if (!isSafePath(graphifyOut, projectRoot)) {
+    throw new Error('Unsafe graphify output path');
+  }
+
   try {
     const data = JSON.parse(fs.readFileSync(graphifyOut, 'utf8'));
     fs.writeFileSync(outFile, JSON.stringify(data));
+    return { status: 'ok' };
   } catch (e: any) {
     throw new Error(
       `[Intelligence] Failed to parse graphify output: ${e.message}. ` +
       'Ensure the graphify tool is generating valid JSON.'
     );
   }
-
-  return { status: 'ok' };
 }
