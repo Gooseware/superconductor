@@ -85,7 +85,7 @@ export class ResearchSourceQualityGate {
     try {
       const url = new URL(source.url);
       const host = url.hostname;
-      const exactDomains = ['github.com', 'stackoverflow.com', 'developer.mozilla.org', 'docs.github.com', 'docs.docker.com'];
+      const exactDomains = ['github.com', 'stackoverflow.com', 'developer.mozilla.org', 'docs.github.com', 'docs.docker.com', 'docs.microsoft.com', 'npmjs.com', 'pypi.org'];
       
       let isAllowed = exactDomains.some(domain => host === domain || host.endsWith('.' + domain));
       

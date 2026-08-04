@@ -69,6 +69,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', safeTrackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [
@@ -111,6 +115,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const safeTrackId = trackId;
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', safeTrackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'core' }]);
@@ -150,6 +158,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const safeTrackId = trackId;
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', safeTrackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [
@@ -196,6 +208,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const trackId = 'event-track';
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'dom' }]);
@@ -254,6 +270,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const trackId = 'remediate-multi-domain-track';
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'core' }]);
         const planPath = path.join(trackDir, 'plan.md');
@@ -317,6 +337,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const trackId = 'remediate-single-domain-track';
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'core' }]);
         const planPath = path.join(trackDir, 'plan.md');
@@ -354,6 +378,7 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
             (call: any[]) => call[0]?.role === 'superconductor-remediation-processor'
         );
         expect(remediatorCalls).toHaveLength(1);
+        expect(remediatorCalls[0][0].prompt).toContain('line 2');
     });
 
     it('remediateFn — return string contains "Dispatched 2 parallel" for 2-domain findings', async () => {
