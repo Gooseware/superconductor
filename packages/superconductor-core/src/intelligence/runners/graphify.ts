@@ -2,6 +2,8 @@ import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import * as os from 'os';
+
 // Safe file validation
 function isSafePath(filePath: string, workspaceRoot: string): boolean {
     const absolute = path.resolve(workspaceRoot, filePath);
@@ -13,14 +15,23 @@ function isSafePath(filePath: string, workspaceRoot: string): boolean {
     } catch { return false; }
 }
 
-const SAFE_BINARY_SEARCH_PATHS = [
-    path.join(process.cwd(), 'node_modules', '.bin', 'graphify'),
-    '/usr/local/bin/graphify',
-    '/usr/bin/graphify',
-];
-
-function findGraphifyBinary(): string | null {
-    for (const p of SAFE_BINARY_SEARCH_PATHS) {
+function findGraphifyBinary(toolName: string, projectRoot: string): string | null {
+    const binName = path.basename(toolName);
+    const safePaths = [
+        path.join(projectRoot, 'node_modules', '.bin'),
+        path.join(process.cwd(), 'node_modules', '.bin'),
+        path.join(os.homedir(), '.npm-global', 'bin'),
+        '/usr/local/bin',
+        '/usr/bin'
+    ];
+    if (process.env.PATH) {
+        for (const p of process.env.PATH.split(path.delimiter)) {
+            if (p === '' || p === '.' || p.startsWith('/tmp') || p.startsWith('/var/tmp')) continue;
+            safePaths.push(p);
+        }
+    }
+    for (const sp of safePaths) {
+        const p = path.join(sp, binName);
         try {
             const stat = fs.lstatSync(p);
             if (!stat.isSymbolicLink() && (stat.mode & 0o111)) return p;
@@ -34,13 +45,13 @@ export function runGraphify(projectRoot: string, outputDir: string, capability: 
 
   if (!capability || capability.status === 'unavailable' || !capability.tool) {
     console.warn('[Intelligence] graphify not installed — skipping Leiden domain partition (graceful degradation).');
-    return null; // Fix 4: Do not write null to outFile
+    return { status: 'degraded' };
   }
 
-  const binary = findGraphifyBinary();
+  const binary = findGraphifyBinary(capability.tool, projectRoot);
   if (!binary) {
     console.warn('[Intelligence] graphify binary not found — skipping graph update, preserving existing graph');
-    return null; // Fix 4
+    return { status: 'degraded' };
   }
 
   try {
@@ -62,7 +73,9 @@ export function runGraphify(projectRoot: string, outputDir: string, capability: 
   }
 
   try {
-    const data = JSON.parse(fs.readFileSync(graphifyOut, 'utf8'));
+    const fd = fs.openSync(graphifyOut, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    const data = JSON.parse(fs.readFileSync(fd, 'utf8'));
+    fs.closeSync(fd);
     fs.writeFileSync(outFile, JSON.stringify(data));
     return { status: 'ok' };
   } catch (e: any) {

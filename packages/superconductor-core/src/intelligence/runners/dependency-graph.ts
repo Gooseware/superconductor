@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export function runDependencyGraph(projectRoot: string, outputDir: string, capability: any, scopedFiles?: string[]): RunnerResult<any> {
-  const outFile = path.join(outputDir, '02_dependencies.json');
+  const outFile = path.join(outputDir, '02_dependency_graph.json');
   const fpFile = path.join(outputDir, '01_fingerprint.json');
   
   if (!fs.existsSync(fpFile) || !capability || capability.status === 'unavailable' || !capability.tool) {

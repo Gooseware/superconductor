@@ -102,10 +102,10 @@ describe('IncrementalUpdater', () => {
     it('with 1 changed file: filters ghost nodes using changedFiles directly', async () => {
       // 1. Create a mock OLD graph with nodes from files ['src/a.ts', 'src/b.ts']
       fs.writeFileSync(path.join(outputDir, '00_manifest.json'), JSON.stringify({ incrementalRuns: 10 }));
-      fs.writeFileSync(path.join(outputDir, '02_dependency_graph.json'), JSON.stringify([
+      fs.writeFileSync(path.join(outputDir, '02_dependency_graph.json'), JSON.stringify({ nodes: [
         { file: 'src/a.ts', deps: ['x'] },
         { file: 'src/b.ts', deps: ['y'] }
-      ]));
+      ], edges: [], circularDeps: [] }));
       
       // 2. Declare changedFiles = ['src/a.ts'] (only a.ts changed)
       // 3. Create mock NEW graph output containing only src/a.ts nodes
@@ -119,17 +119,17 @@ describe('IncrementalUpdater', () => {
       
       // 5. Assert: result contains src/a.ts nodes from new graph, src/b.ts nodes from old graph
       const graph = JSON.parse(fs.readFileSync(path.join(outputDir, '02_dependency_graph.json'), 'utf-8'));
-      expect(graph).toContainEqual({ file: 'src/a.ts', deps: ['z'], source: 'src/a.ts' });
-      expect(graph).toContainEqual({ file: 'src/b.ts', deps: ['y'] });
-      expect(graph).not.toContainEqual({ file: 'src/a.ts', deps: ['x'] }); // NO ghost nodes
+      expect(graph.nodes).toContainEqual({ file: 'src/a.ts', deps: ['z'], source: 'src/a.ts' });
+      expect(graph.nodes).toContainEqual({ file: 'src/b.ts', deps: ['y'] });
+      expect(graph.nodes).not.toContainEqual({ file: 'src/a.ts', deps: ['x'] }); // NO ghost nodes
     });
 
     it('with file deletion: filters ghost nodes if new graph is empty', async () => {
       fs.writeFileSync(path.join(outputDir, '00_manifest.json'), JSON.stringify({ incrementalRuns: 10 }));
-      fs.writeFileSync(path.join(outputDir, '02_dependency_graph.json'), JSON.stringify([
+      fs.writeFileSync(path.join(outputDir, '02_dependency_graph.json'), JSON.stringify({ nodes: [
         { file: 'src/a.ts', deps: ['x'] },
         { file: 'src/b.ts', deps: ['y'] }
-      ]));
+      ], edges: [], circularDeps: [] }));
       
       vi.mocked(dependencyGraphModule.runDependencyGraph).mockReturnValueOnce({
         status: 'ok',
@@ -139,8 +139,8 @@ describe('IncrementalUpdater', () => {
       await update({ projectRoot, changedFiles: ['src/a.ts'], outputDir });
       
       const graph = JSON.parse(fs.readFileSync(path.join(outputDir, '02_dependency_graph.json'), 'utf-8'));
-      expect(graph).toEqual([{ file: 'src/b.ts', deps: ['y'] }]);
-      expect(graph).not.toContainEqual({ file: 'src/a.ts', deps: ['x'] }); // Ghost node removed
+      expect(graph.nodes).toEqual([{ file: 'src/b.ts', deps: ['y'] }]);
+      expect(graph.nodes).not.toContainEqual({ file: 'src/a.ts', deps: ['x'] }); // Ghost node removed
     });
   });
 });
