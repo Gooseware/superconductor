@@ -2,6 +2,7 @@ import { SwarmPermissionEvaluator } from './swarm-permission-evaluator.js';
 import { ExecutionMode, NonInteractiveModeError } from '../guard/execution-mode.js';
 import { HeadlessModeGuard, createHeadlessModeGuard } from '../guard/headless-mode-guard.js';
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine, ConsensusArtifact } from '@superconductor/core/src/track/work-unit.js';
+import { KeyholeFeedbackExtractor } from '@superconductor/core/src/review/aggregate-findings.js';
 import { QuorumReviewLoop } from '../verification/quorum-review-loop.js';
 import { QuorumEnforcer, REQUIRED_QUORUM_AGENTS } from '../verification/quorum-enforcer.js';
 import { ReviewerResponseBroker } from '../verification/reviewer-response-broker.js';
@@ -19,6 +20,35 @@ import { TrackLifecycleManager } from './lifecycle-manager.js';
 import { AgyAgentSpawner } from './agy-agent-spawner.js';
 import type { IAgentSpawner, AgentSpawnConfig, SpawnedAgent } from './agent-spawner.js';
 import { notifyVerificationRequired, notifyRemediationLimitExceeded } from './attention-notifier.js';
+
+function readFileSafely(workspaceDir: string, relativeOrAbsolutePath?: string, lineRange?: string): string {
+    if (!relativeOrAbsolutePath) return '';
+    const fullPath = path.isAbsolute(relativeOrAbsolutePath)
+        ? relativeOrAbsolutePath
+        : path.join(workspaceDir, relativeOrAbsolutePath);
+    const resolved = path.resolve(fullPath);
+    const resolvedWorkspace = path.resolve(workspaceDir);
+    if (!resolved.startsWith(resolvedWorkspace + path.sep) && resolved !== resolvedWorkspace) {
+        return '';
+    }
+    if (!fs.existsSync(resolved)) return '';
+    try {
+        const content = fs.readFileSync(resolved, 'utf8');
+        if (!lineRange || lineRange === 'all') return content;
+        
+        const match = lineRange.match(/L?(\d+)(?:-L?(\d+))?/i);
+        if (!match) return content;
+        
+        const startLine = parseInt(match[1], 10);
+        const endLine = match[2] ? parseInt(match[2], 10) : startLine;
+        
+        const lines = content.split('\n');
+        const slice = lines.slice(Math.max(0, startLine - 1), endLine);
+        return slice.join('\n');
+    } catch {
+        return '';
+    }
+}
 
 /** Transitions a work unit through IN_PROGRESS then to FAILED, respecting the state machine. */
 function transitionToFailed(wu: WorkUnit, sm: WorkUnitStateMachine): WorkUnit {
@@ -77,11 +107,29 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             this.quorumStore = new QuorumStore(workspaceDir);
         }
 
-        if (!this.spawner) {
+        if (this.spawner === undefined) {
             this.spawner = new AgyAgentSpawner(pathModule.join(workspaceDir, '.superconductor'));
         }
 
+        const researchBriefPath = pathModule.join(workspaceDir, '.superconductor', 'research', safeTrackId, 'brief.json');
+        let researchBrief: any = null;
+        if (fs.existsSync(researchBriefPath)) {
+            try {
+                const briefRaw = await fs.promises.readFile(researchBriefPath, 'utf8');
+                researchBrief = JSON.parse(briefRaw);
+            } catch (err: any) {
+                throw new Error(`[orchestrate] FATAL: Failed to read/parse research brief for track ${trackId}: ${err.message}`);
+            }
+        }
+
         const workUnits = await this.parseAndDispatch(topographyPath, planPath);
+
+        if (researchBrief) {
+            const keyholeManager = new KeyholeFeedbackExtractor();
+            for (const wu of workUnits) {
+                keyholeManager.injectResearchContext(wu as any, researchBrief);
+            }
+        }
 
         const updatedWorkUnits = [...workUnits];
         const allDispatches: Promise<void>[] = [];
@@ -90,17 +138,19 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             const wu = workUnits[i];
             this.dispatcher.implementorRegistry.register(wu.implementorId, wu);
             
+            const implementorPrompt = (wu as any).researchContext ? `${wu.spec}\n\n${(wu as any).researchContext}` : wu.spec;
+
             const task: DagNode = {
                 id: wu.unitId,
                 role: wu.implementorId as TaskRole,
                 tier: 3,
                 status: 'pending',
-                prompt: wu.spec,
+                prompt: implementorPrompt,
                 contextFiles: [],
                 dependsOn: []
             };
 
-            this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: wu.spec });
+            this.emit('agent_invoked', { agentId: wu.implementorId, taskId: task.id, spec: implementorPrompt });
 
             // ── VERIFY unit routing via ExecutionMode ─────────────────────────────
             if (wu.unitType === 'VERIFY') {
@@ -160,7 +210,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             let spawnerImplError: Error | undefined;
             if (this.spawner) {
                 try {
-                    const agent = await this.spawner.spawn({ role: wu.implementorId, prompt: wu.spec });
+                    const agent = await this.spawner.spawn({ role: wu.implementorId, prompt: implementorPrompt });
                     conversationId = agent.conversationId;
                     this.emit('subagent_spawned', { conversationId, wuId: wu.unitId, role: wu.implementorId });
 
@@ -207,6 +257,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
 
                     const loop = new QuorumReviewLoop({
                         maxIterations: 3,
+                        workUnitSpec: wu.spec,
+                        researchBrief: researchBrief ? { recommendedPatterns: researchBrief.recommendedPatterns, antiPatterns: researchBrief.antiPatterns } : undefined,
                         reviewerFn: async () => {
                             const spawnResults: Array<{ agentType: string; success: boolean }> = [];
                             // Collect conversationIds from spawner for broker aggregation
@@ -267,20 +319,29 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                 return 'Skipped remediation: no spawner available';
                             }
                             try {
-                                // Partition findings by domain/file to enable parallel remediation.
-                                // Each distinct domain gets its own processor — one agent per fix domain.
                                 const domainGroups = new Map<string, unknown[]>();
-                                for (const finding of payloads as Array<Record<string, unknown>>) {
-                                    // Use finding.domain if present, fall back to filePath, then 'general'
+                                for (const item of payloads as Array<Record<string, unknown>>) {
+                                    const finding = (item['finding'] as Record<string, unknown>) || item;
+                                    
+                                    if (finding && typeof finding === 'object') {
+                                        const filePath = (finding['file'] as string) || (finding['filePath'] as string);
+                                        const lineRange = finding['line_range'] as string;
+                                        if (filePath) {
+                                            const diskLines = readFileSafely(workspaceDir, filePath, lineRange);
+                                            if (diskLines) {
+                                                item['contextLines'] = diskLines;
+                                            }
+                                        }
+                                    }
+
                                     const domain = (finding['domain'] as string)
                                         || (finding['filePath'] as string)
                                         || (finding['file'] as string)
                                         || 'general';
                                     if (!domainGroups.has(domain)) domainGroups.set(domain, []);
-                                    domainGroups.get(domain)!.push(finding);
+                                    domainGroups.get(domain)!.push(item);
                                 }
 
-                                // Spawn one remediation processor per domain concurrently (respects maxConcurrent via ParallelDispatcher)
                                 const spawnPromises = Array.from(domainGroups.entries()).map(
                                     ([domain, domainFindings]) =>
                                         capturedSpawner!.spawn({
@@ -299,7 +360,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                             }
                         },
                     });
-                    const loopResult = await loop.run("");
+                    const loopResult = await loop.run(wu.spec ?? '');
                     if (loopResult) {
                         consensusArtifact = {
                             allGreen: loopResult.allGreen,
@@ -351,7 +412,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         }
 
                         // All gates passed — safe to transition to DONE
-                        console.log("DISK ARTIFACT:", diskArtifact); const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, diskArtifact);
+                        const doneWu = sm.transition(updatedWu, WorkUnitState.DONE, diskArtifact);
                         // Update reviewers to match the canonical REQUIRED_QUORUM_AGENTS (REV-7)
                         updatedWorkUnits[i] = { ...doneWu, reviewers: [...REQUIRED_QUORUM_AGENTS] };
 

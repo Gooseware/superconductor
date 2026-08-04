@@ -139,9 +139,9 @@ describe('ResearchBriefSynthesizer', () => {
       { url: 'https://example.com/test-article', title: 'Test Article', content: 'Sample article body' }
     ];
 
-    await synthesizer.synthesize(rawResults);
+    const brief = await synthesizer.synthesize(rawResults);
 
-    const expectedFile = path.join(testOutputDir, 'test-article.md');
+    const expectedFile = brief.artifactPointers[0];
     expect(fs.existsSync(expectedFile)).toBe(true);
 
     const fileContent = fs.readFileSync(expectedFile, 'utf8');

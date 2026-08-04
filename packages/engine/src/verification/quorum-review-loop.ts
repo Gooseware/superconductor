@@ -1,5 +1,6 @@
 import * as crypto from 'node:crypto';
 import { KeyholeFeedbackExtractor, isValidFinding } from '@superconductor/core/src/review/aggregate-findings.js';
+import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 
 export function validateReviewerPayload(payload: unknown): void {
     if (typeof payload !== 'object' || payload === null) {
@@ -11,12 +12,18 @@ export function validateReviewerPayload(payload: unknown): void {
     }
 }
 
+export interface IResearchBrief {
+    recommendedPatterns?: string[];
+    antiPatterns?: string[];
+}
+
 export interface QuorumReviewLoopOptions {
     maxIterations: number;
     reviewerFn: (code: string) => Promise<{ status: string, findings: unknown[] }>;
     remediateFn?: (payloads: unknown[]) => Promise<string>;
     timeoutMs?: number;
     workUnitSpec?: string;
+    researchBrief?: { recommendedPatterns?: string[], antiPatterns?: string[] };
 }
 
 export class QuorumReviewLoop {
@@ -25,6 +32,7 @@ export class QuorumReviewLoop {
     private remediateFn?: (payloads: unknown[]) => Promise<string>;
     private timeoutMs: number;
     private workUnitSpec: string;
+    private researchBrief?: { recommendedPatterns?: string[], antiPatterns?: string[] };
 
     constructor(options: QuorumReviewLoopOptions) {
         const providedIterations = Number(options.maxIterations);
@@ -33,6 +41,7 @@ export class QuorumReviewLoop {
         this.remediateFn = options.remediateFn;
         this.timeoutMs = options.timeoutMs || 30000;
         this.workUnitSpec = options.workUnitSpec || 'Unknown WorkUnit';
+        this.researchBrief = options.researchBrief;
     }
 
     private async withTimeout<T>(promise: Promise<T>): Promise<T> {
@@ -66,7 +75,16 @@ export class QuorumReviewLoop {
             stateHashes.add(currentHash);
 
             iterations++;
-            const result = await this.withTimeout(this.reviewerFn(currentCode));
+
+            let codeWithContext = currentCode;
+            if ((this.researchBrief?.recommendedPatterns?.length || 0) > 0 || (this.researchBrief?.antiPatterns?.length || 0) > 0) {
+                const recStr = (this.researchBrief?.recommendedPatterns || []).map(p => sanitizeUntrustedText(p)).join(', ');
+                const antiStr = (this.researchBrief?.antiPatterns || []).map(p => sanitizeUntrustedText(p)).join(', ');
+                const patternsContext = `\n\n<untrusted_research_context>\nResearch mandated these patterns: [${recStr}]. Flag any deviation as CRITICAL.\nAvoid these anti-patterns: [${antiStr}].\n</untrusted_research_context>\n`;
+                codeWithContext += patternsContext;
+            }
+
+            const result = await this.withTimeout(this.reviewerFn(codeWithContext));
             validateReviewerPayload(result);
             lastResult = { ...result, allGreen: result.status === 'RESOLVED' };
 
@@ -91,8 +109,6 @@ export class QuorumReviewLoop {
                     // Fallback for primitive tests
                     return finding;
                 });
-                // Note: The prompt asks to "use KeyholeFeedbackExtractor when calling remediateFn instead of passing full file/branch diffs".
-                // I will pass 'payloads' as the findings array.
                 currentCode = await this.withTimeout(this.remediateFn(payloads));
             }
         }
