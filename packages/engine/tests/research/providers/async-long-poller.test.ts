@@ -22,21 +22,31 @@ describe('AsyncLongPoller', () => {
   });
 
   it('should use exponential backoff for transient errors', async () => {
-    const poller = new AsyncLongPoller({ pollIntervalMs: 10, maxWaitMs: 1000 });
+    vi.useFakeTimers();
+    const poller = new AsyncLongPoller({ pollIntervalMs: 10, maxWaitMs: 10000 });
     let attempts = 0;
-    const startTime = Date.now();
-    try {
-      await poller.poll(async () => {
-        attempts++;
-        if (attempts < 3) {
-          throw { status: 500 };
-        }
-        return { status: 'done', result: 'success' };
-      });
-    } catch (e) {
-      // shouldn't throw
-    }
-    const endTime = Date.now();
+    
+    const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    const promise = poller.poll(async () => {
+      attempts++;
+      if (attempts < 3) {
+        throw { status: 500 };
+      }
+      return { status: 'done', result: 'success' };
+    });
+
+    // We need to wait for the microtasks to settle before advancing timers
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(10);
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(20);
+
+    const result = await promise;
+    expect(result).toBe('success');
     expect(attempts).toBe(3);
+    
+    randomSpy.mockRestore();
+    vi.useRealTimers();
   });
 });

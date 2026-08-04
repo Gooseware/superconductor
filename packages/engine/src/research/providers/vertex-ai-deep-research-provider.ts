@@ -17,7 +17,8 @@ export class VertexAiDeepResearchProvider implements IResearchProvider {
 
   constructor(options: VertexAiDeepResearchProviderOptions = {}) {
     this.client = options.client || new GeminiInteractionsClient({ authMode: 'vertexai' });
-    this.poller = options.poller || new AsyncLongPoller<any>(options.pollerOptions);
+    const pollerOptions = { ...options.pollerOptions, maxWaitMs: options.pollerOptions?.maxWaitMs ?? 900000 };
+    this.poller = options.poller || new AsyncLongPoller<any>(pollerOptions);
   }
 
   async search(query: IResearchQuery): Promise<IResearchSource[]> {
@@ -77,14 +78,14 @@ export class VertexAiDeepResearchProvider implements IResearchProvider {
           : out?.text ?? out?.content ?? ( () => { try { return JSON.stringify(out); } catch { return String(out); } } )();
 
       const titleStr =
-        out && typeof out === 'object' && out.title
+        out && typeof out === 'object' && typeof out.title === 'string'
           ? out.title
           : 'Vertex AI Deep Research Result';
 
       const urlStr =
-        out && typeof out === 'object' && out.url
+        out && typeof out === 'object' && typeof out.url === 'string'
           ? out.url
-          : out && typeof out === 'object' && out.sourceUrl
+          : out && typeof out === 'object' && typeof out.sourceUrl === 'string'
           ? out.sourceUrl
           : 'vertexai://deep-research';
 

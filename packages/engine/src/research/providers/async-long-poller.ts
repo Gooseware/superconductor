@@ -8,8 +8,8 @@ export class AsyncLongPoller<T = any> {
   private maxWaitMs: number;
 
   constructor(options: LongPollerOptions = {}) {
-    this.pollIntervalMs = options.pollIntervalMs || 1000;
-    this.maxWaitMs = options.maxWaitMs || 30000;
+    this.pollIntervalMs = options.pollIntervalMs ?? 1000;
+    this.maxWaitMs = options.maxWaitMs ?? 30000;
   }
 
   async poll<T>(
@@ -34,7 +34,12 @@ export class AsyncLongPoller<T = any> {
         if (retryAfter) {
           let parsedDelay = parseInt(retryAfter, 10) * 1000;
           if (isNaN(parsedDelay)) {
-            delay = this.pollIntervalMs * Math.pow(2, errorAttempt);
+            const parsedDate = new Date(retryAfter).getTime();
+            if (!isNaN(parsedDate)) {
+              delay = Math.max(0, parsedDate - Date.now());
+            } else {
+              delay = this.pollIntervalMs * Math.pow(2, errorAttempt);
+            }
           } else {
             delay = parsedDelay;
           }
@@ -62,7 +67,7 @@ export class AsyncLongPoller<T = any> {
       
       const timeElapsed = Date.now() - startTime;
       if (timeElapsed + delay > this.maxWaitMs) {
-        throw new Error('Timeout exceeded');
+        throw new Error('Timeout exceeded', { cause: e });
       }
       
       await new Promise((resolve) => setTimeout(resolve, delay));

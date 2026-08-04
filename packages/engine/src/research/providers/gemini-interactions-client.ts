@@ -10,14 +10,14 @@ export interface GeminiInteractionsOptions {
 export class HttpError extends Error {
   public status: number;
   public headers: any;
-  public response?: any;
+  public responseText?: string;
 
-  constructor(message: string, status: number, headers: any, response?: any) {
+  constructor(message: string, status: number, headers: any, responseText?: string) {
     super(message);
     this.name = 'HttpError';
     this.status = status;
     this.headers = headers;
-    this.response = response;
+    this.responseText = responseText;
   }
 }
 
@@ -71,6 +71,7 @@ export class GeminiInteractionsClient {
   }
 
   private formatId(id: string): string {
+    if (id.includes("..")) throw new Error("Invalid interaction ID");
     return id.split('/').map(encodeURIComponent).join('/');
   }
 
@@ -87,7 +88,7 @@ export class GeminiInteractionsClient {
         body: JSON.stringify(params)
       });
       if (!response.ok) {
-        throw new HttpError(`Failed to create interaction: ${response.statusText}`, response.status, response.headers, response);
+        throw new HttpError(`Failed to create interaction: ${response.statusText}`, response.status, response.headers);
       }
       const data = await response.json();
       return InteractionResponseSchema.parse(data);
@@ -105,7 +106,7 @@ export class GeminiInteractionsClient {
         body: JSON.stringify(params)
       });
       if (!response.ok) {
-        throw new HttpError(`Failed to create interaction: ${response.statusText}`, response.status, response.headers, response);
+        throw new HttpError(`Failed to create interaction: ${response.statusText}`, response.status, response.headers);
       }
       const data = await response.json();
       return InteractionResponseSchema.parse(data);
@@ -126,7 +127,7 @@ export class GeminiInteractionsClient {
       const url = `https://generativelanguage.googleapis.com/v1beta/${path}?key=${process.env.GEMINI_API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) {
-        throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers, response);
+        throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers);
       }
       const data = await response.json();
       return InteractionResponseSchema.parse(data);
@@ -147,7 +148,7 @@ export class GeminiInteractionsClient {
         }
       });
       if (!response.ok) {
-        throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers, response);
+        throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers);
       }
       const data = await response.json();
       return InteractionResponseSchema.parse(data);

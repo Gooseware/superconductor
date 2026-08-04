@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from "vitest";
 import { GeminiInteractionsClient } from '../../../src/research/providers/gemini-interactions-client.js';
 
 describe('GeminiInteractionsClient', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
   let originalEnv: any;
   beforeAll(() => {
     originalEnv = { ...process.env };
@@ -19,7 +22,7 @@ describe('GeminiInteractionsClient', () => {
       ok: true,
       json: async () => ({ id: '123', state: 'COMPLETED' })
     });
-    global.fetch = mockFetch;
+    vi.stubGlobal("fetch", mockFetch);
 
     await client.getInteraction('interactions/123/my path');
     
@@ -42,7 +45,7 @@ describe('GeminiInteractionsClient', () => {
       ok: true,
       json: async () => ({ id: '456', state: 'COMPLETED' })
     });
-    global.fetch = mockFetch;
+    vi.stubGlobal("fetch", mockFetch);
 
     await client.getInteraction('projects/test-project/locations/us-east1/interactions/123/my path');
     
