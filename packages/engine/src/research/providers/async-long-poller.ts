@@ -36,8 +36,14 @@ export class AsyncLongPoller<T = any> {
           delay = this.pollIntervalMs * Math.pow(2, attempt);
         }
       } else {
-        // generic transient network error
-        const isTransient = !e || !e.status || e.status >= 500;
+        const isTransient = e && (
+          e.status >= 500 ||
+          e.code === 'ECONNRESET' ||
+          e.code === 'ETIMEDOUT' ||
+          e.code === 'ECONNREFUSED' ||
+          e.code === 'ENOTFOUND' ||
+          (e.name === 'TypeError' && e.message === 'fetch failed')
+        );
         if (isTransient) {
           delay = this.pollIntervalMs * Math.pow(2, attempt);
         } else {
@@ -50,10 +56,7 @@ export class AsyncLongPoller<T = any> {
       
       const timeElapsed = Date.now() - startTime;
       if (timeElapsed + delay > this.maxWaitMs) {
-        delay = this.maxWaitMs - timeElapsed;
-        if (delay <= 0) {
-          throw new Error('Timeout exceeded');
-        }
+        throw new Error('Timeout exceeded');
       }
       
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -73,10 +76,7 @@ export class AsyncLongPoller<T = any> {
     
     const timeElapsed = Date.now() - startTime;
     if (timeElapsed + delay > this.maxWaitMs) {
-      delay = this.maxWaitMs - timeElapsed;
-      if (delay <= 0) {
-        throw new Error('Timeout exceeded');
-      }
+      throw new Error('Timeout exceeded');
     }
 
     await new Promise((resolve) => setTimeout(resolve, delay));

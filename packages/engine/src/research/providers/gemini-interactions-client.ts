@@ -5,6 +5,20 @@ export interface GeminiInteractionsOptions {
   authMode?: 'apiKey' | 'vertexai';
 }
 
+export class HttpError extends Error {
+  public status: number;
+  public headers: any;
+  public response?: any;
+
+  constructor(message: string, status: number, headers: any, response?: any) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+    this.headers = headers;
+    this.response = response;
+  }
+}
+
 export class GeminiInteractionsClient {
   public sdkClient: any;
   private authMode: 'apiKey' | 'vertexai';
@@ -46,7 +60,23 @@ export class GeminiInteractionsClient {
         body: JSON.stringify(params)
       });
       if (!response.ok) {
-        throw new Error(`Failed to create interaction: ${response.statusText}`);
+        throw new HttpError(`Failed to create interaction: ${response.statusText}`, response.status, response.headers, response);
+      }
+      return response.json();
+    } else if (this.authMode === 'vertexai') {
+      const projectId = process.env.GCP_PROJECT_ID;
+      const location = process.env.GCP_LOCATION || 'us-central1';
+      const url = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/interactions`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.GCP_ACCESS_TOKEN || ''}`
+        },
+        body: JSON.stringify(params)
+      });
+      if (!response.ok) {
+        throw new HttpError(`Failed to create interaction: ${response.statusText}`, response.status, response.headers, response);
       }
       return response.json();
     }
@@ -60,10 +90,23 @@ export class GeminiInteractionsClient {
     }
 
     if (this.authMode === 'apiKey') {
-      const url = `https://generativelanguage.googleapis.com/v1beta/interactions/${id}?key=${process.env.GEMINI_API_KEY}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/interactions/${encodeURIComponent(id)}?key=${process.env.GEMINI_API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`Failed to get interaction: ${response.statusText}`);
+        throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers, response);
+      }
+      return response.json();
+    } else if (this.authMode === 'vertexai') {
+      const projectId = process.env.GCP_PROJECT_ID;
+      const location = process.env.GCP_LOCATION || 'us-central1';
+      const url = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/interactions/${encodeURIComponent(id)}`;
+      const response = await fetch(url, {
+        headers: { 
+          'Authorization': `Bearer ${process.env.GCP_ACCESS_TOKEN || ''}`
+        }
+      });
+      if (!response.ok) {
+        throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers, response);
       }
       return response.json();
     }

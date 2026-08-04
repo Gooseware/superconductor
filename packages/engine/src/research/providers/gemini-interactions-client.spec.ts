@@ -10,7 +10,7 @@ vi.mock('@google/genai', () => ({
   }
 }));
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { GeminiInteractionsClient } from './gemini-interactions-client.js';
+import { GeminiInteractionsClient, HttpError } from './gemini-interactions-client.js';
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
 
 describe('GeminiInteractionsClient', () => {
@@ -61,7 +61,7 @@ describe('GeminiInteractionsClient', () => {
       expect(client.sdkClient.interactions.createInteraction).toHaveBeenCalled();
     });
 
-    it('falls back to fetch if sdkClient.interactions is absent', async () => {
+    it('falls back to fetch if sdkClient.interactions is absent (apiKey)', async () => {
       process.env.GEMINI_API_KEY = 'test-key';
       const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
       client.sdkClient.interactions = undefined;
@@ -75,6 +75,44 @@ describe('GeminiInteractionsClient', () => {
       const res = await client.createInteraction({ some: 'data' });
       expect(res.id).toBe('fallback-123');
       expect(fetchMock).toHaveBeenCalled();
+      
+      vi.unstubAllGlobals();
+    });
+
+    it('falls back to fetch if sdkClient.interactions is absent (vertexai)', async () => {
+      process.env.GCP_PROJECT_ID = 'test-project';
+      process.env.GCP_LOCATION = 'us-central1';
+      process.env.GCP_ACCESS_TOKEN = 'test-token';
+      const client = new GeminiInteractionsClient({ authMode: 'vertexai' });
+      client.sdkClient.interactions = undefined;
+      
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'fallback-vertex-123' })
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const res = await client.createInteraction({ some: 'data' });
+      expect(res.id).toBe('fallback-vertex-123');
+      expect(fetchMock).toHaveBeenCalled();
+      
+      vi.unstubAllGlobals();
+    });
+    
+    it('throws HttpError on non-ok fetch response', async () => {
+      process.env.GEMINI_API_KEY = 'test-key';
+      const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
+      client.sdkClient.interactions = undefined;
+      
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers()
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(client.createInteraction({ some: 'data' })).rejects.toThrow(HttpError);
       
       vi.unstubAllGlobals();
     });

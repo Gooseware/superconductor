@@ -23,7 +23,10 @@ describe('AsyncLongPoller', () => {
 
   it('Timeout exceeded -> rejects', async () => {
     const poller = new AsyncLongPoller<string>({ pollIntervalMs: 10, maxWaitMs: 100 });
-    const fn = vi.fn().mockRejectedValue(new Error('not ready'));
+    // Mock a transient error
+    const err = new Error('not ready') as any;
+    err.status = 503;
+    const fn = vi.fn().mockRejectedValue(err);
     
     const promise = poller.poll(fn);
     promise.catch((e: any) => { console.debug('Expected unhandled rejection:', e instanceof Error ? e.message : String(e)); });
@@ -58,9 +61,12 @@ describe('AsyncLongPoller', () => {
 
   it('Exponential backoff applied between polls', async () => {
     const poller = new AsyncLongPoller<string>({ pollIntervalMs: 10, maxWaitMs: 10000 });
+    const err1 = new Error('fail1') as any; err1.code = 'ECONNRESET';
+    const err2 = new Error('fail2') as any; err2.status = 500;
+    
     const fn = vi.fn()
-      .mockRejectedValueOnce(new Error('fail1'))
-      .mockRejectedValueOnce(new Error('fail2'))
+      .mockRejectedValueOnce(err1)
+      .mockRejectedValueOnce(err2)
       .mockResolvedValueOnce({ status: 'done', result: 'success' });
     
     const promise = poller.poll(fn);

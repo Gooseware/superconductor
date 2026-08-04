@@ -32,39 +32,52 @@ export class FileTelemetryStore implements TelemetryStore {
         this.filePath = filePath;
     }
 
-    private redactContent(content: string): string {
-        let scrubbed = content;
-        const sensitiveEnvVars = Object.keys(process.env).filter(key => key === 'GEMINI_API_KEY' || key.startsWith('GCP_'));
-        for (const varName of sensitiveEnvVars) {
-            const val = process.env[varName];
-            if (val && val.trim().length > 8) {
-                scrubbed = scrubbed.split(val).join('[REDACTED]');
+    private redactObject(obj: any, cache: Set<any> = new Set()): any {
+        if (typeof obj === 'string') {
+            let scrubbed = obj;
+            const sensitiveEnvVars = Object.keys(process.env).filter(key => key === 'GEMINI_API_KEY' || key.startsWith('GCP_'));
+            for (const varName of sensitiveEnvVars) {
+                const val = process.env[varName];
+                if (val && val.trim().length > 0) {
+                    scrubbed = scrubbed.split(val).join('[REDACTED]');
+                }
             }
+            // Redact key=value style parameters
+            scrubbed = scrubbed.replace(
+                /(GEMINI_API_KEY|gemini_api_key|geminiApiKey)=([^\s&"'\`]+)/gi,
+                '$1=[REDACTED]'
+            );
+            scrubbed = scrubbed.replace(
+                /(GCP_[A-Za-z0-9_]+)=([^\s&"'\`]+)/gi,
+                '$1=[REDACTED]'
+            );
+            scrubbed = scrubbed.replace(/AIza[a-zA-Z0-9_\-]{35}/g, '[REDACTED]');
+            return scrubbed;
         }
 
-        // Redact JSON key-values for GEMINI_API_KEY, gemini_api_key, geminiApiKey, and GCP_*
-        scrubbed = scrubbed.replace(
-            /("?(?:GEMINI_API_KEY|gemini_api_key|geminiApiKey)"?\s*:\s*)"[^"]*"/gi,
-            '$1"[REDACTED]"'
-        );
-        scrubbed = scrubbed.replace(
-            /("?GCP_[A-Za-z0-9_]+"?\s*:\s*)"[^"]*"/gi,
-            '$1"[REDACTED]"'
-        );
+        if (typeof obj !== 'object' || obj === null) {
+            return obj;
+        }
 
-        // Redact key=value style parameters
-        scrubbed = scrubbed.replace(
-            /(GEMINI_API_KEY|gemini_api_key|geminiApiKey)=([^\s&"'\`]+)/gi,
-            '$1=[REDACTED]'
-        );
-        scrubbed = scrubbed.replace(
-            /(GCP_[A-Za-z0-9_]+)=([^\s&"'\`]+)/gi,
-            '$1=[REDACTED]'
-        );
+        if (cache.has(obj)) {
+            return '[Circular]';
+        }
+        cache.add(obj);
 
-        // Redact known key format for Gemini API keys if not caught by env
-        scrubbed = scrubbed.replace(/AIza[a-zA-Z0-9_\-]{35}/g, '[REDACTED]');
-        return scrubbed;
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.redactObject(item, cache));
+        }
+
+        const result: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+            const lowerKey = key.toLowerCase();
+            if (lowerKey === 'gemini_api_key' || lowerKey === 'geminiapikey' || lowerKey.startsWith('gcp_')) {
+                result[key] = '[REDACTED]';
+            } else {
+                result[key] = this.redactObject(value, cache);
+            }
+        }
+        return result;
     }
 
     private ensureDir(): Promise<void> {
@@ -94,8 +107,13 @@ export class FileTelemetryStore implements TelemetryStore {
             throw new Error("subagentId must be a non-empty string");
         }
 
-        let line = JSON.stringify({ type: 'TOKEN_USAGE', ...report }) + '\n';
-        line = this.redactContent(line);
+        let line = '';
+        try {
+            const redacted = this.redactObject({ type: 'TOKEN_USAGE', ...report });
+            line = JSON.stringify(redacted) + '\n';
+        } catch (e) {
+            line = '{"type":"ERROR","message":"Failed to serialize usage report"}\n';
+        }
         
         const task = this.queue.then(async () => {
             await this.ensureDir();
@@ -120,8 +138,13 @@ export class FileTelemetryStore implements TelemetryStore {
             throw new Error("value must be a number");
         }
 
-        let line = JSON.stringify({ type: 'METRIC', ...report }) + '\n';
-        line = this.redactContent(line);
+        let line = '';
+        try {
+            const redacted = this.redactObject({ type: 'METRIC', ...report });
+            line = JSON.stringify(redacted) + '\n';
+        } catch (e) {
+            line = '{"type":"ERROR","message":"Failed to serialize metric report"}\n';
+        }
         
         const task = this.queue.then(async () => {
             await this.ensureDir();
@@ -134,4 +157,3 @@ export class FileTelemetryStore implements TelemetryStore {
 }
 
 export * from './token-budget-estimator.js';
-
