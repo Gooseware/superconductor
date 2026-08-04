@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ResearchProviderRegistry } from '../../src/research/provider-registry.js';
 import { GoogleDeepResearchProvider } from '../../src/research/providers/google-deep-research-provider.js';
 import { GeminiAPIProvider } from '../../src/research/providers/gemini-api-provider.js';
+import { GeminiApiDeepResearchProvider } from '../../src/research/providers/gemini-api-deep-research-provider.js';
+import { VertexAiDeepResearchProvider } from '../../src/research/providers/vertex-ai-deep-research-provider.js';
 
 describe('ResearchProviderRegistry', () => {
   const originalEnv = process.env;
@@ -31,6 +33,18 @@ describe('ResearchProviderRegistry', () => {
     const registry = new ResearchProviderRegistry();
     const provider = registry.resolve('gemini_api_deep_research');
     expect(provider).toBeInstanceOf(GeminiAPIProvider);
+  });
+
+  it('should return GeminiApiDeepResearchProvider when "gemini-api-deep-research" is requested', () => {
+    const registry = new ResearchProviderRegistry();
+    const provider = registry.resolve('gemini-api-deep-research', { apiKey: 'test' });
+    expect(provider).toBeInstanceOf(GeminiApiDeepResearchProvider);
+  });
+
+  it('should return VertexAiDeepResearchProvider when "vertex-ai-deep-research" is requested', () => {
+    const registry = new ResearchProviderRegistry();
+    const provider = registry.resolve('vertex-ai-deep-research');
+    expect(provider).toBeInstanceOf(VertexAiDeepResearchProvider);
   });
 
   it('should throw an error when an unknown provider is requested', () => {
