@@ -55,10 +55,17 @@ export class ResearchExecutor {
         
         // Sanitize trackId to prevent Path Traversal (SEC-1)
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '');
+        if (!safeTrackId) {
+            throw new Error('Invalid trackId: trackId must contain valid characters after sanitization');
+        }
         const outDir = path.join(this.workspaceDir, '.superconductor', 'research', safeTrackId);
         
         if (cached) {
-            if (!fs.existsSync(outDir)) {
+            if (fs.existsSync(outDir)) {
+                if (!fs.statSync(outDir).isDirectory()) {
+                    throw new Error(`ENOTDIR: not a directory, open '${outDir}'`);
+                }
+            } else {
                 fs.mkdirSync(outDir, { recursive: true });
             }
             fs.writeFileSync(path.join(outDir, 'brief.json'), JSON.stringify(cached, null, 2), 'utf8'); // Restore brief.json on cache hit (REG-5)
@@ -113,9 +120,13 @@ export class ResearchExecutor {
         
         const brief = await synthesizer.synthesize(results, trackId, queries.map(q => q.term));
 
-        if (!fs.existsSync(outDir)) {
-            fs.mkdirSync(outDir, { recursive: true });
-        }
+        if (fs.existsSync(outDir)) {
+                if (!fs.statSync(outDir).isDirectory()) {
+                    throw new Error(`ENOTDIR: not a directory, open '${outDir}'`);
+                }
+            } else {
+                fs.mkdirSync(outDir, { recursive: true });
+            }
         
         fs.writeFileSync(path.join(outDir, 'brief.json'), JSON.stringify(brief, null, 2), 'utf8');
 

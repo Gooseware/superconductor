@@ -28,20 +28,22 @@ describe('ResearchProviderRegistry', () => {
     expect(provider).toBeInstanceOf(GoogleDeepResearchProvider);
   });
 
-  it('should return GeminiAPIProvider when "gemini_api_deep_research" is requested', () => {
+  it('should return GeminiApiDeepResearchProvider when "gemini_api_deep_research" is requested', () => {
     process.env.GEMINI_API_KEY = 'test-key';
     const registry = new ResearchProviderRegistry();
     const provider = registry.resolve('gemini_api_deep_research');
-    expect(provider).toBeInstanceOf(GeminiAPIProvider);
+    expect(provider).toBeInstanceOf(GeminiApiDeepResearchProvider);
   });
 
   it('should return GeminiApiDeepResearchProvider when "gemini-api-deep-research" is requested', () => {
+    process.env.GEMINI_API_KEY = 'test-key';
     const registry = new ResearchProviderRegistry();
     const provider = registry.resolve('gemini-api-deep-research', { apiKey: 'test' });
     expect(provider).toBeInstanceOf(GeminiApiDeepResearchProvider);
   });
 
   it('should return VertexAiDeepResearchProvider when "vertex-ai-deep-research" is requested', () => {
+    process.env.GCP_PROJECT_ID = 'test-project';
     const registry = new ResearchProviderRegistry();
     const provider = registry.resolve('vertex-ai-deep-research');
     expect(provider).toBeInstanceOf(VertexAiDeepResearchProvider);

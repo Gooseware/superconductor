@@ -24,6 +24,7 @@ vi.mock('fs', async (importOriginal) => {
     return {
         ...actual,
         existsSync: vi.fn().mockReturnValue(true),
+        statSync: vi.fn().mockReturnValue({ isDirectory: () => true }),
         mkdirSync: vi.fn(),
         writeFileSync: vi.fn(),
         readFileSync: vi.fn().mockReturnValue('')
@@ -156,6 +157,7 @@ describe('ResearchExecutor', () => {
 
         const queries = [{ term: 'fallback-fail-test' }];
         await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow('FallbackFailedError');
+    });
 
     it('instantiates the new provider end-to-end from agent-config.md', async () => {
         const executor = new ResearchExecutor(workspaceDir);
@@ -170,14 +172,21 @@ describe('ResearchExecutor', () => {
         });
 
         process.env.GCP_PROJECT_ID = 'test-project';
+        process.env.GEMINI_API_KEY = 'test-key';
         const resolveSpy = vi.spyOn(ResearchProviderRegistry.prototype, 'resolve');
-        // Let's mock the provider search to just return something so it doesn't fail
-        const mockSearch = vi.fn().mockResolvedValue([{ url: 'test', title: 'test', content: 'content' }]);
-        vi.spyOn(GeminiAPIProvider.prototype, 'search').mockImplementation(mockSearch);
+        
+        // Remove GeminiAPIProvider mock and mock the new one instead
+        const { GeminiApiDeepResearchProvider } = await import('./providers/gemini-api-deep-research-provider.js');
+        const mockSearch = vi.fn().mockResolvedValue([{ type: 'community', url: 'https://stackoverflow.com/questions/123', title: 'test', content: 'content' }]);
+        vi.spyOn(GeminiApiDeepResearchProvider.prototype, 'search').mockImplementation(mockSearch);
 
         const queries = [{ term: 'q1' }];
         await executor.execute('t1', queries, undefined);
         
-        expect(resolveSpy).toHaveBeenCalledWith('gemini_api_deep_research', { authMode: 'vertexai' });
+        expect(resolveSpy).toHaveBeenCalledWith('gemini-api-deep-research', { authMode: 'vertexai' });
+        
+        // Assert that the factory actually instantiates the correct new provider instance
+        const returnedProvider = resolveSpy.mock.results[0].value;
+        expect(returnedProvider).toBeInstanceOf(GeminiApiDeepResearchProvider);
     });
 });

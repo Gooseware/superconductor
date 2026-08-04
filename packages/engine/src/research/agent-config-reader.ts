@@ -13,7 +13,15 @@ export class AgentConfigReader {
             return undefined;
         }
 
-        const content = fs.readFileSync(configPath, 'utf8');
+        let content = '';
+        try {
+            content = fs.readFileSync(configPath, 'utf8');
+        } catch (e: any) {
+            if (e.code === 'ENOENT' || e.code === 'EISDIR') {
+                return undefined;
+            }
+            throw e;
+        }
         const providerMatch = content.match(/Research Provider:\s*([^\r\n]+)/i);
         if (!providerMatch) {
             return undefined;
@@ -21,13 +29,17 @@ export class AgentConfigReader {
 
         let providerName = providerMatch[1].trim();
         // Normalize dashes to underscores for internal registry compatibility
-        providerName = providerName.replace(/-/g, '_');
+        
 
         const options: AgentConfigResearchOptions = {};
         
         const authModeMatch = content.match(/Auth Mode:\s*([^\r\n]+)/i);
         if (authModeMatch) {
-            options.authMode = authModeMatch[1].trim() as 'apiKey' | 'vertexai';
+            const mode = authModeMatch[1].trim();
+            if (mode !== 'apiKey' && mode !== 'vertexai') {
+                throw new Error("Invalid authMode: must be 'apiKey' or 'vertexai'");
+            }
+            options.authMode = mode as 'apiKey' | 'vertexai';
         }
 
         return { providerName, options };
