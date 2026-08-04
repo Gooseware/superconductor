@@ -67,9 +67,7 @@ export class ResearchBriefSynthesizer {
       if (queries) actualQueries = queries;
       if (skillsAlreadyInstalled) actualSkills = skillsAlreadyInstalled;
     }
-    if (!fs.existsSync(this.outputDir)) {
-      fs.mkdirSync(this.outputDir, { recursive: true });
-    }
+    fs.mkdirSync(this.outputDir, { recursive: true });
 
     const allFindings: ResearchFindingWithScore[] = [];
 
@@ -104,7 +102,7 @@ ${source.content || ''}`;
     }));
 
     // 3. Reduce: LLM synthesis into executiveSummary, recommendedPatterns, antiPatterns
-    let { executiveSummary, recommendedPatterns, antiPatterns } = await this.llmReduceFindings(allFindings.filter(f => f.confidenceScore >= 0.6));
+    let { executiveSummary, recommendedPatterns = [], antiPatterns = [] } = await this.llmReduceFindings(allFindings.filter(f => f.confidenceScore >= 0.6));
 
     // Enforce 400 words
     if (executiveSummary) {
@@ -142,8 +140,8 @@ ${source.content || ''}`;
   }
 
   public async llmMapSource(source: IResearchSource): Promise<ResearchFindingWithScore[]> {
-    const sourceText = source.content ?? source.title ?? source.url;
-    const prompt = `Extract structured findings from ${source.url}\nTitle: ${source.title || ''}\nContent:\n${sourceText}`;
+    const input = source.content ?? source.title ?? source.url;
+    const prompt = `Extract structured findings from: ${input}`;
     const res = await this.executeLlm(prompt);
     if (Array.isArray(res)) return res;
     
@@ -159,7 +157,8 @@ ${source.content || ''}`;
     const prompt = `Synthesize ${findings.length} findings into a brief:\n${serializedFindings}`;
     const res = await this.executeLlm(prompt);
     if (res && res.executiveSummary) {
-        return res;
+      let { executiveSummary, recommendedPatterns = [], antiPatterns = [] } = res;
+      return { executiveSummary, recommendedPatterns, antiPatterns };
     }
     
     throw new Error('LLM did not return a valid synthesis object');

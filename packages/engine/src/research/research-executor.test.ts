@@ -35,7 +35,7 @@ describe('ResearchExecutor', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockProvider = {
-            search: vi.fn().mockResolvedValue([{ url: 'test.com', title: 'Test' }])
+            search: vi.fn().mockResolvedValue([{ type: 'community', url: 'https://stackoverflow.com/questions/123', title: 'Test' }])
         };
         mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'https://stackoverflow.com/q/123', title: 'Fallback' }]);
     });
@@ -126,5 +126,32 @@ describe('ResearchExecutor', () => {
             'utf8'
         );
         expect(mockCacheSet).toHaveBeenCalled();
+    });
+    it('should filter out sources that fail quality gate evaluation', async () => {
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        const mockCacheSet = vi.fn();
+        (executor as any).cache = { get: mockCacheGet, set: mockCacheSet };
+
+        mockProvider.search = vi.fn().mockResolvedValue([
+            { type: 'community', url: 'https://stackoverflow.com/questions/123', title: 'Valid' },
+            { type: 'unknown', url: 'https://malicious.com', title: 'Invalid' }
+        ]);
+
+        const queries = [{ term: 'q1' }];
+        const { brief } = await executor.execute('t1', queries, mockProvider);
+        expect(brief.artifactPointers).toHaveLength(1);
+    });
+
+    it('should throw FallbackFailedError if fallback search also fails', async () => {
+        mockProvider.search = vi.fn().mockRejectedValue(new ResearchProviderUnavailableError('unavailable'));
+        const failingExecuteTool = vi.fn().mockRejectedValue(new Error('search_web failed'));
+        const executor = new ResearchExecutor(workspaceDir, failingExecuteTool);
+
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet };
+
+        const queries = [{ term: 'fallback-fail-test' }];
+        await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow('FallbackFailedError');
     });
 });
