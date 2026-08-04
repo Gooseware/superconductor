@@ -41,10 +41,13 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
 
     const completedInteraction = await this.poller.poll(async () => {
       const result = await this.client.getInteraction(interaction.id || interaction.name);
-      if (result.status === 'COMPLETED') {
-        return result;
+      if (result.state === 'COMPLETED') {
+        return { status: 'done', result };
       }
-      throw new Error('Interaction not completed yet');
+      if (result.state === 'FAILED' || result.state === 'ERROR') {
+        throw new Error(`Interaction failed with state: ${result.state}`);
+      }
+      return { status: 'pending' };
     });
 
     return this.mapOutputsToSources(completedInteraction);
@@ -71,7 +74,7 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
           }
         ];
       }
-      return [];
+      throw new Error('Interaction resulted in no outputs and no text');
     }
 
     return outputs.map((out: any, index: number) => {
@@ -81,14 +84,14 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
           : out.text ?? out.content ?? JSON.stringify(out);
 
       const titleStr =
-        typeof out === 'object' && out.title
+        out && typeof out === 'object' && out.title
           ? out.title
           : 'Gemini Deep Research Result';
 
       const urlStr =
-        typeof out === 'object' && out.url
+        out && typeof out === 'object' && out.url
           ? out.url
-          : typeof out === 'object' && out.sourceUrl
+          : out && typeof out === 'object' && out.sourceUrl
           ? out.sourceUrl
           : 'gemini://deep-research';
 

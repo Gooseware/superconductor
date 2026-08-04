@@ -14,6 +14,7 @@ describe('GeminiApiDeepResearchProvider', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    vi.useRealTimers();
   });
 
   it('throws ResearchProviderUnavailableError when GEMINI_API_KEY is missing', () => {
@@ -28,7 +29,7 @@ describe('GeminiApiDeepResearchProvider', () => {
       createInteraction: vi.fn().mockResolvedValue({ id: 'interaction-123' }),
       getInteraction: vi.fn().mockResolvedValue({
         id: 'interaction-123',
-        status: 'COMPLETED',
+        state: 'COMPLETED',
         outputs: [
           {
             text: 'Detailed deep research content on AI safety.',
@@ -55,30 +56,77 @@ describe('GeminiApiDeepResearchProvider', () => {
     });
   });
 
-  it('polling calls AsyncLongPoller', async () => {
+  it('polling calls AsyncLongPoller with IN_PROGRESS and then COMPLETED', async () => {
+    vi.useFakeTimers();
     process.env.GEMINI_API_KEY = 'test-api-key';
 
-    const mockClient = {
-      createInteraction: vi.fn().mockResolvedValue({ id: 'interaction-456' }),
-      getInteraction: vi.fn().mockResolvedValue({
+    const getInteractionMock = vi.fn()
+      .mockResolvedValueOnce({
         id: 'interaction-456',
-        status: 'COMPLETED',
+        state: 'IN_PROGRESS'
+      })
+      .mockResolvedValueOnce({
+        id: 'interaction-456',
+        state: 'COMPLETED',
         outputs: [
           { text: 'Sample result text' }
         ]
-      })
+      });
+
+    const mockClient = {
+      createInteraction: vi.fn().mockResolvedValue({ id: 'interaction-456' }),
+      getInteraction: getInteractionMock
     } as unknown as GeminiInteractionsClient;
 
-    const mockPoller = new AsyncLongPoller<any>();
-    const pollSpy = vi.spyOn(mockPoller, 'poll');
-
+    const mockPoller = new AsyncLongPoller<any>({ pollIntervalMs: 100 });
+    
     const provider = new GeminiApiDeepResearchProvider({
       client: mockClient,
       poller: mockPoller
     });
 
-    await provider.search({ term: 'test polling' });
+    const promise = provider.search({ term: 'test polling' });
+    
+    // Fast-forward past the initial poll interval
+    await vi.runAllTimersAsync();
+    
+    const results = await promise;
+    expect(getInteractionMock).toHaveBeenCalledTimes(2);
+    expect(results).toHaveLength(1);
+    expect(results[0].content).toBe('Sample result text');
+  });
 
-    expect(pollSpy).toHaveBeenCalled();
+  it('polling handles FAILED state by throwing an error', async () => {
+    vi.useFakeTimers();
+    process.env.GEMINI_API_KEY = 'test-api-key';
+
+    const getInteractionMock = vi.fn()
+      .mockResolvedValueOnce({
+        id: 'interaction-456',
+        state: 'IN_PROGRESS'
+      })
+      .mockResolvedValueOnce({
+        id: 'interaction-456',
+        state: 'FAILED'
+      });
+
+    const mockClient = {
+      createInteraction: vi.fn().mockResolvedValue({ id: 'interaction-456' }),
+      getInteraction: getInteractionMock
+    } as unknown as GeminiInteractionsClient;
+
+    const mockPoller = new AsyncLongPoller<any>({ pollIntervalMs: 100 });
+    
+    const provider = new GeminiApiDeepResearchProvider({
+      client: mockClient,
+      poller: mockPoller
+    });
+
+    const promise = provider.search({ term: 'test failure' });
+    promise.catch(() => {});
+    
+    await vi.runAllTimersAsync();
+    
+    await expect(promise).rejects.toThrow(/Interaction failed with state: FAILED/);
   });
 });

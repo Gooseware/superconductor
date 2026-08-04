@@ -14,24 +14,72 @@ export class VertexAiDeepResearchProvider implements IResearchProvider {
     this.poller = poller || new AsyncLongPoller<any>();
   }
 
-  async invoke(query: string): Promise<string> {
+  async invoke(query: string): Promise<any> {
     const interaction = await this.client.createInteraction({ background: true, query });
     return this.poller.poll(async () => {
       const result = await this.client.getInteraction(interaction.id || interaction.name);
-      if (result.status === 'COMPLETED') {
-        const text = result.outputs?.[0]?.text ?? result.outputs?.[0]?.content ?? '';
-        return text;
+      if (result.state === 'COMPLETED') {
+        return { status: 'done', result };
       }
-      throw new Error('Not completed yet');
+      if (result.state === 'FAILED' || result.state === 'ERROR') {
+        throw new Error(`Interaction failed with state: ${result.state}`);
+      }
+      return { status: 'pending' };
     });
   }
 
   async search(query: IResearchQuery): Promise<IResearchSource[]> {
-    const content = await this.invoke(query.term);
-    return [{
-      url: 'vertexai://deep-research',
-      title: 'Vertex AI Deep Research Result',
-      content
-    }];
+    const interaction = await this.invoke(query.term);
+    return this.mapOutputsToSources(interaction);
+  }
+
+  private mapOutputsToSources(interaction: any): IResearchSource[] {
+    const outputs = interaction?.outputs || [];
+    if (!Array.isArray(outputs) || outputs.length === 0) {
+      if (typeof interaction === 'string') {
+        return [
+          {
+            url: 'vertexai://deep-research',
+            title: 'Vertex AI Deep Research Result',
+            content: interaction
+          }
+        ];
+      }
+      if (interaction?.text) {
+        return [
+          {
+            url: 'vertexai://deep-research',
+            title: 'Vertex AI Deep Research Result',
+            content: interaction.text
+          }
+        ];
+      }
+      throw new Error('Interaction resulted in no outputs and no text');
+    }
+
+    return outputs.map((out: any, index: number) => {
+      const contentStr =
+        typeof out === 'string'
+          ? out
+          : out.text ?? out.content ?? JSON.stringify(out);
+
+      const titleStr =
+        out && typeof out === 'object' && out.title
+          ? out.title
+          : 'Vertex AI Deep Research Result';
+
+      const urlStr =
+        out && typeof out === 'object' && out.url
+          ? out.url
+          : out && typeof out === 'object' && out.sourceUrl
+          ? out.sourceUrl
+          : 'vertexai://deep-research';
+
+      return {
+        url: urlStr,
+        title: titleStr,
+        content: contentStr
+      };
+    });
   }
 }

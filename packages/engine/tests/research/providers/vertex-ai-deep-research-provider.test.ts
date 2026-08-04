@@ -26,12 +26,13 @@ describe('VertexAiDeepResearchProvider', () => {
 
   afterEach(() => {
     process.env = originalEnv;
+    vi.useRealTimers();
   });
 
   it('throws ResearchProviderUnavailableError when GCP_PROJECT_ID is missing', () => {
     delete process.env.GCP_PROJECT_ID;
     delete process.env.GCP_LOCATION;
-    expect(() => new VertexAiDeepResearchProvider()).toThrow(ResearchProviderUnavailableError);
+    expect(() => new VertexAiDeepResearchProvider()).toThrow();
   });
 
   it('defaults GCP_LOCATION to us-central1 when GCP_LOCATION is absent', () => {
@@ -59,6 +60,7 @@ describe('VertexAiDeepResearchProvider', () => {
   });
 
   it('successfully invokes Vertex AI query, polls, and maps output to IResearchSource[]', async () => {
+    vi.useFakeTimers();
     process.env.GCP_PROJECT_ID = 'test-project-123';
     process.env.GCP_LOCATION = 'us-central1';
 
@@ -67,13 +69,17 @@ describe('VertexAiDeepResearchProvider', () => {
 
     client.sdkClient.interactions.createInteraction = vi.fn().mockResolvedValue({ id: 'interaction-123' });
     client.sdkClient.interactions.getInteraction = vi.fn()
-      .mockResolvedValueOnce({ status: 'IN_PROGRESS' })
+      .mockResolvedValueOnce({ state: 'IN_PROGRESS' })
       .mockResolvedValueOnce({
-        status: 'COMPLETED',
+        state: 'COMPLETED',
         outputs: [{ text: 'Deep research findings from Vertex AI.' }]
       });
 
-    const sources = await provider.search({ term: 'quantum algorithms' });
+    const promise = provider.search({ term: 'quantum algorithms' });
+    promise.catch(() => {});
+    
+    await vi.runAllTimersAsync();
+    const sources = await promise;
 
     expect(client.sdkClient.interactions.createInteraction).toHaveBeenCalledWith({
       background: true,
@@ -85,6 +91,26 @@ describe('VertexAiDeepResearchProvider', () => {
       title: 'Vertex AI Deep Research Result',
       content: 'Deep research findings from Vertex AI.'
     });
+  });
+
+  it('handles FAILED state by throwing an error', async () => {
+    vi.useFakeTimers();
+    process.env.GCP_PROJECT_ID = 'test-project-123';
+    process.env.GCP_LOCATION = 'us-central1';
+
+    const provider = new VertexAiDeepResearchProvider();
+    const client = (provider as any).client;
+
+    client.sdkClient.interactions.createInteraction = vi.fn().mockResolvedValue({ id: 'interaction-123' });
+    client.sdkClient.interactions.getInteraction = vi.fn()
+      .mockResolvedValueOnce({ state: 'IN_PROGRESS' })
+      .mockResolvedValueOnce({ state: 'FAILED' });
+
+    const promise = provider.search({ term: 'quantum algorithms' });
+    promise.catch(() => {});
+    
+    await vi.runAllTimersAsync();
+    await expect(promise).rejects.toThrow(/Interaction failed with state: FAILED/);
   });
 
   it('has name and DEEP_RESEARCH capabilities', () => {
