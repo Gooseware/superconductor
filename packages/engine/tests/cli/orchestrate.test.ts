@@ -271,7 +271,7 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                 if (reviewCallCount === 1) {
                     // First review: FAILED so the loop calls remediateFn
                     return [
-                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ domain: 'src/auth.ts', message: 'bug 1' }, { domain: 'src/api.ts', message: 'bug 2' }] }, timedOut: false },
+                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'bug 1' }, { finding_id: '2', severity: 'medium', category: 'correctness', file: 'src/api.ts', line_range: 'all', domain: 'src/api.ts', message: 'bug 2' }] }, timedOut: false },
                         { reviewerId: 'r2', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r3', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r4', findings: { status: 'RESOLVED' }, timedOut: false },
@@ -330,7 +330,7 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                 reviewCallCount2++;
                 if (reviewCallCount2 === 1) {
                     return [
-                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ domain: 'src/auth.ts', message: 'bug A' }, { domain: 'src/auth.ts', message: 'bug B' }] }, timedOut: false },
+                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'bug A' }, { finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'bug B' }] }, timedOut: false },
                         { reviewerId: 'r2', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r3', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r4', findings: { status: 'RESOLVED' }, timedOut: false },
@@ -376,8 +376,8 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                     return {
                         status: 'FAILED',
                         findings: [
-                            { domain: 'src/auth.ts', message: 'issue 1' },
-                            { domain: 'src/payments.ts', message: 'issue 2' },
+                            { finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'issue 1' },
+                            { finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/payments.ts', line_range: 'all', domain: 'src/payments.ts', message: 'issue 2' },
                         ],
                     };
                 }
@@ -387,7 +387,8 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                 // Mirror the production domain-partitioned logic inline to test the return value shape
                 const domainGroups = new Map<string, unknown[]>();
                 for (const finding of payloads as Array<Record<string, unknown>>) {
-                    const domain = (finding['domain'] as string) || 'general';
+                    const nested = (finding['finding'] as Record<string, unknown>) || finding;
+                    const domain = (nested['domain'] as string) || 'general';
                     if (!domainGroups.has(domain)) domainGroups.set(domain, []);
                     domainGroups.get(domain)!.push(finding);
                 }

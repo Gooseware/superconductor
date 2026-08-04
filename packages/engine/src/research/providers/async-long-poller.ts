@@ -8,8 +8,8 @@ export class AsyncLongPoller<T> {
   private maxWaitMs: number;
   
   constructor(options: LongPollerOptions = {}) {
-    this.pollIntervalMs = options.pollIntervalMs || 1000;
-    this.maxWaitMs = options.maxWaitMs || 30000;
+    this.pollIntervalMs = options.pollIntervalMs ?? 1000;
+    this.maxWaitMs = options.maxWaitMs ?? 30000;
   }
   
   async poll(fn: () => Promise<T>): Promise<T> {

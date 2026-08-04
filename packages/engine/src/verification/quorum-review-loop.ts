@@ -101,14 +101,11 @@ export class QuorumReviewLoop {
             }
 
             if (this.remediateFn && result.findings && result.findings.length > 0) {
-                const payloads = result.findings.map(finding => {
-                    // Try to map to KeyholePayload if it looks like a finding object
-                    if (isValidFinding(finding)) {
-                        return KeyholeFeedbackExtractor.extractPayload(finding, currentCode, this.workUnitSpec);
-                    }
-                    // Fallback for primitive tests
-                    return finding;
-                });
+                const payloads = result.findings
+                    .filter(finding => isValidFinding(finding))
+                    .map(finding => {
+                        return KeyholeFeedbackExtractor.extractPayload(finding as any, currentCode, this.workUnitSpec);
+                    });
                 currentCode = await this.withTimeout(this.remediateFn(payloads));
             }
         }

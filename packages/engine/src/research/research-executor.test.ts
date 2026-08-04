@@ -35,9 +35,9 @@ describe('ResearchExecutor', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockProvider = {
-            search: vi.fn().mockResolvedValue([{ url: 'test.com', title: 'Test' }])
+            search: vi.fn().mockResolvedValue([{ type: 'community', url: 'https://github.com/q/123', title: 'Test' }])
         };
-        mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'https://stackoverflow.com/q/123', title: 'Fallback' }]);
+        mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'https://github.com/q/123', title: 'Fallback' }]);
     });
 
     it('should throw ResearchBudgetExceededError if >3 queries', async () => {

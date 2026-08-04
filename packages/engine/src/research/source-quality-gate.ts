@@ -32,7 +32,7 @@ export class ResearchSourceQualityGate {
 
     try {
       const url = new URL(source.url);
-      if (url.hostname !== 'github.com' && url.hostname !== 'www.github.com') {
+      if (url.hostname !== 'github.com' && !url.hostname.endsWith('.github.com')) {
         return { passed: false, reason: 'URL must belong to github.com' };
       }
     } catch (e) {

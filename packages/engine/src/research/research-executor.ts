@@ -5,7 +5,10 @@ import { SemanticCache } from '@superconductor/core/src/cache/semantic-cache.js'
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine } from '@superconductor/core/src/track/work-unit.js';
 import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-error.js';
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
+import { FallbackFailedError } from './errors.js';
 import { ResearchBriefSynthesizer } from './brief-synthesizer.js';
+import { AgentConfigReader } from './agent-config-reader.js';
+import { ResearchProviderRegistry } from './provider-registry.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchSourceQualityGate } from './source-quality-gate.js';
 
@@ -27,7 +30,7 @@ export class ResearchExecutor {
     public async execute(
         trackId: string, 
         queries: IResearchQuery[], 
-        provider: IResearchProvider,
+        provider?: IResearchProvider,
         workUnit?: WorkUnit
     ): Promise<{ brief: IResearchBrief; updatedWorkUnit?: WorkUnit }> {
         if (queries.length > 3) {
@@ -45,6 +48,7 @@ export class ResearchExecutor {
         
         // Sanitize trackId to prevent Path Traversal (SEC-1)
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '');
+        if (!safeTrackId) throw new Error('Invalid trackId');
         const outDir = path.join(this.workspaceDir, '.superconductor', 'research', safeTrackId);
         
         if (cached) {
@@ -55,13 +59,26 @@ export class ResearchExecutor {
             return { brief: cached, updatedWorkUnit };
         }
 
+        
+        if (!provider) {
+            const configInfo = AgentConfigReader.getResearchProviderConfig(this.workspaceDir);
+            const providerName = configInfo?.providerName || 'google';
+            const options = configInfo?.options || {};
+            const registry = new ResearchProviderRegistry();
+            provider = registry.resolve(providerName, options, this.executeTool);
+        }
+
         const results: IResearchSource[] = [];
         let fallbackFailed = false;
 
         try {
             for (const query of queries) {
                 const searchResults = await provider.search(query);
-                results.push(...searchResults);
+                for (const source of searchResults) {
+                    if (this.qualityGate.evaluate(source as any).passed === true) {
+                        results.push(source);
+                    }
+                }
             }
         } catch (error) {
             if (error instanceof ResearchProviderUnavailableError) {
@@ -80,7 +97,7 @@ export class ResearchExecutor {
                         }
                     } catch (fallbackError) {
                         console.error('[ResearchExecutor] Fallback search_web also failed:', fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
-                        throw fallbackError;
+                        fallbackFailed = true;
                     }
                 }
             } else {
@@ -89,7 +106,7 @@ export class ResearchExecutor {
         }
 
         if (fallbackFailed && results.length === 0) {
-            throw new Error('FallbackFailedError: Both primary and fallback providers failed.'); // Explicit failure (COR-3, ADV-2)
+            throw new FallbackFailedError('Both primary and fallback providers failed.'); // Explicit failure (COR-3, ADV-2)
         }
 
         if (results.length === 0) {

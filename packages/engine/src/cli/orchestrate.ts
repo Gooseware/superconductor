@@ -325,11 +325,16 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                     
                                     if (finding && typeof finding === 'object') {
                                         const filePath = (finding['file'] as string) || (finding['filePath'] as string);
-                                        const lineRange = finding['line_range'] as string;
                                         if (filePath) {
-                                            const diskLines = readFileSafely(workspaceDir, filePath, lineRange);
+                                            const diskLines = readFileSafely(workspaceDir, filePath, 'all');
                                             if (diskLines) {
-                                                item['contextLines'] = diskLines;
+                                                try {
+                                                    const extracted = KeyholeFeedbackExtractor.extractPayload(finding as any, diskLines, wu.spec ?? '');
+                                                    item['contextLines'] = extracted.contextLines;
+                                                } catch (e: any) {
+                                                    console.warn(`[orchestrate] payload extraction failed: ${e.message}`);
+                                                    // item['contextLines'] left unset; codeWithContext fallback handled upstream
+                                                }
                                             }
                                         }
                                     }
