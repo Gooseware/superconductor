@@ -5,11 +5,13 @@ export interface IResearchQuery {
   intent?: string;
 }
 
-export interface IResearchSource {
-  url: string;
-  title?: string;
-  content?: string;
-}
+export const ResearchSourceSchema = z.object({
+  url: z.string(),
+  title: z.string().optional(),
+  content: z.string().optional()
+});
+
+export interface IResearchSource extends z.infer<typeof ResearchSourceSchema> {}
 
 export interface IResearchProvider {
   search(query: IResearchQuery): Promise<IResearchSource[]>;

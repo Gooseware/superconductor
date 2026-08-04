@@ -36,6 +36,24 @@ describe('ResearchBriefSynthesizer', () => {
     }
   });
 
+
+  it("uses source.content ?? source.title ?? source.url as input in llmMapSource", async () => {
+    const sourceTitleOnly: IResearchSource = {
+      url: "https://example.com/title-only",
+      title: "Only title provided"
+    };
+    await synthesizer.llmMapSource(sourceTitleOnly);
+    const promptTitle = mockExecuteLlm.mock.calls[mockExecuteLlm.mock.calls.length - 1][0];
+    expect(promptTitle).toContain("Content:\nOnly title provided");
+
+    const sourceUrlOnly: IResearchSource = {
+      url: "https://example.com/url-only"
+    };
+    await synthesizer.llmMapSource(sourceUrlOnly);
+    const promptUrl = mockExecuteLlm.mock.calls[mockExecuteLlm.mock.calls.length - 1][0];
+    expect(promptUrl).toContain("Content:\nhttps://example.com/url-only");
+  });
+
   it('passes source.content and source.title to LLM in llmMapSource', async () => {
     const source: IResearchSource = {
       url: 'https://example.com/spec',

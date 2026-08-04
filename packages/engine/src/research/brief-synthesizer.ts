@@ -141,7 +141,8 @@ ${source.content || ''}`;
   }
 
   public async llmMapSource(source: IResearchSource): Promise<ResearchFindingWithScore[]> {
-    const prompt = `Extract structured findings from ${source.url}\nTitle: ${source.title || ''}\nContent:\n${source.content || ''}`;
+    const sourceText = source.content ?? source.title ?? source.url;
+    const prompt = `Extract structured findings from ${source.url}\nTitle: ${source.title || ''}\nContent:\n${sourceText}`;
     const res = await this.executeLlm(prompt);
     if (Array.isArray(res)) return res;
     
