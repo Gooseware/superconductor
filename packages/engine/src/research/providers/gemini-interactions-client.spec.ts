@@ -117,4 +117,73 @@ describe('GeminiInteractionsClient', () => {
       vi.unstubAllGlobals();
     });
   });
+
+  describe('getInteraction', () => {
+    it('uses sdkClient.interactions if present', async () => {
+      process.env.GEMINI_API_KEY = 'test-key';
+      const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
+      client.sdkClient.interactions = {
+        getInteraction: vi.fn().mockResolvedValue({ id: '123' })
+      };
+      const res = await client.getInteraction('123');
+      expect(res.id).toBe('123');
+      expect(client.sdkClient.interactions.getInteraction).toHaveBeenCalledWith('123');
+    });
+
+    it('falls back to fetch if sdkClient.interactions is absent (apiKey)', async () => {
+      process.env.GEMINI_API_KEY = 'test-key';
+      const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
+      client.sdkClient.interactions = undefined;
+      
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'fallback-123' })
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const res = await client.getInteraction('fallback-123');
+      expect(res.id).toBe('fallback-123');
+      expect(fetchMock).toHaveBeenCalled();
+      
+      vi.unstubAllGlobals();
+    });
+
+    it('falls back to fetch if sdkClient.interactions is absent (vertexai)', async () => {
+      process.env.GCP_PROJECT_ID = 'test-project';
+      process.env.GCP_LOCATION = 'us-central1';
+      process.env.GCP_ACCESS_TOKEN = 'test-token';
+      const client = new GeminiInteractionsClient({ authMode: 'vertexai' });
+      client.sdkClient.interactions = undefined;
+      
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'fallback-vertex-123' })
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const res = await client.getInteraction('fallback-vertex-123');
+      expect(res.id).toBe('fallback-vertex-123');
+      expect(fetchMock).toHaveBeenCalled();
+      
+      vi.unstubAllGlobals();
+    });
+    
+    it('throws HttpError on non-ok fetch response', async () => {
+      process.env.GEMINI_API_KEY = 'test-key';
+      const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
+      client.sdkClient.interactions = undefined;
+      
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        headers: new Headers()
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(client.getInteraction('123')).rejects.toThrow(HttpError);
+      
+      vi.unstubAllGlobals();
+    });
+  });
 });

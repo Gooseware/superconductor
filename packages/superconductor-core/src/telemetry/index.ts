@@ -29,7 +29,12 @@ export class FileTelemetryStore implements TelemetryStore {
     private queue: Promise<void> = Promise.resolve();
 
     constructor(filePath: string) {
-        this.filePath = filePath;
+        const baseDir = process.cwd();
+        const resolvedPath = path.resolve(baseDir, filePath);
+        if (!resolvedPath.startsWith(baseDir)) {
+            throw new Error("Invalid file path: Must be within base directory");
+        }
+        this.filePath = resolvedPath;
     }
 
     private redactObject(obj: any, cache: Set<any> = new Set()): any {
@@ -38,7 +43,7 @@ export class FileTelemetryStore implements TelemetryStore {
             const sensitiveEnvVars = Object.keys(process.env).filter(key => key === 'GEMINI_API_KEY' || key.startsWith('GCP_'));
             for (const varName of sensitiveEnvVars) {
                 const val = process.env[varName];
-                if (val && val.trim().length > 0) {
+                if (val && val.trim().length >= 8) {
                     scrubbed = scrubbed.split(val).join('[REDACTED]');
                 }
             }
@@ -65,7 +70,9 @@ export class FileTelemetryStore implements TelemetryStore {
         cache.add(obj);
 
         if (Array.isArray(obj)) {
-            return obj.map(item => this.redactObject(item, cache));
+            const mapped = obj.map(item => this.redactObject(item, cache));
+            cache.delete(obj);
+            return mapped;
         }
 
         const result: any = {};
@@ -77,6 +84,7 @@ export class FileTelemetryStore implements TelemetryStore {
                 result[key] = this.redactObject(value, cache);
             }
         }
+        cache.delete(obj);
         return result;
     }
 
@@ -111,7 +119,8 @@ export class FileTelemetryStore implements TelemetryStore {
         try {
             const redacted = this.redactObject({ type: 'TOKEN_USAGE', ...report });
             line = JSON.stringify(redacted) + '\n';
-        } catch (e) {
+        } catch (e: any) {
+            console.warn(e);
             line = '{"type":"ERROR","message":"Failed to serialize usage report"}\n';
         }
         
@@ -120,7 +129,7 @@ export class FileTelemetryStore implements TelemetryStore {
             await fs.appendFile(this.filePath, line, 'utf-8');
         });
         
-        this.queue = task.catch(() => {});
+        this.queue = task.catch((e) => { console.warn(e); });
         await task;
     }
 
@@ -142,7 +151,8 @@ export class FileTelemetryStore implements TelemetryStore {
         try {
             const redacted = this.redactObject({ type: 'METRIC', ...report });
             line = JSON.stringify(redacted) + '\n';
-        } catch (e) {
+        } catch (e: any) {
+            console.warn(e);
             line = '{"type":"ERROR","message":"Failed to serialize metric report"}\n';
         }
         
@@ -151,7 +161,7 @@ export class FileTelemetryStore implements TelemetryStore {
             await fs.appendFile(this.filePath, line, 'utf-8');
         });
         
-        this.queue = task.catch(() => {});
+        this.queue = task.catch((e) => { console.warn(e); });
         await task;
     }
 }

@@ -2,7 +2,7 @@
 
 ## Phase 1: Core Analysis Scripts [checkpoint: ]
 - [ ] Task: Create `superconductor/analyze_kernel_origin.js`.
-    - [ ] Script should accept a file path or directory and scan for `@design-os/kernel` headers.
+    - [ ] Script should accept a file path or directory and scan for `@superconductor/kernel` headers.
     - [ ] Script should look for `sourceUrl` in the track's `metadata.json`.
     - [ ] Output a JSON report of all kernel-sourced files.
 - [ ] Task: Create `superconductor/analyze_impact.js`.

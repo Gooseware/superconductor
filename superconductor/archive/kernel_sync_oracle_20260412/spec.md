@@ -5,7 +5,7 @@ Enhance the Oracle Code Review Loop to automatically identify when a modified to
 
 ## Functional Requirements
 1. **Origin Detection (Script-Based):** 
-   - Develop `superconductor/analyze_kernel_origin.js` to scan for `@design-os/kernel` code headers and check the track's `metadata.json` for `sourceUrl`.
+   - Develop `superconductor/analyze_kernel_origin.js` to scan for `@superconductor/kernel` code headers and check the track's `metadata.json` for `sourceUrl`.
    - **Performance:** This must be a lightweight script to avoid bloating the agent's context.
 2. **Impact Classification (Hybrid):**
    - Develop `superconductor/analyze_impact.js` (using an AST parser or simple diff logic) to categorize changes:

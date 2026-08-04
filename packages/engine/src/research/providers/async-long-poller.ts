@@ -21,6 +21,7 @@ export class AsyncLongPoller<T = any> {
     try {
       response = await operation();
     } catch (e: any) {
+      console.warn(e);
       let is429 = false;
       if (e && e.status === 429) {
         is429 = true;
@@ -67,7 +68,7 @@ export class AsyncLongPoller<T = any> {
       return response.result as T;
     }
 
-    let baseDelay = (response && response.retryAfter) ? response.retryAfter * 1000 : this.pollIntervalMs * Math.pow(2, attempt);
+    let baseDelay = (response && response.retryAfter !== undefined) ? response.retryAfter * 1000 : this.pollIntervalMs * Math.pow(2, attempt);
     if (isNaN(baseDelay)) {
       baseDelay = this.pollIntervalMs * Math.pow(2, attempt);
     }
