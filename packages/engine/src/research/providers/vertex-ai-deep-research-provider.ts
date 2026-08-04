@@ -1,6 +1,12 @@
 import { IResearchProvider, IResearchQuery, IResearchSource } from '../types.js';
 import { GeminiInteractionsClient } from './gemini-interactions-client.js';
-import { AsyncLongPoller } from './async-long-poller.js';
+import { AsyncLongPoller, LongPollerOptions } from './async-long-poller.js';
+
+export interface VertexAiDeepResearchProviderOptions {
+  client?: GeminiInteractionsClient;
+  poller?: AsyncLongPoller<any>;
+  pollerOptions?: LongPollerOptions;
+}
 
 export class VertexAiDeepResearchProvider implements IResearchProvider {
   name = 'Vertex AI Deep Research';
@@ -9,28 +15,34 @@ export class VertexAiDeepResearchProvider implements IResearchProvider {
   private client: GeminiInteractionsClient;
   private poller: AsyncLongPoller<any>;
 
-  constructor(client?: GeminiInteractionsClient, poller?: AsyncLongPoller<any>) {
-    this.client = client || new GeminiInteractionsClient({ authMode: 'vertexai' });
-    this.poller = poller || new AsyncLongPoller<any>();
+  constructor(options: VertexAiDeepResearchProviderOptions = {}) {
+    this.client = options.client || new GeminiInteractionsClient({ authMode: 'vertexai' });
+    this.poller = options.poller || new AsyncLongPoller<any>(options.pollerOptions);
   }
 
-  async invoke(query: string): Promise<any> {
-    const interaction = await this.client.createInteraction({ background: true, query });
-    return this.poller.poll(async () => {
+  async search(query: IResearchQuery): Promise<IResearchSource[]> {
+    const interaction = await this.client.createInteraction({
+      background: true,
+      input: query.term,
+      intent: query.intent
+    });
+
+    if (!interaction || (!interaction.id && !interaction.name)) {
+      throw new Error('Provider returned an interaction without an ID or name');
+    }
+
+    const completedInteraction = await this.poller.poll(async () => {
       const result = await this.client.getInteraction(interaction.id || interaction.name);
       if (result.state === 'COMPLETED') {
         return { status: 'done', result };
       }
-      if (result.state === 'FAILED' || result.state === 'ERROR') {
+      if (result.state === 'FAILED' || result.state === 'ERROR' || result.state === 'CANCELED' || result.state === 'ABORTED') {
         throw new Error(`Interaction failed with state: ${result.state}`);
       }
       return { status: 'pending' };
     });
-  }
 
-  async search(query: IResearchQuery): Promise<IResearchSource[]> {
-    const interaction = await this.invoke(query.term);
-    return this.mapOutputsToSources(interaction);
+    return this.mapOutputsToSources(completedInteraction);
   }
 
   private mapOutputsToSources(interaction: any): IResearchSource[] {
@@ -61,7 +73,7 @@ export class VertexAiDeepResearchProvider implements IResearchProvider {
       const contentStr =
         typeof out === 'string'
           ? out
-          : out.text ?? out.content ?? JSON.stringify(out);
+          : out?.text ?? out?.content ?? JSON.stringify(out);
 
       const titleStr =
         out && typeof out === 'object' && out.title

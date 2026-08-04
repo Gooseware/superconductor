@@ -29,9 +29,6 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
   }
 
   async search(query: IResearchQuery): Promise<IResearchSource[]> {
-    if (!process.env.GEMINI_API_KEY && !this.client) {
-      throw new ResearchProviderUnavailableError('Missing GEMINI_API_KEY');
-    }
 
     const interaction = await this.client.createInteraction({
       background: true,
@@ -39,12 +36,16 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
       intent: query.intent
     });
 
+    if (!interaction || (!interaction.id && !interaction.name)) {
+      throw new Error('Provider returned an interaction without an ID or name');
+    }
+
     const completedInteraction = await this.poller.poll(async () => {
       const result = await this.client.getInteraction(interaction.id || interaction.name);
       if (result.state === 'COMPLETED') {
         return { status: 'done', result };
       }
-      if (result.state === 'FAILED' || result.state === 'ERROR') {
+      if (result.state === 'FAILED' || result.state === 'ERROR' || result.state === 'CANCELED' || result.state === 'ABORTED') {
         throw new Error(`Interaction failed with state: ${result.state}`);
       }
       return { status: 'pending' };
@@ -81,7 +82,7 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
       const contentStr =
         typeof out === 'string'
           ? out
-          : out.text ?? out.content ?? JSON.stringify(out);
+          : out?.text ?? out?.content ?? JSON.stringify(out);
 
       const titleStr =
         out && typeof out === 'object' && out.title

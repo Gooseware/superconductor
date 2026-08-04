@@ -83,7 +83,8 @@ describe('VertexAiDeepResearchProvider', () => {
 
     expect(client.sdkClient.interactions.createInteraction).toHaveBeenCalledWith({
       background: true,
-      query: 'quantum algorithms'
+      input: 'quantum algorithms',
+      intent: undefined
     });
     expect(sources).toHaveLength(1);
     expect(sources[0]).toEqual({
