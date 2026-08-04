@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { FileTelemetryStore, TokenUsageReport } from '../src/telemetry/index';
+import { FileTelemetryStore, TokenUsageReport, MetricReport } from '../src/telemetry/index';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 
@@ -127,5 +127,38 @@ describe('FileTelemetryStore', () => {
         delete process.env.GEMINI_API_KEY;
         delete process.env.GCP_PROJECT_ID;
         delete process.env.GCP_LOCATION;
+    });
+
+    it("should redact GEMINI_API_KEY and GCP_* payload values to [REDACTED]", async () => {
+        const store = new FileTelemetryStore(testLogFile);
+
+        delete process.env.GEMINI_API_KEY;
+        delete process.env.GCP_PROJECT_ID;
+        delete process.env.GCP_LOCATION;
+
+        const metricReport: MetricReport = {
+            trackId: "metric-track",
+            metricType: "DISPATCH_COUNT",
+            value: 1,
+            metadata: {
+                GEMINI_API_KEY: "secret-gemini-key-val-999",
+                GCP_PROJECT_ID: "my-gcp-project-888",
+                GCP_LOCATION: "us-central1"
+            },
+            timestamp: 123456
+        };
+
+        await store.recordMetric!(metricReport);
+
+        const content = await fs.readFile(testLogFile, "utf-8");
+        const lines = content.trim().split("\n");
+        const metricParsed = JSON.parse(lines[lines.length - 1]);
+
+        expect(metricParsed.metadata.GEMINI_API_KEY).toBe("[REDACTED]");
+        expect(metricParsed.metadata.GCP_PROJECT_ID).toBe("[REDACTED]");
+        expect(metricParsed.metadata.GCP_LOCATION).toBe("[REDACTED]");
+
+        expect(content).not.toContain("secret-gemini-key-val-999");
+        expect(content).not.toContain("my-gcp-project-888");
     });
 });
