@@ -9,7 +9,7 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
   private consecutiveFailures = 0;
   private qualityGate = new ResearchSourceQualityGate();
 
-  constructor(private executeTool: ExecuteToolFn = async () => "") {}
+  constructor(private executeTool: ExecuteToolFn = async () => "", public options?: any) {}
 
   public async search(query: IResearchQuery): Promise<IResearchSource[]> {
     if (this.consecutiveFailures >= 3) {
@@ -61,12 +61,12 @@ export class GoogleDeepResearchProvider implements IResearchProvider {
         if (validSources.length > 0) {
           return validSources;
         }
+        
+        if (parsedResults.length > 0 && validSources.length === 0) {
+            throw new ResearchProviderUnavailableError('Google Deep Research provider failed: no sources passed quality gate');
+        }
 
-        const fallbackString = typeof rawResults === 'string' ? rawResults : JSON.stringify(rawResults);
-        return [{
-          url: `<untrusted_research_results>search_web_results</untrusted_research_results>`,
-          title: `<untrusted_research_results>${sanitizeUntrustedText(fallbackString)}</untrusted_research_results>`,
-        }];
+        return [];
       } catch (err) {
         retries++;
         if (retries > maxRetries) {

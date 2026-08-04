@@ -3,17 +3,17 @@ import { GoogleDeepResearchProvider } from './providers/google-deep-research-pro
 import { GeminiApiDeepResearchProvider } from './providers/gemini-api-deep-research-provider.js';
 import { VertexAiDeepResearchProvider } from './providers/vertex-ai-deep-research-provider.js';
 
+export interface ResearchToolExecutor {
+    execute(toolName: string, params: Record<string, unknown>): Promise<unknown>;
+}
+
 export class ResearchProviderRegistry {
-  resolve(providerName: string = 'google', options?: any): IResearchProvider {
+  resolve(providerName: string = 'google', options?: { authMode?: 'apiKey' | 'vertexai' }, executeTool?: ResearchToolExecutor | any): IResearchProvider {
     if (providerName === 'google') {
-      return new GoogleDeepResearchProvider();
+      return new GoogleDeepResearchProvider(executeTool, options);
     }
-    if (providerName === 'gemini_api_deep_research' || providerName === 'gemini-api-deep-research') {
-      return new GeminiApiDeepResearchProvider(options);
-    }
-    
-    if (providerName === 'vertex_ai_deep_research' || providerName === 'vertex-ai-deep-research') {
-      return new VertexAiDeepResearchProvider(options);
+    if (providerName === 'gemini_api_deep_research') {
+      return new GeminiAPIProvider(options);
     }
     throw new Error(`Unknown research provider requested: ${providerName}`);
   }

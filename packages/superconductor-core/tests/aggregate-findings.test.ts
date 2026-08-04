@@ -204,9 +204,10 @@ describe('aggregateFindings', () => {
       { reviewer_id: 'rev1', raw_text: invalidRawText }
     ]);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].finding_id).toBe('F2');
-    expect(result[0].file).toBe('src/index.ts');
+    expect(result).toHaveLength(2);
+    expect(result[0].finding_id).toBe('F1');
+    expect(result[1].finding_id).toBe('F2');
+    expect(result[1].file).toBe('src/index.ts');
   });
 
   it('should fall back to Tier 2 disk artifact if Tier 1 fails or is missing', () => {

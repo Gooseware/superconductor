@@ -9,8 +9,8 @@ export class GeminiAPIProvider implements IResearchProvider {
   private client: GeminiInteractionsClient;
   private poller: AsyncLongPoller<any>;
 
-  constructor(options?: any) {
-    this.client = new GeminiInteractionsClient(options);
+  constructor(public options?: any) {
+    this.client = new GeminiInteractionsClient();
     this.poller = new AsyncLongPoller<any>();
   }
 

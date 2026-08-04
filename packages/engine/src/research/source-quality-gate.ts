@@ -32,7 +32,7 @@ export class ResearchSourceQualityGate {
 
     try {
       const url = new URL(source.url);
-      if (url.hostname !== 'github.com' && url.hostname !== 'www.github.com') {
+      if (url.hostname !== 'github.com' && !url.hostname.endsWith('.github.com')) {
         return { passed: false, reason: 'URL must belong to github.com' };
       }
     } catch (e) {
@@ -85,7 +85,7 @@ export class ResearchSourceQualityGate {
     try {
       const url = new URL(source.url);
       const host = url.hostname;
-      const exactDomains = ['github.com', 'stackoverflow.com', 'developer.mozilla.org', 'docs.github.com', 'docs.docker.com'];
+      const exactDomains = ['github.com', 'stackoverflow.com', 'developer.mozilla.org', 'docs.github.com', 'docs.docker.com', 'docs.microsoft.com', 'npmjs.com', 'pypi.org'];
       
       let isAllowed = exactDomains.some(domain => host === domain || host.endsWith('.' + domain));
       

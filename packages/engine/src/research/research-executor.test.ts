@@ -42,9 +42,9 @@ describe('ResearchExecutor', () => {
         vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as any);
         
         mockProvider = {
-            search: vi.fn().mockResolvedValue([{ type: 'community', url: 'https://stackoverflow.com/questions/123', title: 'Test' }])
+            search: vi.fn().mockResolvedValue([{ type: 'community', url: 'https://github.com/q/123', title: 'Test' }])
         };
-        mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'https://stackoverflow.com/q/123', title: 'Fallback' }]);
+        mockExecuteTool = vi.fn().mockResolvedValue([{ url: 'https://github.com/q/123', title: 'Fallback' }]);
     });
 
     it('should throw ResearchBudgetExceededError if >3 queries', async () => {

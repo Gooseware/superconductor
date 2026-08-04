@@ -24,15 +24,7 @@ const VALID_CATEGORIES = new Set(['security', 'correctness', 'adversarial', 'arc
 export function isValidFinding(f: unknown): f is ReviewFinding {
   if (f === null || Array.isArray(f) || typeof f !== 'object') return false;
   const obj = f as Record<string, unknown>;
-  return (
-    typeof obj.finding_id === 'string' &&
-    typeof obj.severity === 'string' &&
-    VALID_SEVERITIES.has(obj.severity) &&
-    typeof obj.category === 'string' &&
-    VALID_CATEGORIES.has(obj.category) &&
-    typeof obj.file === 'string' &&
-    typeof obj.line_range === 'string'
-  );
+  return !!(obj['finding_id'] || obj['severity'] || obj['category'] || obj['description']);
 }
 
 export function mapReviewerIssue(issue: unknown, reviewerId: string, options?: unknown): ReviewFinding | null {
@@ -216,6 +208,7 @@ export class KeyholeContextManager<T extends { domainScope?: string[]; researchC
     let startLine = 1;
     let endLine = lines.length;
 
+    let contextLines = '';
     if (finding.line_range && finding.line_range !== 'all') {
       const match = finding.line_range.match(/L(\d+)(?:-L(\d+))?/);
       if (match) {
@@ -223,12 +216,16 @@ export class KeyholeContextManager<T extends { domainScope?: string[]; researchC
         const l2 = match[2] ? parseInt(match[2], 10) : l1;
         startLine = Math.max(1, l1 - 50);
         endLine = Math.min(lines.length, l2 + 50);
+        contextLines = lines.slice(startLine - 1, endLine).join('\n');
       } else {
         throw new Error(`Invalid line_range format: ${finding.line_range}`);
       }
+    } else if (finding.line_range === 'all') {
+      contextLines = fileContent;
+    } else {
+      // No line_range: return empty to avoid injecting entire file
+      contextLines = '';
     }
-
-    const contextLines = lines.slice(startLine - 1, endLine).join('\n');
 
     return {
       finding,

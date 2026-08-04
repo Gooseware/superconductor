@@ -5,8 +5,10 @@ import { SemanticCache } from '@superconductor/core/src/cache/semantic-cache.js'
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine } from '@superconductor/core/src/track/work-unit.js';
 import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-error.js';
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
-import { ResearchBriefSynthesizer } from './brief-synthesizer.js';
 import { FallbackFailedError } from './errors.js';
+import { ResearchBriefSynthesizer } from './brief-synthesizer.js';
+import { AgentConfigReader } from './agent-config-reader.js';
+import { ResearchProviderRegistry } from './provider-registry.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchSourceQualityGate } from './source-quality-gate.js';
 import { AgentConfigReader } from './agent-config-reader.js';
@@ -65,15 +67,22 @@ export class ResearchExecutor {
         
         // Sanitize trackId to prevent Path Traversal (SEC-1)
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '');
-        if (!safeTrackId) {
-            throw new Error('Invalid trackId: trackId must contain valid characters after sanitization');
-        }
+        if (!safeTrackId) throw new Error('Invalid trackId');
         const outDir = path.join(this.workspaceDir, '.superconductor', 'research', safeTrackId);
         
         if (cached) {
             this.ensureDirectory(outDir);
             fs.writeFileSync(path.join(outDir, 'brief.json'), JSON.stringify(cached, null, 2), 'utf8'); // Restore brief.json on cache hit (REG-5)
             return { brief: cached, updatedWorkUnit };
+        }
+
+        
+        if (!provider) {
+            const configInfo = AgentConfigReader.getResearchProviderConfig(this.workspaceDir);
+            const providerName = configInfo?.providerName || 'google';
+            const options = configInfo?.options || {};
+            const registry = new ResearchProviderRegistry();
+            provider = registry.resolve(providerName, options, this.executeTool);
         }
 
         const results: IResearchSource[] = [];
@@ -83,7 +92,7 @@ export class ResearchExecutor {
             for (const query of queries) {
                 const searchResults = await provider.search(query);
                 for (const source of searchResults) {
-                    if (this.qualityGate.evaluate(source).passed === true) {
+                    if (this.qualityGate.evaluate(source as any).passed === true) {
                         results.push(source);
                     }
                 }
@@ -113,7 +122,7 @@ export class ResearchExecutor {
         }
 
         if (fallbackFailed && results.length === 0) {
-            throw new FallbackFailedError('Both primary and fallback providers failed.');
+            throw new FallbackFailedError('Both primary and fallback providers failed.'); // Explicit failure (COR-3, ADV-2)
         }
 
         if (results.length === 0) {

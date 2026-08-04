@@ -69,6 +69,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '_');
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', safeTrackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [
@@ -111,6 +115,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const safeTrackId = trackId;
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', safeTrackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'core' }]);
@@ -150,6 +158,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const safeTrackId = trackId;
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', safeTrackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [
@@ -196,6 +208,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const trackId = 'event-track';
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
 
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'dom' }]);
@@ -254,6 +270,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const trackId = 'remediate-multi-domain-track';
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'core' }]);
         const planPath = path.join(trackDir, 'plan.md');
@@ -271,7 +291,7 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                 if (reviewCallCount === 1) {
                     // First review: FAILED so the loop calls remediateFn
                     return [
-                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ domain: 'src/auth.ts', message: 'bug 1' }, { domain: 'src/api.ts', message: 'bug 2' }] }, timedOut: false },
+                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'bug 1' }, { finding_id: '2', severity: 'medium', category: 'correctness', file: 'src/api.ts', line_range: 'all', domain: 'src/api.ts', message: 'bug 2' }] }, timedOut: false },
                         { reviewerId: 'r2', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r3', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r4', findings: { status: 'RESOLVED' }, timedOut: false },
@@ -317,6 +337,10 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
         const trackId = 'remediate-single-domain-track';
         const trackDir = path.join(tmpDir, '.superconductor', 'tracks', trackId);
         fs.mkdirSync(trackDir, { recursive: true });
+        const sampleFilePath = 'src/auth.ts';
+        const fullSamplePath = path.join(tmpDir, sampleFilePath);
+        fs.mkdirSync(path.dirname(fullSamplePath), { recursive: true });
+        fs.writeFileSync(fullSamplePath, 'line 1\nline 2\nline 3\nline 4\nline 5\n', 'utf8');
         const topographyPath = path.join(tmpDir, 'topography.json');
         writeTopography(topographyPath, [{ id: 'core' }]);
         const planPath = path.join(trackDir, 'plan.md');
@@ -330,7 +354,7 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                 reviewCallCount2++;
                 if (reviewCallCount2 === 1) {
                     return [
-                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ domain: 'src/auth.ts', message: 'bug A' }, { domain: 'src/auth.ts', message: 'bug B' }] }, timedOut: false },
+                        { reviewerId: 'r1', findings: { status: 'FAILED', findings: [{ finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'bug A' }, { finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'bug B' }] }, timedOut: false },
                         { reviewerId: 'r2', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r3', findings: { status: 'RESOLVED' }, timedOut: false },
                         { reviewerId: 'r4', findings: { status: 'RESOLVED' }, timedOut: false },
@@ -354,6 +378,7 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
             (call: any[]) => call[0]?.role === 'superconductor-remediation-processor'
         );
         expect(remediatorCalls).toHaveLength(1);
+        expect(remediatorCalls[0][0].prompt).toContain('line 2');
     });
 
     it('remediateFn — return string contains "Dispatched 2 parallel" for 2-domain findings', async () => {
@@ -376,8 +401,8 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                     return {
                         status: 'FAILED',
                         findings: [
-                            { domain: 'src/auth.ts', message: 'issue 1' },
-                            { domain: 'src/payments.ts', message: 'issue 2' },
+                            { finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/auth.ts', line_range: 'all', domain: 'src/auth.ts', message: 'issue 1' },
+                            { finding_id: '1', severity: 'medium', category: 'correctness', file: 'src/payments.ts', line_range: 'all', domain: 'src/payments.ts', message: 'issue 2' },
                         ],
                     };
                 }
@@ -387,7 +412,8 @@ describe('SwarmOrchestratorCLI with IAgentSpawner', () => {
                 // Mirror the production domain-partitioned logic inline to test the return value shape
                 const domainGroups = new Map<string, unknown[]>();
                 for (const finding of payloads as Array<Record<string, unknown>>) {
-                    const domain = (finding['domain'] as string) || 'general';
+                    const nested = (finding['finding'] as Record<string, unknown>) || finding;
+                    const domain = (nested['domain'] as string) || 'general';
                     if (!domainGroups.has(domain)) domainGroups.set(domain, []);
                     domainGroups.get(domain)!.push(finding);
                 }
