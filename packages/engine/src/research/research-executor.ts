@@ -61,13 +61,15 @@ export class ResearchExecutor {
         try {
             for (const query of queries) {
                 const searchResults = await provider.search(query);
-                results.push(...searchResults);
+                for (const source of searchResults) {
+                    if (this.qualityGate.evaluate(source as any).passed) {
+                        results.push(source);
+                    }
+                }
             }
         } catch (error) {
             if (error instanceof ResearchProviderUnavailableError) {
                 console.warn('[ResearchExecutor] Degraded mode: Provider unavailable, falling back to standard search_web');
-                let successfulFallback = false;
-                let lastFallbackError: any = null;
                 for (const query of queries) {
                     try {
                         const rawResults = await this.executeTool('search_web', { query: query.term });
@@ -80,7 +82,7 @@ export class ResearchExecutor {
                         }
                     } catch (fallbackError) {
                         console.error('[ResearchExecutor] Fallback search_web also failed:', fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
-                        throw fallbackError;
+                        fallbackFailed = true;
                     }
                 }
             } else {
@@ -98,8 +100,7 @@ export class ResearchExecutor {
 
         const synthesizer = new ResearchBriefSynthesizer(outDir, this.executeLlmTool); // Local var (COR-4)
         
-        const brief = await synthesizer.synthesize(results, trackId);
-        brief.queriesExecuted = queries.map(q => q.term);
+        const brief = await synthesizer.synthesize(results, trackId, queries.map(q => q.term));
 
         if (!fs.existsSync(outDir)) {
             fs.mkdirSync(outDir, { recursive: true });

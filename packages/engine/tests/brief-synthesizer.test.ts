@@ -36,20 +36,45 @@ describe('ResearchBriefSynthesizer', () => {
     }
   });
 
-  it('passes source.content and source.title to LLM in llmMapSource', async () => {
-    const source: IResearchSource = {
-      url: 'https://example.com/spec',
-      title: 'Awesome Spec Title',
-      content: 'Detailed content of the spec for analysis'
-    };
+  describe('llmMapSource fallback chain', () => {
+    it('uses source.content when available', async () => {
+      const source: IResearchSource = {
+        url: 'https://example.com/spec',
+        title: 'Awesome Spec Title',
+        content: 'Detailed content of the spec for analysis'
+      };
 
-    await synthesizer.llmMapSource(source);
+      await synthesizer.llmMapSource(source);
 
-    expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
-    const calledPrompt = mockExecuteLlm.mock.calls[0][0];
-    expect(calledPrompt).toContain('https://example.com/spec');
-    expect(calledPrompt).toContain('Awesome Spec Title');
-    expect(calledPrompt).toContain('Detailed content of the spec for analysis');
+      expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
+      const calledPrompt = mockExecuteLlm.mock.calls[0][0];
+      expect(calledPrompt).toBe('Extract structured findings from: Detailed content of the spec for analysis');
+    });
+
+    it('falls back to source.title when source.content is missing', async () => {
+      const source: IResearchSource = {
+        url: 'https://example.com/spec',
+        title: 'Awesome Spec Title'
+      };
+
+      await synthesizer.llmMapSource(source);
+
+      expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
+      const calledPrompt = mockExecuteLlm.mock.calls[0][0];
+      expect(calledPrompt).toBe('Extract structured findings from: Awesome Spec Title');
+    });
+
+    it('falls back to source.url when both content and title are missing', async () => {
+      const source: IResearchSource = {
+        url: 'https://example.com/spec'
+      };
+
+      await synthesizer.llmMapSource(source);
+
+      expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
+      const calledPrompt = mockExecuteLlm.mock.calls[0][0];
+      expect(calledPrompt).toBe('Extract structured findings from: https://example.com/spec');
+    });
   });
 
   it('passes serialized findings to LLM in llmReduceFindings', async () => {
