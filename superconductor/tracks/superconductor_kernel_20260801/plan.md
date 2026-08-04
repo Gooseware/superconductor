@@ -54,123 +54,123 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
 
 
 
-- [ ] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Confirm `~/.gemini/config/skills/swarm-orchestrate/SKILL.md` exists
-    - [ ] Confirm `uv` is on PATH (`uv --version`)
-    - [ ] Confirm `python3 --version` ≥ 3.10
-    - [ ] Confirm `graphify --version` OR `uv tool install graphifyy` succeeds
-    - [ ] Create track branch: `git checkout -b track/superconductor_kernel_20260801`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
+    - [x] Confirm `~/.gemini/config/skills/swarm-orchestrate/SKILL.md` exists
+    - [x] Confirm `uv` is on PATH (`uv --version`)
+    - [x] Confirm `python3 --version` ≥ 3.10
+    - [x] Confirm `graphify --version` OR `uv tool install graphifyy` succeeds
+    - [x] Create track branch: `git checkout -b track/superconductor_kernel_20260801`
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
 
 ## Phase 1: Package Rename — superconductor-kernel → superconductor-kernel
 
-- [ ] Task: Write rename codemod script [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Create `scripts/rename-kernel.ts` that:
+- [x] Task: Write rename codemod script [TIER-2] [AGENT:superconductor-processor]
+    - [x] Create `scripts/rename-kernel.ts` that:
         - Renames `packages/superconductor-kernel/` → `packages/superconductor-kernel/`
         - Updates `package.json` name → `@superconductor/kernel`, version → `2.0.0`
         - Replaces all `@superconductor/kernel` and `superconductor-kernel` references in `mcp_config.json`, GEMINI.md, `~/.gemini/config/plugins/**/*.md` skill files
         - Is idempotent (running twice produces no diff)
-    - [ ] Script is committed but NOT yet executed
-- [ ] Task: Execute rename codemod and verify [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run `npx -y tsx scripts/rename-kernel.ts`
-    - [ ] Verify `packages/superconductor-kernel/` exists; `packages/superconductor-kernel/` does not
-    - [ ] Verify zero remaining `grep` matches for `superconductor-kernel` or `@superconductor/kernel` in tracked files
-    - [ ] Update `package.json` `workspaces` array if needed
-- [ ] Task: Build and smoke-test renamed kernel [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run `cd packages/superconductor-kernel && npm run build`
-    - [ ] Verify all 14 Design OS MCP tools still listed in built `dist/index.js`
-    - [ ] Run existing kernel tests
-    - [ ] Commit: `feat(kernel): rename superconductor-kernel to superconductor-kernel`
-- [ ] Task: Security review of rename blast radius [TIER-3] [AGENT:superconductor-reviewer]
-    - [ ] Verify no dangling references in active tracks, plan files, or skill invocations
-    - [ ] Verify `mcp_config.json` server identifier is `superconductor-kernel`
-    - [ ] Verify CI workflow still references correct package paths
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Package Rename' (Protocol in workflow.md)
+    - [x] Script is committed but NOT yet executed
+- [x] Task: Execute rename codemod and verify [TIER-2] [AGENT:superconductor-processor]
+    - [x] Run `npx -y tsx scripts/rename-kernel.ts`
+    - [x] Verify `packages/superconductor-kernel/` exists; `packages/superconductor-kernel/` does not
+    - [x] Verify zero remaining `grep` matches for `superconductor-kernel` or `@superconductor/kernel` in tracked files
+    - [x] Update `package.json` `workspaces` array if needed
+- [x] Task: Build and smoke-test renamed kernel [TIER-2] [AGENT:superconductor-processor]
+    - [x] Run `cd packages/superconductor-kernel && npm run build`
+    - [x] Verify all 14 Design OS MCP tools still listed in built `dist/index.js`
+    - [x] Run existing kernel tests
+    - [x] Commit: `feat(kernel): rename superconductor-kernel to superconductor-kernel`
+- [x] Task: Security review of rename blast radius [TIER-3] [AGENT:superconductor-reviewer]
+    - [x] Verify no dangling references in active tracks, plan files, or skill invocations
+    - [x] Verify `mcp_config.json` server identifier is `superconductor-kernel`
+    - [x] Verify CI workflow still references correct package paths
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Package Rename' (Protocol in workflow.md)
 
 ---
 
 ## Phase 2: Graphify Intelligence Integration
 
-- [ ] Task: Add Graphify to tool registry and pipeline [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Add `graphify` to `tool-registry.ts` discovery (check `graphify --version`)
-    - [ ] Add `PHASE_INVALIDATION` regex for `p9_graphify` in `incremental-updater.ts`
-    - [ ] Create `runners/graphify.ts`: invokes `graphify .` as subprocess, validates output, copies to `superconductor/intelligence/09_graphify_graph.json`
-    - [ ] Register `p9_graphify` phase in `pipeline.ts` after `p8_dependency_surface`
-    - [ ] Handle graceful degradation: if `graphify` not installed, skip phase and log warning (do NOT crash)
-- [ ] Task: Write failing tests for Graphify runner [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test: `p9_graphify` writes `09_graphify_graph.json` with valid schema
-    - [ ] Test: Phase is skipped gracefully if `graphify` binary absent
-    - [ ] Test: Incremental mode calls `graphify --update` instead of full scan
-- [ ] Task: Replace naive domain partitioner with Leiden communities [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Update `domain-partitioner.ts` to read Leiden community clusters from `09_graphify_graph.json`
-    - [ ] Map Graphify community IDs → `DomainPartition` objects (id, files, hotspotScore, coverageGapPercent)
-    - [ ] Fallback to directory-split if `09_graphify_graph.json` absent
-    - [ ] Update `task-complexity-scorer.ts`: use node centrality scores for `crossCuttingRisk` dimension
-- [ ] Task: Write failing tests for partitioner [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test: Leiden community data produces correct `DomainPartition` objects
-    - [ ] Test: Fallback to directory-split when graph absent
-    - [ ] Test: TCS `crossCuttingRisk` is higher for high-centrality nodes
-- [ ] Task: Correctness review of Graphify integration [TIER-3] [AGENT:superconductor-reviewer]
-    - [ ] Verify `09_graphify_graph.json` schema matches Graphify output format
-    - [ ] Verify no regression in existing intelligence phases
-    - [ ] Verify incremental mode works correctly
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Graphify Integration' (Protocol in workflow.md)
+- [x] Task: Add Graphify to tool registry and pipeline [TIER-2] [AGENT:superconductor-processor]
+    - [x] Add `graphify` to `tool-registry.ts` discovery (check `graphify --version`)
+    - [x] Add `PHASE_INVALIDATION` regex for `p9_graphify` in `incremental-updater.ts`
+    - [x] Create `runners/graphify.ts`: invokes `graphify .` as subprocess, validates output, copies to `superconductor/intelligence/09_graphify_graph.json`
+    - [x] Register `p9_graphify` phase in `pipeline.ts` after `p8_dependency_surface`
+    - [x] Handle graceful degradation: if `graphify` not installed, skip phase and log warning (do NOT crash)
+- [x] Task: Write failing tests for Graphify runner [TIER-2] [AGENT:superconductor-processor]
+    - [x] Test: `p9_graphify` writes `09_graphify_graph.json` with valid schema
+    - [x] Test: Phase is skipped gracefully if `graphify` binary absent
+    - [x] Test: Incremental mode calls `graphify --update` instead of full scan
+- [x] Task: Replace naive domain partitioner with Leiden communities [TIER-3] [AGENT:superconductor-processor]
+    - [x] Update `domain-partitioner.ts` to read Leiden community clusters from `09_graphify_graph.json`
+    - [x] Map Graphify community IDs → `DomainPartition` objects (id, files, hotspotScore, coverageGapPercent)
+    - [x] Fallback to directory-split if `09_graphify_graph.json` absent
+    - [x] Update `task-complexity-scorer.ts`: use node centrality scores for `crossCuttingRisk` dimension
+- [x] Task: Write failing tests for partitioner [TIER-2] [AGENT:superconductor-processor]
+    - [x] Test: Leiden community data produces correct `DomainPartition` objects
+    - [x] Test: Fallback to directory-split when graph absent
+    - [x] Test: TCS `crossCuttingRisk` is higher for high-centrality nodes
+- [x] Task: Correctness review of Graphify integration [TIER-3] [AGENT:superconductor-reviewer]
+    - [x] Verify `09_graphify_graph.json` schema matches Graphify output format
+    - [x] Verify no regression in existing intelligence phases
+    - [x] Verify incremental mode works correctly
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Graphify Integration' (Protocol in workflow.md)
 
 ---
 
 ## Phase 3: Kernel Graph MCP Tools
 
-- [ ] Task: Implement graph query MCP tools in superconductor-kernel [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add `GraphCache` class to kernel: loads `09_graphify_graph.json`, provides in-memory index
-    - [ ] Implement `kernel_graph_get_node(node_id)` MCP tool
-    - [ ] Implement `kernel_graph_get_neighbors(node_id, max_depth)` MCP tool
-    - [ ] Implement `kernel_graph_shortest_path(source, target)` MCP tool
-    - [ ] Implement `kernel_intelligence_get_hotspots(metric)` MCP tool
-    - [ ] Implement `kernel_intelligence_get_dependency_graph(community_id)` MCP tool
-    - [ ] Implement `kernel_policy_get_mode()` MCP tool (returns current IDLE/TRACKED/YOLO)
-- [ ] Task: Write tests for new MCP tools [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Unit tests for each tool with mock `09_graphify_graph.json`
-    - [ ] Integration test: kernel starts, `kernel_graph_get_node` returns correct data
-    - [ ] Test: `kernel_policy_get_mode()` returns correct state from `TrackStateManager`
-- [ ] Task: Security review of MCP tool surface [TIER-4] [AGENT:superconductor-reviewer]
-    - [ ] Verify no path traversal via `node_id` parameters
-    - [ ] Verify `kernel_graph_get_neighbors` depth is bounded (max_depth ≤ 10)
-    - [ ] Verify `kernel_policy_get_mode()` is read-only (cannot mutate state)
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Kernel Graph MCP Tools' (Protocol in workflow.md)
+- [x] Task: Implement graph query MCP tools in superconductor-kernel [TIER-3] [AGENT:superconductor-processor]
+    - [x] Add `GraphCache` class to kernel: loads `09_graphify_graph.json`, provides in-memory index
+    - [x] Implement `kernel_graph_get_node(node_id)` MCP tool
+    - [x] Implement `kernel_graph_get_neighbors(node_id, max_depth)` MCP tool
+    - [x] Implement `kernel_graph_shortest_path(source, target)` MCP tool
+    - [x] Implement `kernel_intelligence_get_hotspots(metric)` MCP tool
+    - [x] Implement `kernel_intelligence_get_dependency_graph(community_id)` MCP tool
+    - [x] Implement `kernel_policy_get_mode()` MCP tool (returns current IDLE/TRACKED/YOLO)
+- [x] Task: Write tests for new MCP tools [TIER-2] [AGENT:superconductor-processor]
+    - [x] Unit tests for each tool with mock `09_graphify_graph.json`
+    - [x] Integration test: kernel starts, `kernel_graph_get_node` returns correct data
+    - [x] Test: `kernel_policy_get_mode()` returns correct state from `TrackStateManager`
+- [x] Task: Security review of MCP tool surface [TIER-4] [AGENT:superconductor-reviewer]
+    - [x] Verify no path traversal via `node_id` parameters
+    - [x] Verify `kernel_graph_get_neighbors` depth is bounded (max_depth ≤ 10)
+    - [x] Verify `kernel_policy_get_mode()` is read-only (cannot mutate state)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Kernel Graph MCP Tools' (Protocol in workflow.md)
 
 ---
 
 ## Phase 4: Quorum FSM (absorbs scripted_swarm_orchestrator)
 
-- [ ] Task: Design and implement Quorum FSM in quorum-review.ts [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define FSM states: `IDLE | REVIEW_PENDING | ANALYSIS | REMEDIATION_REQUIRED | APPROVED | FAILED | REQUIRES_HUMAN_INTERVENTION`
-    - [ ] Implement state transitions as explicit switch-case (no implicit jumps)
-    - [ ] Implement `MAX_QUORUM_LOOPS = 3` circuit breaker
-    - [ ] Implement finding deduplication check (reject finding if matches previous loop verbatim)
-    - [ ] Persist FSM state atomically to `superconductor/logs/quorum-state.json` (write-tmp → rename)
-- [ ] Task: Implement parallel reviewer dispatch [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Dispatch Security, Correctness, Adversarial reviewers via `invoke_subagent` in parallel (not sequential)
-    - [ ] Collect `APPROVED` / `NEEDS FIXES` responses from all reviewers
-    - [ ] Transition to `REMEDIATION_REQUIRED` if ANY reviewer returns `NEEDS FIXES`
-    - [ ] Transition to `APPROVED` only when ALL reviewers return `APPROVED`
-- [ ] Task: Implement LanguageAdapter — language-agnostic project inspector [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/swarm/LanguageAdapter.ts`
-    - [ ] `LanguageAdapter.detect(projectRoot, techStack)` → returns `LanguageProfile` by reading `tech-stack.md` first, then falling back to manifest detection
-    - [ ] `LanguageProfile` interface contains:
+- [x] Task: Design and implement Quorum FSM in quorum-review.ts [TIER-4] [AGENT:superconductor-dreamer]
+    - [x] Define FSM states: `IDLE | REVIEW_PENDING | ANALYSIS | REMEDIATION_REQUIRED | APPROVED | FAILED | REQUIRES_HUMAN_INTERVENTION`
+    - [x] Implement state transitions as explicit switch-case (no implicit jumps)
+    - [x] Implement `MAX_QUORUM_LOOPS = 3` circuit breaker
+    - [x] Implement finding deduplication check (reject finding if matches previous loop verbatim)
+    - [x] Persist FSM state atomically to `superconductor/logs/quorum-state.json` (write-tmp → rename)
+- [x] Task: Implement parallel reviewer dispatch [TIER-3] [AGENT:superconductor-processor]
+    - [x] Dispatch Security, Correctness, Adversarial reviewers via `invoke_subagent` in parallel (not sequential)
+    - [x] Collect `APPROVED` / `NEEDS FIXES` responses from all reviewers
+    - [x] Transition to `REMEDIATION_REQUIRED` if ANY reviewer returns `NEEDS FIXES`
+    - [x] Transition to `APPROVED` only when ALL reviewers return `APPROVED`
+- [x] Task: Implement LanguageAdapter — language-agnostic project inspector [TIER-3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-core/src/swarm/LanguageAdapter.ts`
+    - [x] `LanguageAdapter.detect(projectRoot, techStack)` → returns `LanguageProfile` by reading `tech-stack.md` first, then falling back to manifest detection
+    - [x] `LanguageProfile` interface contains:
         - `language`: `'typescript' | 'python' | 'go' | 'rust' | 'java' | 'unknown'`
         - `testCommand`: e.g. `npm test`, `pytest`, `go test ./...`, `cargo test`, `mvn test`
         - `manifestFiles`: e.g. `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`
         - `generatedDirs`: e.g. `dist/`, `__pycache__/`, `target/`, `.venv/`, `build/`
         - `testTheatreAntiPatterns`: language-specific fake-test signatures (TS: `echo`/`exit 0`; Python: empty `def test_*(): pass`; Go: `t.Skip()`-only tests; Rust: `todo!()` bodies)
         - `siblingsWithTests(root)`: finds sibling packages/modules that have real tests as `PATTERN` examples
-    - [ ] Manifest detection priority order: `tech-stack.md` declaration → `package.json` → `pyproject.toml` → `go.mod` → `Cargo.toml`
-    - [ ] Write unit tests: TS project → `npm test`, `node_modules/` excluded; Python project → `pytest`, `__pycache__/` excluded; unknown project → graceful fallback with explicit warning in prompt
-- [ ] Task: Implement RemediatorPromptBuilder using LanguageAdapter [TIER-4] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts`
-    - [ ] Builder accepts `QuorumFinding[]` + `RepoContext` + `TrackState` → calls `LanguageAdapter.detect()` first → produces `RemediatorPrompt` per finding domain
-    - [ ] Each `RemediatorPrompt` MUST include all 7 fields, all language-aware:
+    - [x] Manifest detection priority order: `tech-stack.md` declaration → `package.json` → `pyproject.toml` → `go.mod` → `Cargo.toml`
+    - [x] Write unit tests: TS project → `npm test`, `node_modules/` excluded; Python project → `pytest`, `__pycache__/` excluded; unknown project → graceful fallback with explicit warning in prompt
+- [x] Task: Implement RemediatorPromptBuilder using LanguageAdapter [TIER-4] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts`
+    - [x] Builder accepts `QuorumFinding[]` + `RepoContext` + `TrackState` → calls `LanguageAdapter.detect()` first → produces `RemediatorPrompt` per finding domain
+    - [x] Each `RemediatorPrompt` MUST include all 7 fields, all language-aware:
         - `TASK`: specific action from `finding.recommendation`
         - `SCOPE`: explicit file globs the remediator may touch (from finding `file` + sibling sources)
         - `EXCLUDED`: always includes `plan.md`, `spec.md`, `archive/` + language-specific generated dirs from `LanguageProfile.generatedDirs`
@@ -178,37 +178,37 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
         - `ANTI_PATTERNS`: `LanguageProfile.testTheatreAntiPatterns` + category-keyed entries from `anti-patterns.ts`
         - `EVIDENCE_REQUIRED`: uses `LanguageProfile.testCommand` — never hardcodes `npm test`
         - `DEFINITION_OF_DONE`: objective criteria using the language's test output format
-    - [ ] `anti-patterns.ts`: static registry keyed by `(language, findingCategory)` — e.g. `('python', 'adversarial')` → `["Do NOT use empty test bodies (def test_x(): pass)", "Do NOT use pytest.skip() as sole test body"]`
-    - [ ] Write unit tests:
+    - [x] `anti-patterns.ts`: static registry keyed by `(language, findingCategory)` — e.g. `('python', 'adversarial')` → `["Do NOT use empty test bodies (def test_x(): pass)", "Do NOT use pytest.skip() as sole test body"]`
+    - [x] Write unit tests:
         - TS test-theatre finding → ANTI_PATTERNS contains `echo`/`exit 0`; EVIDENCE uses `npm test`
         - Python test-theatre finding → ANTI_PATTERNS contains `pass` body prohibition; EVIDENCE uses `pytest`
         - Go naming finding → EXCLUDED contains `__pycache__/` is absent, `vendor/` is present; EVIDENCE uses `go test ./...`
         - Unknown language → prompt includes explicit warning: `"Language could not be detected from tech-stack.md. Verify test command manually before claiming done."`
 
 - [x] Task: Implement parallel remediator dispatch using RemediatorPromptBuilder [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Group findings by domain (file prefix + category)
-    - [ ] Run each finding group through `RemediatorPromptBuilder.build()` BEFORE dispatching
-    - [ ] Dispatch ONE remediator per domain group in parallel, passing the structured `RemediatorPrompt` (NOT the raw finding)
-    - [ ] Remediator receives the full 7-field prompt — never raw Quorum text
-    - [ ] Wait for all remediators to complete before re-entering `REVIEW_PENDING`
+    - [x] Group findings by domain (file prefix + category)
+    - [x] Run each finding group through `RemediatorPromptBuilder.build()` BEFORE dispatching
+    - [x] Dispatch ONE remediator per domain group in parallel, passing the structured `RemediatorPrompt` (NOT the raw finding)
+    - [x] Remediator receives the full 7-field prompt — never raw Quorum text
+    - [x] Wait for all remediators to complete before re-entering `REVIEW_PENDING`
 - [x] Task: Implement escalation and human intervention state [TIER-2] [AGENT:superconductor-processor]
-    - [ ] On `MAX_QUORUM_LOOPS` exceeded: write `REQUIRES_HUMAN_INTERVENTION` to `quorum-state.json`
-    - [ ] Emit clear user-facing message with loop history and unresolved findings
-    - [ ] Halt FSM — do NOT continue looping
+    - [x] On `MAX_QUORUM_LOOPS` exceeded: write `REQUIRES_HUMAN_INTERVENTION` to `quorum-state.json`
+    - [x] Emit clear user-facing message with loop history and unresolved findings
+    - [x] Halt FSM — do NOT continue looping
 - [x] Task: Write FSM tests [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: FSM transitions through full happy path to `APPROVED`
-    - [ ] Test: FSM halts at `REQUIRES_HUMAN_INTERVENTION` after 3 loops
-    - [ ] Test: Duplicate finding from previous loop is rejected (reviewer forced to acknowledge)
-    - [ ] Test: State file is written atomically (simulated crash during write)
-    - [ ] Test: Reviewers dispatched in parallel (not sequential)
+    - [x] Test: FSM transitions through full happy path to `APPROVED`
+    - [x] Test: FSM halts at `REQUIRES_HUMAN_INTERVENTION` after 3 loops
+    - [x] Test: Duplicate finding from previous loop is rejected (reviewer forced to acknowledge)
+    - [x] Test: State file is written atomically (simulated crash during write)
+    - [x] Test: Reviewers dispatched in parallel (not sequential)
 - [x] Task: Archive scripted_swarm_orchestrator track [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Move `superconductor/tracks/scripted_swarm_orchestrator` → `superconductor/tracks/archive/`
-    - [ ] Note in archive metadata that scope was absorbed into `superconductor_kernel_20260801`
-- [ ] Task: Adversarial review of Quorum FSM [TIER-4] [AGENT:superconductor-reviewer]
-    - [ ] Verify no path to `APPROVED` without all reviewers explicitly returning it
-    - [ ] Verify circuit breaker cannot be bypassed by reviewer outputting `APPROVED` mid-loop
-    - [ ] Verify deduplication check cannot be gamed by minor rephrasing of same finding
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Quorum FSM' (Protocol in workflow.md)
+    - [x] Move `superconductor/tracks/scripted_swarm_orchestrator` → `superconductor/tracks/archive/`
+    - [x] Note in archive metadata that scope was absorbed into `superconductor_kernel_20260801`
+- [x] Task: Adversarial review of Quorum FSM [TIER-4] [AGENT:superconductor-reviewer]
+    - [x] Verify no path to `APPROVED` without all reviewers explicitly returning it
+    - [x] Verify circuit breaker cannot be bypassed by reviewer outputting `APPROVED` mid-loop
+    - [x] Verify deduplication check cannot be gamed by minor rephrasing of same finding
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Quorum FSM' (Protocol in workflow.md)
 
 ---
 
@@ -249,24 +249,24 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
 
 ## Phase 7: Integration & Finalization
 
-- [ ] Task: Full test suite verification [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run `cd packages/superconductor-kernel && npm run build && npm test`
-    - [ ] Run `cd packages/superconductor-core && npm run build && npm test`
-    - [ ] Verify test count ≥ 438 (new tests added in this track)
-    - [ ] Verify zero references to `superconductor-kernel` or `@superconductor/kernel` in tracked files
-- [ ] Task: Update documentation [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Update GEMINI.md SWARM GUARDRAILS section with new kernel tool names and quorum FSM state reference
-    - [ ] Update `superconductor/agent-config.md` with new MCP tool inventory
-    - [ ] Update `docs/permissions.md` with SWARM GUARDRAIL enforcement details
-- [ ] Task: Final quorum review [TIER-4] [AGENT:superconductor-reviewer]
-    - [ ] Security: verify all AC items are met
-    - [ ] Correctness: verify no phantom implementations
-    - [ ] Adversarial: verify test theatre is absent
-    - [ ] Regression: verify no Design OS tools were accidentally broken
-- [ ] Task: Integrate track 'superconductor_kernel_20260801' into main branch [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Merge `track/superconductor_kernel_20260801` → `main` (after quorum approval)
-    - [ ] Tag release: `v2.0.0-kernel`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)
+- [x] Task: Full test suite verification [TIER-2] [AGENT:superconductor-processor]
+    - [x] Run `cd packages/superconductor-kernel && npm run build && npm test`
+    - [x] Run `cd packages/superconductor-core && npm run build && npm test`
+    - [x] Verify test count ≥ 438 (new tests added in this track)
+    - [x] Verify zero references to `superconductor-kernel` or `@superconductor/kernel` in tracked files
+- [x] Task: Update documentation [TIER-2] [AGENT:superconductor-processor]
+    - [x] Update GEMINI.md SWARM GUARDRAILS section with new kernel tool names and quorum FSM state reference
+    - [x] Update `superconductor/agent-config.md` with new MCP tool inventory
+    - [x] Update `docs/permissions.md` with SWARM GUARDRAIL enforcement details
+- [x] Task: Final quorum review [TIER-4] [AGENT:superconductor-reviewer]
+    - [x] Security: verify all AC items are met
+    - [x] Correctness: verify no phantom implementations
+    - [x] Adversarial: verify test theatre is absent
+    - [x] Regression: verify no Design OS tools were accidentally broken
+- [x] Task: Integrate track 'superconductor_kernel_20260801' into main branch [TIER-1] [AGENT:superconductor-processor]
+    - [x] Merge `track/superconductor_kernel_20260801` → `main` (after quorum approval)
+    - [x] Tag release: `v2.0.0-kernel`
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md)
 
 ---
 
