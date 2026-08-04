@@ -7,15 +7,18 @@ export interface GeminiInteractionsOptions {
 
 export class GeminiInteractionsClient {
   public sdkClient: any;
+  private authMode: 'apiKey' | 'vertexai';
 
   constructor(options: GeminiInteractionsOptions = { authMode: 'apiKey' }) {
-    if (options.authMode === 'apiKey') {
+    const mode = options?.authMode || 'apiKey';
+    this.authMode = mode as any;
+    if (mode === 'apiKey') {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         throw new ResearchProviderUnavailableError('Missing GEMINI_API_KEY');
       }
       this.sdkClient = new GoogleGenAI({ apiKey });
-    } else if (options.authMode === 'vertexai') {
+    } else if (mode === 'vertexai') {
       const projectId = process.env.GCP_PROJECT_ID;
       if (!projectId) {
         throw new ResearchProviderUnavailableError('Missing GCP_PROJECT_ID');
@@ -26,7 +29,7 @@ export class GeminiInteractionsClient {
         location: process.env.GCP_LOCATION || 'us-central1'
       });
     } else {
-      throw new Error(`Invalid auth mode: ${options.authMode}`);
+      throw new Error(`Invalid auth mode: ${mode}`);
     }
   }
 
@@ -34,8 +37,20 @@ export class GeminiInteractionsClient {
     if (this.sdkClient.interactions) {
       return this.sdkClient.interactions.createInteraction(params);
     }
-    // Fallback if SDK doesn't natively expose it yet, you could potentially do custom fetch here,
-    // but per prompt we assume the SDK handles it or we just proxy it.
+    
+    if (this.authMode === 'apiKey') {
+      const url = `https://generativelanguage.googleapis.com/v1beta/interactions?key=${process.env.GEMINI_API_KEY}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to create interaction: ${response.statusText}`);
+      }
+      return response.json();
+    }
+    
     throw new Error("SDK does not support interactions");
   }
 
@@ -43,6 +58,16 @@ export class GeminiInteractionsClient {
     if (this.sdkClient.interactions) {
       return this.sdkClient.interactions.getInteraction(id);
     }
+
+    if (this.authMode === 'apiKey') {
+      const url = `https://generativelanguage.googleapis.com/v1beta/interactions/${id}?key=${process.env.GEMINI_API_KEY}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to get interaction: ${response.statusText}`);
+      }
+      return response.json();
+    }
+
     throw new Error("SDK does not support interactions");
   }
 }

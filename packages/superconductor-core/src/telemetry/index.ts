@@ -37,7 +37,7 @@ export class FileTelemetryStore implements TelemetryStore {
         const sensitiveEnvVars = Object.keys(process.env).filter(key => key === 'GEMINI_API_KEY' || key.startsWith('GCP_'));
         for (const varName of sensitiveEnvVars) {
             const val = process.env[varName];
-            if (val && val.trim().length > 0) {
+            if (val && val.trim().length > 8) {
                 scrubbed = scrubbed.split(val).join('[REDACTED]');
             }
         }

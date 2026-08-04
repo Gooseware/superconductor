@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { FileTelemetryStore, TokenUsageReport, MetricReport } from '../src/telemetry/index';
 import { promises as fs } from 'fs';
 import * as path from 'path';
@@ -99,9 +99,9 @@ describe('FileTelemetryStore', () => {
     it('should redact sensitive information from payload', async () => {
         const store = new FileTelemetryStore(testLogFile);
         
-        process.env.GEMINI_API_KEY = 'AIzaSyFakeKey123';
-        process.env.GCP_PROJECT_ID = 'secret-project-42';
-        process.env.GCP_LOCATION = 'us-central1';
+        vi.stubEnv('GEMINI_API_KEY', 'AIzaSyFakeKey123');
+        vi.stubEnv('GCP_PROJECT_ID', 'secret-project-42');
+        vi.stubEnv('GCP_LOCATION', 'us-central1');
 
         const report = {
             trackId: 'test-track-AIzaSyFakeKey123',
@@ -124,17 +124,17 @@ describe('FileTelemetryStore', () => {
         expect(content).not.toContain('secret-project-42');
         expect(content).not.toContain('us-central1');
 
-        delete process.env.GEMINI_API_KEY;
-        delete process.env.GCP_PROJECT_ID;
-        delete process.env.GCP_LOCATION;
+        vi.unstubAllEnvs();
+        
+        
     });
 
     it("should redact GEMINI_API_KEY and GCP_* payload values to [REDACTED]", async () => {
         const store = new FileTelemetryStore(testLogFile);
 
-        delete process.env.GEMINI_API_KEY;
-        delete process.env.GCP_PROJECT_ID;
-        delete process.env.GCP_LOCATION;
+        vi.unstubAllEnvs();
+        
+        
 
         const metricReport: MetricReport = {
             trackId: "metric-track",

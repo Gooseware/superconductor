@@ -4,6 +4,7 @@ import { AsyncLongPoller } from './async-long-poller.js';
 describe('AsyncLongPoller', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0);
   });
 
   afterEach(() => {

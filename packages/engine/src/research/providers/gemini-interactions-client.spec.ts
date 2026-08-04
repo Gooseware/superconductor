@@ -48,4 +48,35 @@ describe('GeminiInteractionsClient', () => {
     expect(client).toBeDefined();
     expect(client.sdkClient).toBeDefined();
   });
+
+  describe('createInteraction', () => {
+    it('uses sdkClient.interactions if present', async () => {
+      process.env.GEMINI_API_KEY = 'test-key';
+      const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
+      client.sdkClient.interactions = {
+        createInteraction: vi.fn().mockResolvedValue({ id: '123' })
+      };
+      const res = await client.createInteraction({ some: 'data' });
+      expect(res.id).toBe('123');
+      expect(client.sdkClient.interactions.createInteraction).toHaveBeenCalled();
+    });
+
+    it('falls back to fetch if sdkClient.interactions is absent', async () => {
+      process.env.GEMINI_API_KEY = 'test-key';
+      const client = new GeminiInteractionsClient({ authMode: 'apiKey' });
+      client.sdkClient.interactions = undefined;
+      
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: 'fallback-123' })
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const res = await client.createInteraction({ some: 'data' });
+      expect(res.id).toBe('fallback-123');
+      expect(fetchMock).toHaveBeenCalled();
+      
+      vi.unstubAllGlobals();
+    });
+  });
 });

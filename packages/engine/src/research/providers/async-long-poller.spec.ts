@@ -12,7 +12,7 @@ describe('AsyncLongPoller', () => {
 
   it('normal completion returns result', async () => {
     const poller = new AsyncLongPoller<string>({ pollIntervalMs: 10, maxWaitMs: 1000 });
-    const fn = vi.fn().mockResolvedValue('success');
+    const fn = vi.fn().mockResolvedValue({ status: 'done', result: 'success' });
     
     const promise = poller.poll(fn);
     await vi.runAllTimersAsync();
@@ -41,7 +41,7 @@ describe('AsyncLongPoller', () => {
     
     const fn = vi.fn()
       .mockRejectedValueOnce(error429)
-      .mockResolvedValueOnce('success');
+      .mockResolvedValueOnce({ status: 'done', result: 'success' });
     
     const promise = poller.poll(fn);
     
@@ -50,7 +50,7 @@ describe('AsyncLongPoller', () => {
     expect(fn).toHaveBeenCalledTimes(1);
     
     // Advance 30s
-    await vi.advanceTimersByTimeAsync(30000);
+    await vi.advanceTimersByTimeAsync(40000);
     
     expect(await promise).toBe('success');
     expect(fn).toHaveBeenCalledTimes(2);
@@ -61,7 +61,7 @@ describe('AsyncLongPoller', () => {
     const fn = vi.fn()
       .mockRejectedValueOnce(new Error('fail1'))
       .mockRejectedValueOnce(new Error('fail2'))
-      .mockResolvedValueOnce('success');
+      .mockResolvedValueOnce({ status: 'done', result: 'success' });
     
     const promise = poller.poll(fn);
     
