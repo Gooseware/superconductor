@@ -9,6 +9,8 @@ import { ResearchBriefSynthesizer } from './brief-synthesizer.js';
 import { FallbackFailedError } from './errors.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchSourceQualityGate } from './source-quality-gate.js';
+import { AgentConfigReader } from './agent-config-reader.js';
+import { ResearchProviderRegistry } from './provider-registry.js';
 
 export class ResearchExecutor {
     private cache: SemanticCache<IResearchBrief>;
@@ -28,11 +30,18 @@ export class ResearchExecutor {
     public async execute(
         trackId: string, 
         queries: IResearchQuery[], 
-        provider: IResearchProvider,
+        provider?: IResearchProvider,
         workUnit?: WorkUnit
     ): Promise<{ brief: IResearchBrief; updatedWorkUnit?: WorkUnit }> {
         if (queries.length > 3) {
             throw new ResearchBudgetExceededError('Cost cap exceeded: max 3 queries per track allowed');
+        }
+
+        if (!provider) {
+            const config = AgentConfigReader.getResearchProviderConfig(this.workspaceDir);
+            const providerName = config?.providerName || 'google';
+            const registry = new ResearchProviderRegistry();
+            provider = registry.resolve(providerName, config?.options);
         }
 
         let updatedWorkUnit = workUnit;

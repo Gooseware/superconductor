@@ -7,6 +7,8 @@ import { WorkUnit, WorkUnitState } from '@superconductor/core/src/track/work-uni
 import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-error.js';
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
 import { SemanticCache } from '@superconductor/core/src/cache/semantic-cache.js';
+import { ResearchProviderRegistry } from './provider-registry.js';
+import { GeminiAPIProvider } from './providers/gemini-api-provider.js';
 
 vi.mock('@superconductor/core/src/cache/semantic-cache.js', () => {
     return {
@@ -23,7 +25,8 @@ vi.mock('fs', async (importOriginal) => {
         ...actual,
         existsSync: vi.fn().mockReturnValue(true),
         mkdirSync: vi.fn(),
-        writeFileSync: vi.fn()
+        writeFileSync: vi.fn(),
+        readFileSync: vi.fn().mockReturnValue('')
     };
 });
 
@@ -153,5 +156,28 @@ describe('ResearchExecutor', () => {
 
         const queries = [{ term: 'fallback-fail-test' }];
         await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow('FallbackFailedError');
+
+    it('instantiates the new provider end-to-end from agent-config.md', async () => {
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet, set: vi.fn() };
+        
+        vi.mocked(fs.readFileSync).mockImplementation((p) => {
+            if (p.toString().includes('agent-config.md')) {
+                return 'Research Provider: gemini-api-deep-research\nAuth Mode: vertexai';
+            }
+            return '';
+        });
+
+        process.env.GCP_PROJECT_ID = 'test-project';
+        const resolveSpy = vi.spyOn(ResearchProviderRegistry.prototype, 'resolve');
+        // Let's mock the provider search to just return something so it doesn't fail
+        const mockSearch = vi.fn().mockResolvedValue([{ url: 'test', title: 'test', content: 'content' }]);
+        vi.spyOn(GeminiAPIProvider.prototype, 'search').mockImplementation(mockSearch);
+
+        const queries = [{ term: 'q1' }];
+        await executor.execute('t1', queries, undefined);
+        
+        expect(resolveSpy).toHaveBeenCalledWith('gemini_api_deep_research', { authMode: 'vertexai' });
     });
 });

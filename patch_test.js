@@ -1,42 +1,39 @@
 const fs = require('fs');
-const file = '/home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts';
-let content = fs.readFileSync(file, 'utf8');
+const content = fs.readFileSync('packages/engine/src/research/research-executor.test.ts', 'utf8');
 
-const testCode = `
-  describe('generateSyntheticContext', () => {
-    it('generates synthetic product.md and tech-stack.md in superconductor/ directory', () => {
-      const scDir = path.join(tempDir, 'superconductor');
-      
-      IntelligenceSnapshotReader.generateSyntheticContext(tempDir);
+let newContent = content.replace(
+    'writeFileSync: vi.fn()',
+    "writeFileSync: vi.fn(), readFileSync: vi.fn().mockReturnValue('')"
+);
 
-      expect(fs.existsSync(path.join(scDir, 'product.md'))).toBe(true);
-      expect(fs.existsSync(path.join(scDir, 'tech-stack.md'))).toBe(true);
-      
-      const productContent = fs.readFileSync(path.join(scDir, 'product.md'), 'utf-8');
-      const techStackContent = fs.readFileSync(path.join(scDir, 'tech-stack.md'), 'utf-8');
-      
-      expect(productContent.length).toBeGreaterThan(0);
-      expect(techStackContent.length).toBeGreaterThan(0);
+const testStr = `
+    it('instantiates the new provider end-to-end from agent-config.md', async () => {
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet, set: vi.fn() };
+        
+        // Mock the fs.readFileSync specifically for agent-config.md
+        vi.mocked(fs.readFileSync).mockImplementation((p) => {
+            if (p.toString().includes('agent-config.md')) {
+                return 'Research Provider: gemini-api-deep-research\\nAuth Mode: vertexai';
+            }
+            return '';
+        });
+
+        // Set env vars to avoid crash in GeminiInteractionsClient
+        process.env.GCP_PROJECT_ID = 'test-project';
+
+        const queries = [{ term: 'q1' }];
+        
+        try {
+            // We pass undefined for provider, so it should read config and instantiate GeminiAPIProvider
+            // But search will throw because it tries to call real APIs, so we mock the provider registry or catch error.
+            // Wait, we can't easily assert the instantiated provider without spying on Registry.
+            // Let's spy on ResearchProviderRegistry.
+        } catch(e) {}
     });
-
-    it('scrubs secrets, env vars, and credentials from generated output', () => {
-      // Mock files in the repository that might be read to generate the context
-      fs.writeFileSync(path.join(tempDir, 'README.md'), 'Uses AWS_SECRET_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE and Password123!');
-      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({ name: "test", secret: "super-secret-token-xyz" }));
-      
-      IntelligenceSnapshotReader.generateSyntheticContext(tempDir);
-
-      const scDir = path.join(tempDir, 'superconductor');
-      const techStackContent = fs.existsSync(path.join(scDir, 'tech-stack.md')) ? fs.readFileSync(path.join(scDir, 'tech-stack.md'), 'utf-8') : '';
-      const productContent = fs.existsSync(path.join(scDir, 'product.md')) ? fs.readFileSync(path.join(scDir, 'product.md'), 'utf-8') : '';
-
-      expect(techStackContent).not.toContain('AKIAIOSFODNN7EXAMPLE');
-      expect(productContent).not.toContain('AKIAIOSFODNN7EXAMPLE');
-      expect(techStackContent).not.toContain('super-secret-token-xyz');
-      expect(productContent).not.toContain('super-secret-token-xyz');
-    });
-  });
+});
 `;
 
-content = content.replace(/}\);\s*$/, testCode + '\n});\n');
-fs.writeFileSync(file, content);
+newContent = newContent.replace('});\n', testStr);
+fs.writeFileSync('packages/engine/src/research/research-executor.test.ts', newContent);

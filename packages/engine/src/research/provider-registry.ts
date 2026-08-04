@@ -5,12 +5,12 @@ import { GeminiApiDeepResearchProvider } from './providers/gemini-api-deep-resea
 import { VertexAiDeepResearchProvider } from './providers/vertex-ai-deep-research-provider.js';
 
 export class ResearchProviderRegistry {
-  resolve(providerName: string = 'google', options?: { apiKey?: string }): IResearchProvider {
+  resolve(providerName: string = 'google', options?: any): IResearchProvider {
     if (providerName === 'google') {
       return new GoogleDeepResearchProvider();
     }
     if (providerName === 'gemini_api_deep_research') {
-      return new GeminiAPIProvider();
+      return new GeminiAPIProvider(options);
     }
     if (providerName === 'gemini-api-deep-research') {
       return new GeminiApiDeepResearchProvider(options);
