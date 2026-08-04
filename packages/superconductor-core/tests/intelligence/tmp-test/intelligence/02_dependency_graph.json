@@ -1,7 +1,12 @@
-[
-  {
-    "source": "packages/foo/src/index.ts",
-    "deps": [],
-    "file": "packages/foo/src/index.ts"
-  }
-]
+{
+  "nodes": [
+    {
+      "file": "src/b.ts",
+      "deps": [
+        "y"
+      ]
+    }
+  ],
+  "edges": [],
+  "circularDeps": []
+}

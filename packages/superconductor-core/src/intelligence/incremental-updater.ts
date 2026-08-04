@@ -24,7 +24,7 @@ export const PHASE_INVALIDATION: Record<string, (file: string) => boolean> = {
   coupling:            (_) => true,  // always update coupling incrementally
 };
 
-export function mergeIntoJson<T extends { file: string; hotspot_score?: number }>(outputFile: string, newEntries: T[]): void {
+export function mergeIntoJson<T extends { file: string; hotspot_score?: number }>(outputFile: string, newEntries: T[], changedFiles?: string[]): void {
   let existing: T[] = [];
   if (fs.existsSync(outputFile)) {
     try {
@@ -48,9 +48,10 @@ export function mergeIntoJson<T extends { file: string; hotspot_score?: number }
 
   // Filter out entries where file matches any file in newEntries (normalize paths)
   const newFiles = new Set(newEntries.map(e => path.normalize(e.file)));
+  const changedSet = changedFiles ? new Set(changedFiles.map(e => path.normalize(e))) : newFiles;
   let merged = existing.filter(e => {
     if (!e || typeof e.file !== 'string') return true;
-    return !newFiles.has(path.normalize(e.file));
+    return !changedSet.has(path.normalize(e.file));
   });
 
   merged.push(...newEntries);
@@ -192,9 +193,31 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const depEntries = res.entries as any;
     if (depEntries && Array.isArray(depEntries.nodes)) {
-      // Map { source, deps } -> { file, deps } to satisfy mergeIntoJson's `{ file: string }` constraint
-      const mappedNodes = depEntries.nodes.map((n: any) => ({ ...n, file: n.source ?? n.file }));
-      mergeIntoJson(path.join(outputDir, '02_dependency_graph.json'), mappedNodes);
+      const depFile = path.join(outputDir, '02_dependency_graph.json');
+      let existing = { nodes: [], edges: [], circularDeps: [] };
+      if (fs.existsSync(depFile)) {
+        try {
+          existing = JSON.parse(fs.readFileSync(depFile, 'utf-8'));
+        } catch (e) {}
+      }
+      
+      const changedSet = new Set(changedFiles.map(f => path.normalize(f)));
+      const mergedNodes = (existing.nodes || []).filter((n: any) => !changedSet.has(path.normalize(n.source ?? n.file)));
+      mergedNodes.push(...depEntries.nodes.map((n: any) => ({ ...n, file: n.source ?? n.file })));
+      
+      const mergedEdges = (existing.edges || []).filter((e: any) => !changedSet.has(path.normalize(e.source)));
+      if (depEntries.edges) mergedEdges.push(...depEntries.edges);
+      
+      const mergedCircular = (existing.circularDeps || []).filter((c: any) => !c.some((f: string) => changedSet.has(path.normalize(f))));
+      if (depEntries.circularDeps) mergedCircular.push(...depEntries.circularDeps);
+      
+      const tmpPath = `${depFile}.tmp.${Date.now()}`;
+      try {
+        fs.writeFileSync(tmpPath, JSON.stringify({ nodes: mergedNodes, edges: mergedEdges, circularDeps: mergedCircular }, null, 2));
+        fs.renameSync(tmpPath, depFile);
+      } catch (e) {
+        try { fs.unlinkSync(tmpPath); } catch {}
+      }
     }
   }
 

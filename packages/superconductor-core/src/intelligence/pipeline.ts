@@ -39,13 +39,18 @@ export async function runPipeline(args: string[], projectRoot: string, baseOutpu
   };
 
   // Resilient measure: phase failures are caught and recorded — pipeline always continues
-  const measure = async (name: string, fn: () => Promise<{ status: string }> | { status: string }) => {
+  const measure = async (name: string, fn: () => Promise<{ status: string } | null> | { status: string } | null) => {
     const start = Date.now();
     try {
       const result = await fn();
       const elapsed = Date.now() - start;
-      manifest.phases[name] = { elapsed, output: result.status };
-      if (result.status === 'degraded' || result.status === 'unavailable') {
+      if (result) {
+        manifest.phases[name] = { elapsed, output: result.status };
+        if (result.status === 'degraded' || result.status === 'unavailable') {
+          manifest.degraded.push(name);
+        }
+      } else {
+        manifest.phases[name] = { elapsed, output: 'degraded' };
         manifest.degraded.push(name);
       }
     } catch (err: unknown) {

@@ -51,7 +51,7 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - When Superconductor is active (any mode): root agent MUST NOT commit a track branch until Quorum loop is complete and green. Quorum FSM state is persisted to `.superconductor/quorum/` or `superconductor/logs/quorum-state.json`.
 - If the root agent catches itself violating this rule, it must emit the following exact error message:
   "[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."
-- **Kernel Tool Restriction**: When using `superconductor-kernel` tools (e.g., `kernel_graph_get_node`, `kernel_policy_get_mode`, etc.), ensure appropriate permissions are granted according to the current mode.
+- **Kernel Tool Restriction**: When using `superconductor-kernel` tools (e.g., `kernel_graph_get_node`, `kernel_graph_get_neighbors`, `kernel_graph_shortest_path`, `kernel_intelligence_get_hotspots`, `kernel_intelligence_get_dependency_graph`, `kernel_policy_get_mode`, etc.), ensure appropriate permissions are granted according to the current mode.
 - **Adaptive Permission Guardrails**:
   - **IDLE MODE bypass**: In IDLE mode, general exploration is permitted, but the root agent MUST NOT modify `superconductor/tracks.md` directly to spoof or bypass IDLE mode checks without prior authorization.
   - **TRACKED MODE**: Adhere to the capabilities granted in `permission-manifest.toml`. The Tool Call Interceptor will block unauthorized access and prompt the user.
