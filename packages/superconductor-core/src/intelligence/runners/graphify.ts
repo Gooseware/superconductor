@@ -19,7 +19,6 @@ function findGraphifyBinary(toolName: string, projectRoot: string): string | nul
     const binName = path.basename(toolName);
     const safePaths = [
         path.join(projectRoot, 'node_modules', '.bin'),
-        path.join(process.cwd(), 'node_modules', '.bin'),
         path.join(os.homedir(), '.npm-global', 'bin'),
         '/usr/local/bin',
         '/usr/bin'
@@ -57,7 +56,9 @@ export function runGraphify(projectRoot: string, outputDir: string, capability: 
   try {
     execFileSync(binary, ['--', '.'], { cwd: projectRoot, stdio: 'pipe', env: { PATH: '/usr/local/bin:/usr/bin:/bin' } });
   } catch (e: any) {
-    throw new Error(`[Intelligence] graphify failed: ${e.message}`);
+    const stdout = e.stdout ? e.stdout.toString() : '';
+    const stderr = e.stderr ? e.stderr.toString() : '';
+    throw new Error(`[Intelligence] graphify failed: ${e.message}\nStdout: ${stdout}\nStderr: ${stderr}`);
   }
 
   const graphifyOut = path.join(projectRoot, 'graphify-out', 'graph.json');
@@ -72,16 +73,30 @@ export function runGraphify(projectRoot: string, outputDir: string, capability: 
     throw new Error('Unsafe graphify output path');
   }
 
+  let fd;
   try {
-    const fd = fs.openSync(graphifyOut, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    fd = fs.openSync(graphifyOut, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    const stat = fs.fstatSync(fd);
+    if (stat.nlink > 1) {
+      throw new Error("Hardlink detected");
+    }
     const data = JSON.parse(fs.readFileSync(fd, 'utf8'));
-    fs.closeSync(fd);
-    fs.writeFileSync(outFile, JSON.stringify(data));
+    
+    const tmpDir = fs.mkdtempSync(path.join(path.dirname(outFile), '.tmp-'));
+    const tmpOut = path.join(tmpDir, 'graph.json');
+    fs.writeFileSync(tmpOut, JSON.stringify(data));
+    fs.renameSync(tmpOut, outFile);
+    fs.rmdirSync(tmpDir);
+    
     return { status: 'ok' };
   } catch (e: any) {
     throw new Error(
       `[Intelligence] Failed to parse graphify output: ${e.message}. ` +
       'Ensure the graphify tool is generating valid JSON.'
     );
+  } finally {
+    if (fd !== undefined) {
+      try { fs.closeSync(fd); } catch (e) {}
+    }
   }
 }

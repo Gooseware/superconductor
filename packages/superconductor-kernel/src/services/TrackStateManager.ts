@@ -18,29 +18,25 @@ export class TrackStateManager {
   }
 
   private load(): void {
-    try {
-      if (fs.existsSync(this.filePath)) {
-        const content = fs.readFileSync(this.filePath, "utf-8");
+    if (fs.existsSync(this.filePath)) {
+      const content = fs.readFileSync(this.filePath, "utf-8");
+      try {
         const parsed = JSON.parse(content);
         if (['IDLE', 'TRACKED', 'YOLO'].includes(parsed.mode)) {
           this.mode = parsed.mode;
         }
+      } catch (e) {
+        // ignore corrupted json and keep default mode
       }
-    } catch (err) {
-      console.error(`Failed to load track state from ${this.filePath}:`, err);
     }
   }
 
   private save(): void {
-    try {
-      const dir = path.dirname(this.filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-      fs.writeFileSync(this.filePath, JSON.stringify({ mode: this.mode }, null, 2), "utf-8");
-    } catch (err) {
-      console.error(`Failed to save track state to ${this.filePath}:`, err);
+    const dir = path.dirname(this.filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
+    fs.writeFileSync(this.filePath, JSON.stringify({ mode: this.mode }, null, 2), "utf-8");
   }
 
   getMode(): TrackMode {
