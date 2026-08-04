@@ -42,6 +42,7 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
 
     const completedInteraction = await this.poller.poll(async () => {
       const result = await this.client.getInteraction(interaction.id || interaction.name);
+      if (!result) throw new Error('Provider returned null result');
       if (result.state === 'COMPLETED') {
         return { status: 'done', result };
       }
@@ -82,7 +83,7 @@ export class GeminiApiDeepResearchProvider implements IResearchProvider {
       const contentStr =
         typeof out === 'string'
           ? out
-          : out?.text ?? out?.content ?? JSON.stringify(out);
+          : out?.text ?? out?.content ?? ( () => { try { return JSON.stringify(out); } catch { return String(out); } } )();
 
       const titleStr =
         out && typeof out === 'object' && out.title

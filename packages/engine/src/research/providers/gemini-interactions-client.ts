@@ -1,6 +1,7 @@
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
+import { GoogleAuth } from 'google-auth-library';
 
 export interface GeminiInteractionsOptions {
   authMode?: 'apiKey' | 'vertexai';
@@ -29,6 +30,7 @@ const InteractionResponseSchema = z.object({
 export class GeminiInteractionsClient {
   public sdkClient: any;
   private authMode: 'apiKey' | 'vertexai';
+  private googleAuth: GoogleAuth | null = null;
 
   constructor(options: GeminiInteractionsOptions = { authMode: 'apiKey' }) {
     const mode = options?.authMode || 'apiKey';
@@ -49,13 +51,31 @@ export class GeminiInteractionsClient {
         project: projectId,
         location: process.env.GCP_LOCATION || 'us-central1'
       });
+      this.googleAuth = new GoogleAuth({
+        scopes: ['https://www.googleapis.com/auth/cloud-platform']
+      });
     } else {
       throw new Error(`Invalid auth mode: ${mode}`);
     }
   }
 
+  private async getGcpAccessToken(): Promise<string> {
+    if (process.env.GCP_ACCESS_TOKEN) {
+      return process.env.GCP_ACCESS_TOKEN;
+    }
+    if (this.googleAuth) {
+      const token = await this.googleAuth.getAccessToken();
+      return token || '';
+    }
+    return '';
+  }
+
+  private formatId(id: string): string {
+    return id.split('/').map(encodeURIComponent).join('/');
+  }
+
   async createInteraction(params: any): Promise<any> {
-    if (this.sdkClient.interactions) {
+    if (this.sdkClient.interactions && typeof this.sdkClient.interactions.createInteraction === 'function') {
       return this.sdkClient.interactions.createInteraction(params);
     }
     
@@ -75,11 +95,12 @@ export class GeminiInteractionsClient {
       const projectId = process.env.GCP_PROJECT_ID;
       const location = process.env.GCP_LOCATION || 'us-central1';
       const url = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/interactions`;
+      const token = await this.getGcpAccessToken();
       const response = await fetch(url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.GCP_ACCESS_TOKEN || ''}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(params)
       });
@@ -94,12 +115,15 @@ export class GeminiInteractionsClient {
   }
 
   async getInteraction(id: string): Promise<any> {
-    if (this.sdkClient.interactions) {
+    if (this.sdkClient.interactions && typeof this.sdkClient.interactions.getInteraction === 'function') {
       return this.sdkClient.interactions.getInteraction(id);
     }
 
+    const formattedId = this.formatId(id);
+
     if (this.authMode === 'apiKey') {
-      const url = `https://generativelanguage.googleapis.com/v1beta/interactions/${encodeURIComponent(id)}?key=${process.env.GEMINI_API_KEY}`;
+      const path = formattedId.includes('/') ? formattedId : `interactions/${formattedId}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/${path}?key=${process.env.GEMINI_API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new HttpError(`Failed to get interaction: ${response.statusText}`, response.status, response.headers, response);
@@ -109,10 +133,17 @@ export class GeminiInteractionsClient {
     } else if (this.authMode === 'vertexai') {
       const projectId = process.env.GCP_PROJECT_ID;
       const location = process.env.GCP_LOCATION || 'us-central1';
-      const url = `https://${location}-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/${location}/interactions/${encodeURIComponent(id)}`;
+      let path = formattedId;
+      if (!path.includes('/')) {
+         path = `projects/${projectId}/locations/${location}/interactions/${formattedId}`;
+      } else if (!path.startsWith('projects/')) {
+         path = `projects/${projectId}/locations/${location}/${formattedId}`;
+      }
+      const url = `https://${location}-aiplatform.googleapis.com/v1beta1/${path}`;
+      const token = await this.getGcpAccessToken();
       const response = await fetch(url, {
         headers: { 
-          'Authorization': `Bearer ${process.env.GCP_ACCESS_TOKEN || ''}`
+          'Authorization': `Bearer ${token}`
         }
       });
       if (!response.ok) {

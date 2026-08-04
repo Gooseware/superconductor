@@ -1,8 +1,13 @@
+export interface LongPollerOptions {
+  pollIntervalMs?: number;
+  maxWaitMs?: number;
+}
+
 export class AsyncLongPoller<T = any> {
   private pollIntervalMs: number;
   private maxWaitMs: number;
 
-  constructor(options: { pollIntervalMs?: number; maxWaitMs?: number } = {}) {
+  constructor(options: LongPollerOptions = {}) {
     this.pollIntervalMs = options.pollIntervalMs || 1000;
     this.maxWaitMs = options.maxWaitMs || 30000;
   }
@@ -10,7 +15,7 @@ export class AsyncLongPoller<T = any> {
   async poll<T>(
     operation: () => Promise<{ status: 'done' | 'pending'; result?: T; retryAfter?: number }>,
     startTime: number = Date.now(),
-    attempt: number = 0
+    errorAttempt: number = 0
   ): Promise<T> {
     if (Date.now() - startTime > this.maxWaitMs) {
       throw new Error('Timeout exceeded');
@@ -29,12 +34,12 @@ export class AsyncLongPoller<T = any> {
         if (retryAfter) {
           let parsedDelay = parseInt(retryAfter, 10) * 1000;
           if (isNaN(parsedDelay)) {
-            delay = this.pollIntervalMs * Math.pow(2, attempt);
+            delay = this.pollIntervalMs * Math.pow(2, errorAttempt);
           } else {
             delay = parsedDelay;
           }
         } else {
-          delay = this.pollIntervalMs * Math.pow(2, attempt);
+          delay = this.pollIntervalMs * Math.pow(2, errorAttempt);
         }
       } else {
         const isTransient = e && (
@@ -46,7 +51,7 @@ export class AsyncLongPoller<T = any> {
           (e.name === 'TypeError' && e.message === 'fetch failed')
         );
         if (isTransient) {
-          delay = this.pollIntervalMs * Math.pow(2, attempt);
+          delay = this.pollIntervalMs * Math.pow(2, errorAttempt);
         } else {
           throw e;
         }
@@ -61,16 +66,16 @@ export class AsyncLongPoller<T = any> {
       }
       
       await new Promise((resolve) => setTimeout(resolve, delay));
-      return this.poll(operation, startTime, attempt + 1);
+      return this.poll(operation, startTime, errorAttempt + 1);
     }
 
     if (response && response.status === 'done') {
       return response.result as T;
     }
 
-    let baseDelay = (response && response.retryAfter !== undefined) ? response.retryAfter * 1000 : this.pollIntervalMs * Math.pow(2, attempt);
+    let baseDelay = (response && response.retryAfter !== undefined) ? response.retryAfter * 1000 : this.pollIntervalMs;
     if (isNaN(baseDelay)) {
-      baseDelay = this.pollIntervalMs * Math.pow(2, attempt);
+      baseDelay = this.pollIntervalMs;
     }
     const jitter = Math.random() * 0.2 * baseDelay; // 20% jitter
     delay = baseDelay + jitter;
@@ -81,6 +86,6 @@ export class AsyncLongPoller<T = any> {
     }
 
     await new Promise((resolve) => setTimeout(resolve, delay));
-    return this.poll(operation, startTime, attempt + 1);
+    return this.poll(operation, startTime, errorAttempt); // do not increment errorAttempt for normal pending states
   }
 }
