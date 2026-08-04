@@ -90,7 +90,7 @@ const findMdFiles = (dir: string): string[] => {
       const fullPath = path.join(dir, file);
       try {
         if (!fs.existsSync(fullPath)) return;
-        const stat = fs.statSync(fullPath);
+        const stat = fs.lstatSync(fullPath);
         if (stat.isDirectory()) {
           results = results.concat(findMdFiles(fullPath));
         } else if (file.endsWith('.md')) {
