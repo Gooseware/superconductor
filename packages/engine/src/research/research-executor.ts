@@ -6,6 +6,7 @@ import { WorkUnit, WorkUnitState, WorkUnitStateMachine } from '@superconductor/c
 import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-error.js';
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
 import { ResearchBriefSynthesizer } from './brief-synthesizer.js';
+import { FallbackFailedError } from './errors.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchSourceQualityGate } from './source-quality-gate.js';
 
@@ -62,7 +63,7 @@ export class ResearchExecutor {
             for (const query of queries) {
                 const searchResults = await provider.search(query);
                 for (const source of searchResults) {
-                    if (this.qualityGate.evaluate(source as any).passed) {
+                    if (this.qualityGate.evaluate(source).passed === true) {
                         results.push(source);
                     }
                 }
@@ -91,7 +92,7 @@ export class ResearchExecutor {
         }
 
         if (fallbackFailed && results.length === 0) {
-            throw new Error('FallbackFailedError: Both primary and fallback providers failed.'); // Explicit failure (COR-3, ADV-2)
+            throw new FallbackFailedError('Both primary and fallback providers failed.');
         }
 
         if (results.length === 0) {

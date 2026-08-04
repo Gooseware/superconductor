@@ -1,5 +1,5 @@
 export interface ResearchSource {
-  type: string;
+  type?: string;
   url: string;
   stars?: number;
   lastCommitDaysAgo?: number;

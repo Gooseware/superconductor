@@ -48,7 +48,7 @@ describe('ResearchBriefSynthesizer', () => {
 
       expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
       const calledPrompt = mockExecuteLlm.mock.calls[0][0];
-      expect(calledPrompt).toBe('Extract structured findings from: Detailed content of the spec for analysis');
+      expect(calledPrompt).toContain('<content>Detailed content of the spec for analysis</content>');
     });
 
     it('falls back to source.title when source.content is missing', async () => {
@@ -61,7 +61,7 @@ describe('ResearchBriefSynthesizer', () => {
 
       expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
       const calledPrompt = mockExecuteLlm.mock.calls[0][0];
-      expect(calledPrompt).toBe('Extract structured findings from: Awesome Spec Title');
+      expect(calledPrompt).toContain('<content>Awesome Spec Title</content>');
     });
 
     it('falls back to source.url when both content and title are missing', async () => {
@@ -73,7 +73,7 @@ describe('ResearchBriefSynthesizer', () => {
 
       expect(mockExecuteLlm).toHaveBeenCalledTimes(1);
       const calledPrompt = mockExecuteLlm.mock.calls[0][0];
-      expect(calledPrompt).toBe('Extract structured findings from: https://example.com/spec');
+      expect(calledPrompt).toContain('<content>https://example.com/spec</content>');
     });
   });
 

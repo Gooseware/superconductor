@@ -6,10 +6,11 @@ export interface IResearchQuery {
 }
 
 export const ResearchSourceSchema = z.object({
+  type: z.string().optional(),
   url: z.string(),
   title: z.string().optional(),
   content: z.string().optional()
-});
+}).passthrough();
 
 export interface IResearchSource extends z.infer<typeof ResearchSourceSchema> {}
 
@@ -45,6 +46,20 @@ export const ResearchFindingSchema = z.object({
   description: z.string(),
   sourceUrl: z.string().optional()
 }).strict();
+
+
+export const ResearchFindingWithScoreSchema = z.object({
+  category: z.enum([
+    "OSS_DISCOVERY",
+    "WHITE_PAPER",
+    "ARCHITECTURAL_PATTERN",
+    "SECURITY_CONSIDERATION",
+    "COMMUNITY_PATTERN"
+  ]),
+  description: z.string(),
+  sourceUrl: z.string().optional(),
+  confidenceScore: z.number()
+});
 
 export const ResearchBriefSchema = z.object({
   trackId: z.string(),
