@@ -56,9 +56,9 @@
 - [ ] Task: Create `AsyncLongPoller` utility in `packages/engine/src/research/providers/`. [TIER-4:TCS=3] [AGENT:superconductor-oracle]
     - [ ] Write failing tests: normal completion returns result. Timeout exceeded → rejects. `429` with `Retry-After: 30` suspends 30s then resumes. Exponential backoff applied between polls. [TIER-1:TCS=3]
     - [ ] Implement: configurable `pollIntervalMs`, `maxWaitMs`, `Retry-After` parsing, jittered backoff. [TIER-1:TCS=3]
-- [ ] Task: Update `TelemetryStore` to scrub `GEMINI_API_KEY` and `GCP_*` vars from all outputs. [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Write failing test: telemetry payload containing `GEMINI_API_KEY` value is redacted to `[REDACTED]`. [TIER-1:TCS=3]
-    - [ ] Implement scrubbing logic. [TIER-1:TCS=3]
+- [x] Task: Update `TelemetryStore` to scrub `GEMINI_API_KEY` and `GCP_*` vars from all outputs. [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Write failing test: telemetry payload containing `GEMINI_API_KEY` value is redacted to `[REDACTED]`. [TIER-1:TCS=3]
+    - [x] Implement scrubbing logic. [TIER-1:TCS=3]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Shared Infrastructure (Oracle)' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---

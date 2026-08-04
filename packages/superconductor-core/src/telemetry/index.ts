@@ -41,6 +41,27 @@ export class FileTelemetryStore implements TelemetryStore {
                 scrubbed = scrubbed.split(val).join('[REDACTED]');
             }
         }
+
+        // Redact JSON key-values for GEMINI_API_KEY, gemini_api_key, geminiApiKey, and GCP_*
+        scrubbed = scrubbed.replace(
+            /("?(?:GEMINI_API_KEY|gemini_api_key|geminiApiKey)"?\s*:\s*)"[^"]*"/gi,
+            '$1"[REDACTED]"'
+        );
+        scrubbed = scrubbed.replace(
+            /("?GCP_[A-Za-z0-9_]+"?\s*:\s*)"[^"]*"/gi,
+            '$1"[REDACTED]"'
+        );
+
+        // Redact key=value style parameters
+        scrubbed = scrubbed.replace(
+            /(GEMINI_API_KEY|gemini_api_key|geminiApiKey)=([^\s&"'\`]+)/gi,
+            '$1=[REDACTED]'
+        );
+        scrubbed = scrubbed.replace(
+            /(GCP_[A-Za-z0-9_]+)=([^\s&"'\`]+)/gi,
+            '$1=[REDACTED]'
+        );
+
         // Redact known key format for Gemini API keys if not caught by env
         scrubbed = scrubbed.replace(/AIza[a-zA-Z0-9_\-]{35}/g, '[REDACTED]');
         return scrubbed;
