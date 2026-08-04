@@ -1,6 +1,5 @@
 import { IResearchProvider, IResearchQuery, IResearchSource } from './types.js';
 import { GoogleDeepResearchProvider } from './providers/google-deep-research-provider.js';
-import { GeminiAPIProvider } from './providers/gemini-api-provider.js';
 import { GeminiApiDeepResearchProvider } from './providers/gemini-api-deep-research-provider.js';
 import { VertexAiDeepResearchProvider } from './providers/vertex-ai-deep-research-provider.js';
 

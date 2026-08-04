@@ -28,7 +28,7 @@ export class AgentConfigReader {
         }
 
         let providerName = providerMatch[1].trim();
-        // Normalize dashes to underscores for internal registry compatibility
+        // The registry handles format variations natively
         
 
         const options: AgentConfigResearchOptions = {};

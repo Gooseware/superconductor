@@ -8,7 +8,6 @@ import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-e
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
 import { SemanticCache } from '@superconductor/core/src/cache/semantic-cache.js';
 import { ResearchProviderRegistry } from './provider-registry.js';
-import { GeminiAPIProvider } from './providers/gemini-api-provider.js';
 
 vi.mock('@superconductor/core/src/cache/semantic-cache.js', () => {
     return {
@@ -23,8 +22,8 @@ vi.mock('fs', async (importOriginal) => {
     const actual = await importOriginal<typeof import('fs')>();
     return {
         ...actual,
-        existsSync: vi.fn().mockReturnValue(true),
-        statSync: vi.fn().mockReturnValue({ isDirectory: () => true }),
+        existsSync: vi.fn(),
+        statSync: vi.fn(),
         mkdirSync: vi.fn(),
         writeFileSync: vi.fn(),
         readFileSync: vi.fn().mockReturnValue('')
@@ -38,6 +37,10 @@ describe('ResearchExecutor', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        
+        vi.mocked(fs.existsSync).mockReturnValue(true);
+        vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => true } as any);
+        
         mockProvider = {
             search: vi.fn().mockResolvedValue([{ type: 'community', url: 'https://stackoverflow.com/questions/123', title: 'Test' }])
         };
@@ -189,4 +192,41 @@ describe('ResearchExecutor', () => {
         const returnedProvider = resolveSpy.mock.results[0].value;
         expect(returnedProvider).toBeInstanceOf(GeminiApiDeepResearchProvider);
     });
+    it('should call mkdirSync if directory does not exist', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(false);
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet, set: vi.fn() };
+        const queries = [{ term: 'q1' }];
+        await executor.execute('t1', queries, mockProvider);
+        expect(fs.mkdirSync).toHaveBeenCalledWith(expect.any(String), { recursive: true });
+    });
+
+    it('should throw ENOTDIR if path exists but is not a directory', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(true);
+        vi.mocked(fs.statSync).mockReturnValue({ isDirectory: () => false } as any);
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet, set: vi.fn() };
+        const queries = [{ term: 'q1' }];
+        await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow(/ENOTDIR/);
+    });
+
+    it('should allow exactly 3 queries', async () => {
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet, set: vi.fn() };
+        const queries = [{ term: '1' }, { term: '2' }, { term: '3' }];
+        const { brief } = await executor.execute('t1', queries, mockProvider);
+        expect(brief.queriesExecuted.length).toBe(3);
+    });
+
+    it('should throw error if 0 queries are provided and no fallback possible', async () => {
+        const executor = new ResearchExecutor(workspaceDir);
+        const mockCacheGet = vi.fn().mockResolvedValue(null);
+        (executor as any).cache = { get: mockCacheGet, set: vi.fn() };
+        const queries: any[] = [];
+        await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow('No research sources found');
+    });
+
 });

@@ -27,6 +27,16 @@ export class ResearchExecutor {
         this.qualityGate = new ResearchSourceQualityGate();
     }
 
+    private ensureDirectory(outDir: string) {
+        if (fs.existsSync(outDir)) {
+            if (!fs.statSync(outDir).isDirectory()) {
+                throw new Error(`ENOTDIR: not a directory, open '${outDir}'`);
+            }
+        } else {
+            fs.mkdirSync(outDir, { recursive: true });
+        }
+    }
+
     public async execute(
         trackId: string, 
         queries: IResearchQuery[], 
@@ -61,13 +71,7 @@ export class ResearchExecutor {
         const outDir = path.join(this.workspaceDir, '.superconductor', 'research', safeTrackId);
         
         if (cached) {
-            if (fs.existsSync(outDir)) {
-                if (!fs.statSync(outDir).isDirectory()) {
-                    throw new Error(`ENOTDIR: not a directory, open '${outDir}'`);
-                }
-            } else {
-                fs.mkdirSync(outDir, { recursive: true });
-            }
+            this.ensureDirectory(outDir);
             fs.writeFileSync(path.join(outDir, 'brief.json'), JSON.stringify(cached, null, 2), 'utf8'); // Restore brief.json on cache hit (REG-5)
             return { brief: cached, updatedWorkUnit };
         }
@@ -120,13 +124,7 @@ export class ResearchExecutor {
         
         const brief = await synthesizer.synthesize(results, trackId, queries.map(q => q.term));
 
-        if (fs.existsSync(outDir)) {
-                if (!fs.statSync(outDir).isDirectory()) {
-                    throw new Error(`ENOTDIR: not a directory, open '${outDir}'`);
-                }
-            } else {
-                fs.mkdirSync(outDir, { recursive: true });
-            }
+        this.ensureDirectory(outDir);
         
         fs.writeFileSync(path.join(outDir, 'brief.json'), JSON.stringify(brief, null, 2), 'utf8');
 
