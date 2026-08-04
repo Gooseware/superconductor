@@ -71,6 +71,7 @@ export class ResearchExecutor {
         } catch (error) {
             if (error instanceof ResearchProviderUnavailableError) {
                 console.warn('[ResearchExecutor] Degraded mode: Provider unavailable, falling back to standard search_web');
+                results.length = 0;
                 for (const query of queries) {
                     try {
                         const rawResults = await this.executeTool('search_web', { query: query.term });
