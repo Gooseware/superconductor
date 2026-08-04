@@ -37,14 +37,14 @@
 ---
 
 ## Phase 1: Pre-existing Bug Fix & Type Extension
-- [ ] Task: Fix `IResearchSource` — add `content?: string` field to `packages/engine/src/research/types.ts`. [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Write failing test: `IResearchSource` with `content` field is accepted by brief synthesizer. [TIER-1:TCS=3]
-    - [ ] Implement: add `content?: string` to interface and Zod schema (if present). [TIER-1:TCS=3]
-    - [ ] Update `llmMapSource()` in `brief-synthesizer.ts` to use `source.content ?? source.title ?? source.url` as input. [TIER-1:TCS=3]
-- [ ] Task: Fix `ResearchBriefSynthesizer.synthesize()` signature mismatch — add missing `queries: string[]` parameter. [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Write failing test: call `synthesize(sources, trackId, queries)` and assert `queriesExecuted` is populated correctly. [TIER-1:TCS=3]
-    - [ ] Implement: add parameter, wire through. [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Pre-existing Bug Fix & Type Extension' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Fix `IResearchSource` — add `content?: string` field to `packages/engine/src/research/types.ts`. [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Write failing test: `IResearchSource` with `content` field is accepted by brief synthesizer. [TIER-1:TCS=3]
+    - [x] Implement: add `content?: string` to interface and Zod schema (if present). [TIER-1:TCS=3]
+    - [x] Update `llmMapSource()` in `brief-synthesizer.ts` to use `source.content ?? source.title ?? source.url` as input. [TIER-1:TCS=3]
+- [x] Task: Fix `ResearchBriefSynthesizer.synthesize()` signature mismatch — add missing `queries: string[]` parameter. [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Write failing test: call `synthesize(sources, trackId, queries)` and assert `queriesExecuted` is populated correctly. [TIER-1:TCS=3]
+    - [x] Implement: add parameter, wire through. [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Pre-existing Bug Fix & Type Extension' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---
 
