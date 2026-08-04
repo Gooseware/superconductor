@@ -840,8 +840,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { metric } = z.object({ metric: z.enum(["churn", "complexity", "pagerank"]) }).parse(args);
     const data = graphCache.load();
     const sorted = [...data.nodes].sort((a: any, b: any) => {
-      const valA = a[metric] || 0;
-      const valB = b[metric] || 0;
+      const valA = a.metadata?.[metric] || 0;
+      const valB = b.metadata?.[metric] || 0;
       return valB - valA;
     }).slice(0, 10);
     return { content: [{ type: "text", text: JSON.stringify(sorted, null, 2) }] };
@@ -850,9 +850,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "kernel_intelligence_get_dependency_graph") {
     const { community_id } = z.object({ community_id: z.string() }).parse(args);
     const data = graphCache.load();
-    const nodes = data.nodes.filter((n: any) => n.community === community_id);
-    const nodeIds = new Set(nodes.map(n => n.id));
-    const edges = data.edges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+    const nodes = data.nodes.filter((n: any) => n.metadata?.community_id === community_id || n.metadata?.community === community_id);
+    const nodeIds = new Set(nodes.map((n: any) => n.id));
+    const edges = data.edges.filter((e: any) => nodeIds.has(e.source) && nodeIds.has(e.target));
     return { content: [{ type: "text", text: JSON.stringify({ nodes, edges }, null, 2) }] };
   }
 

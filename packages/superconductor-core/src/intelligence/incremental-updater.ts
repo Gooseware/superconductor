@@ -9,6 +9,7 @@ import { runSymbolExtraction } from './runners/symbol-extraction.js';
 import { runTestGaps } from './runners/test-gaps.js';
 import { runPackageSurface } from './runners/package-surface.js';
 import { runDependencySurface } from './runners/dependency-surface.js';
+import { runGraphify } from './runners/graphify.js';
 import { getSuperconductorHome, resolveRegistry } from './tool-registry.js';
 import { spawnSync } from 'child_process';
 
@@ -22,6 +23,7 @@ export const PHASE_INVALIDATION: Record<string, (file: string) => boolean> = {
   'dependency-surface':(f) => /\.(ts|js|tsx|jsx)$/.test(f),
   fingerprint:         (f) => f.endsWith('package.json'),
   coupling:            (_) => true,  // always update coupling incrementally
+  graphify:            (f) => /\.(ts|js|tsx|jsx|json)$/.test(f),
 };
 
 export function mergeIntoJson<T extends { file: string; hotspot_score?: number }>(outputFile: string, newEntries: T[], changedFiles?: string[]): void {
@@ -64,13 +66,24 @@ export function mergeIntoJson<T extends { file: string; hotspot_score?: number }
     });
   }
 
-  const tmpPath = `${outputFile}.tmp.${Date.now()}`;
+  const tmpDir = fs.mkdtempSync(path.join(path.dirname(outputFile), '.tmp-'));
+  const tmpPath = path.join(tmpDir, 'tmp.json');
   try {
     fs.writeFileSync(tmpPath, JSON.stringify(merged, null, 2));
     fs.renameSync(tmpPath, outputFile);
-  } catch (e) {
-    try { fs.unlinkSync(tmpPath); } catch {}
-    throw e;
+  } finally {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+  }
+}
+
+function safeWriteManifest(manifestPath: string, data: any) {
+  const tmpDir = fs.mkdtempSync(path.join(path.dirname(manifestPath), '.tmp-'));
+  const tmpPath = path.join(tmpDir, 'tmp.json');
+  try {
+    fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2));
+    fs.renameSync(tmpPath, manifestPath);
+  } finally {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
   }
 }
 
@@ -101,14 +114,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
       m.lastCommitSha = headSha;
-      const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
-      try {
-        fs.writeFileSync(tmpManifest, JSON.stringify(m, null, 2));
-        fs.renameSync(tmpManifest, manifestPath);
-      } catch (e) {
-        try { fs.unlinkSync(tmpManifest); } catch {}
-        throw e;
-      }
+      safeWriteManifest(manifestPath, m);
     } catch (e) {}
     return {
       phasesRun: ['full-scan'],
@@ -127,14 +133,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
       m.lastCommitSha = headSha;
-      const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
-      try {
-        fs.writeFileSync(tmpManifest, JSON.stringify(m, null, 2));
-        fs.renameSync(tmpManifest, manifestPath);
-      } catch (e) {
-        try { fs.unlinkSync(tmpManifest); } catch {}
-        throw e;
-      }
+      safeWriteManifest(manifestPath, m);
     } catch (e) {}
     return {
       phasesRun: ['full-scan'],
@@ -148,27 +147,13 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     manifest.incrementalRuns = 0;
     manifest.lastCommitSha = headSha; // use the already-resolved headSha
     manifest.timestamp = Date.now();
-    const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
-    try {
-      fs.writeFileSync(tmpManifest, JSON.stringify(manifest, null, 2));
-      fs.renameSync(tmpManifest, manifestPath);
-    } catch (e) {
-      try { fs.unlinkSync(tmpManifest); } catch {}
-      throw e;
-    }
+    safeWriteManifest(manifestPath, manifest);
     await runPipeline([], projectRoot, path.dirname(outputDir)); // pipeline appends '/intelligence', pass parent dir; full rescan overwrites all data
     try {
       const m = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
       m.incrementalRuns = 0;
       m.lastCommitSha = headSha;
-      const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
-      try {
-        fs.writeFileSync(tmpManifest, JSON.stringify(m, null, 2));
-        fs.renameSync(tmpManifest, manifestPath);
-      } catch (e) {
-        try { fs.unlinkSync(tmpManifest); } catch {}
-        throw e;
-      }
+      safeWriteManifest(manifestPath, m);
     } catch (e) {}
     return { phasesRun: ['full-scan'], filesUpdated: 0, durationMs: Date.now() - start, snapshotSha: headSha };
   }
@@ -194,7 +179,7 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     const depEntries = res.entries as any;
     if (depEntries && Array.isArray(depEntries.nodes)) {
       const depFile = path.join(outputDir, '02_dependency_graph.json');
-      let existing = { nodes: [], edges: [], circularDeps: [] };
+      let existing: any = { nodes: [], edges: [], circularDeps: [] };
       if (fs.existsSync(depFile)) {
         try {
           existing = JSON.parse(fs.readFileSync(depFile, 'utf-8'));
@@ -211,12 +196,13 @@ export async function update(options: { projectRoot: string; changedFiles: strin
       const mergedCircular = (existing.circularDeps || []).filter((c: any) => !c.some((f: string) => changedSet.has(path.normalize(f))));
       if (depEntries.circularDeps) mergedCircular.push(...depEntries.circularDeps);
       
-      const tmpPath = `${depFile}.tmp.${Date.now()}`;
+      const tmpDir = fs.mkdtempSync(path.join(path.dirname(depFile), '.tmp-'));
+      const tmpPath = path.join(tmpDir, 'tmp.json');
       try {
         fs.writeFileSync(tmpPath, JSON.stringify({ nodes: mergedNodes, edges: mergedEdges, circularDeps: mergedCircular }, null, 2));
         fs.renameSync(tmpPath, depFile);
-      } catch (e) {
-        try { fs.unlinkSync(tmpPath); } catch {}
+      } finally {
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
       }
     }
   }
@@ -298,19 +284,20 @@ export async function update(options: { projectRoot: string; changedFiles: strin
     if (churnEntries.length > 0) {
       mergeIntoJson(path.join(outputDir, '04_coupling.json'), churnEntries);
     }
-  } catch (err) {}
+  } catch (err) {
+    process.stderr.write(`[superconductor:intelligence] coupling phase failed: ${err}\n`);
+  }
 
   manifest.lastCommitSha = headSha;
   manifest.incrementalRuns = (manifest.incrementalRuns || 0) + 1;
-  manifest.timestamp = Date.now();
-  const tmpManifest = `${manifestPath}.tmp.${Date.now()}`;
-  try {
-    fs.writeFileSync(tmpManifest, JSON.stringify(manifest, null, 2));
-    fs.renameSync(tmpManifest, manifestPath);
-  } catch (e) {
-    try { fs.unlinkSync(tmpManifest); } catch {}
-    throw e;
+  // graphify
+  if (changedFiles.some(PHASE_INVALIDATION['graphify'])) {
+    phasesRun.push('graphify');
+    runGraphify(projectRoot, outputDir, registry.capabilities.graphify);
   }
+
+  manifest.timestamp = Date.now();
+  safeWriteManifest(manifestPath, manifest);
 
   return {
     phasesRun,

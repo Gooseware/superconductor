@@ -54,13 +54,13 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
 
 
 
-- [ ] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Confirm `~/.gemini/config/skills/swarm-orchestrate/SKILL.md` exists
-    - [ ] Confirm `uv` is on PATH (`uv --version`)
-    - [ ] Confirm `python3 --version` ≥ 3.10
-    - [ ] Confirm `graphify --version` OR `uv tool install graphifyy` succeeds
-    - [ ] Create track branch: `git checkout -b track/superconductor_kernel_20260801`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
+    - [x] Confirm `~/.gemini/config/skills/swarm-orchestrate/SKILL.md` exists
+    - [x] Confirm `uv` is on PATH (`uv --version`)
+    - [x] Confirm `python3 --version` ≥ 3.10
+    - [x] Confirm `graphify --version` OR `uv tool install graphifyy` succeeds
+    - [x] Create track branch: `git checkout -b track/superconductor_kernel_20260801`
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
 
@@ -122,23 +122,23 @@ When `MAX_QUORUM_LOOPS` (3) is exceeded for any phase, the orchestrator **MUST N
 
 ## Phase 3: Kernel Graph MCP Tools
 
-- [ ] Task: Implement graph query MCP tools in superconductor-kernel [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add `GraphCache` class to kernel: loads `09_graphify_graph.json`, provides in-memory index
-    - [ ] Implement `kernel_graph_get_node(node_id)` MCP tool
-    - [ ] Implement `kernel_graph_get_neighbors(node_id, max_depth)` MCP tool
-    - [ ] Implement `kernel_graph_shortest_path(source, target)` MCP tool
-    - [ ] Implement `kernel_intelligence_get_hotspots(metric)` MCP tool
-    - [ ] Implement `kernel_intelligence_get_dependency_graph(community_id)` MCP tool
-    - [ ] Implement `kernel_policy_get_mode()` MCP tool (returns current IDLE/TRACKED/YOLO)
-- [ ] Task: Write tests for new MCP tools [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Unit tests for each tool with mock `09_graphify_graph.json`
-    - [ ] Integration test: kernel starts, `kernel_graph_get_node` returns correct data
-    - [ ] Test: `kernel_policy_get_mode()` returns correct state from `TrackStateManager`
-- [ ] Task: Security review of MCP tool surface [TIER-4] [AGENT:superconductor-reviewer]
-    - [ ] Verify no path traversal via `node_id` parameters
-    - [ ] Verify `kernel_graph_get_neighbors` depth is bounded (max_depth ≤ 10)
-    - [ ] Verify `kernel_policy_get_mode()` is read-only (cannot mutate state)
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Kernel Graph MCP Tools' (Protocol in workflow.md)
+- [x] Task: Implement graph query MCP tools in superconductor-kernel [TIER-3] [AGENT:superconductor-processor]
+    - [x] Add `GraphCache` class to kernel: loads `09_graphify_graph.json`, provides in-memory index
+    - [x] Implement `kernel_graph_get_node(node_id)` MCP tool
+    - [x] Implement `kernel_graph_get_neighbors(node_id, max_depth)` MCP tool
+    - [x] Implement `kernel_graph_shortest_path(source, target)` MCP tool
+    - [x] Implement `kernel_intelligence_get_hotspots(metric)` MCP tool
+    - [x] Implement `kernel_intelligence_get_dependency_graph(community_id)` MCP tool
+    - [x] Implement `kernel_policy_get_mode()` MCP tool (returns current IDLE/TRACKED/YOLO)
+- [x] Task: Write tests for new MCP tools [TIER-2] [AGENT:superconductor-processor]
+    - [x] Unit tests for each tool with mock `09_graphify_graph.json`
+    - [x] Integration test: kernel starts, `kernel_graph_get_node` returns correct data
+    - [x] Test: `kernel_policy_get_mode()` returns correct state from `TrackStateManager`
+- [x] Task: Security review of MCP tool surface [TIER-4] [AGENT:superconductor-reviewer]
+    - [x] Verify no path traversal via `node_id` parameters
+    - [x] Verify `kernel_graph_get_neighbors` depth is bounded (max_depth ≤ 10)
+    - [x] Verify `kernel_policy_get_mode()` is read-only (cannot mutate state)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Kernel Graph MCP Tools' (Protocol in workflow.md)
 
 ---
 
