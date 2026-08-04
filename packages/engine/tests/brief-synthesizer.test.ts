@@ -115,6 +115,29 @@ describe('ResearchBriefSynthesizer', () => {
     expect(brief.skillsAlreadyInstalled).not.toContain('aws-cli');
   });
 
+  it('populates queriesExecuted correctly when calling synthesize(sources, trackId, queries)', async () => {
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/source1', title: 'Source 1' }
+    ];
+    const queries = ['query1', 'query2'];
+
+    const brief = await synthesizer.synthesize(rawResults, 'track-123', queries);
+
+    expect(brief.queriesExecuted).toEqual(queries);
+  });
+
+  it('populates queriesExecuted when options object with queries is passed', async () => {
+    const rawResults: IResearchSource[] = [
+      { url: 'https://example.com/source1', title: 'Source 1' }
+    ];
+    const queries = ['query-a', 'query-b'];
+
+    const brief = await synthesizer.synthesize(rawResults, { trackId: 'track-456', queries });
+
+    expect(brief.trackId).toBe('track-456');
+    expect(brief.queriesExecuted).toEqual(queries);
+  });
+
   it('validates output against ResearchBriefSchema', async () => {
     const rawResults: IResearchSource[] = [
       { url: 'https://example.com/valid', title: 'Valid' }

@@ -46,8 +46,8 @@ export class ResearchBriefSynthesizer {
    */
   async synthesize(
     rawResults: IResearchSource[],
-    trackIdOrOptions?: string | { trackId?: string; queriesExecuted?: string[]; skillsAlreadyInstalled?: string[] },
-    queriesExecuted?: string[],
+    trackIdOrOptions?: string | { trackId?: string; queries?: string[]; queriesExecuted?: string[]; skillsAlreadyInstalled?: string[] },
+    queries?: string[],
     skillsAlreadyInstalled?: string[]
   ): Promise<IResearchBrief> {
     let trackId = 'track-' + Date.now();
@@ -56,14 +56,15 @@ export class ResearchBriefSynthesizer {
 
     if (typeof trackIdOrOptions === 'string') {
       trackId = trackIdOrOptions;
-      if (queriesExecuted) actualQueries = queriesExecuted;
+      if (queries) actualQueries = queries;
       if (skillsAlreadyInstalled) actualSkills = skillsAlreadyInstalled;
     } else if (trackIdOrOptions && typeof trackIdOrOptions === 'object') {
       if (trackIdOrOptions.trackId) trackId = trackIdOrOptions.trackId;
-      if (trackIdOrOptions.queriesExecuted) actualQueries = trackIdOrOptions.queriesExecuted;
+      if (trackIdOrOptions.queries) actualQueries = trackIdOrOptions.queries;
+      else if (trackIdOrOptions.queriesExecuted) actualQueries = trackIdOrOptions.queriesExecuted;
       if (trackIdOrOptions.skillsAlreadyInstalled) actualSkills = trackIdOrOptions.skillsAlreadyInstalled;
     } else {
-      if (queriesExecuted) actualQueries = queriesExecuted;
+      if (queries) actualQueries = queries;
       if (skillsAlreadyInstalled) actualSkills = skillsAlreadyInstalled;
     }
     if (!fs.existsSync(this.outputDir)) {
