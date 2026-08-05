@@ -4,7 +4,7 @@
 
 | Status | Track ID | Title | Branch |
 |--------|----------|-------|--------|
-| `[~]` | `adaptive_permissions_20260801` | Adaptive Permission System | `fix/adaptive-permissions-quorum-findings` (merged to main) |
+| `[x]` | `adaptive_permissions_20260801` | Adaptive Permission System | `fix/adaptive-permissions-quorum-findings` (merged to main) |
 | `[x]` | `deep_research_integration_20260728` | Deep Research Integration | `track/deep_research_integration_20260728` (merged to main) |
 | `[x]` | `gemini_api_deep_research_20260728` | Gemini API Deep Research Provider | `track/gemini_api_deep_research_20260728` (merged to main) |
 | `[x]` | `superconductor_kernel_20260801` | Superconductor Kernel | `track/superconductor_kernel_20260801` (merged to main) |
