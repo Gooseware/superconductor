@@ -8,10 +8,10 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify `swarm-orchestrate` skill is installed and loaded (check `.agents/skills/` and `~/.agents/extensions/superconductor/skills/`) [TIER-1] [AGENT:superconductor-processor]
-- [ ] Task: Verify `deep_research_integration` capability is available (`packages/superconductor-core/src/research/`) [TIER-1] [AGENT:superconductor-processor]
-- [ ] Task: Verify `IntelligenceSnapshotReader` is available in `packages/superconductor-core/src/intelligence/` [TIER-1] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify `swarm-orchestrate` skill is installed and loaded (check `.agents/skills/` and `~/.agents/extensions/superconductor/skills/`) [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Verify `deep_research_integration` capability is available (`packages/engine/src/research/`) [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Verify `IntelligenceSnapshotReader` is available in `packages/superconductor-core/src/intelligence/` [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
 
