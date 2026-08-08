@@ -10,8 +10,7 @@ export interface LogWriterOptions {
 export class RemediationLogWriter {
   write(state: RemediationStateObject, options: LogWriterOptions): string {
     const timestamp = options.timestamp || new Date().toISOString();
-    let log = `</Agent System Instructions>\n`;
-    log += `<Remediation Log — ${options.target} — ${timestamp}>\n`;
+    let log = `<Remediation Log — ${options.target} — ${timestamp}>\n`;
 
     const reverseDomainMap: Record<string, string> = {};
     if (state.domainAssignments) {
