@@ -57,18 +57,21 @@
 
 ## Phase 3: Bias-Isolated Review Gate (Oracle Reusable Component)
 
-- [ ] Task: Write failing tests for `BiasIsolatedReviewGate` (verify fresh conversation IDs, verify only fingerprint+diff is passed, verify prior reasoning is NOT passed) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: fresh gate spawns reviewers with new conversation IDs
-    - [ ] Test: gate context does NOT contain prior reviewer reasoning text
-    - [ ] Test: gate context DOES contain finding fingerprint (severity, rule_id, file)
-    - [ ] Test: gate context DOES contain git diff of fix
-- [ ] Task: Implement `BiasIsolatedReviewGate` in `packages/superconductor-core/src/remediation/bias-isolated-review-gate.ts` [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Sub-task: Implement context stripping logic (whitelist-only: fingerprint + diff + preflight)
-    - [ ] Sub-task: Invoke `quorum-review.ts` with stripped context (DRY reuse, no re-implementation)
-    - [ ] Sub-task: Parse and forward `json:review-findings` with SenderID verification back to orchestrator
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Bias-Isolated Review Gate' (Protocol in workflow.md)
+- [x] Task: Write failing tests for `BiasIsolatedReviewGate` (67e612e1) (verify fresh conversation IDs, verify only fingerprint+diff is passed, verify prior reasoning is NOT passed) [TIER-3] [AGENT:superconductor-processor]
+    - [x] Test: fresh gate spawns reviewers with new conversation IDs (67e612e1)
+    - [x] (67e612e1) Test: gate context does NOT contain prior reviewer reasoning text
+    - [x] (67e612e1) Test: gate context DOES contain finding fingerprint (severity, rule_id, file)
+    - [x] (67e612e1) Test: gate context DOES contain git diff of fix
+- [x] (67e612e1) Task: Implement `BiasIsolatedReviewGate` in `packages/superconductor-core/src/remediation/bias-isolated-review-gate.ts` [TIER-4] [AGENT:superconductor-dreamer]
+    - [x] (67e612e1) Sub-task: Implement context stripping logic (whitelist-only: fingerprint + diff + preflight)
+    - [x] (67e612e1) Sub-task: Invoke `quorum-review.ts` with stripped context (DRY reuse, no re-implementation)
+    - [x] (67e612e1) Sub-task: Parse and forward `json:review-findings` with SenderID verification back to orchestrator
+- [x] (67e612e1) Task: Superconductor - User Manual Verification 'Phase 3: Bias-Isolated Review Gate' (Protocol in workflow.md) [checkpoint: 26/26 tests, SHA: 67e612e]
 
 ---
+
+
+> [!checkpoint] Phase 3 completed.
 
 ## Phase 4: Deep Research Escalation Integration
 
