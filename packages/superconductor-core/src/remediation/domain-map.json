@@ -1,0 +1,21 @@
+{
+  "test/": "test-writer",
+  "__tests__/": "test-writer",
+  "*.spec.*": "test-writer",
+  "*.test.*": "test-writer",
+  "auth/": "security-remediator",
+  "middleware/": "security-remediator",
+  "session/": "security-remediator",
+  "jwt/": "security-remediator",
+  "ui/": "frontend-remediator",
+  "components/": "frontend-remediator",
+  "pages/": "frontend-remediator",
+  "styles/": "frontend-remediator",
+  "db/": "schema-remediator",
+  "models/": "schema-remediator",
+  "migrations/": "schema-remediator",
+  "repository/": "schema-remediator",
+  "api/": "api-remediator",
+  "routes/": "api-remediator",
+  "controllers/": "api-remediator"
+}
