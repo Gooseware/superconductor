@@ -35,22 +35,22 @@
 
 ## Phase 2: RemediationOrchestrator Core
 
-- [ ] Task: Write failing tests for `RemediationOrchestrator` FSM state transitions (IDLE→ANALYZING→DISPATCHING→REMEDIATING→RE-REVIEWING→RESOLVED|ESCALATED) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: IDLE transitions to ANALYZING on `start()`
-    - [ ] Test: DISPATCHING transitions to REMEDIATING after domain classification
-    - [ ] Test: REMEDIATING transitions to RE-REVIEWING after fix attempt
-    - [ ] Test: RE-REVIEWING transitions to RESOLVED on `json:review-findings` with `status: RESOLVED`
-    - [ ] Test: RE-REVIEWING transitions to ESCALATED after 2 retries
-- [ ] Task: Implement `RemediationOrchestrator` class in `packages/superconductor-core/src/remediation/remediation-orchestrator.ts` [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Sub-task: Implement FSM state machine with transitions
-    - [ ] Sub-task: Implement `RemediationStateObject` management and persistence
-    - [ ] Sub-task: Implement domain-batch grouping logic (group findings by domain before dispatch)
-    - [ ] Sub-task: Implement retry counter and budget enforcement (max 2 retries per domain batch)
-    - [ ] Sub-task: Implement hard timeout (10 min) per domain agent with ESCALATED fallback
-- [ ] Task: Write failing tests for domain batch grouping (multiple findings → single agent, not N agents) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: 3 auth findings → 1 security-remediator agent
-    - [ ] Test: mixed domains → correct agent count
-- [ ] Task: Implement agent spawn protocol using `invoke_subagent` with SenderID verification in the orchestrator [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Write failing tests for `RemediationOrchestrator` FSM state transitions (IDLE→ANALYZING→DISPATCHING→REMEDIATING→RE-REVIEWING→RESOLVED|ESCALATED) [TIER-3] [AGENT:superconductor-processor]
+    - [x] Test: IDLE transitions to ANALYZING on `start()`
+    - [x] Test: DISPATCHING transitions to REMEDIATING after domain classification
+    - [x] Test: REMEDIATING transitions to RE-REVIEWING after fix attempt
+    - [x] Test: RE-REVIEWING transitions to RESOLVED on `json:review-findings` with `status: RESOLVED`
+    - [x] Test: RE-REVIEWING transitions to ESCALATED after 2 retries
+- [x] Task: Implement `RemediationOrchestrator` class in `packages/superconductor-core/src/remediation/remediation-orchestrator.ts` [TIER-4] [AGENT:superconductor-dreamer]
+    - [x] Sub-task: Implement FSM state machine with transitions
+    - [x] Sub-task: Implement `RemediationStateObject` management and persistence
+    - [x] Sub-task: Implement domain-batch grouping logic (group findings by domain before dispatch)
+    - [x] Sub-task: Implement retry counter and budget enforcement (max 2 retries per domain batch)
+    - [x] Sub-task: Implement hard timeout (10 min) per domain agent with ESCALATED fallback
+- [x] Task: Write failing tests for domain batch grouping (multiple findings → single agent, not N agents) [TIER-3] [AGENT:superconductor-processor]
+    - [x] Test: 3 auth findings → 1 security-remediator agent
+    - [x] Test: mixed domains → correct agent count
+- [x] Task: Implement agent spawn protocol using `invoke_subagent` with SenderID verification in the orchestrator [TIER-3] [AGENT:superconductor-processor]
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: RemediationOrchestrator Core' (Protocol in workflow.md)
 
 ---
