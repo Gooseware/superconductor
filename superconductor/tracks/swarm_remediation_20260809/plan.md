@@ -122,14 +122,14 @@
 
 ## Phase 7: Standalone Remediation Skill
 
-- [ ] Task: Create `skills/standalone-remediation/` directory and `SKILL.md` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Sub-task: Write skill frontmatter (name, description, detection signals)
-    - [ ] Sub-task: Write §1.0 Input Resolution (accept review report path as input)
-    - [ ] Sub-task: Write §2.0 Findings Parser (parse review report into structured finding objects)
-    - [ ] Sub-task: Write §3.0 Swarm Launch (delegate to `RemediationOrchestrator` with parsed findings)
-    - [ ] Sub-task: Write §4.0 Output Protocol (remediation log + updated review report)
-- [ ] Task: Write integration test: standalone-remediation skill can consume an existing review report and produce remediation log [TIER-3] [AGENT:superconductor-reviewer]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Standalone Remediation Skill' (Protocol in workflow.md)
+- [x] Task: Create `skills/standalone-remediation/` directory and `SKILL.md` [TIER-3] [AGENT:superconductor-processor] (Commit: 76ff8a9c)
+    - [x] Sub-task: Write skill frontmatter (name, description, detection signals)
+    - [x] Sub-task: Write §1.0 Input Resolution (accept review report path as input)
+    - [x] Sub-task: Write §2.0 Findings Parser (parse review report into structured finding objects)
+    - [x] Sub-task: Write §3.0 Swarm Launch (delegate to `RemediationOrchestrator` with parsed findings)
+    - [x] Sub-task: Write §4.0 Output Protocol (remediation log + updated review report)
+- [x] Task: Write integration test: standalone-remediation skill can consume an existing review report and produce remediation log [TIER-3] [AGENT:superconductor-reviewer] (Commit: 76ff8a9c)
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Standalone Remediation Skill' (Protocol in workflow.md) [checkpoint: Phase 7 completed, 41/41 tests passing]
 
 ---
 
