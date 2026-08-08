@@ -29,7 +29,7 @@
     - [x] Test: missing `findingIndex` fails validation
     - [x] Test: invalid `outcome` enum value fails
 - [x] Task: Create `remediation-state.schema.json` in `superconductor/schema/` [TIER-3] [AGENT:superconductor-processor] (Commit: 2f28088c)
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Schema & Domain Configuration' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Schema & Domain Configuration' (Protocol in workflow.md) [checkpoint: aed5a21]
 
 ---
 
