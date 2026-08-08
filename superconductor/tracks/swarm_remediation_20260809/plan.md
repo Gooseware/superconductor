@@ -94,14 +94,14 @@
 
 ## Phase 5: Remediation Log & Observability
 
-- [ ] Task: Write failing tests for `RemediationLogWriter` (log structure, per-finding entries, SHA tracking, token stats) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: log contains correct domain per finding
-    - [ ] Test: log contains outcome (RESOLVED|ESCALATED|HUMAN_REQUIRED)
-    - [ ] Test: log contains fix commit SHA for RESOLVED findings
-    - [ ] Test: `--stats` flag appends token usage section
-- [ ] Task: Implement `RemediationLogWriter` in `packages/superconductor-core/src/remediation/remediation-log-writer.ts` [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Wire token tracking (`recordTokenUsage`) for each domain agent into the log [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Remediation Log & Observability' (Protocol in workflow.md)
+- [x] Task: Write failing tests for `RemediationLogWriter` (log structure, per-finding entries, SHA tracking, token stats) [TIER-3] [AGENT:superconductor-processor] (Commit: cc66385)
+    - [x] Test: log contains correct domain per finding
+    - [x] Test: log contains outcome (RESOLVED|ESCALATED|HUMAN_REQUIRED)
+    - [x] Test: log contains fix commit SHA for RESOLVED findings
+    - [x] Test: `--stats` flag appends token usage section
+- [x] Task: Implement `RemediationLogWriter` in `packages/superconductor-core/src/remediation/remediation-log-writer.ts` [TIER-3] [AGENT:superconductor-processor] (Commit: 77c923f)
+- [x] Task: Wire token tracking (`recordTokenUsage`) for each domain agent into the log [TIER-3] [AGENT:superconductor-processor] (Commit: a47b825)
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Remediation Log & Observability' (Protocol in workflow.md) [checkpoint: Phase 5 completed, 38/38 tests passing]
 
 ---
 
