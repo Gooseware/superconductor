@@ -75,20 +75,20 @@
 
 ## Phase 4: Deep Research Escalation Integration
 
-- [ ] Task: Write failing tests for deep research request construction (full context injection, prior attempts included, spotlighting delimiters present) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: research request contains prior fix attempts
-    - [ ] Test: research result injection uses spotlighting delimiters (`<DEEP_RESEARCH_RESULT>` tags)
-    - [ ] Test: policy-decision findings are flagged for human review (not auto-applied)
-- [ ] Task: Implement `DeepResearchEscalationHandler` in `packages/superconductor-core/src/remediation/deep-research-escalation-handler.ts` [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Sub-task: Construct research request payload from finding + code context + failed attempts
-    - [ ] Sub-task: Call existing `deep_research_integration` capability with constructed payload
-    - [ ] Sub-task: Inject result into remediator context using spotlighted delimiters (prompt injection defense)
-    - [ ] Sub-task: Classify research result as auto-applicable vs. policy-decision-required
-- [ ] Task: Write failing tests for policy-decision escalation (human intervention path) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: policy-flagged finding triggers `ask_question` with terminal options only
-    - [ ] Test: `Acknowledge & Abort` option halts pipeline
-    - [ ] Test: `Acknowledge & Revert` option reverts remediation branch changes
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Deep Research Escalation Integration' (Protocol in workflow.md)
+- [x] Task: Write failing tests for deep research request construction (full context injection, prior attempts included, spotlighting delimiters present) [TIER-3] [AGENT:superconductor-processor] (Commit: f8d61b11)
+    - [x] Test: research request contains prior fix attempts
+    - [x] Test: research result injection uses spotlighting delimiters (`<DEEP_RESEARCH_RESULT>` tags)
+    - [x] Test: policy-decision findings are flagged for human review (not auto-applied)
+- [x] Task: Implement `DeepResearchEscalationHandler` in `packages/superconductor-core/src/remediation/deep-research-escalation-handler.ts` [TIER-4] [AGENT:superconductor-dreamer] (Commit: f8d61b11)
+    - [x] Sub-task: Construct research request payload from finding + code context + failed attempts
+    - [x] Sub-task: Call existing `deep_research_integration` capability with constructed payload
+    - [x] Sub-task: Inject result into remediator context using spotlighted delimiters (prompt injection defense)
+    - [x] Sub-task: Classify research result as auto-applicable vs. policy-decision-required
+- [x] Task: Write failing tests for policy-decision escalation (human intervention path) [TIER-3] [AGENT:superconductor-processor] (Commit: f8d61b11)
+    - [x] Test: policy-flagged finding triggers `ask_question` with terminal options only
+    - [x] Test: `Acknowledge & Abort` option halts pipeline
+    - [x] Test: `Acknowledge & Revert` option reverts remediation branch changes
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Deep Research Escalation Integration' (Protocol in workflow.md) [checkpoint: 36/36 tests, Oracle-all-clear, SHAs: f8d61b1 + 1f59785]
 
 ---
 
