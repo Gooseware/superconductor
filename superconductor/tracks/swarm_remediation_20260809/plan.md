@@ -17,18 +17,18 @@
 
 ## Phase 1: Schema & Domain Configuration
 
-- [ ] Task: Write failing tests for `DomainClassifier` utility (domain-map loading, path-to-domain matching, fallback to `general-remediator`, custom override support) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: empty path returns `general-remediator`
-    - [ ] Test: `auth/jwt.ts` maps to `security-remediator`
-    - [ ] Test: `ui/Button.tsx` maps to `frontend-remediator`
-    - [ ] Test: custom domain-map.json override takes precedence
-- [ ] Task: Implement `DomainClassifier` in `packages/superconductor-core/src/remediation/domain-classifier.ts` [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Create `domain-map.json` default config in `packages/superconductor-core/src/remediation/` with all domain mappings from spec FR-2 [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Write failing tests for `RemediationStateObject` JSON schema validation [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: valid state object passes schema
-    - [ ] Test: missing `findingIndex` fails validation
-    - [ ] Test: invalid `outcome` enum value fails
-- [ ] Task: Create `remediation-state.schema.json` in `superconductor/schema/` [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Write failing tests for `DomainClassifier` utility (domain-map loading, path-to-domain matching, fallback to `general-remediator`, custom override support) [TIER-3] [AGENT:superconductor-processor] (Commit: 4e751bea)
+    - [x] Test: empty path returns `general-remediator`
+    - [x] Test: `auth/jwt.ts` maps to `security-remediator`
+    - [x] Test: `ui/Button.tsx` maps to `frontend-remediator`
+    - [x] Test: custom domain-map.json override takes precedence
+- [x] Task: Implement `DomainClassifier` in `packages/superconductor-core/src/remediation/domain-classifier.ts` [TIER-3] [AGENT:superconductor-processor] (Commit: 47ec85d6)
+- [x] Task: Create `domain-map.json` default config in `packages/superconductor-core/src/remediation/` with all domain mappings from spec FR-2 [TIER-3] [AGENT:superconductor-processor] (Commit: 47ec85d6)
+- [x] Task: Write failing tests for `RemediationStateObject` JSON schema validation [TIER-3] [AGENT:superconductor-processor] (Commit: f6e73236)
+    - [x] Test: valid state object passes schema
+    - [x] Test: missing `findingIndex` fails validation
+    - [x] Test: invalid `outcome` enum value fails
+- [x] Task: Create `remediation-state.schema.json` in `superconductor/schema/` [TIER-3] [AGENT:superconductor-processor] (Commit: 2f28088c)
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Schema & Domain Configuration' (Protocol in workflow.md)
 
 ---

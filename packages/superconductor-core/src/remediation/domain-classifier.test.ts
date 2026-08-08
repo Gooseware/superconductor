@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DomainClassifier } from './domain-classifier';
+import { DomainClassifier } from './domain-classifier.js';
 
 describe('DomainClassifier', () => {
   it('should map empty path to general-remediator', () => {
