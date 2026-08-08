@@ -107,16 +107,16 @@
 
 ## Phase 6: Standalone Review SKILL.md Extension (§9.0)
 
-- [ ] Task: Draft §9.0 Swarm Remediation Protocol section content (FSM diagram, Domain Map table, hand-off protocol, re-review protocol, deep research escalation, observability) [TIER-4] [AGENT:superconductor-dreamer]
-- [ ] Task: Append §9.0 to `skills/standalone-review/SKILL.md` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Sub-task: Add post-review hand-off trigger (§9.1)
-    - [ ] Sub-task: Add Domain Map table (§9.2)
-    - [ ] Sub-task: Add Remediation FSM lifecycle diagram (§9.3)
-    - [ ] Sub-task: Add Fresh Review Gate protocol (§9.4)
-    - [ ] Sub-task: Add Deep Research Escalation protocol (§9.5)
-    - [ ] Sub-task: Add Observability & Audit Trail spec (§9.6)
-    - [ ] Sub-task: Add flag compatibility matrix (`--fast`, `--deep`, `--headless`, `--stats`, `--remediate`) (§9.7)
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Standalone Review SKILL.md Extension' (Protocol in workflow.md)
+- [x] Task: Draft §9.0 Swarm Remediation Protocol section content (FSM diagram, Domain Map table, hand-off protocol, re-review protocol, deep research escalation, observability) [TIER-4] [AGENT:superconductor-dreamer] (Commit: 0266a93a)
+- [x] Task: Append §9.0 to `skills/standalone-review/SKILL.md` [TIER-3] [AGENT:superconductor-processor] (Commit: 0266a93a)
+    - [x] Sub-task: Add post-review hand-off trigger (§9.1)
+    - [x] Sub-task: Add Domain Map table (§9.2)
+    - [x] Sub-task: Add Remediation FSM lifecycle diagram (§9.3)
+    - [x] Sub-task: Add Fresh Review Gate protocol (§9.4)
+    - [x] Sub-task: Add Deep Research Escalation protocol (§9.5)
+    - [x] Sub-task: Add Observability & Audit Trail spec (§9.6)
+    - [x] Sub-task: Add flag compatibility matrix (`--fast`, `--deep`, `--headless`, `--stats`, `--remediate`) (§9.7)
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Standalone Review SKILL.md Extension' (Protocol in workflow.md) [checkpoint: 76 lines appended, §9.1-§9.7 confirmed at lines 346-420, SHA: 0266a93a]
 
 ---
 
