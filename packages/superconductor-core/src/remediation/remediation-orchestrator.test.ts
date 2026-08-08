@@ -128,5 +128,115 @@ describe('RemediationOrchestrator', () => {
     const stateObj = await startPromise;
     expect(orchestrator.getState()).toBe('ESCALATED');
     expect(stateObj.outcome).toBe('ESCALATED');
+});
+
+  it('populates fixedFindings after a RESOLVED review result', async () => {
+    const findings = [{ id: 'f1', ruleId: 'auth-bypass', file: 'a.ts' }];
+    const orchestrator = new RemediationOrchestrator(findings, { spawner: mockSpawner });
+    const startPromise = orchestrator.start();
+    await tick();
+    
+    orchestrator.handleReviewResult('agent-123', { status: 'RESOLVED' });
+    const stateObj = await startPromise;
+    expect(stateObj.fixedFindings).toContain('f1');
+  });
+
+  it('wires deep research on exhausted retries and populates deepResearchResults', async () => {
+    const mockEscalationHandler = {
+      escalate: vi.fn().mockResolvedValue({
+        classification: 'auto-applicable',
+        researchContent: 'content',
+        spotlightedContent: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>',
+      }),
+      handlePolicyDecision: vi.fn()
+    } as any;
+
+    const findings = [{ id: 'f1', ruleId: 'auth-bypass', file: 'a.ts' }];
+    const orchestrator = new RemediationOrchestrator(findings, { 
+      spawner: mockSpawner, 
+      escalationHandler: mockEscalationHandler 
+    });
+    
+    orchestrator.start();
+    await tick();
+    
+    // Fail 3 times
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+
+    expect(mockEscalationHandler.escalate).toHaveBeenCalled();
+    expect(mockSpawner.spawn).toHaveBeenCalledWith('general-remediator', findings, { 
+      deepResearchResult: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>' 
+    });
+  });
+
+  it('populates failedFindings and outcome ESCALATED if it fails after deep research', async () => {
+    const mockEscalationHandler = {
+      escalate: vi.fn().mockResolvedValue({
+        classification: 'auto-applicable',
+        researchContent: 'content',
+        spotlightedContent: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>',
+      }),
+      handlePolicyDecision: vi.fn()
+    } as any;
+
+    const findings = [{ id: 'f1', ruleId: 'auth-bypass', file: 'a.ts' }];
+    const orchestrator = new RemediationOrchestrator(findings, { 
+      spawner: mockSpawner, 
+      escalationHandler: mockEscalationHandler 
+    });
+    
+    const startPromise = orchestrator.start();
+    await tick();
+    
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick(); // Deep research triggers and spawns again
+
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' }); // Final fail
+    const stateObj = await startPromise;
+
+    expect(stateObj.failedFindings).toContain('f1');
+    expect(stateObj.outcome).toBe('ESCALATED');
+  });
+
+  it('escalates to HUMAN_REQUIRED for CRITICAL unresolved finding after deep research and prompts abort/revert', async () => {
+    const mockEscalationHandler = {
+      escalate: vi.fn().mockResolvedValue({
+        classification: 'auto-applicable',
+        researchContent: 'content',
+        spotlightedContent: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>',
+      }),
+      handlePolicyDecision: vi.fn().mockResolvedValue('aborted')
+    } as any;
+
+    const findings = [{ id: 'f1', ruleId: 'CRITICAL', file: 'a.ts' }];
+    const orchestrator = new RemediationOrchestrator(findings, { 
+      spawner: mockSpawner, 
+      escalationHandler: mockEscalationHandler 
+    });
+    
+    const startPromise = orchestrator.start();
+    await tick();
+    
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick(); // Deep research triggers and spawns again
+
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' }); // Final fail
+    const stateObj = await startPromise;
+
+    expect(mockEscalationHandler.handlePolicyDecision).toHaveBeenCalled();
+    expect(stateObj.outcome).toBe('HUMAN_REQUIRED');
   });
 });

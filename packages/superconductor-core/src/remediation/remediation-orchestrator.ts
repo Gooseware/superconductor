@@ -1,7 +1,8 @@
 import { DomainClassifier } from './domain-classifier';
 import { RemediationStateObject, RemediationStateObjectSchema } from './remediation-state';
+import { DeepResearchEscalationHandler } from './deep-research-escalation-handler';
 
-export type FSMState = 'IDLE' | 'ANALYZING' | 'DISPATCHING' | 'REMEDIATING' | 'RE-REVIEWING' | 'RESOLVED' | 'ESCALATED';
+export type FSMState = 'IDLE' | 'ANALYZING' | 'DISPATCHING' | 'REMEDIATING' | 'RE-REVIEWING' | 'RESOLVED' | 'ESCALATED' | 'HUMAN_REQUIRED';
 
 export interface AgentSpawner {
   spawn(domain: string, findings: any[], context: any | null): Promise<string>;
@@ -15,6 +16,7 @@ export interface ReviewResult {
 
 export interface OrchestratorOptions {
   spawner: AgentSpawner;
+  escalationHandler?: DeepResearchEscalationHandler;
 }
 
 export class RemediationOrchestrator {
@@ -23,8 +25,9 @@ export class RemediationOrchestrator {
   private spawner: AgentSpawner;
   private classifier: DomainClassifier;
   private stateObj: RemediationStateObject;
+  private escalationHandler?: DeepResearchEscalationHandler;
   
-  private activeAgents: Map<string, { domain: string, retryCount: number }> = new Map();
+  private activeAgents: Map<string, { domain: string, retryCount: number, postResearch: boolean }> = new Map();
   private pendingAgents: number = 0;
   private resolveStartPromise!: (value: RemediationStateObject) => void;
   private startPromise: Promise<RemediationStateObject>;
@@ -35,6 +38,7 @@ export class RemediationOrchestrator {
   constructor(findings: any[], options: OrchestratorOptions) {
     this.findings = findings;
     this.spawner = options.spawner;
+    this.escalationHandler = options.escalationHandler;
     this.classifier = new DomainClassifier();
     this.stateObj = {
       findingIndex: {},
@@ -89,13 +93,13 @@ export class RemediationOrchestrator {
     this.transitionTo('REMEDIATING');
 
     for (const domain of domains) {
-      await this.spawnForDomain(domain);
+      await this.spawnForDomain(domain, false);
     }
   }
 
-  private async spawnForDomain(domain: string) {
-    const agentId = await this.spawner.spawn(domain, this.domainBatches[domain], null);
-    this.activeAgents.set(agentId, { domain, retryCount: this.stateObj.retryCount[domain] });
+  private async spawnForDomain(domain: string, postResearch: boolean, extraContext: any = null) {
+    const agentId = await this.spawner.spawn(domain, this.domainBatches[domain], extraContext);
+    this.activeAgents.set(agentId, { domain, retryCount: this.stateObj.retryCount[domain], postResearch });
     
     const timeout = setTimeout(() => {
       this.handleTimeout(agentId);
@@ -105,6 +109,8 @@ export class RemediationOrchestrator {
 
   private handleTimeout(agentId: string) {
     if (!this.activeAgents.has(agentId)) return;
+    const { domain } = this.activeAgents.get(agentId)!;
+    this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
     this.spawner.kill(agentId);
     this.activeAgents.delete(agentId);
     this.complete('ESCALATED');
@@ -112,7 +118,7 @@ export class RemediationOrchestrator {
 
   handleReviewResult(senderId: string, result: ReviewResult): void {
     const agentInfo = this.activeAgents.get(senderId);
-    if (!agentInfo) return; // Ignore unknown SenderIDs
+    if (!agentInfo) return;
 
     const timeout = this.timeoutHandles.get(senderId);
     if (timeout) {
@@ -123,7 +129,10 @@ export class RemediationOrchestrator {
     this.transitionTo('RE-REVIEWING');
     this.activeAgents.delete(senderId);
 
+    const { domain, postResearch } = agentInfo;
+
     if (result.status === 'RESOLVED') {
+      this.stateObj.fixedFindings.push(...this.domainBatches[domain].map(f => f.id));
       this.pendingAgents--;
       if (this.pendingAgents === 0) {
         this.complete('RESOLVED');
@@ -131,25 +140,81 @@ export class RemediationOrchestrator {
         this.transitionTo('REMEDIATING');
       }
     } else {
-      const { domain } = agentInfo;
+      if (postResearch) {
+        // failed even after deep research
+        this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+        this.handlePostResearchFailure(domain).catch(e => console.error(e));
+        return;
+      }
+      
       this.stateObj.retryCount[domain]++;
       
       if (this.stateObj.retryCount[domain] >= 3) {
-        // Exceeded 2 retries (0, 1, 2 = 3 tries total, wait, max 2 retries = 3 attempts total)
-        // Instructs say max 2 retries per domain batch before escalating
-        this.complete('ESCALATED');
+        if (this.escalationHandler) {
+          this.triggerDeepResearch(domain).catch(e => console.error(e));
+        } else {
+          this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+          this.complete('ESCALATED');
+        }
       } else {
         this.transitionTo('REMEDIATING');
-        this.spawnForDomain(domain); // retry
+        this.spawnForDomain(domain, false);
       }
     }
   }
 
-  private complete(outcome: 'RESOLVED' | 'ESCALATED') {
+  private async triggerDeepResearch(domain: string) {
+    if (!this.escalationHandler) return;
+    
+    // Process the first finding in the batch for escalation simplicity in this context
+    const finding = this.domainBatches[domain][0];
+    
+    const request = {
+      finding,
+      codeContext: 'Simulated context',
+      errorMessages: ['Previous fixes failed'],
+      priorFixDiffs: []
+    };
+    
+    const researchResult = await this.escalationHandler.escalate(request);
+    
+    this.stateObj.deepResearchResults[finding.id] = researchResult.spotlightedContent;
+
+    if (researchResult.classification === 'policy-decision-required') {
+      const decision = await this.escalationHandler.handlePolicyDecision(researchResult);
+      if (decision === 'aborted' || decision === 'reverted') {
+        this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+        this.complete('HUMAN_REQUIRED');
+      }
+    } else {
+      this.transitionTo('REMEDIATING');
+      await this.spawnForDomain(domain, true, { deepResearchResult: researchResult.spotlightedContent });
+    }
+  }
+
+  private async handlePostResearchFailure(domain: string) {
+    const finding = this.domainBatches[domain][0];
+    if (finding.ruleId === 'CRITICAL' || finding.severity === 'CRITICAL') {
+      if (this.escalationHandler) {
+        try {
+          const decision = await this.escalationHandler.handlePolicyDecision({
+             classification: 'policy-decision-required',
+             researchContent: 'CRITICAL finding unresolved after deep research',
+             spotlightedContent: '',
+             policyRationale: 'CRITICAL finding unresolved after deep research'
+          });
+        } catch (e) {}
+      }
+      this.complete('HUMAN_REQUIRED');
+    } else {
+      this.complete('ESCALATED');
+    }
+  }
+
+  private complete(outcome: 'RESOLVED' | 'ESCALATED' | 'HUMAN_REQUIRED') {
     this.stateObj.outcome = outcome;
     this.transitionTo(outcome);
     
-    // Cleanup remaining timeouts
     for (const timeout of this.timeoutHandles.values()) {
       clearTimeout(timeout);
     }
