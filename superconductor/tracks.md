@@ -9,7 +9,7 @@
 | `[x]` | `gemini_api_deep_research_20260728` | Gemini API Deep Research Provider | `track/gemini_api_deep_research_20260728` (merged to main) |
 | `[x]` | `superconductor_kernel_20260801` | Superconductor Kernel | `track/superconductor_kernel_20260801` (merged to main) |
 | `[x]` | `pocock_skills_20260802` | Matt Pocock Skills Integration | `track/pocock_skills_20260802` |
-| `[~]` | `swarm_remediation_20260809` | Standalone Review — Swarm Remediation Engine | `track/swarm_remediation_20260809` |
+| `[x]` | `swarm_remediation_20260809` | Standalone Review — Swarm Remediation Engine | `track/swarm_remediation_20260809` |
 
 ## Absorbed / Closed Tracks
 
