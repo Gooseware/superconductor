@@ -159,9 +159,12 @@ export class RemediationOrchestrator {
       if (result.fixDiff) priorFixDiffs.push(result.fixDiff);
 
       if (postResearch) {
-        // failed even after deep research
+        // failed even after deep research — FSM must always reach a terminal state
         this.recordFailedFindings(domain);
-        this.handlePostResearchFailure(domain).catch(e => console.error(e));
+        this.handlePostResearchFailure(domain).catch(e => {
+          console.error('[RemediationOrchestrator] Unhandled error in handlePostResearchFailure:', e);
+          this.complete('ESCALATED');
+        });
         return;
       }
       
@@ -169,14 +172,22 @@ export class RemediationOrchestrator {
       
       if (this.stateObj.retryCount[domain] >= 3) {
         if (this.escalationHandler) {
-          this.triggerDeepResearch(domain, errorMessages, priorFixDiffs).catch(e => console.error(e));
+          this.triggerDeepResearch(domain, errorMessages, priorFixDiffs).catch(e => {
+            console.error('[RemediationOrchestrator] Unhandled error in triggerDeepResearch:', e);
+            this.recordFailedFindings(domain);
+            this.complete('ESCALATED');
+          });
         } else {
           this.recordFailedFindings(domain);
           this.complete('ESCALATED');
         }
       } else {
         this.transitionTo('REMEDIATING');
-        this.spawnForDomain(domain, false, null, errorMessages, priorFixDiffs).catch(e => console.error(e));
+        this.spawnForDomain(domain, false, null, errorMessages, priorFixDiffs).catch(e => {
+          console.error('[RemediationOrchestrator] Unhandled error in spawnForDomain (retry):', e);
+          this.recordFailedFindings(domain);
+          this.complete('ESCALATED');
+        });
       }
     }
   }
@@ -187,13 +198,18 @@ export class RemediationOrchestrator {
     // Process the first finding in the batch for escalation simplicity in this context
     const finding = this.domainBatches[domain][0];
     
-    let codeContext = 'Simulated context';
+    let codeContext: string;
     if (finding.file) {
       try {
         codeContext = await fs.readFile(finding.file, 'utf8');
       } catch (e) {
-        codeContext = 'Failed to read file context';
+        const msg = `[RemediationOrchestrator] Failed to read code context from '${finding.file}': ${(e as Error).message}`;
+        console.error(msg);
+        errorMessages.push(msg);
+        codeContext = `(file unreadable: ${(finding.file)})`;
       }
+    } else {
+      codeContext = '(no file path provided for this finding)';
     }
     
     const request = {
