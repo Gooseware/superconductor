@@ -47,7 +47,8 @@ export class RemediationOrchestrator {
       deepResearchResults: {},
       fixedFindings: [],
       failedFindings: [],
-      outcome: 'IN_PROGRESS'
+      outcome: 'IN_PROGRESS',
+      tokenUsage: {}
     };
     
     this.startPromise = new Promise((resolve) => {
@@ -57,6 +58,13 @@ export class RemediationOrchestrator {
 
   getState(): FSMState {
     return this.state;
+  }
+
+  recordTokenUsage(domain: string, tokens: number): void {
+    if (!this.stateObj.tokenUsage) {
+      this.stateObj.tokenUsage = {};
+    }
+    this.stateObj.tokenUsage[domain] = (this.stateObj.tokenUsage[domain] || 0) + tokens;
   }
 
   async start(): Promise<RemediationStateObject> {
