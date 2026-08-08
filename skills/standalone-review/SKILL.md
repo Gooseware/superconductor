@@ -342,3 +342,79 @@ A report without this block is a reading-only review. Its verdict is voided unde
 *Dependencies: All scripts in `scripts/` (Phase 3–6 of the track plan) and all templates in `templates/reviewers/` (Phase 1) must exist before this skill can execute the full pipeline.*
 
 *The `--fast` mode is intentionally usable before the scripts exist — it relies only on the reviewer templates and direct subagent output, with no aggregation scripting required.*
+
+## 9.0 SWARM REMEDIATION PROTOCOL
+
+### 9.1 Post-Review Hand-Off Trigger
+- When the review pipeline emits its findings report, the orchestrator presents an offer to launch the Swarm Remediation Engine
+- In `--fast` mode: skipped unless `--remediate` flag is explicit
+- In `--headless` mode: auto-launches for CRITICAL or HIGH findings
+- `--remediate` flag always forces launch regardless of mode
+
+### 9.2 Domain Map
+
+| Pattern | Domain Agent |
+|---------|-------------|
+| `auth/`, `middleware/`, `session/`, `jwt/` | `security-remediator` |
+| `ui/`, `components/`, `pages/`, `styles/` | `frontend-remediator` |
+| `db/`, `models/`, `migrations/`, `repository/` | `schema-remediator` |
+| `test/`, `__tests__/`, `*.spec.*`, `*.test.*` | `test-writer` |
+| `api/`, `routes/`, `controllers/` | `api-remediator` |
+| *(unclassified)* | `general-remediator` |
+
+Note: Findings sharing the same domain are BATCHED to a single live agent (not spawned N times).
+Custom overrides via project-level `domain-map.json`.
+
+### 9.3 Remediation FSM Lifecycle
+
+```text
+IDLE → ANALYZING → DISPATCHING → REMEDIATING → RE-REVIEWING → RESOLVED
+                                                           ↘ REMEDIATING (retry ≤2)
+                                                           ↘ ESCALATED → deep_research → final attempt → RESOLVED
+                                                           ↘ HUMAN_REQUIRED (CRITICAL + unresolved)
+```
+- Orchestrator spawns once and stays alive for entire cycle (context-preserving)
+- Domain agents are subagents under the orchestrator
+- SenderID verified on all agent-to-agent messages
+
+### 9.4 Fresh Review Gate Protocol
+- After each domain batch remediation: a FRESH review swarm is spawned
+- Fresh swarm receives ONLY: `{ fingerprint: { severity, ruleId, file }, diff, preflightOutput }`
+- Prior reviewer reasoning is NEVER passed (zero-bias enforcement)
+- Fresh reviewers must emit `json:review-findings` block
+- Status `RESOLVED` → finding is cleared; any other status → retry or escalate
+
+### 9.5 Deep Research Escalation Protocol
+- Trigger: domain agent fails 2 retry attempts
+- Request payload: finding + code context + error messages + prior fix diffs
+- Research result is wrapped in `<DEEP_RESEARCH_RESULT>...</DEEP_RESEARCH_RESULT>` delimiter tags (prompt injection defense)
+- Classification:
+  - `auto-applicable`: concrete code fix suggested → final remediation attempt
+  - `policy-decision-required`: architectural/compliance/security policy → HUMAN_REQUIRED path
+- Policy keywords: 'breaking change', 'architectural', 'compliance', 'CVE', 'security policy', 'requires migration', 'deprecation'
+
+### 9.6 Observability & Audit Trail
+
+`remediation_log.md` format:
+```markdown
+<Remediation Log — <target> — <timestamp>>
+## Finding: <id>
+- Domain: <domain>
+- Agent: <agent_id>
+- Attempts: <N>
+- Deep Research Called: yes|no
+- Outcome: RESOLVED | ESCALATED | HUMAN_REQUIRED
+- Fix SHA: <commit_sha>
+```
+- Written alongside the review report
+- Token usage appended at end when `--stats` flag used
+
+### 9.7 Flag Compatibility Matrix
+
+| Flag | Behaviour |
+|------|-----------|
+| `--fast` | Remediation offer skipped (use `--remediate` to override) |
+| `--remediate` | Force-launch Swarm Remediation Engine |
+| `--deep` | Enable deep analysis pass before domain dispatch |
+| `--headless` | Auto-launch remediation for CRITICAL/HIGH findings |
+| `--stats` | Append token usage breakdown to remediation_log.md |
