@@ -1,6 +1,7 @@
 import { DomainClassifier } from './domain-classifier';
 import { RemediationStateObject, RemediationStateObjectSchema } from './remediation-state';
 import { DeepResearchEscalationHandler } from './deep-research-escalation-handler';
+import * as fs from 'fs/promises';
 
 export type FSMState = 'IDLE' | 'ANALYZING' | 'DISPATCHING' | 'REMEDIATING' | 'RE-REVIEWING' | 'RESOLVED' | 'ESCALATED' | 'HUMAN_REQUIRED';
 
@@ -12,6 +13,8 @@ export interface AgentSpawner {
 export interface ReviewResult {
   status: 'RESOLVED' | 'FAILED';
   findings?: any[];
+  errorMessage?: string;
+  fixDiff?: string;
 }
 
 export interface OrchestratorOptions {
@@ -27,7 +30,7 @@ export class RemediationOrchestrator {
   private stateObj: RemediationStateObject;
   private escalationHandler?: DeepResearchEscalationHandler;
   
-  private activeAgents: Map<string, { domain: string, retryCount: number, postResearch: boolean }> = new Map();
+  private activeAgents: Map<string, { domain: string, retryCount: number, postResearch: boolean, errorMessages: string[], priorFixDiffs: string[] }> = new Map();
   private pendingAgents: number = 0;
   private resolveStartPromise!: (value: RemediationStateObject) => void;
   private startPromise: Promise<RemediationStateObject>;
@@ -105,9 +108,9 @@ export class RemediationOrchestrator {
     }
   }
 
-  private async spawnForDomain(domain: string, postResearch: boolean, extraContext: any = null) {
+  private async spawnForDomain(domain: string, postResearch: boolean, extraContext: any = null, errorMessages: string[] = [], priorFixDiffs: string[] = []) {
     const agentId = await this.spawner.spawn(domain, this.domainBatches[domain], extraContext);
-    this.activeAgents.set(agentId, { domain, retryCount: this.stateObj.retryCount[domain], postResearch });
+    this.activeAgents.set(agentId, { domain, retryCount: this.stateObj.retryCount[domain], postResearch, errorMessages, priorFixDiffs });
     
     const timeout = setTimeout(() => {
       this.handleTimeout(agentId);
@@ -115,10 +118,14 @@ export class RemediationOrchestrator {
     this.timeoutHandles.set(agentId, timeout);
   }
 
+  private recordFailedFindings(domain: string): void {
+    this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+  }
+
   private handleTimeout(agentId: string) {
     if (!this.activeAgents.has(agentId)) return;
     const { domain } = this.activeAgents.get(agentId)!;
-    this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+    this.recordFailedFindings(domain);
     this.spawner.kill(agentId);
     this.activeAgents.delete(agentId);
     this.complete('ESCALATED');
@@ -137,7 +144,7 @@ export class RemediationOrchestrator {
     this.transitionTo('RE-REVIEWING');
     this.activeAgents.delete(senderId);
 
-    const { domain, postResearch } = agentInfo;
+    const { domain, postResearch, errorMessages, priorFixDiffs } = agentInfo;
 
     if (result.status === 'RESOLVED') {
       this.stateObj.fixedFindings.push(...this.domainBatches[domain].map(f => f.id));
@@ -148,9 +155,12 @@ export class RemediationOrchestrator {
         this.transitionTo('REMEDIATING');
       }
     } else {
+      if (result.errorMessage) errorMessages.push(result.errorMessage);
+      if (result.fixDiff) priorFixDiffs.push(result.fixDiff);
+
       if (postResearch) {
         // failed even after deep research
-        this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+        this.recordFailedFindings(domain);
         this.handlePostResearchFailure(domain).catch(e => console.error(e));
         return;
       }
@@ -159,29 +169,38 @@ export class RemediationOrchestrator {
       
       if (this.stateObj.retryCount[domain] >= 3) {
         if (this.escalationHandler) {
-          this.triggerDeepResearch(domain).catch(e => console.error(e));
+          this.triggerDeepResearch(domain, errorMessages, priorFixDiffs).catch(e => console.error(e));
         } else {
-          this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+          this.recordFailedFindings(domain);
           this.complete('ESCALATED');
         }
       } else {
         this.transitionTo('REMEDIATING');
-        this.spawnForDomain(domain, false);
+        this.spawnForDomain(domain, false, null, errorMessages, priorFixDiffs).catch(e => console.error(e));
       }
     }
   }
 
-  private async triggerDeepResearch(domain: string) {
+  private async triggerDeepResearch(domain: string, errorMessages: string[], priorFixDiffs: string[]) {
     if (!this.escalationHandler) return;
     
     // Process the first finding in the batch for escalation simplicity in this context
     const finding = this.domainBatches[domain][0];
     
+    let codeContext = 'Simulated context';
+    if (finding.file) {
+      try {
+        codeContext = await fs.readFile(finding.file, 'utf8');
+      } catch (e) {
+        codeContext = 'Failed to read file context';
+      }
+    }
+    
     const request = {
       finding,
-      codeContext: 'Simulated context',
-      errorMessages: ['Previous fixes failed'],
-      priorFixDiffs: []
+      codeContext,
+      errorMessages,
+      priorFixDiffs
     };
     
     const researchResult = await this.escalationHandler.escalate(request);
@@ -191,12 +210,12 @@ export class RemediationOrchestrator {
     if (researchResult.classification === 'policy-decision-required') {
       const decision = await this.escalationHandler.handlePolicyDecision(researchResult);
       if (decision === 'aborted' || decision === 'reverted') {
-        this.stateObj.failedFindings.push(...this.domainBatches[domain].map(f => f.id));
+        this.recordFailedFindings(domain);
         this.complete('HUMAN_REQUIRED');
       }
     } else {
       this.transitionTo('REMEDIATING');
-      await this.spawnForDomain(domain, true, { deepResearchResult: researchResult.spotlightedContent });
+      await this.spawnForDomain(domain, true, { deepResearchResult: researchResult.spotlightedContent }, errorMessages, priorFixDiffs);
     }
   }
 
@@ -205,13 +224,21 @@ export class RemediationOrchestrator {
     if (finding.ruleId === 'CRITICAL' || finding.severity === 'CRITICAL') {
       if (this.escalationHandler) {
         try {
+          const deepResearchResultContent = this.stateObj.deepResearchResults[finding.id] || '';
           const decision = await this.escalationHandler.handlePolicyDecision({
              classification: 'policy-decision-required',
-             researchContent: 'CRITICAL finding unresolved after deep research',
-             spotlightedContent: '',
-             policyRationale: 'CRITICAL finding unresolved after deep research'
+             researchContent: `CRITICAL finding ${finding.id} unresolved after deep research.`,
+             spotlightedContent: deepResearchResultContent,
+             policyRationale: `Finding ${finding.id} (${finding.ruleId}) failed remediation repeatedly.`
           });
-        } catch (e) {}
+          if (decision === 'aborted' || decision === 'reverted') {
+            this.complete('HUMAN_REQUIRED');
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+          throw e;
+        }
       }
       this.complete('HUMAN_REQUIRED');
     } else {

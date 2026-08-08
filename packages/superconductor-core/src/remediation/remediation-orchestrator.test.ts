@@ -1,3 +1,7 @@
+import * as fs from 'fs/promises';
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn().mockResolvedValue('Simulated context from file')
+}));
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RemediationOrchestrator, AgentSpawner, ReviewResult } from './remediation-orchestrator';
 import { RemediationStateObject } from './remediation-state';
@@ -95,19 +99,19 @@ describe('RemediationOrchestrator', () => {
     expect(mockSpawner.spawn).toHaveBeenCalledTimes(1);
     
     // 1st failure (retry 1)
-    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED', errorMessage: 'err1', fixDiff: 'diff1' });
     await tick();
     expect(orchestrator.getState()).toBe('REMEDIATING');
     expect(mockSpawner.spawn).toHaveBeenCalledTimes(2); // Respawned
     
     // 2nd failure (retry 2)
-    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED', errorMessage: 'err2', fixDiff: 'diff2' });
     await tick();
     expect(orchestrator.getState()).toBe('REMEDIATING');
     expect(mockSpawner.spawn).toHaveBeenCalledTimes(3); // Respawned again
     
     // 3rd failure (exhausted retries)
-    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED', errorMessage: 'err3', fixDiff: 'diff3' });
     
     const stateObj = await startPromise;
     expect(orchestrator.getState()).toBe('ESCALATED');
@@ -161,14 +165,14 @@ describe('RemediationOrchestrator', () => {
     await tick();
     
     // Fail 3 times
-    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED', errorMessage: 'err1', fixDiff: 'diff1' });
     await tick();
-    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED', errorMessage: 'err2', fixDiff: 'diff2' });
     await tick();
-    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED', errorMessage: 'err3', fixDiff: 'diff3' });
     await tick();
 
-    expect(mockEscalationHandler.escalate).toHaveBeenCalled();
+    expect(mockEscalationHandler.escalate).toHaveBeenCalledWith(expect.objectContaining({ codeContext: 'Simulated context from file', errorMessages: ['err1', 'err2', 'err3'], priorFixDiffs: ['diff1', 'diff2', 'diff3'] }));
     expect(mockSpawner.spawn).toHaveBeenCalledWith('general-remediator', findings, { 
       deepResearchResult: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>' 
     });
