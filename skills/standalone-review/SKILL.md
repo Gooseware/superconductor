@@ -31,6 +31,8 @@ Resolve the review target by checking the following in priority order:
    - `--dir <path>` → trigger Directory Triage Protocol (see §3.0)
    - `--fast` → set depth mode to `fast`
    - `--deep` → set depth mode to `deep`
+   - `--remediate` → forces launch of the Swarm Remediation Engine regardless of mode
+   - `--headless` → auto-launches remediation for CRITICAL or HIGH findings (see §9.1)
    - `--stats` → append Token Efficiency Report to output
    - `--no-track` → explicitly disable track detection, force zero-context mode
    - No target flags → proceed to step 2
@@ -317,6 +319,7 @@ A report without this block is a reading-only review. Its verdict is voided unde
    - `2` — critical security findings present (pipeline must block)
 5. **Announce:** After writing the report and passing the self-check, output the path to the user:
    > "Review complete. Report written to: `./review-<timestamp>.md`"
+6. **POST-REVIEW HAND-OFF:** After emitting findings, execute the Swarm Remediation Protocol defined in §9.0 if any of: `--remediate` flag present, `--headless` + findings ≥ HIGH severity, or user confirms when prompted.
 
 ---
 
