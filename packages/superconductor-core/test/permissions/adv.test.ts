@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { PolicyEngine } from '../../src/permissions/engine.js';
 import { TrackStateManager } from '../../src/permissions/track-state.js';
+import * as fs from 'fs';
 
 describe('Adversarial Tests', () => {
+  beforeAll(() => {
+    fs.mkdirSync('/tmp/adv-workspace', { recursive: true });
+  });
+
   it('should block backtick command injection', () => {
     const stateManager = new TrackStateManager('/workspace');
     stateManager.detectCurrentState = () => 'TRACKED';

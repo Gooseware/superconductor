@@ -13,22 +13,28 @@ export interface RemediationFlags {
 
 export class StandaloneRemediationSkillRunner {
   constructor(
-    private orchestratorFactory: (findings: FindingFingerprint[]) => Pick<RemediationOrchestrator, 'start'>,
+    private orchestratorFactory: (findings: FindingFingerprint[], flags?: RemediationFlags) => Pick<RemediationOrchestrator, 'start'>,
     private domainClassifier: DomainClassifier
   ) {}
 
   public async run(reportContent: string, flags: RemediationFlags = {}): Promise<void> {
-    const findings = this.parseFindings(reportContent, flags);
+    let findings = this.parseFindings(reportContent, flags);
     
-    // Group by domain
-    const domains = new Set<string>();
-    for (const finding of findings) {
-      const domain = this.domainClassifier.classify(finding.file || '');
-      domains.add(domain);
+    if (flags.domain) {
+      findings = findings.filter(finding => this.domainClassifier.classify(finding.file || '') === flags.domain);
     }
 
-    const orchestrator = this.orchestratorFactory(findings);
-    await orchestrator.start();
+    if (flags.dryRun) {
+      console.log(`[StandaloneRemediation] dryRun enabled. Would remediate ${findings.length} findings.`);
+      return;
+    }
+
+    const orchestrator = this.orchestratorFactory(findings, flags);
+    const result: any = await orchestrator.start();
+    
+    if (flags.stats && result) {
+      console.log(`[StandaloneRemediation] Stats: ${JSON.stringify(result.tokenUsage || {})}`);
+    }
   }
 
   private parseFindings(reportContent: string, flags: RemediationFlags): FindingFingerprint[] {

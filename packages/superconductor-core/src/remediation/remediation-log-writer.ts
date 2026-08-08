@@ -28,7 +28,7 @@ export class RemediationLogWriter {
         log += `- Domain: ${domain}\n`;
         log += `- Agent: ${domain}\n`;
 
-        const attempts = (state.retryCount && (state.retryCount[fId] ?? state.retryCount[domain])) || 0;
+        const attempts = (state.retryCount && state.retryCount[domain]) || 0;
         log += `- Attempts: ${attempts}\n`;
 
         const hasDeepResearch = state.deepResearchResults && state.deepResearchResults[fId] ? 'yes' : 'no';

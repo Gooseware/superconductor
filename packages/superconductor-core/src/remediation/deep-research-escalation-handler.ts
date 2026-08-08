@@ -40,7 +40,8 @@ export class DeepResearchEscalationHandler {
   async escalate(request: EscalationRequest): Promise<EscalationResult> {
     const researchContent = await this.researchProvider.research(request);
     
-    const spotlightedContent = `<DEEP_RESEARCH_RESULT>\n${researchContent}\n</DEEP_RESEARCH_RESULT>`;
+    const sanitizedContent = researchContent.replace(/<\/DEEP_RESEARCH_RESULT>/gi, '[/DEEP_RESEARCH_RESULT]');
+    const spotlightedContent = `<DEEP_RESEARCH_RESULT>\n${sanitizedContent}\n</DEEP_RESEARCH_RESULT>`;
     
     const lowerContent = researchContent.toLowerCase();
     

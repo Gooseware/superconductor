@@ -56,6 +56,21 @@
         "HUMAN_REQUIRED",
         "IN_PROGRESS"
       ]
+    },
+    "tokenUsage": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "fixCommitSha": {
+      "type": "string"
+    },
+    "fixCommitShas": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   },
   "required": [

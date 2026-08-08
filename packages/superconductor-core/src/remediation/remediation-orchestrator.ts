@@ -2,10 +2,15 @@ import { DomainClassifier } from './domain-classifier';
 import { RemediationStateObject, RemediationStateObjectSchema } from './remediation-state';
 import { DeepResearchEscalationHandler } from './deep-research-escalation-handler';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 
 export type FSMState = 'IDLE' | 'ANALYZING' | 'DISPATCHING' | 'REMEDIATING' | 'RE-REVIEWING' | 'RESOLVED' | 'ESCALATED' | 'HUMAN_REQUIRED';
 
 export interface AgentSpawner {
+  /**
+   * Spawns a domain agent. MUST return a cryptographically random ID (e.g. crypto.randomUUID()).
+   * Sequential or predictable IDs allow sender impersonation.
+   */
   spawn(domain: string, findings: any[], context: any | null): Promise<string>;
   kill(agentId: string): Promise<void>;
 }
@@ -71,13 +76,17 @@ export class RemediationOrchestrator {
   }
 
   async start(): Promise<RemediationStateObject> {
-    this.transitionTo('ANALYZING');
-    
-    await this.analyze();
-    
-    this.transitionTo('DISPATCHING');
-    await this.dispatch();
-    
+    try {
+      this.transitionTo('ANALYZING');
+      
+      await this.analyze();
+      
+      this.transitionTo('DISPATCHING');
+      await this.dispatch();
+    } catch (e) {
+      console.error('[RemediationOrchestrator] Fatal error during start:', e);
+      this.complete('ESCALATED');
+    }
     return this.startPromise;
   }
 
@@ -90,6 +99,9 @@ export class RemediationOrchestrator {
     for (const [domain, batch] of Object.entries(this.domainBatches)) {
       this.stateObj.domainAssignments[domain] = batch.map(f => f.id);
       this.stateObj.retryCount[domain] = 0;
+      for (const f of batch) {
+        this.stateObj.findingIndex[f.id] = f;
+      }
     }
   }
 
@@ -132,6 +144,8 @@ export class RemediationOrchestrator {
   }
 
   handleReviewResult(senderId: string, result: ReviewResult): void {
+    if (this.state === 'RESOLVED' || this.state === 'ESCALATED' || this.state === 'HUMAN_REQUIRED') return;
+    
     const agentInfo = this.activeAgents.get(senderId);
     if (!agentInfo) return;
 
@@ -155,7 +169,7 @@ export class RemediationOrchestrator {
         this.transitionTo('REMEDIATING');
       }
     } else {
-      if (result.errorMessage) errorMessages.push(result.errorMessage);
+      if (result.errorMessage) errorMessages.push(this.sanitizeErrorMessage(result.errorMessage));
       if (result.fixDiff) priorFixDiffs.push(result.fixDiff);
 
       if (postResearch) {
@@ -201,11 +215,20 @@ export class RemediationOrchestrator {
     let codeContext: string;
     if (finding.file) {
       try {
-        codeContext = await fs.readFile(finding.file, 'utf8');
+        const workspaceRoot = process.cwd();
+        const resolvedPath = path.resolve(finding.file);
+        if (!resolvedPath.startsWith(workspaceRoot + path.sep) && resolvedPath !== workspaceRoot) {
+          const msg = `[RemediationOrchestrator] Path traversal blocked: '${finding.file}' is outside workspace root.`;
+          console.error(msg);
+          errorMessages.push(this.sanitizeErrorMessage(msg));
+          codeContext = '(file access denied: outside workspace)';
+        } else {
+          codeContext = await fs.readFile(finding.file, 'utf8');
+        }
       } catch (e) {
         const msg = `[RemediationOrchestrator] Failed to read code context from '${finding.file}': ${(e as Error).message}`;
         console.error(msg);
-        errorMessages.push(msg);
+        errorMessages.push(this.sanitizeErrorMessage(msg));
         codeContext = `(file unreadable: ${(finding.file)})`;
       }
     } else {
@@ -228,6 +251,9 @@ export class RemediationOrchestrator {
       if (decision === 'aborted' || decision === 'reverted') {
         this.recordFailedFindings(domain);
         this.complete('HUMAN_REQUIRED');
+      } else {
+        this.recordFailedFindings(domain);
+        this.complete('HUMAN_REQUIRED');
       }
     } else {
       this.transitionTo('REMEDIATING');
@@ -237,7 +263,10 @@ export class RemediationOrchestrator {
 
   private async handlePostResearchFailure(domain: string) {
     const finding = this.domainBatches[domain][0];
-    if (finding.ruleId === 'CRITICAL' || finding.severity === 'CRITICAL') {
+    const hasCritical = this.domainBatches[domain].some(
+      (f: any) => f.ruleId === 'CRITICAL' || f.severity === 'CRITICAL'
+    );
+    if (hasCritical) {
       if (this.escalationHandler) {
         try {
           const deepResearchResultContent = this.stateObj.deepResearchResults[finding.id] || '';
@@ -262,6 +291,14 @@ export class RemediationOrchestrator {
     }
   }
 
+  private sanitizeErrorMessage(msg: string): string {
+    // Strip common prompt injection patterns
+    return msg
+      .replace(/<\/?[a-zA-Z][^>]*>/g, '') // strip XML/HTML tags
+      .replace(/\[INST\]|\[\/INST\]|###\s*(System|Human|Assistant):/gi, '') // strip instruction markers
+      .slice(0, 2000); // cap length
+  }
+
   private complete(outcome: 'RESOLVED' | 'ESCALATED' | 'HUMAN_REQUIRED') {
     this.stateObj.outcome = outcome;
     this.transitionTo(outcome);
@@ -270,6 +307,11 @@ export class RemediationOrchestrator {
       clearTimeout(timeout);
     }
     this.timeoutHandles.clear();
+
+    for (const [agentId] of this.activeAgents) {
+      this.spawner.kill(agentId).catch(() => {});
+    }
+    this.activeAgents.clear();
     
     this.resolveStartPromise(this.stateObj);
   }

@@ -15,9 +15,8 @@ describe('RemediationLogWriter', () => {
         'Performance': ['f2', 'f3']
       },
       retryCount: {
-        'f1': 2,
-        'f2': 3,
-        'f3': 1
+        'Security': 2,
+        'Performance': 3
       },
       deepResearchResults: {
         'f1': 'Research complete'
@@ -67,7 +66,7 @@ describe('RemediationLogWriter', () => {
     expect(log).toContain('## Finding: f3');
     expect(log).toContain('- Domain: Performance');
     expect(log).toContain('- Agent: Performance');
-    expect(log).toContain('- Attempts: 1');
+    expect(log).toContain('- Attempts: 3');
     expect(log).toContain('- Deep Research Called: no');
     expect(log).toContain('- Outcome: ESCALATED');
     expect(log).toContain('- Fix SHA: N/A');

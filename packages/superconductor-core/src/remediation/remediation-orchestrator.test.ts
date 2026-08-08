@@ -176,6 +176,10 @@ describe('RemediationOrchestrator', () => {
     expect(mockSpawner.spawn).toHaveBeenCalledWith('general-remediator', findings, { 
       deepResearchResult: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>' 
     });
+    
+    orchestrator.handleReviewResult('agent-123', { status: 'RESOLVED' });
+    const result = await orchestrator['startPromise'];
+    expect(result.deepResearchResults['f1']).toContain('DEEP_RESEARCH_RESULT');
   });
 
   it('populates failedFindings and outcome ESCALATED if it fails after deep research', async () => {
@@ -241,6 +245,71 @@ describe('RemediationOrchestrator', () => {
     const stateObj = await startPromise;
 
     expect(mockEscalationHandler.handlePolicyDecision).toHaveBeenCalled();
+    expect(stateObj.outcome).toBe('HUMAN_REQUIRED');
+  });
+
+  it('CRIT-1: reaches HUMAN_REQUIRED on deferred policy decision', async () => {
+    const mockEscalationHandler = {
+      escalate: vi.fn().mockResolvedValue({
+        classification: 'policy-decision-required',
+        researchContent: 'content',
+        spotlightedContent: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>',
+      }),
+      handlePolicyDecision: vi.fn().mockResolvedValue('deferred')
+    } as any;
+
+    const findings = [{ id: 'f1', ruleId: 'rule', file: 'a.ts' }];
+    const orchestrator = new RemediationOrchestrator(findings, { 
+      spawner: mockSpawner, 
+      escalationHandler: mockEscalationHandler 
+    });
+    
+    const startPromise = orchestrator.start();
+    await tick();
+    
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick(); 
+
+    const stateObj = await startPromise;
+    expect(stateObj.outcome).toBe('HUMAN_REQUIRED');
+  });
+
+  it('CRIT-2: escalates to HUMAN_REQUIRED for batch with CRITICAL severity at index > 0', async () => {
+    const mockEscalationHandler = {
+      escalate: vi.fn().mockResolvedValue({
+        classification: 'auto-applicable',
+        researchContent: 'content',
+        spotlightedContent: '<DEEP_RESEARCH_RESULT>content</DEEP_RESEARCH_RESULT>',
+      }),
+      handlePolicyDecision: vi.fn().mockResolvedValue('aborted')
+    } as any;
+
+    const findings = [
+      { id: 'f1', ruleId: 'LOW', file: 'a.ts' },
+      { id: 'f2', ruleId: 'CRITICAL', file: 'a.ts' }
+    ];
+    const orchestrator = new RemediationOrchestrator(findings, { 
+      spawner: mockSpawner, 
+      escalationHandler: mockEscalationHandler 
+    });
+    
+    const startPromise = orchestrator.start();
+    await tick();
+    
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    await tick();
+
+    orchestrator.handleReviewResult('agent-123', { status: 'FAILED' });
+    const stateObj = await startPromise;
+
     expect(stateObj.outcome).toBe('HUMAN_REQUIRED');
   });
 });
