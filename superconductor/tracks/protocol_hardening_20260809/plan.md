@@ -69,24 +69,26 @@
 ## Phase 3: WorktreeIsolationManager — Parallel Agent Isolation
 
 - [ ] Task: Write failing tests for `WorktreeIsolationManager` (Red Phase) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: `allocate(agentId, trackId)` creates worktree at deterministic unique path
+    - [ ] Test: `allocate(agentId, trackId)` calls `wt add <branch>` and returns worktree path
     - [ ] Test: `allocate` called twice with same agentId throws `WorktreeAlreadyAllocatedError`
-    - [ ] Test: `release(agentId)` removes worktree and clears allocation map
+    - [ ] Test: `release(agentId)` calls `wt remove <branch>` and clears allocation map
     - [ ] Test: `release(unknown agentId)` is a no-op (no throw)
-    - [ ] Test: `releaseAll()` removes all allocated worktrees
+    - [ ] Test: `releaseAll()` calls `wt remove` for all allocated worktrees
     - [ ] Test: SIGINT handler calls `releaseAll()` (mock signal)
     - [ ] Test: `getWorktreePath(agentId)` returns correct path after allocation
+    - [ ] Test: `allocate` when `wt` binary not found throws `WorktrunkNotInstalledError` (no fallback to git worktree)
     - [ ] Confirm all tests fail (Red)
 - [ ] Task: Implement `WorktreeIsolationManager` in `packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] `WorktreeAlreadyAllocatedError`
-    - [ ] `allocate(agentId, trackId)` — `git worktree add <path> <branch>`
-    - [ ] `release(agentId)` — `git worktree remove --force <path>`
-    - [ ] `releaseAll()` — iterate all allocations
+    - [ ] `WorktreeAlreadyAllocatedError`, `WorktrunkNotInstalledError` error types
+    - [ ] On construction: verify `wt` binary exists at `/home/gooseware/.cargo/bin/wt` (or PATH) — throw `WorktrunkNotInstalledError` if missing, log hint to run `scripts/install-worktrunk.sh`
+    - [ ] `allocate(agentId, trackId)` — shells `wt add <agentId-trackId-branch>` (wt manages `.worktrees/` and `.gitignore` automatically)
+    - [ ] `release(agentId)` — shells `wt remove <branch>` (wt cleans up directory)
+    - [ ] `releaseAll()` — iterate all allocations, call `wt remove` for each
     - [ ] SIGINT / SIGTERM process hooks registered at construction
-    - [ ] Injectable `ShellRunner` for testability
+    - [ ] Injectable `ShellRunner` for testability (mock wt binary in tests)
     - [ ] Run tests — all must pass (Green)
     - [ ] Coverage check (>85%)
-    - [ ] Commit: `track(protocol_hardening_20260809): phase3 - WorktreeIsolationManager implementation`
+    - [ ] Commit: `track(protocol_hardening_20260809): phase3 - WorktreeIsolationManager using wt (worktrunk)`
 - [ ] Task: Superconductor - User Manual Verification 'Phase 3: WorktreeIsolationManager' (Protocol in workflow.md)
 
 ---

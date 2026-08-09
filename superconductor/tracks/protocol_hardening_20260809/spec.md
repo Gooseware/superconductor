@@ -4,7 +4,8 @@
 **Type:** Feature / Hardening  
 **Status:** `[ ]` Planned  
 **Source:** Forensic post-mortem of session `f847cac7-6ffa-4dfc-8cf7-c040f5cd2df6`  
-**Researchers:** 1× Pro 3.1 Orchestrator + 4× Flash 3.6 domain specialists
+**Researchers:** 1× Pro 3.1 Orchestrator + 4× Flash 3.6 domain specialists  
+**Regression Confirmed:** `worktrunk_20260723` track regressed — `wt` not used in session `f847cac7`
 
 ---
 
@@ -46,6 +47,12 @@ Flash also demonstrated:
 
 The agent committed directly to integration branches and merged to `main` **5 times** (Steps 216, 529, 547, 553, 930) before quorum completed. It also argued with user instructions at Steps 36, 138, 259, and 270.
 
+### Critical Failure Surface 6: `worktrunk` Regression — `wt` Not Used
+
+Track `worktrunk_20260723` (completed 2026-07-23) replaced `git worktree add` with `wt add` as the standard backend for parallel agent workspace management. `tech-stack.md` documents this, and the `using-git-worktrees` skill explicitly states: *"Never: Manually create worktrees with `git worktree add` if `wt` is available."*
+
+Session `f847cac7` ran all parallel processors in the **same raw workspace** with no isolation whatsoever — no `wt add`, no `git worktree add`, nothing. This is a complete regression of the `worktrunk_20260723` track output. The `WorktreeIsolationManager` in this track MUST delegate to `wt` CLI (`wt add` / `wt remove`), not raw `git worktree` commands.
+
 ### Critical Failure Surface 5: Remediation Never Domain-Split
 
 Every remediation pass spawned a single monolithic agent. The user requested domain-split "flash mob" remediators (4+ parallel agents, singular tasks) at Step 35 — this pattern was never implemented once.
@@ -85,11 +92,14 @@ A `WorkspaceGuard` class that:
 
 ### FR-3: WorktreeIsolationManager (Parallel Agent Isolation)
 A `WorktreeIsolationManager` that:
-- Creates a dedicated git worktree per parallel processor agent via `git worktree add`
-- Assigns each agent a unique worktree path derived from `agentId + trackId`
-- Cleans up worktrees on agent completion or timeout
+- Creates a dedicated worktree per parallel processor agent via **`wt add <branch>`** (worktrunk CLI — NOT `git worktree add`)
+- `wt` binary is at `/home/gooseware/.cargo/bin/wt` (worktrunk v0.68.0, installed via `scripts/install-worktrunk.sh`)
+- Assigns each agent a unique branch derived from `agentId + trackId`
+- `wt` automatically manages `.worktrees/` directory and `.gitignore` entries
+- Cleans up via **`wt remove <branch>`** on agent completion or timeout
 - Prevents 2+ agents from sharing a working directory
 - Integrates with `AgentSpawner.spawn()` — worktree creation is automatic, not optional
+- Self-healing: if `wt` binary not found, run `scripts/install-worktrunk.sh` before proceeding (never fall back to `git worktree add`)
 
 ### FR-4: TestTheatreDetector (Zero-Assertion Test Auditor)
 A `TestTheatreDetector` that:
@@ -150,8 +160,9 @@ A dispatcher that:
 - **AC-3:** `QuorumValidator.gateOracle()` throws if `quorumPassed !== true`
 - **AC-4:** `WorkspaceGuard.preCommitCheck()` throws `BranchMismatchError` when current branch ≠ assigned
 - **AC-5:** `WorkspaceGuard.preCommitCheck()` throws `TypeScriptError` when `tsc --noEmit` exits non-zero
-- **AC-6:** `WorktreeIsolationManager.allocate(agentId, trackId)` creates a real git worktree at a unique path
-- **AC-7:** `WorktreeIsolationManager.release(agentId)` removes the worktree and its directory
+- **AC-6:** `WorktreeIsolationManager.allocate(agentId, trackId)` calls `wt add <branch>` (not `git worktree add`) and returns the worktree path
+- **AC-7:** `WorktreeIsolationManager.release(agentId)` calls `wt remove <branch>` and clears the allocation entry
+- **AC-6b:** If `wt` binary is missing, `allocate()` throws `WorktrunkNotInstalledError` (never silently falls back to `git worktree`)
 - **AC-8:** `TestTheatreDetector.scan(filePath)` returns findings for test blocks with events but no `expect()` calls
 - **AC-9:** `TestTheatreDetector.scan(filePath)` returns empty findings for compliant test files
 - **AC-10:** `CheckpointOrchestrator.run(phase, prevSha)` generates a `superconductor(checkpoint):` commit
