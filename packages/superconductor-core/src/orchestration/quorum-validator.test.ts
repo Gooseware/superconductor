@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { QuorumValidator, QuorumInsufficientError, OracleGateError } from './quorum-validator';
+import { QuorumValidator, QuorumInsufficientError, OracleGateError } from './quorum-validator.js';
 
 describe('QuorumValidator', () => {
   const validator = new QuorumValidator();
