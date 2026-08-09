@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { RemediationLogWriter, LogWriterOptions } from './remediation-log-writer';
-import { RemediationStateObject } from './remediation-state';
+import { RemediationLogWriter, LogWriterOptions } from './remediation-log-writer.js';
+import { RemediationStateObject } from './remediation-state.js';
 
 describe('RemediationLogWriter', () => {
   it('should generate log with correct structure and outcomes', () => {

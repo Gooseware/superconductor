@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { StandaloneRemediationSkillRunner } from './standalone-remediation';
-import { DomainClassifier } from './domain-classifier';
+import { StandaloneRemediationSkillRunner } from './standalone-remediation.js';
+import { DomainClassifier } from './domain-classifier.js';
 
 describe('StandaloneRemediationSkillRunner', () => {
   it('parses findings, groups by domain, and calls orchestrator start', async () => {
@@ -59,7 +59,7 @@ Here are the findings:
 
     const mockStart = vi.fn().mockResolvedValue(undefined);
     let capturedFindings: any[] = [];
-    const runner = new StandaloneRemediationSkillRunner((f) => {
+    const runner = new StandaloneRemediationSkillRunner((f: any[]) => {
       capturedFindings = f;
       return { start: mockStart };
     }, new DomainClassifier());

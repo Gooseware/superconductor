@@ -138,15 +138,16 @@ The Superconductor engine operates in either Interactive or Headless mode.
         -   **Final Implementation Phase:** If this is the final implementation phase before review/integration, present the manual verification plan and ask: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**" PAUSE and await the user's response. Do not proceed without confirmation.
 
 7.  **Swarm Phase Gate Review (Mandatory):**
-    -   Execute the Swarm Phase Gate using a 3-reviewer Flash panel.
+    -   Execute the Swarm Phase Gate using a standard 4-reviewer Flash panel.
     -   Provide only the minimized context (task spec, git diff, modified files) to the panel.
     -   **Streaming Review Protocol:** The Reviewer panel must stream its diagnostic output via Server-Sent Events (SSE). If a `CRITICAL` finding is detected dynamically during the stream, the orchestrator MUST trigger an early abort (halting immediately to save time and tokens) and initiate remediation.
-    -   The checkpointing process is blocked until the Phase Gate returns a PASS (zero CRITICAL findings).
+    -   The checkpointing process is blocked until the Phase Gate returns a PASS (zero CRITICAL findings). This enforcement MUST be validated using `QuorumValidator.validate()`.
     -   If CRITICAL findings are found, auto-remediate up to 2 times. If it still fails, escalate to manual intervention.
 
 8.  **Create Checkpoint Commit:**
     -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.
     -   Perform the commit with a clear and concise message (e.g., `superconductor(checkpoint): Checkpoint end of Phase X`).
+    -   **Note:** Steps 8 through 12 are canonically implemented and automated by `CheckpointOrchestrator.run()`.
 
 9.  **Attach Auditable Verification Report using Git Notes:**
     -   **Step 9.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.

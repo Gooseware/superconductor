@@ -3,8 +3,8 @@ vi.mock('fs/promises', () => ({
   readFile: vi.fn().mockResolvedValue('Simulated context from file')
 }));
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { RemediationOrchestrator, AgentSpawner, ReviewResult } from './remediation-orchestrator';
-import { RemediationStateObject } from './remediation-state';
+import { RemediationOrchestrator, AgentSpawner, ReviewResult } from './remediation-orchestrator.js';
+import { RemediationStateObject } from './remediation-state.js';
 
 describe('RemediationOrchestrator', () => {
   let mockSpawner: AgentSpawner;

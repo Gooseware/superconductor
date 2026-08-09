@@ -365,7 +365,7 @@ A report without this block is a reading-only review. Its verdict is voided unde
 | `api/`, `routes/`, `controllers/` | `api-remediator` |
 | *(unclassified)* | `general-remediator` |
 
-Note: Findings sharing the same domain are BATCHED to a single live agent (not spawned N times).
+Note: Findings sharing the same domain are BATCHED to a single live agent (not spawned N times) and dispatched via the `DomainSplitRemediationDispatcher`.
 Custom overrides via project-level `domain-map.json`.
 
 ### 9.3 Remediation FSM Lifecycle
@@ -421,3 +421,21 @@ IDLE → ANALYZING → DISPATCHING → REMEDIATING → RE-REVIEWING → RESOLVED
 | `--deep` | Enable deep analysis pass before domain dispatch |
 | `--headless` | Auto-launch remediation for CRITICAL/HIGH findings |
 | `--stats` | Append token usage breakdown to remediation_log.md |
+
+## 10.0 QUORUM ENFORCEMENT
+
+All track integration and finalization operations MUST pass through the `QuorumValidator`. The standard panel requires the following 4 distinct reviewer roles to grant a clean pass before merge:
+- `security-reviewer`
+- `correctness-reviewer`
+- `adversarial-reviewer`
+- `regression-reviewer`
+
+## 11.0 WORKTREE ISOLATION
+
+Parallel Flash processors (e.g. for domain remediation or phase generation) MUST run in fully isolated git worktrees to prevent shared singleton overwrite issues or dirty-state leaks. The `WorktreeIsolationManager` automatically allocates and releases `wt` (worktrunk) branches for each agent.
+
+## 12.0 MODEL ROUTING RULES
+
+Agents are dynamically routed to model tiers by the `ModelRoutingEnforcer`:
+- **Pro Tier**: `superconductor-oracle`, `superconductor-dreamer`, any processor facing high complexity without isolation, or any escalated agent (failCount >= 2).
+- **Flash Tier**: Standard isolated `superconductor-processor` and standard reviewers.

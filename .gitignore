@@ -239,3 +239,4 @@ packages/superconductor-core/coverage/
 packages/superconductor-core/coverage-report.txt
 packages/superconductor-core/fix_test*.cjs
 patch_plan.py
+!packages/superconductor-core/src/review/test-theatre-detector*
