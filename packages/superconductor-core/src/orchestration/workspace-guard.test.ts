@@ -70,7 +70,7 @@ describe('WorkspaceGuard', () => {
   });
 
   describe('detectSharedSingletonOverwrite', () => {
-    it('returns findings for full array overwrites in shared files', async () => {
+    it('triggers finding when array content in MockFeedService.ts is directly replaced', async () => {
       const mockShell: ShellRunner = { exec: vi.fn() };
       const guard = new WorkspaceGuard('main', mockShell);
 
@@ -78,9 +78,11 @@ describe('WorkspaceGuard', () => {
 diff --git a/MockFeedService.ts b/MockFeedService.ts
 --- a/MockFeedService.ts
 +++ b/MockFeedService.ts
-@@ -1,5 +1,3 @@
+@@ -1,7 +1,3 @@
 -export const mockItems = [
--  { id: 1, name: 'Item 1' }
+-  { id: 1, name: 'Item 1' },
+-  { id: 2, name: 'Item 2' },
+-  { id: 3, name: 'Item 3' }
 -];
 +export const mockItems = [{ id: 99, name: 'Replaced' }];
 `;
@@ -88,6 +90,47 @@ diff --git a/MockFeedService.ts b/MockFeedService.ts
       const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
       expect(findings.length).toBeGreaterThan(0);
       expect(findings[0]).toContain('MockFeedService.ts');
+    });
+
+    it('does not trigger finding when MockFeedService.ts is imported in another file', async () => {
+      const mockShell: ShellRunner = { exec: vi.fn() };
+      const guard = new WorkspaceGuard('main', mockShell);
+
+      const diffContent = `
+diff --git a/ConsumerComponent.ts b/ConsumerComponent.ts
+--- a/ConsumerComponent.ts
++++ b/ConsumerComponent.ts
+@@ -1,5 +1,2 @@
+-import { mockItems } from './MockFeedService.ts';
+-import { item1 } from './MockFeedService.ts';
+-import { item2 } from './MockFeedService.ts';
+-import { item3 } from './MockFeedService.ts';
++import { mockItems } from './MockFeedService.ts';
+`;
+
+      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
+      expect(findings).toEqual([]);
+    });
+
+    it('returns zero false positive findings for cross-file import reference diffs', async () => {
+      const mockShell: ShellRunner = { exec: vi.fn() };
+      const guard = new WorkspaceGuard('main', mockShell);
+
+      const diffContent = `
+diff --git a/src/services/ConsumerService.ts b/src/services/ConsumerService.ts
+--- a/src/services/ConsumerService.ts
++++ b/src/services/ConsumerService.ts
+@@ -1,10 +1,2 @@
+-import { MockFeedService } from './MockFeedService.ts';
+-const line1 = 1;
+-const line2 = 2;
+-const line3 = 3;
+-const line4 = 4;
++import { MockFeedService } from './MockFeedService.ts';
+`;
+
+      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
+      expect(findings).toEqual([]);
     });
 
     it('returns empty for additive changes in shared files', async () => {

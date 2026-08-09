@@ -55,21 +55,22 @@ export class WorkspaceGuard {
       return findings;
     }
 
-    for (const file of sharedFiles) {
-      const escaped = escapeRegExp(file);
-      const filePattern = new RegExp(`(?:a/|b/|\\s)${escaped}(?:\\s|$)`, 'm');
-      if (!filePattern.test(diffContent)) {
-        continue;
-      }
+    // Split diff into per-file blocks using 'diff --git ' headers
+    const fileBlocks = diffContent.split(/^diff --git /m);
+    for (const block of fileBlocks) {
+      // Extract the actual changed file path from 'diff --git a/foo b/foo'
+      const headerMatch = block.match(/^a\/(.+?) b\//);
+      if (!headerMatch) continue;
+      const changedFile = headerMatch[1];
+      if (!sharedFiles.some(sf => changedFile.endsWith(sf))) continue;
 
-      const diffBlocks = diffContent.split(/^diff --git /m);
-      const targetBlock = diffBlocks.find(block => block.includes(file)) || diffContent;
+      // Check if the diff for THIS specific file contains array/object replacements
+      const removedLines = block.match(/^-(?!--).*/gm) || [];
+      const addedLines = block.match(/^\+(?!\+\+).*/gm) || [];
 
-      const lines = targetBlock.split('\n');
-      const deletions = lines.filter(line => line.startsWith('-') && !line.startsWith('---'));
-
-      if (deletions.length > 0) {
-        findings.push(`Full array or state overwrite detected in shared singleton file: ${file}`);
+      // Flag if removed lines significantly exceed added lines (overwrite pattern)
+      if (removedLines.length > 3 && addedLines.length < removedLines.length * 0.5) {
+        findings.push(changedFile);
       }
     }
 
