@@ -9,3 +9,4 @@ export * from './schema/index.js';
 export * from './context/splicer.js';
 export * from './utils/index.js';
 export * from './orchestration/index.js';
+export * from './remediation/index.js';
