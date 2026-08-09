@@ -146,4 +146,40 @@ describe('TestTheatreDetector', () => {
     expect(findings[0].testName).toBe('nameVar');
     expect(findings[0].eventsFound).toEqual(['userEvent.click']);
   });
+
+  it('detects user.click when setup via const user = userEvent.setup() with no expect', () => {
+    const filePath = path.join(tmpDir, 'test-user-setup.test.ts');
+    const content = `
+      import userEvent from '@testing-library/user-event';
+      test('clicks element without expect', async () => {
+        const user = userEvent.setup();
+        await user.click(el);
+      });
+    `;
+    fs.writeFileSync(filePath, content, 'utf-8');
+
+    const findings = detector.scan(filePath);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]).toMatchObject({
+      file: filePath,
+      testName: 'clicks element without expect',
+      eventsFound: expect.arrayContaining(['user.click']),
+    });
+  });
+
+  it('returns no finding for user.click when setup via const user = userEvent.setup() with expect', () => {
+    const filePath = path.join(tmpDir, 'test-user-setup-expect.test.ts');
+    const content = `
+      import userEvent from '@testing-library/user-event';
+      test('clicks element with expect', async () => {
+        const user = userEvent.setup();
+        await user.click(el);
+        expect(el).toBeVisible();
+      });
+    `;
+    fs.writeFileSync(filePath, content, 'utf-8');
+
+    const findings = detector.scan(filePath);
+    expect(findings).toHaveLength(0);
+  });
 });

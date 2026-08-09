@@ -36,6 +36,10 @@ export interface DispatchResult {
   queued: { domain: string; findings: Finding[] }[];
 }
 
+function severityToComplexity(severity?: string): 'low' | 'high' {
+  return severity && ['critical', 'high'].includes(severity.toLowerCase()) ? 'high' : 'low';
+}
+
 export class DomainSplitRemediationDispatcher {
   private domainClassifier: DomainClassifier;
   private modelRouter: ModelRoutingEnforcer;
@@ -63,9 +67,10 @@ export class DomainSplitRemediationDispatcher {
       activeEntries.map(async ([domain, domainFindings]) => {
         const agentId = `remediator-${domain}`;
         const worktreeIsolated = !!this.options.worktreeManager;
+        const complexity = severityToComplexity(domainFindings[0]?.severity);
 
         const model = this.modelRouter.resolveModel('superconductor-processor', {
-          complexity: 'low',
+          complexity,
           worktreeIsolated,
         });
 

@@ -42,6 +42,15 @@ export class TestTheatreDetector {
         continue;
       }
 
+      const userEventVars = new Set<string>();
+      const varDeclarations = testCallback.getDescendantsOfKind(SyntaxKind.VariableDeclaration);
+      for (const varDecl of varDeclarations) {
+        const init = varDecl.getInitializer();
+        if (init && init.getText().includes('userEvent.setup')) {
+          userEventVars.add(varDecl.getNameNode().getText());
+        }
+      }
+
       const innerCalls = testCallback.getDescendantsOfKind(SyntaxKind.CallExpression);
       const eventsFound: string[] = [];
       let hasExpect = false;
@@ -53,7 +62,7 @@ export class TestTheatreDetector {
           hasExpect = true;
         }
 
-        if (this.isEventCall(exprText)) {
+        if (this.isEventCall(exprText, userEventVars)) {
           eventsFound.push(exprText);
         }
       }
@@ -132,8 +141,8 @@ export class TestTheatreDetector {
     );
   }
 
-  private isEventCall(exprText: string): boolean {
-    return (
+  private isEventCall(exprText: string, userEventVars?: Set<string>): boolean {
+    if (
       exprText === 'fireEvent' ||
       exprText.startsWith('fireEvent.') ||
       exprText === 'userEvent' ||
@@ -142,7 +151,19 @@ export class TestTheatreDetector {
       exprText.startsWith('pointerEvent.') ||
       exprText === 'dispatchEvent' ||
       exprText.endsWith('.dispatchEvent')
-    );
+    ) {
+      return true;
+    }
+
+    if (userEventVars) {
+      for (const varName of userEventVars) {
+        if (exprText === varName || exprText.startsWith(`${varName}.`)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   private getFilesRecursively(dir: string): string[] {

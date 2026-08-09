@@ -164,4 +164,28 @@ describe('DomainSplitRemediationDispatcher', () => {
     expect(result.spawned[0].branch).toBeUndefined();
     expect(result.spawned[0].model).toBe('pro');
   });
+
+  it('routes CRITICAL findings to complexity high', async () => {
+    const mockModelRouter = {
+      resolveModel: vi.fn().mockReturnValue('pro'),
+    };
+    const dispatcher = new DomainSplitRemediationDispatcher({
+      worktreeManager: mockWorktreeManager,
+      spawner: mockSpawner,
+      modelRouter: mockModelRouter as any,
+    });
+
+    const findings: Finding[] = [
+      { file: 'src/auth.ts', severity: 'CRITICAL', description: 'Critical security issue' },
+    ];
+
+    await dispatcher.dispatch(findings, { trackId: 'track1' });
+
+    expect(mockModelRouter.resolveModel).toHaveBeenCalledWith(
+      'superconductor-processor',
+      expect.objectContaining({
+        complexity: 'high',
+      })
+    );
+  });
 });
