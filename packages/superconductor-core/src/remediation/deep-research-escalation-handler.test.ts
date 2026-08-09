@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { DeepResearchEscalationHandler, ResearchProvider, EscalationRequest, Prompter } from './deep-research-escalation-handler';
+import { DeepResearchEscalationHandler, ResearchProvider, EscalationRequest, Prompter } from './deep-research-escalation-handler.js';
 
 describe('DeepResearchEscalationHandler', () => {
   it('should include prior fix diffs in the research request', async () => {

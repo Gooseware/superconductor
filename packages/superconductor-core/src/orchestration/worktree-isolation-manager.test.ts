@@ -4,7 +4,7 @@ import {
   WorktreeAlreadyAllocatedError,
   WorktrunkNotInstalledError,
   type ShellRunner,
-} from './worktree-isolation-manager';
+} from './worktree-isolation-manager.js';
 
 describe('WorktreeIsolationManager', () => {
   let mockShell: ShellRunner;

@@ -1,6 +1,6 @@
-import { RemediationOrchestrator } from './remediation-orchestrator';
-import { DomainClassifier } from './domain-classifier';
-import { FindingFingerprint } from './bias-isolated-review-gate';
+import { RemediationOrchestrator } from './remediation-orchestrator.js';
+import { DomainClassifier } from './domain-classifier.js';
+import { FindingFingerprint } from './bias-isolated-review-gate.js';
 
 export interface RemediationFlags {
   severity?: string;

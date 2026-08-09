@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CheckpointOrchestrator, QualityNoteSchema } from './checkpoint-orchestrator';
+import { CheckpointOrchestrator, QualityNoteSchema } from './checkpoint-orchestrator.js';
 import * as fs from 'fs/promises';
 
 vi.mock('fs/promises', () => ({

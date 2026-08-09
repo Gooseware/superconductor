@@ -5,7 +5,7 @@ import {
   BranchMismatchError,
   TypeScriptError,
   UnauthorizedMergeError
-} from './workspace-guard';
+} from './workspace-guard.js';
 
 describe('WorkspaceGuard', () => {
   describe('preCommitCheck', () => {

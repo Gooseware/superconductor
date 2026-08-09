@@ -1,6 +1,6 @@
-import { DomainClassifier } from './domain-classifier';
-import { RemediationStateObject, RemediationStateObjectSchema } from './remediation-state';
-import { DeepResearchEscalationHandler } from './deep-research-escalation-handler';
+import { DomainClassifier } from './domain-classifier.js';
+import { RemediationStateObject, RemediationStateObjectSchema } from './remediation-state.js';
+import { DeepResearchEscalationHandler } from './deep-research-escalation-handler.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 

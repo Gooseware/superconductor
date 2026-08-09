@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises';
-import { RemediationStateObject } from './remediation-state';
+import { RemediationStateObject } from './remediation-state.js';
 
 export interface LogWriterOptions {
   target: string;
@@ -15,7 +15,7 @@ export class RemediationLogWriter {
     const reverseDomainMap: Record<string, string> = {};
     if (state.domainAssignments) {
       for (const [domain, findingIds] of Object.entries(state.domainAssignments)) {
-        for (const fId of findingIds) {
+        for (const fId of (findingIds as string[])) {
           reverseDomainMap[fId] = domain;
         }
       }
@@ -39,7 +39,7 @@ export class RemediationLogWriter {
         if (state.fixedFindings && state.fixedFindings.includes(fId)) {
           outcome = 'RESOLVED';
           isResolved = true;
-        } else if (state.failedFindings && state.failedFindings.includes(fId) && finding.severity === 'CRITICAL') {
+        } else if (state.failedFindings && state.failedFindings.includes(fId) && (finding as any).severity === 'CRITICAL') {
           outcome = 'HUMAN_REQUIRED';
         }
         log += `- Outcome: ${outcome}\n`;

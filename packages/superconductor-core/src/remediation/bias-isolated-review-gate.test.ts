@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BiasIsolatedReviewGate, ReviewerSpawner } from './bias-isolated-review-gate';
+import { BiasIsolatedReviewGate, ReviewerSpawner } from './bias-isolated-review-gate.js';
 
 describe('BiasIsolatedReviewGate', () => {
   let mockSpawner: { spawn: any };
