@@ -3,6 +3,7 @@ import {
   WorktreeIsolationManager,
   WorktreeAlreadyAllocatedError,
   WorktrunkNotInstalledError,
+  InvalidAgentIdError,
   type ShellRunner,
 } from './worktree-isolation-manager.js';
 
@@ -23,12 +24,12 @@ describe('WorktreeIsolationManager', () => {
     }).toThrow(WorktrunkNotInstalledError);
   });
 
-  it('allocate with mock shell calls wt add <branch> and returns branch', async () => {
+  it('allocate with mock shell calls wt switch --create <branch> and returns branch', async () => {
     const manager = new WorktreeIsolationManager(mockShell);
     const branch = await manager.allocate('agent-1', 'track-123');
 
     expect(branch).toBe('wt/agent-1-track-123');
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt add wt/agent-1-track-123');
+    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt switch --create wt/agent-1-track-123');
     manager.destroy();
   });
 
@@ -38,6 +39,32 @@ describe('WorktreeIsolationManager', () => {
 
     await expect(manager.allocate('agent-1', 'track-456')).rejects.toThrow(
       WorktreeAlreadyAllocatedError
+    );
+    manager.destroy();
+  });
+
+  it('allocate with agentId containing ; rm -rf / throws InvalidAgentIdError', async () => {
+    const manager = new WorktreeIsolationManager(mockShell);
+    await expect(manager.allocate('agent; rm -rf /', 'track-123')).rejects.toThrow(
+      InvalidAgentIdError
+    );
+    manager.destroy();
+  });
+
+  it('allocate with agentId containing $(evil) throws InvalidAgentIdError', async () => {
+    const manager = new WorktreeIsolationManager(mockShell);
+    await expect(manager.allocate('agent-$(evil)', 'track-123')).rejects.toThrow(
+      InvalidAgentIdError
+    );
+    manager.destroy();
+  });
+
+  it('allocate sends shell command containing sanitized branch name only', async () => {
+    const manager = new WorktreeIsolationManager(mockShell);
+    const branch = await manager.allocate('agent_1', 'track/123');
+    expect(branch).toBe('wt/agent_1-track/123');
+    expect(execSpy).toHaveBeenCalledWith(
+      expect.stringContaining('switch --create wt/agent_1-track/123')
     );
     manager.destroy();
   });

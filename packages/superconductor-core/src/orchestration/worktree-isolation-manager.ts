@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { execSync } from 'node:child_process';
 
 export class WorktreeAlreadyAllocatedError extends Error {
   constructor(agentId: string) {
@@ -16,8 +17,23 @@ export class WorktrunkNotInstalledError extends Error {
   }
 }
 
+export class InvalidAgentIdError extends Error {
+  constructor(id: string) {
+    super(`Invalid agent or track ID: ${id}`);
+    this.name = 'InvalidAgentIdError';
+  }
+}
+
 export interface ShellRunner {
   exec(command: string): Promise<{ stdout: string; stderr: string; exitCode?: number } | string>;
+}
+
+function findWtBinary(): string {
+  try {
+    return execSync('which wt', { encoding: 'utf8' }).trim();
+  } catch {
+    return '/home/gooseware/.cargo/bin/wt';
+  }
 }
 
 export class WorktreeIsolationManager {
@@ -33,7 +49,7 @@ export class WorktreeIsolationManager {
 
   constructor(
     private shell: ShellRunner,
-    private wtBinary = '/home/gooseware/.cargo/bin/wt'
+    private wtBinary = findWtBinary()
   ) {
     this.verifyWt();
     process.on('SIGINT', this.sigintHandler);
@@ -49,12 +65,22 @@ export class WorktreeIsolationManager {
     }
   }
 
+  private sanitizeBranchName(input: string): string {
+    const sanitized = input.replace(/[^a-zA-Z0-9/_-]/g, '');
+    if (!sanitized || sanitized !== input) {
+      throw new InvalidAgentIdError(input);
+    }
+    return sanitized;
+  }
+
   async allocate(agentId: string, trackId: string): Promise<string> {
     if (this.allocations.has(agentId)) {
       throw new WorktreeAlreadyAllocatedError(agentId);
     }
-    const branch = `wt/${agentId}-${trackId}`;
-    await this.shell.exec(`${this.wtBinary} add ${branch}`);
+    const safeAgentId = this.sanitizeBranchName(agentId);
+    const safeTrackId = this.sanitizeBranchName(trackId);
+    const branch = `wt/${safeAgentId}-${safeTrackId}`;
+    await this.shell.exec(`${this.wtBinary} switch --create ${branch}`);
     this.allocations.set(agentId, branch);
     return branch;
   }
