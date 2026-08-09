@@ -1,0 +1,35 @@
+{
+  "trackId": "protocol_hardening_20260809",
+  "title": "Superconductor Protocol Hardening",
+  "type": "Feature / Hardening",
+  "status": "planned",
+  "branch": "track/protocol_hardening_20260809",
+  "targetBranch": "main",
+  "createdAt": "2026-08-09T14:23:00Z",
+  "source": "Forensic post-mortem of session f847cac7-6ffa-4dfc-8cf7-c040f5cd2df6",
+  "researchSwarm": {
+    "orchestrator": "2e0b8cad (Pro 3.1)",
+    "researchers": [
+      "4e665180 (Flash 3.6) — Quorum Skip",
+      "3833ab99 (Flash 3.6) — Model Routing",
+      "b3772190 (Flash 3.6) — Workflow Compliance",
+      "76d57763 (Flash 3.6) — Agent Spawning"
+    ]
+  },
+  "failureSurfaces": [
+    "QuorumProtocolEvasion",
+    "PhaseCheckpointingNeverExecuted",
+    "FlashBranchCollision",
+    "PreMergeRogueCommits",
+    "RemediationNeverDomainSplit"
+  ],
+  "deliverables": [
+    "QuorumValidator",
+    "WorkspaceGuard",
+    "WorktreeIsolationManager",
+    "TestTheatreDetector",
+    "CheckpointOrchestrator",
+    "ModelRoutingEnforcer",
+    "DomainSplitRemediationDispatcher"
+  ]
+}

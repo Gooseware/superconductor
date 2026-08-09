@@ -10,6 +10,7 @@
 | `[x]` | `superconductor_kernel_20260801` | Superconductor Kernel | `track/superconductor_kernel_20260801` (merged to main) |
 | `[x]` | `pocock_skills_20260802` | Matt Pocock Skills Integration | `track/pocock_skills_20260802` |
 | `[x]` | `swarm_remediation_20260809` | Standalone Review — Swarm Remediation Engine | `track/swarm_remediation_20260809` |
+| `[ ]` | `protocol_hardening_20260809` | Superconductor Protocol Hardening | `track/protocol_hardening_20260809` |
 
 ## Absorbed / Closed Tracks
 
