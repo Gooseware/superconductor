@@ -8,3 +8,4 @@ export * from './telemetry/index.js';
 export * from './schema/index.js';
 export * from './context/splicer.js';
 export * from './utils/index.js';
+export * from './orchestration/index.js';
