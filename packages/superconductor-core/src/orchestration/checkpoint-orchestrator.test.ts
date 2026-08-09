@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CheckpointOrchestrator, QualityNoteSchema } from './checkpoint-orchestrator.js';
+import {
+  CheckpointOrchestrator,
+  QualityNoteSchema,
+  InvalidShaError,
+  InvalidPhaseError,
+  PathTraversalError,
+  CheckpointTestFailureError,
+  validatePlanPath
+} from './checkpoint-orchestrator.js';
 import * as fs from 'fs/promises';
 
 vi.mock('fs/promises', () => ({
@@ -95,5 +103,34 @@ describe('CheckpointOrchestrator', () => {
     expect(QualityNoteSchema.safeParse(parsedNote).success).toBe(true);
     expect(parsedNote.phase).toBe('Phase 5');
     expect(parsedNote.checkpointSha).toBe('newsha123');
+  });
+
+  it('throws InvalidShaError when prevSha is invalid', async () => {
+    const orchestrator = new CheckpointOrchestrator('plan.md', mockShell);
+    await expect(orchestrator.run('Phase 5', '; DROP TABLE')).rejects.toThrow(InvalidShaError);
+  });
+
+  it('throws InvalidPhaseError when phase is empty after sanitization', async () => {
+    const orchestrator = new CheckpointOrchestrator('plan.md', mockShell);
+    await expect(orchestrator.run(';;;;', 'abcdef1')).rejects.toThrow(InvalidPhaseError);
+  });
+
+  it('throws PathTraversalError when planPath is outside workspace root', async () => {
+    const orchestrator = new CheckpointOrchestrator('../../../etc/passwd', mockShell);
+    await expect(orchestrator.run('Phase 5', 'abcdef1')).rejects.toThrow(PathTraversalError);
+  });
+
+  it('throws CheckpointTestFailureError when tests fail and does not call git commit', async () => {
+    mockShell.exec.mockImplementation(async (cmd: string) => {
+      if (cmd === 'CI=true npm test') {
+        return { stdout: 'Test suite failed', stderr: '1 test failed', exitCode: 1 };
+      }
+      return { stdout: '', stderr: '', exitCode: 0 };
+    });
+
+    const orchestrator = new CheckpointOrchestrator('plan.md', mockShell);
+    await expect(orchestrator.run('Phase 5', 'abcdef1')).rejects.toThrow(CheckpointTestFailureError);
+
+    expect(mockShell.exec).not.toHaveBeenCalledWith(expect.stringContaining('git commit'));
   });
 });
