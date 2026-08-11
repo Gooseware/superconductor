@@ -291,7 +291,7 @@ Before requesting review:
 
 #### HARD GATE — Oracle Precondition (MANDATORY)
 
-Before invoking the Oracle for final track verdict, the orchestrator MUST verify quorum state:
+**HARD GATE:** Before invoking the Oracle, the orchestrator MUST call `QuorumValidator.gateOracle({ quorumPassed })` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Throws `OracleGateError` if `quorumPassed` is false.
 
 ```
 QuorumValidator.gateOracle({ quorumPassed })
