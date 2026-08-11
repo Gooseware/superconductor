@@ -12,8 +12,8 @@ fi
 
 # Fallback: basic string check
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
-if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|track)\(superconductor\):'; then
-  if ! echo "$COMMIT_MSG" | grep -q 'SwarmAuthorizer:'; then
+if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|track|chore)\(superconductor\):'; then
+  if ! echo "$COMMIT_MSG" | grep -q 'Swarm-Authorized:'; then
     echo "[❌ Superconductor] Missing SwarmAuthorizer trailer on delivery commit." >&2
     exit 1
   fi
