@@ -18,6 +18,7 @@ import { DogmaService } from "./services/DogmaService.js";
 import { PublishService } from "./services/PublishService.js";
 import { CentralizedPublishService } from "./services/CentralizedPublishService.js";
 import { NotebookService } from "./services/NotebookService.js";
+import { IntelligenceStatusService } from "./services/IntelligenceStatusService.js";
 import { fileURLToPath } from "url";
 import os from "os";
 import path from "path";
@@ -51,6 +52,7 @@ const gitService = new GitService(CACHE_DIR);
 const installerService = new InstallerService(db, PROJECT_ROOT);
 const dogmaService = new DogmaService();
 const notebookService = new NotebookService();
+const intelligenceStatusService = new IntelligenceStatusService();
 
 let currentRegistryPath = DEFAULT_REGISTRY_PATH;
 let registryService = new RegistryService(db, currentRegistryPath);
@@ -520,6 +522,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             track_id: { type: "string", description: "Optional track ID filter" }
           }
         }
+      },
+      {
+        name: "kernel_intelligence_status",
+        description: "Gets status of superconductor intelligence snapshot (LIVE, STALE, or NONE)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" }
+          }
+        }
       }
     ],
   };
@@ -541,6 +553,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "notebook_summary") {
     const summary = await notebookService.summary(args as any, PROJECT_ROOT);
     return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
+  }
+
+  if (name === "kernel_intelligence_status") {
+    const { outputDir } = z.object({ outputDir: z.string().optional() }).parse(args || {});
+    const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
+    const result = await intelligenceStatusService.getStatus(targetDir);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 
   if (name === "set_theme") {
