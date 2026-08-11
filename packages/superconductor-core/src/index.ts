@@ -10,6 +10,7 @@ export * from './context/splicer.js';
 export * from './utils/index.js';
 export * from './orchestration/index.js';
 export * from './remediation/index.js';
+export * from './shared/libsql-database-manager.js';
 
 export type { ModelTier } from './intelligence/index.js';
 export type { Finding } from './remediation/index.js';
