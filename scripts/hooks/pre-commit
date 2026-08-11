@@ -1,0 +1,34 @@
+#!/bin/bash
+# Superconductor SignOff enforcement hook
+# Verifies SHA-256 signed approval token for track branches
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+# Only enforce on track branches
+if [[ "$BRANCH" != track/* ]]; then
+  exit 0
+fi
+
+TRACK_ID=$(echo "$BRANCH" | sed 's|track/||')
+
+# Read quorum state from LibSQL or verify-signoff script
+STATE_DB="${HOME}/.superconductor/quorum-state.db"
+LOCAL_DB="superconductor/quorum/quorum_state.db"
+SIGNOFF_FILE="superconductor/quorum/signoff_${TRACK_ID}.json"
+
+if [ ! -f "$STATE_DB" ] && [ ! -f "$LOCAL_DB" ] && [ ! -f "$SIGNOFF_FILE" ] && [[ "$SUPERCONDUCTOR_FLAGS" != *"--no-signoff"* ]]; then
+  echo "[Superconductor] No quorum state DB or sign-off file found. Run /superconductor:implement to complete sign-off."
+  exit 1
+fi
+
+VERIFY_RESULT=$(node scripts/hooks/verify-signoff.mjs "$TRACK_ID" 2>&1)
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "[Superconductor] SignOff token invalid or missing: $VERIFY_RESULT"
+  echo "[Superconductor] Run /superconductor:implement to complete sign-off."
+  exit 1
+fi
+
+echo "[Superconductor] Sign-off verified: $VERIFY_RESULT"
+exit 0
