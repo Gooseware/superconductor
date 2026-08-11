@@ -1,11 +1,58 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   BackgroundTaskMonitor,
   TimeoutError,
   HungTaskError,
+  MAX_BUFFER,
+  appendWithLimit,
+  killProcessGroup,
 } from './background-task-monitor.js';
 
 describe('BackgroundTaskMonitor', () => {
+  describe('appendWithLimit', () => {
+    it('appends text within limit', () => {
+      expect(appendWithLimit('hello ', 'world', 20)).toBe('hello world');
+    });
+
+    it('trims to keep the last maxLen chars when exceeding limit', () => {
+      expect(appendWithLimit('12345', '67890', 8)).toBe('34567890');
+    });
+
+    it('handles exact maxLen', () => {
+      expect(appendWithLimit('1234', '5678', 8)).toBe('12345678');
+    });
+
+    it('exports MAX_BUFFER constant as 1MB', () => {
+      expect(MAX_BUFFER).toBe(1_048_576);
+    });
+  });
+
+  describe('killProcessGroup', () => {
+    it('kills process group using -pid when pid is defined', () => {
+      const spyKill = vi.spyOn(process, 'kill').mockImplementation(() => true);
+      const mockChild = { pid: 1234, kill: vi.fn() } as any;
+      killProcessGroup(mockChild);
+      expect(spyKill).toHaveBeenCalledWith(-1234, 'SIGKILL');
+      spyKill.mockRestore();
+    });
+
+    it('falls back to child.kill when process.kill throws', () => {
+      const spyKill = vi.spyOn(process, 'kill').mockImplementation(() => {
+        throw new Error('No such process');
+      });
+      const mockChild = { pid: 1234, kill: vi.fn() } as any;
+      killProcessGroup(mockChild);
+      expect(mockChild.kill).toHaveBeenCalledWith('SIGKILL');
+      spyKill.mockRestore();
+    });
+
+    it('calls child.kill when pid is undefined', () => {
+      const mockChild = { pid: undefined, kill: vi.fn() } as any;
+      killProcessGroup(mockChild);
+      expect(mockChild.kill).toHaveBeenCalledWith('SIGKILL');
+    });
+  });
+
   describe('detectHungOutput', () => {
     it('detects "Press Ctrl+C to quit"', () => {
       expect(BackgroundTaskMonitor.detectHungOutput('Press Ctrl+C to quit')).toBe(true);
@@ -74,6 +121,13 @@ describe('BackgroundTaskMonitor', () => {
         const monitor = new BackgroundTaskMonitor();
         await expect(monitor.launch('sleep 5', { maxDurationMs: 100 })).rejects.toThrow(TimeoutError);
       });
+
+      it('detects hung output split across chunk boundaries', async () => {
+        const monitor = new BackgroundTaskMonitor();
+        const cmd = `node -e 'process.stdout.write("Overwrite file? [Y"); setTimeout(() => process.stdout.write("/n]\\n"), 50)'`;
+        await expect(monitor.launch(cmd)).rejects.toThrow(HungTaskError);
+      });
     });
   });
 });
+

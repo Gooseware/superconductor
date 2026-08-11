@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 
 export class TimeoutError extends Error {
   constructor(public readonly cmd: string, public readonly maxDurationMs: number) {
@@ -32,6 +32,28 @@ export interface BackgroundTaskMonitorOptions {
   shellRunner?: ShellRunner;
 }
 
+export const MAX_BUFFER = 1_048_576; // 1MB
+
+export function appendWithLimit(existing: string, incoming: string, maxLen: number): string {
+  const combined = existing + incoming;
+  if (combined.length > maxLen) {
+    return combined.slice(-maxLen);
+  }
+  return combined;
+}
+
+export function killProcessGroup(child: ChildProcess): void {
+  if (child.pid !== undefined) {
+    try {
+      process.kill(-child.pid, 'SIGKILL');
+    } catch {
+      child.kill('SIGKILL');
+    }
+  } else {
+    child.kill('SIGKILL');
+  }
+}
+
 export class BackgroundTaskMonitor {
   private readonly runner?: ShellRunner;
 
@@ -43,14 +65,13 @@ export class BackgroundTaskMonitor {
     return {
       exec: (cmd: string): Promise<{ stdout: string; exitCode: number }> => {
         return new Promise((resolve, reject) => {
-          // Use spawn with shell:true for string commands but collect output async
-          const child = spawn(cmd, [], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
+          const child = spawn(cmd, [], { shell: true, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
           let stdout = '';
           let stderr = '';
           
-          child.stdout?.on('data', (chunk: Buffer) => { stdout += chunk.toString(); });
-          child.stderr?.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
-          child.on('close', (code: number | null) => resolve({ stdout: stdout + stderr, exitCode: code ?? 0 }));
+          child.stdout?.on('data', (chunk: Buffer) => { stdout = appendWithLimit(stdout, chunk.toString(), MAX_BUFFER); });
+          child.stderr?.on('data', (chunk: Buffer) => { stderr = appendWithLimit(stderr, chunk.toString(), MAX_BUFFER); });
+          child.on('close', (code: number | null) => resolve({ stdout: appendWithLimit(stdout, stderr, MAX_BUFFER), exitCode: code ?? 0 }));
           child.on('error', reject);
         });
       },
@@ -88,23 +109,24 @@ export class BackgroundTaskMonitor {
     }
 
     return new Promise((resolve, reject) => {
-      const child = spawn(cmd, [], { shell: true, stdio: ['ignore', 'pipe', 'pipe'] });
+      const child = spawn(cmd, [], { shell: true, stdio: ['ignore', 'pipe', 'pipe'], detached: true });
       let stdout = '';
       let timedOut = false;
 
       const timer = setTimeout(() => {
         timedOut = true;
-        child.kill('SIGTERM');
+        killProcessGroup(child);
         reject(new TimeoutError(cmd, maxDurationMs));
       }, maxDurationMs);
 
       const onData = (chunk: Buffer) => {
         const text = chunk.toString();
-        stdout += text;
-        if (BackgroundTaskMonitor.detectHungOutput(text)) {
+        stdout = appendWithLimit(stdout, text, MAX_BUFFER);
+        const window = stdout.slice(-512);
+        if (BackgroundTaskMonitor.detectHungOutput(window)) {
           clearTimeout(timer);
-          child.kill('SIGTERM');
-          reject(new HungTaskError(cmd, text));
+          killProcessGroup(child);
+          reject(new HungTaskError(cmd, window));
         }
       };
 
@@ -125,3 +147,4 @@ export class BackgroundTaskMonitor {
     });
   }
 }
+
