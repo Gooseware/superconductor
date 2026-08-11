@@ -224,6 +224,19 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'merge-track':
+    case 'merge': {
+      const [trackBranch, ...reviewerIds] = args.slice(1);
+      if (!trackBranch || reviewerIds.length === 0) {
+        console.error('Usage: merge-track <branch> <reviewerId1> [reviewerId2...]');
+        process.exit(1);
+      }
+      const result = await mergeTrack(trackBranch, reviewerIds);
+      console.log(`Merged: ${result.mergeCommitSha}`);
+      console.log(result.trailer);
+      break;
+    }
+
     default:
       console.log(`Superconductor Universal CLI
 
@@ -231,6 +244,7 @@ Usage:
   npx superconductor context [--json]
   npx superconductor track status [<track_id>]
   npx superconductor review [--staged|--branch <b>|--pr <url>]
+  npx superconductor merge-track <branch> <reviewerId1> [reviewerId2...]
   npx superconductor setup [--reset-registry]
   npx superconductor intelligence [--brownfield] [--target <path>]
   npx superconductor infer-permissions <spec.md path> <out manifest.toml path>

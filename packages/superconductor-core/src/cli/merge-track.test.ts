@@ -1,12 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { UnauthorizedMergeError } from '../orchestration/workspace-guard.js';
 
-// Mock execSync so tests don't run real git
+// Mock execFileSync and execSync so tests don't run real git
 vi.mock('child_process', () => ({
+  execFileSync: vi.fn().mockReturnValue('abc1234'),
   execSync: vi.fn().mockReturnValue('abc1234'),
+  spawn: vi.fn(),
 }));
 
-import { mergeTrack } from './merge-track.js';
+import { mergeTrack, validateBranchName } from './merge-track.js';
+
+describe('validateBranchName', () => {
+  it('throws on invalid branch name with shell metacharacters', () => {
+    // trackBranch with semicolons should be rejected
+    expect(() => validateBranchName('track/foo; rm -rf /')).toThrow('Invalid branch name');
+    expect(() => validateBranchName('track/foo$(whoami)')).toThrow('Invalid branch name');
+    expect(() => validateBranchName('track/foo`id`')).toThrow('Invalid branch name');
+  });
+
+  it('accepts valid branch names', () => {
+    expect(() => validateBranchName('track/feature-123')).not.toThrow();
+    expect(() => validateBranchName('main')).not.toThrow();
+    expect(() => validateBranchName('user_name/branch.name-1')).not.toThrow();
+  });
+});
 
 describe('mergeTrack', () => {
   it('generates a trailer from reviewer IDs', async () => {
@@ -30,4 +47,9 @@ describe('mergeTrack', () => {
     expect(result.mergeCommitSha).toBe('dry-run');
     expect(result.trailer).toBeDefined();
   });
+
+  it('rejects invalid branch name in mergeTrack', async () => {
+    await expect(mergeTrack('track/foo; rm -rf /', ['id1'], { dryRun: true })).rejects.toThrow('Invalid branch name');
+  });
 });
+

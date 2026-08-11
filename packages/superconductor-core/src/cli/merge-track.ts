@@ -7,13 +7,21 @@
  */
 import { SwarmAuthorizer } from '../track/index.js';
 import { WorkspaceGuard } from '../orchestration/workspace-guard.js';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
+
+export function validateBranchName(branch: string): void {
+  if (!/^[a-zA-Z0-9_.\-\/]+$/.test(branch)) {
+    throw new Error(`Invalid branch name: ${branch}`);
+  }
+}
 
 export async function mergeTrack(
   trackBranch: string,
   reviewerConvIds: string[],
   opts: { workspaceRoot?: string; dryRun?: boolean } = {},
 ): Promise<{ mergeCommitSha: string; trailer: string }> {
+  validateBranchName(trackBranch);
+
   const workspaceRoot = opts.workspaceRoot ?? process.cwd();
   const guard = new WorkspaceGuard({ workspaceRoot });
 
@@ -35,9 +43,9 @@ export async function mergeTrack(
   }
 
   // Execute the merge
-  const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
+  const currentBranch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
   if (currentBranch !== 'main') {
-    execSync('git checkout main', { stdio: 'inherit' });
+    execFileSync('git', ['checkout', 'main'], { stdio: 'inherit' });
   }
 
   const mergeMessage = [
@@ -46,8 +54,9 @@ export async function mergeTrack(
     trailer,
   ].join('\n');
 
-  execSync(`git merge --no-ff ${trackBranch} -m ${JSON.stringify(mergeMessage)}`, { stdio: 'inherit' });
-  const mergeCommitSha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+  execFileSync('git', ['merge', '--no-ff', trackBranch, '-m', mergeMessage], { stdio: 'inherit' });
+  const mergeCommitSha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim();
 
   return { mergeCommitSha, trailer };
 }
+
