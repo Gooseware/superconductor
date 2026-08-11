@@ -165,40 +165,72 @@ export class LanceDBNotebookProvider implements INotebookProvider {
     const globalTable = await this.getTable('global');
     const projectTable = await this.getTable('project');
 
-    let rawRows: any[] = [];
+    import('../search/rrf-search.js').then();
+    const { rrfMerge, applyTokenBudget } = await import('../search/rrf-search.js');
 
-    let queryVector: number[] | null = null;
+    let entries: NotebookEntry[] = [];
+
     if (params.query && params.query.trim() !== '') {
-      queryVector = await this.getEmbedding(params.query);
-    }
+      const queryVector = await this.getEmbedding(params.query);
+      const queryTerms = params.query.toLowerCase().split(/\s+/);
 
-    for (const table of [globalTable, projectTable]) {
-      if (!table) continue;
-      let rows: any[];
-      if (queryVector) {
-        rows = await table.search(queryVector).metricType('cosine').limit(params.limit || 50).toArray();
-      } else {
-        rows = await table.query().toArray();
+      let vectorRows: any[] = [];
+      let bm25Rows: any[] = [];
+
+      for (const table of [globalTable, projectTable]) {
+        if (!table) continue;
+        const vSearch = await table.search(queryVector).metricType('cosine').limit(params.limit || 50).toArray();
+        vectorRows.push(...vSearch);
+
+        const allTableRows = await table.query().toArray();
+        const bMatch = allTableRows.filter((r: any) =>
+          queryTerms.some((term) => r.content.toLowerCase().includes(term))
+        );
+        bm25Rows.push(...bMatch);
       }
-      rawRows.push(...rows);
+
+      const mapToEntry = (r: any): NotebookEntry => ({
+        id: r.id,
+        session_id: r.session_id,
+        track_id: r.track_id,
+        agent_role: r.agent_role,
+        domain: r.domain,
+        files: typeof r.files === 'string' ? JSON.parse(r.files) : r.files,
+        note_type: r.note_type as NoteType,
+        content: r.content,
+        severity: r.severity,
+        timestamp: r.timestamp,
+        reviewer_token: r.reviewer_token || undefined,
+      });
+
+      const vectorEntries = vectorRows.map(mapToEntry);
+      const bm25Entries = bm25Rows.map(mapToEntry);
+
+      entries = rrfMerge(vectorEntries, bm25Entries);
+    } else {
+      let rawRows: any[] = [];
+      for (const table of [globalTable, projectTable]) {
+        if (!table) continue;
+        const rows = await table.query().toArray();
+        rawRows.push(...rows);
+      }
+      entries = rawRows.map((r: any) => ({
+        id: r.id,
+        session_id: r.session_id,
+        track_id: r.track_id,
+        agent_role: r.agent_role,
+        domain: r.domain,
+        files: typeof r.files === 'string' ? JSON.parse(r.files) : r.files,
+        note_type: r.note_type as NoteType,
+        content: r.content,
+        severity: r.severity,
+        timestamp: r.timestamp,
+        reviewer_token: r.reviewer_token || undefined,
+      }));
     }
 
     const now = Date.now();
     const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
-
-    let entries: NotebookEntry[] = rawRows.map((r: any) => ({
-      id: r.id,
-      session_id: r.session_id,
-      track_id: r.track_id,
-      agent_role: r.agent_role,
-      domain: r.domain,
-      files: typeof r.files === 'string' ? JSON.parse(r.files) : r.files,
-      note_type: r.note_type as NoteType,
-      content: r.content,
-      severity: r.severity,
-      timestamp: r.timestamp,
-      reviewer_token: r.reviewer_token || undefined,
-    }));
 
     // Filter TTL for failure notes (> 90 days old)
     entries = entries.filter((e) => {
@@ -229,6 +261,8 @@ export class LanceDBNotebookProvider implements INotebookProvider {
     if (params.severity) {
       entries = entries.filter((e) => e.severity === params.severity);
     }
+
+    entries = applyTokenBudget(entries);
 
     const limit = params.limit || 5;
     return entries.slice(0, limit);
