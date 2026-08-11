@@ -1,0 +1,25 @@
+{
+  "track_id": "standalone_review_notebook_20260812",
+  "title": "Standalone Review Evolution + Superconductor Notebook",
+  "type": "Feature",
+  "status": "planned",
+  "created_at": "2026-08-12T01:43:00Z",
+  "target_branch": "main",
+  "track_branch": "track/standalone_review_notebook_20260812",
+  "phases": 4,
+  "acceptance_criteria_count": 26,
+  "packages_new": ["notebook-store", "quorum-fsm"],
+  "packages_modified": ["superconductor-core", "superconductor-kernel"],
+  "intelligence_source": "LIVE",
+  "swarm_blueprint": {
+    "cost_summary": "~1.6M tokens · ~$0.12 at Flash-Lite rates",
+    "waves": 30,
+    "oracle_cadence": 43,
+    "source": "intelligence"
+  },
+  "architecture_committee": {
+    "dreamer_conv_id": "6603a598-d7c5-4d53-b47e-879e0aff7b9a",
+    "reviewer_conv_id": "969e0969-e0a5-4997-9d34-5b3b269f7059",
+    "oracle_conv_id": "1d3b3c43-3e7d-4ddd-8f89-c189d6cf7070"
+  }
+}
