@@ -1,3 +1,6 @@
+import { AbstractGate, GateContext, GateResult, GateError } from './abstract-gate.js';
+import { SignOffGate, SignOffRequiredError } from './sign-off-gate.js';
+
 export interface ShellRunner {
   exec(cmd: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
 }
@@ -23,20 +26,20 @@ export class UnauthorizedMergeError extends Error {
   }
 }
 
-function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 export interface WorkspaceGuardOptions {
   workspaceRoot?: string;
   assignedBranch?: string;
   shell?: ShellRunner;
+  stateStore?: any;
 }
 
-export class WorkspaceGuard {
+export class WorkspaceGuard extends AbstractGate {
+  public readonly gateName = 'WorkspaceGuard';
+
   private assignedBranch: string;
   private shell?: ShellRunner;
   private workspaceRoot?: string;
+  protected stateStore?: any;
 
   constructor(opts?: WorkspaceGuardOptions);
   constructor(assignedBranch: string, shell?: ShellRunner);
@@ -44,16 +47,31 @@ export class WorkspaceGuard {
     assignedBranchOrOpts?: string | WorkspaceGuardOptions,
     shell?: ShellRunner
   ) {
+    super();
     if (typeof assignedBranchOrOpts === 'object' && assignedBranchOrOpts !== null) {
       this.assignedBranch = assignedBranchOrOpts.assignedBranch ?? 'main';
       this.shell = assignedBranchOrOpts.shell;
       this.workspaceRoot = assignedBranchOrOpts.workspaceRoot;
+      this.stateStore = assignedBranchOrOpts.stateStore;
     } else {
       this.assignedBranch = assignedBranchOrOpts ?? 'main';
       this.shell = shell;
     }
   }
 
+  protected createError(message: string): GateError {
+    return new GateError(message);
+  }
+
+  async check(context: GateContext): Promise<GateResult> {
+    try {
+      await this.preCommitCheck();
+      return { passed: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { passed: false, reason: msg };
+    }
+  }
 
   async preCommitCheck(): Promise<{ ok: true }> {
     if (!this.shell) {
@@ -83,20 +101,16 @@ export class WorkspaceGuard {
       return findings;
     }
 
-    // Split diff into per-file blocks using 'diff --git ' headers
     const fileBlocks = diffContent.split(/^diff --git /m);
     for (const block of fileBlocks) {
-      // Extract the actual changed file path from 'diff --git a/foo b/foo'
       const headerMatch = block.match(/^a\/(.+?) b\//);
       if (!headerMatch) continue;
       const changedFile = headerMatch[1];
       if (!sharedFiles.some(sf => changedFile.endsWith(sf))) continue;
 
-      // Check if the diff for THIS specific file contains array/object replacements
       const removedLines = block.match(/^-(?!--).*/gm) || [];
       const addedLines = block.match(/^\+(?!\+\+).*/gm) || [];
 
-      // Flag if removed lines significantly exceed added lines (overwrite pattern)
       if (removedLines.length > 3 && addedLines.length < removedLines.length * 0.5) {
         findings.push(changedFile);
       }
@@ -105,22 +119,46 @@ export class WorkspaceGuard {
     return findings;
   }
 
-  async commitToMain(opts: { trailerPresent: boolean }): Promise<void> {
-    if (!opts.trailerPresent) {
+  async commitToMain(
+    optsOrTrackId: { trailerPresent: boolean; trackId?: string; sessionId?: string } | string,
+    sessionId?: string,
+    stateStore?: any
+  ): Promise<void> {
+    let trackId: string | undefined;
+    let sessId: string | undefined;
+    let trailerPresent = true;
+    const store = stateStore || this.stateStore;
+
+    if (typeof optsOrTrackId === 'string') {
+      trackId = optsOrTrackId;
+      sessId = sessionId;
+    } else if (optsOrTrackId && typeof optsOrTrackId === 'object') {
+      trailerPresent = optsOrTrackId.trailerPresent;
+      trackId = optsOrTrackId.trackId;
+      sessId = optsOrTrackId.sessionId;
+    }
+
+    if (!trailerPresent) {
       throw new UnauthorizedMergeError();
     }
 
-    // Verify current branch is a track branch (not main)
+    if (trackId && sessId) {
+      const approved = await SignOffGate.isApproved(trackId, sessId, store);
+      if (!approved) {
+        throw new SignOffRequiredError();
+      }
+    }
+
     const cp = await import('child_process');
     try {
       let currentBranch = '';
       if (typeof cp.execFileSync === 'function') {
         currentBranch = cp.execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
-          encoding: 'utf8'
+          encoding: 'utf8',
         }).toString().trim();
       } else if (typeof cp.execSync === 'function') {
         currentBranch = cp.execSync('git rev-parse --abbrev-ref HEAD', {
-          encoding: 'utf8'
+          encoding: 'utf8',
         }).toString().trim();
       }
       if (currentBranch === 'main' || currentBranch === 'master') {
@@ -130,10 +168,8 @@ export class WorkspaceGuard {
       }
     } catch (e) {
       if (e instanceof UnauthorizedMergeError) throw e;
-      // git not available in test environment — skip branch check
     }
 
-    // Run pre-commit check if available
     if (typeof this.preCommitCheck === 'function') {
       await this.preCommitCheck();
     }

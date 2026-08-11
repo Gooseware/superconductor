@@ -224,5 +224,26 @@ diff --git a/OtherFile.ts b/OtherFile.ts
 
       await expect(guard.commitToMain({ trailerPresent: true })).rejects.toThrow(UnauthorizedMergeError);
     });
+
+    it('throws SignOffRequiredError when called with trackId and sessionId without signoff', async () => {
+      vi.mocked(cp.execFileSync).mockReturnValue('track/feature-1' as any);
+      const mockShell: ShellRunner = { exec: vi.fn() };
+      const guard = new WorkspaceGuard('track/feature-1', mockShell);
+
+      await expect(guard.commitToMain('track-no-signoff', 'sess-123')).rejects.toThrow();
+    });
+
+    it('implements AbstractGate check() method', async () => {
+      const mockShell: ShellRunner = {
+        exec: vi.fn().mockImplementation(async (cmd: string) => {
+          if (cmd === 'git branch --show-current') return { stdout: 'main\n', stderr: '', exitCode: 0 };
+          if (cmd.includes('tsc')) return { stdout: '', stderr: '', exitCode: 0 };
+          return { stdout: '', stderr: '', exitCode: 0 };
+        })
+      };
+      const guard = new WorkspaceGuard('main', mockShell);
+      const res = await guard.check({ trackId: 't1', sessionId: 's1' });
+      expect(res.passed).toBe(true);
+    });
   });
 });
