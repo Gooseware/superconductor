@@ -2,19 +2,23 @@ import type { ValidationOptions } from './validation/notebook-validator.js';
 
 export type NoteType = 'spec' | 'design' | 'style' | 'quorum' | 'preference' | 'procedure' | 'failure' | 'dependency' | 'warning';
 export type NoteSeverity = 'info' | 'warning' | 'critical';
-export type AuthorityLevel = 'authoritative' | 'system' | 'agent';
+export const enum AuthorityLevel {
+  Authoritative = 'authoritative',
+  System = 'system',
+  Agent = 'agent',
+}
 
 // Authority mapping
 export const NOTE_AUTHORITY: Record<NoteType, AuthorityLevel> = {
-  preference: 'authoritative',
-  design: 'authoritative',
-  quorum: 'system',
-  style: 'system',
-  spec: 'agent',
-  failure: 'agent',
-  dependency: 'agent',
-  procedure: 'agent',
-  warning: 'agent',
+  preference: AuthorityLevel.Authoritative,
+  design: AuthorityLevel.Authoritative,
+  quorum: AuthorityLevel.System,
+  style: AuthorityLevel.System,
+  spec: AuthorityLevel.Agent,
+  failure: AuthorityLevel.Agent,
+  dependency: AuthorityLevel.Agent,
+  procedure: AuthorityLevel.Agent,
+  warning: AuthorityLevel.Agent,
 };
 
 // Per-project vs global store routing

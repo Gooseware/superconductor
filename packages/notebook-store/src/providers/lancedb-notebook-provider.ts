@@ -121,7 +121,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
 
       // Check vector cosine similarity
       if (allRows.length > 0) {
-        const searchResults = await existingTable.search(vector).metricType('cosine').limit(1).toArray();
+        const searchResults = await existingTable.search(vector).distanceType('cosine').limit(1).toArray();
         if (searchResults.length > 0 && searchResults[0]._distance !== undefined && searchResults[0]._distance < 0.05) {
           const match = searchResults[0];
           await existingTable.update({
@@ -165,7 +165,6 @@ export class LanceDBNotebookProvider implements INotebookProvider {
     const globalTable = await this.getTable('global');
     const projectTable = await this.getTable('project');
 
-    import('../search/rrf-search.js').then();
     const { rrfMerge, applyTokenBudget } = await import('../search/rrf-search.js');
 
     let entries: NotebookEntry[] = [];
@@ -179,7 +178,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
 
       for (const table of [globalTable, projectTable]) {
         if (!table) continue;
-        const vSearch = await table.search(queryVector).metricType('cosine').limit(params.limit || 50).toArray();
+        const vSearch = await table.search(queryVector).distanceType('cosine').limit(params.limit || 50).toArray();
         vectorRows.push(...vSearch);
 
         const allTableRows = await table.query().toArray();

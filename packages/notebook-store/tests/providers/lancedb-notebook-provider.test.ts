@@ -148,4 +148,57 @@ describe('LanceDBNotebookProvider', () => {
     expect(summary.by_type.warning).toBeDefined();
     expect(summary.by_type.warning!.length).toBe(1);
   });
+
+  it('performs cosine similarity deduplication for near-duplicate notes', async () => {
+    const note1 = {
+      session_id: 's1',
+      track_id: 't1',
+      agent_role: 'processor',
+      domain: 'core',
+      files: ['a.ts'],
+      note_type: 'warning' as const,
+      content: 'The database connection failed due to network timeout',
+      severity: 'warning' as const,
+    };
+
+    const ack1 = await provider.write(note1, { invocation_id: 'inv-cos-1' });
+    expect(ack1.deduplicated).toBe(false);
+
+    const note2 = {
+      session_id: 's1',
+      track_id: 't1',
+      agent_role: 'processor',
+      domain: 'core',
+      files: ['a.ts'],
+      note_type: 'warning' as const,
+      content: 'The database connection failed due to network timeout!',
+      severity: 'warning' as const,
+    };
+
+    const ack2 = await provider.write(note2, { invocation_id: 'inv-cos-2' });
+    expect(ack2.deduplicated).toBe(true);
+    expect(ack2.id).toBe(ack1.id);
+  });
+
+  it('executes text vector query search without throwing', async () => {
+    await provider.write(
+      {
+        session_id: 's1',
+        track_id: 't1',
+        agent_role: 'processor',
+        domain: 'security',
+        files: ['auth.ts'],
+        note_type: 'warning',
+        content: 'Check authentication token expiry in login module',
+        severity: 'critical',
+      },
+      { invocation_id: 'inv-vec-1' }
+    );
+
+    const results = await provider.query({ query: 'authentication token login' });
+    expect(results).toBeDefined();
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].content).toContain('authentication token');
+  });
 });
