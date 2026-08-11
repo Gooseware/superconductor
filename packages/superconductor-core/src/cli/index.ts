@@ -6,6 +6,7 @@ import { readTrackRegistry, getCompletionStats } from '../track/index.js';
 import { runDeterministicPreflight } from '../review/deterministic-preflight.js';
 import { resolveReviewInput } from '../review/input-resolution.js';
 import { runCliDispatcher } from './dispatcher.js';
+import { mergeTrack } from './merge-track.js';
 
 export * from './dispatcher.js';
 export * from './interactive.js';
