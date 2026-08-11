@@ -1,7 +1,6 @@
 ---
 name: implement
 description: Executes the tasks defined in the specified track's plan
----
 
 ## 1.0 SYSTEM DIRECTIVE
 You are an AI agent assistant for the Superconductor spec-driven development framework. Your current task is to implement a track. You MUST follow this protocol precisely.
@@ -10,7 +9,6 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip explicit rendering of checklists during user prompts.
 
----
 
 ## 0.5 Intelligence Preflight
 1. Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
@@ -23,7 +21,16 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
    - Reload snapshot and emit updated banner
 6. Proceed to Phase 0 with RepoContext available for task context injection
 
----
+### 0.6 Notebook Preflight (MANDATORY — no exceptions)
+Call MCP tool: `notebook_query({ files: <task_files>, domain: <domain>, limit: 5 })`
+
+Your response MUST include this in the preflight header block:
+📓 Notebook: N notes found
+  [⚠️/🛑/ℹ️] <note content>  (one per line, max 5)
+
+If 0 notes: write "📓 Notebook: 0 notes found" and proceed.
+Correctness reviewer will reject your output if this line is absent.
+
 
 ## 1.1 HEADLESS MODE HANDLING
 **PROTOCOL: Detect and adapt to headless execution.**
@@ -34,28 +41,25 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
    - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, skip cleanup/Oracle review) UNLESS specifically instructed otherwise.
    - For Phase Completion Checkpoints, follow the Headless bypass rule in `workflow.md`: automatically pass the checkpoint if automated tests and coverage assertions succeed.
 
----
 
 ## 1.2 SETUP CHECK
 **PROTOCOL: Verify that the Superconductor environment is properly set up.**
 
 1.  **Verify Core Context:** Using the **Universal File Resolution Protocol**, resolve and verify the existence of:
-    -   **Product Definition**
-    -   **Tech Stack**
-    -   **Workflow**
-    -   **Ubiquitous Language Context** (`superconductor/CONTEXT.md`)
+    - **Product Definition**
+    - **Tech Stack**
+    - **Workflow**
+    - **Ubiquitous Language Context** (`superconductor/CONTEXT.md`)
 
 2.  **Handle Failure:** 
-    -   If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
+    - If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
         - **questions:**
             - **header:** "Setup Required"
             - **question:** "Superconductor is not set up. Would you like me to initiate the `/superconductor:setup` process now?"
             - **type:** "yesno"
-    -   **If yes:** Immediately transition to executing the `/superconductor:setup` skill protocol.
-    -   **If no:** Announce "Setup is required to proceed. Halting." and HALT.
+    - **If yes:** Immediately transition to executing the `/superconductor:setup` skill protocol.
+    - **If no:** Announce "Setup is required to proceed. Halting." and HALT.
 
-
----
 
 ## 2.0 TRACK SELECTION
 **PROTOCOL: Identify and select the track to be implemented.**
@@ -63,22 +67,22 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 1.  **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
 
 2.  **Locate and Parse Tracks Registry:**
-    -   Resolve the **Tracks Registry**.
-    -   Read and parse this file. Identify all tracks, extracting their status (`[ ]`, `[~]`, `[x]`), description, and directory link.
+    - Resolve the **Tracks Registry**.
+    - Read and parse this file. Identify all tracks, extracting their status (`[ ]`, `[~]`, `[x]`), description, and directory link.
 
 3.  **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
 
 4.  **Selection and Initiation:**
-    -   **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
+    - **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
         1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro, Flash, Claude 3.5 Sonnet, Claude 3 Opus) to be used for the final Oracle Code Review. If in CI, default to Pro.
         2. If a specific track was provided, proceed with that track.
         3. If `--all` was provided or NO track was specified, automatically queue ALL available tracks identified in step 3 for sequential execution. You MUST loop through the full `TRACK IMPLEMENTATION` protocol for each track one by one. In the final `TRACK CLEANUP` step, automatically trigger the Oracle Review using the selected supervisor model.
-    -   **Interactive Mode (Default):**
-        -   **If a track name was provided:**
+    - **Interactive Mode (Default):**
+        - **If a track name was provided:**
             1.  Perform an exact, case-insensitive match for the provided name against the track descriptions.
             2.  If a unique match is found, proceed with this track.
             3.  If no match is found, inform the user and proceed to the interactive selection.
-        -   **If no track name was provided (or previous step failed):**
+        - **If no track name was provided (or previous step failed):**
             1.  Immediately call the `ask_user` tool to present the available tracks and a field for a new track (do not repeat the question in the chat):
                 - **questions:**
                     - **header:** "Select Track"
@@ -103,7 +107,6 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 
 5.  **Handle No Selection:** If no track is selected and no new track is initiated, inform the user and await further instructions.
 
----
 
 ## 3.0 TRACK IMPLEMENTATION
 **PROTOCOL: Execute the selected track.**
@@ -111,8 +114,8 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 1.  **Announce Action:** Announce which track you are beginning to implement.
 
 2.  **Update Status to 'In Progress':**
-    -   Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
-    -   This requires finding the specific heading for the track (e.g., `## [ ] Track: <Description>`) and replacing it with the updated status (e.g., `## [~] Track: <Description>`) in the **Tracks Registry** file you identified earlier.
+    - Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
+    - This requires finding the specific heading for the track (e.g., `## [ ] Track: <Description>`) and replacing it with the updated status (e.g., `## [~] Track: <Description>`) in the **Tracks Registry** file you identified earlier.
 
 3.  **Load Track Context & Manage Branch:**
     a. **Identify Track Folder:** From the tracks file, identify the track's folder link to get the `<track_id>`.
@@ -121,9 +124,9 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
         - Action: `GitWorkflowManager.createBranchFromMain(track_id)`.
         - Announce to the user: "Automated branching complete. Switched to branch 'track/<track_id>' (derived from 'main')."
     c. **Read Files:**
-        -   **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** and **Implementation Plan** for the selected track.
-        -   **Workflow:** Resolve **Workflow** (via the **Universal File Resolution Protocol** using the project's index file).
-        -   **Ubiquitous Language:** Resolve and read `superconductor/CONTEXT.md` (via the **Universal File Resolution Protocol**) so ubiquitous language is active during implementation.
+        - **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** and **Implementation Plan** for the selected track.
+        - **Workflow:** Resolve **Workflow** (via the **Universal File Resolution Protocol** using the project's index file).
+        - **Ubiquitous Language:** Resolve and read `superconductor/CONTEXT.md` (via the **Universal File Resolution Protocol**) so ubiquitous language is active during implementation.
     d. **Error Handling:** If you fail to read any of these files, you MUST stop and inform the user of the error.
     e. **Activate Relevant Skills:**
         - Check for the existence of installed skills in `.agents/skills/` (Workspace tier) and `~/.agents/extensions/superconductor/skills/` (Extension tier).
@@ -136,23 +139,23 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
         - You MUST explicitly apply and prioritize the guidelines, commands, and constraints from these files during the execution of the track's tasks.
 
 3.1 **Optional Plan Verification:**
-    -   **Headless Automation (`--headless`):** Skip this verification step.
-    -   **Ask for Verification:** Use the `ask_user` tool to ask if the user wants an AI model to audit the existing `plan.md` before starting tasks.
+    - **Headless Automation (`--headless`):** Skip this verification step.
+    - **Ask for Verification:** Use the `ask_user` tool to ask if the user wants an AI model to audit the existing `plan.md` before starting tasks.
         - **questions:**
             - **header:** "Plan Verification"
             - **question:** "Would you like an AI model to audit and verify the existing `plan.md` before execution begins?"
             - **type:** "yesno"
-    -   **If yes:**
-        -   First, run `agy models` to fetch the list of available models.
-        -   Use the `ask_user` tool to prompt the user to select the model for this verification.
+    - **If yes:**
+        - First, run `agy models` to fetch the list of available models.
+        - Use the `ask_user` tool to prompt the user to select the model for this verification.
             - **questions:**
                 - **header:** "Verification Model"
                 - **question:** "Which model should verify the plan?"
                 - **type:** "choice"
                 - **options:** (Populate dynamically with the models returned by `agy models`)
-        -   **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
-        -   If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
-        -   If approved, update `plan.md`.
+        - **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
+        - If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
+        - If approved, update `plan.md`.
 
 4.  **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Orchestration Skill:**
@@ -182,12 +185,11 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
            - **SYSTEMATIC BUG DIAGNOSIS:** During the testing feedback loop, if tests fail, you MUST employ Systematic Bug Diagnosis heuristics (isolate variables, trace execution, state assumptions clearly) rather than blindly patching code.
 
 5.  **Finalize Track:**
-    -   After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
-    -   This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
-    -   **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(superconductor): Mark track '<track_description>' as complete`.
-    -   Announce that the track is fully complete and the tracks file has been updated.
+    - After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
+    - This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
+    - **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(superconductor): Mark track '<track_description>' as complete`.
+    - Announce that the track is fully complete and the tracks file has been updated.
 
----
 
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
 **PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
@@ -197,33 +199,31 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
 
 3.  **Registry Inclusion Analysis:**
-    -   **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
-        -   **New Files Scan:** Check for new files in known component directories.
-        -   **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
-        -   **Theme Usage Scan:** Check for usage of `design-os` or design-os tokens and primitives.
-    -   **Draft Publication Proposals:** For any high-quality, reusable component identified:
-        -   Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
-        -   Draft a publication proposal.
-        -   Explain the rationale for why this component is a good candidate.
-        -   **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the registry publication proposal.
+    - **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
+        - **New Files Scan:** Check for new files in known component directories.
+        - **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
+        - **Theme Usage Scan:** Check for usage of `design-os` or design-os tokens and primitives.
+    - **Draft Publication Proposals:** For any high-quality, reusable component identified:
+        - Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
+        - Draft a publication proposal.
+        - Explain the rationale for why this component is a good candidate.
+        - **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the registry publication proposal.
             - **questions:**
                 - **header:** "Registry Proposal"
                 - **question:**
-                    If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
-                    `[✓] Spec Analyzed`
-                    `[✓] Registry Candidates Identified`
+                    If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Registry Candidates Identified`
 
                     I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?
                 - **type:** "yesno"
-        -   **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
+        - **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
 
 4.  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
 
 5.  **Load Project Documents:**
-    -   Resolve and read:
-        -   **Product Definition**
-        -   **Tech Stack**
-        -   **Product Guidelines**
+    - Resolve and read:
+        - **Product Definition**
+        - **Tech Stack**
+        - **Product Guidelines**
 
 6.  **Analyze and Update:**
     a.  **Analyze Specification and Plan:** Carefully analyze the **Specification** and **Implementation Plan** to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
@@ -234,9 +234,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "Product"
                     - **question:**
-                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
-                        `[✓] Spec Analyzed`
-                        `[✓] Product Definition Impacts Determined`
+                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Product Definition Impacts Determined`
 
                         Please review the proposed updates to the Product Definition below. Do you approve?
 
@@ -252,9 +250,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "Tech Stack"
                     - **question:**
-                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
-                        `[✓] Spec Analyzed`
-                        `[✓] Tech Stack Impacts Determined`
+                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Tech Stack Impacts Determined`
 
                         Please review the proposed updates to the Tech Stack below. Do you approve?
 
@@ -271,9 +267,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "Product"
                     - **question:**
-                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
-                        `[✓] Spec Analyzed`
-                        `[✓] Product Guidelines Impacts Determined`
+                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Product Guidelines Impacts Determined`
 
                         WARNING: This is a sensitive action as it impacts core product guidelines. Please review the proposed changes below. Do you approve these critical changes?
 
@@ -289,9 +283,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "README.md"
                     - **question:**
-                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
-                        `[✓] Spec Analyzed`
-                        `[✓] Operational Impacts Determined`
+                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Operational Impacts Determined`
 
                         Please review the proposed updates to the README.md below. Do you approve?
 
@@ -307,9 +299,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
                 - **questions:**
                     - **header:** "AGENTS.md"
                     - **question:**
-                        If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
-                        `[✓] Spec Analyzed`
-                        `[✓] Agent Directive Impacts Determined`
+                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Agent Directive Impacts Determined`
 
                         Please review the proposed updates to the AGENTS.md below. Do you approve?
 
@@ -325,7 +315,6 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
         - If any files were changed (**Product Definition**, **Tech Stack**, **Product Guidelines**, **README.md**, or **AGENTS.md**), you MUST stage them and commit them.
         - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
 
----
 
 ## 5.0 TRACK CLEANUP
 **PROTOCOL: Offer to archive or delete the completed track.**
@@ -393,8 +382,6 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
         - **Execution:** If 'yes', run the command and report status.
 
 
----
-
 ## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
 **PROTOCOL: Perform a high-fidelity audit using the selected model.**
 
@@ -406,27 +393,27 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
    Enforcement: `QuorumValidator.gateOracle({ quorumPassed })` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`. Throws `OracleGateError` if `quorumPassed` is false.
 
 1.  **Initialize Oracle:**
-    -   Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
-    -   Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."
+    - Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
+    - Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."
 
 2.  **Audit Phase:**
-    -   The agent (using the user-selected model) executes the audit objectives:
-        -   Compare code against `spec.md`.
-        -   Verify all `plan.md` tasks are complete.
-        -   Check `tech-stack.md` and `code_styleguides/`.
-        -   Scan for feature gaps and DRY violations.
-    -   **Generate Report:** Output the `Oracle Audit Report` according to the template.
+    - The agent (using the user-selected model) executes the audit objectives:
+        - Compare code against `spec.md`.
+        - Verify all `plan.md` tasks are complete.
+        - Check `tech-stack.md` and `code_styleguides/`.
+        - Scan for feature gaps and DRY violations.
+    - **Generate Report:** Output the `Oracle Audit Report` according to the template.
 
 3.  **Adversarial Audit Phase (Mandatory — runs after every standard audit):**
-    -   Load `skills/review/SKILL.md` §4.0 Adversarial Audit Protocol.
-    -   Execute the full protocol in sequence:
-        -   **§4.1 Undefined Path Hunting:** For every conditional block in the diff, find implicit branches. Flag any `if <X>` with no explicit `else` or fallthrough as `CRITICAL`.
-        -   **§4.2 Plan Task Integrity:** For every task marked `[x]` in `plan.md`, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
-        -   **§4.3 Test Coverage Legitimacy:** Count new test files in the diff. If behavioral changes were added but zero new tests were written, flag as `HIGH`. Verify "tests passed" means *new code* was covered, not just that old code didn't break.
-        -   **§4.4 "Recommended" Label Audit:** For every prompt option or default labeled "Recommended", verify the recommendation is context-qualified, not blanket.
-        -   **§4.5 Shenanigan Checklist:** Run all 8 checks — grade inflation, no-op task completions, spec drift, missing else, self-referential verification, hollow tests, optimistic closures, prerequisite+shortcut traps.
-    -   **Append findings** from the Adversarial Audit to the Oracle Audit Report under a dedicated `## Adversarial Audit Findings` section.
-    -   **CRITICAL:** If the Adversarial Audit finds any issue that the standard Audit Phase missed, the Oracle's final verdict MUST be `Needs Fixes` regardless of the standard audit result.
+    - Load `skills/review/SKILL.md` §4.0 Adversarial Audit Protocol.
+    - Execute the full protocol in sequence:
+        - **§4.1 Undefined Path Hunting:** For every conditional block in the diff, find implicit branches. Flag any `if <X>` with no explicit `else` or fallthrough as `CRITICAL`.
+        - **§4.2 Plan Task Integrity:** For every task marked `[x]` in `plan.md`, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
+        - **§4.3 Test Coverage Legitimacy:** Count new test files in the diff. If behavioral changes were added but zero new tests were written, flag as `HIGH`. Verify "tests passed" means *new code* was covered, not just that old code didn't break.
+        - **§4.4 "Recommended" Label Audit:** For every prompt option or default labeled "Recommended", verify the recommendation is context-qualified, not blanket.
+        - **§4.5 Shenanigan Checklist:** Run all 8 checks — grade inflation, no-op task completions, spec drift, missing else, self-referential verification, hollow tests, optimistic closures, prerequisite+shortcut traps.
+    - **Append findings** from the Adversarial Audit to the Oracle Audit Report under a dedicated `## Adversarial Audit Findings` section.
+    - **CRITICAL:** If the Adversarial Audit finds any issue that the standard Audit Phase missed, the Oracle's final verdict MUST be `Needs Fixes` regardless of the standard audit result.
 
 4.  **Auto-Fix Loop & Remediation:**
     - If the report contains "Auto-Fix Candidates":
@@ -450,9 +437,8 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
         - Proceed to finalization.
 
 5.  **Finalization:**
-    -   Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
+    - Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
 
----
 
 ## 7.0 ADVERSARIAL AUDIT DEBRIEF (ABI — Always Be Improving)
 **PROTOCOL: Evolve the adversarial checklist in situ after every Oracle review.**

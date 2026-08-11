@@ -63,6 +63,16 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - Synthesize the findings into a brief "Research Notes" summary to be directly injected into the Specification.
    - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
 
+### 2.0.2 Notebook History Preflight (NEW — MANDATORY)
+1. Call MCP tool: `notebook_summary({ note_types: ["preference","design","style","procedure"] })`
+2. If notes found → inject as "## Project Constraints (from Notebook)" at the TOP of the spec.md draft
+   - ⚠️ WARNING notes shown prominently
+   - 🛑 CRITICAL notes shown as blockers before proceeding
+   - ℹ️ DECISION notes shown as context
+3. Call MCP tool: `notebook_query({ note_types: ["quorum","warning"], limit: 10 })`
+4. If notes found → inject as "## ⚠️ Known Fragile Areas (Prior Quorum Findings)" in plan.md template
+5. If 0 notes found in both calls → proceed normally (no section injected)
+
 ### 2.0.4 Grilling Phase (Optional)
 1. **Trigger:** This phase runs if `--grill` is provided in `{{args}}`. If the user's initial description is highly ambiguous or lacks domain clarity, you MUST dynamically suggest running with `--grill` to clarify requirements.
 2. **Action:**

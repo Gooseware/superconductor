@@ -1,3 +1,5 @@
+import type { ValidationOptions } from './validation/notebook-validator.js';
+
 export type NoteType = 'spec' | 'design' | 'style' | 'quorum' | 'preference' | 'procedure' | 'failure' | 'dependency' | 'warning';
 export type NoteSeverity = 'info' | 'warning' | 'critical';
 export type AuthorityLevel = 'authoritative' | 'system' | 'agent';
@@ -47,7 +49,7 @@ export interface NotebookQuery { query?: string; files?: string[]; domain?: stri
 export interface NotebookSummary { by_type: Partial<Record<NoteType, NotebookEntry[]>>; total: number; }
 
 export interface INotebookProvider {
-  write(entry: Omit<NotebookEntry, 'id' | 'timestamp'>): Promise<WriteAck>;
+  write(entry: Omit<NotebookEntry, 'id' | 'timestamp'>, options?: ValidationOptions): Promise<WriteAck>;
   query(params: NotebookQuery): Promise<NotebookEntry[]>;
   summary(track_id?: string): Promise<NotebookSummary>;
   close(): Promise<void>;
