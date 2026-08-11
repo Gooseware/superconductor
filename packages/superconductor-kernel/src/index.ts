@@ -17,6 +17,7 @@ import { InstallerService } from "./services/InstallerService.js";
 import { DogmaService } from "./services/DogmaService.js";
 import { PublishService } from "./services/PublishService.js";
 import { CentralizedPublishService } from "./services/CentralizedPublishService.js";
+import { NotebookService } from "./services/NotebookService.js";
 import { fileURLToPath } from "url";
 import os from "os";
 import path from "path";
@@ -49,6 +50,7 @@ const db = createClient({
 const gitService = new GitService(CACHE_DIR);
 const installerService = new InstallerService(db, PROJECT_ROOT);
 const dogmaService = new DogmaService();
+const notebookService = new NotebookService();
 
 let currentRegistryPath = DEFAULT_REGISTRY_PATH;
 let registryService = new RegistryService(db, currentRegistryPath);
@@ -472,6 +474,52 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ["name"]
         }
+      },
+      {
+        name: "notebook_query",
+        description: "Query Superconductor Notebook entries (semantic vector + BM25 hybrid search)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Search query text" },
+            files: { type: "array", items: { type: "string" }, description: "Filter by file paths" },
+            domain: { type: "string", description: "Filter by domain" },
+            note_types: { type: "array", items: { type: "string" }, description: "Filter by note types" },
+            severity: { type: "string", description: "Filter by severity (info, warning, critical)" },
+            limit: { type: "number", description: "Maximum number of notes to return" }
+          }
+        }
+      },
+      {
+        name: "notebook_write",
+        description: "Write a note to the Superconductor Notebook (max 280 chars, rate-limited to 3 per invocation)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            note_type: { type: "string", enum: ["spec", "design", "style", "quorum", "preference", "procedure", "failure", "dependency", "warning"], description: "Type of note" },
+            content: { type: "string", maxLength: 280, description: "Note content (max 280 characters)" },
+            files: { type: "array", items: { type: "string" }, description: "Related file paths" },
+            domain: { type: "string", description: "System domain" },
+            severity: { type: "string", enum: ["info", "warning", "critical"], description: "Note severity" },
+            session_id: { type: "string", description: "Session ID" },
+            track_id: { type: "string", description: "Track ID" },
+            agent_role: { type: "string", description: "Agent role" },
+            reviewer_token: { type: "string", description: "Required for quorum/style notes" },
+            user_confirmed: { type: "boolean", description: "Required for preference/design notes" },
+            invocation_id: { type: "string", description: "Unique invocation ID for rate limit tracking" }
+          },
+          required: ["note_type", "content", "files", "domain", "severity", "invocation_id"]
+        }
+      },
+      {
+        name: "notebook_summary",
+        description: "Get summary of notebook entries grouped by note_type",
+        inputSchema: {
+          type: "object",
+          properties: {
+            track_id: { type: "string", description: "Optional track ID filter" }
+          }
+        }
       }
     ],
   };
@@ -479,6 +527,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  if (name === "notebook_query") {
+    const results = await notebookService.query(args as any, PROJECT_ROOT);
+    return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+  }
+
+  if (name === "notebook_write") {
+    const ack = await notebookService.write(args as any, PROJECT_ROOT);
+    return { content: [{ type: "text", text: JSON.stringify(ack, null, 2) }] };
+  }
+
+  if (name === "notebook_summary") {
+    const summary = await notebookService.summary(args as any, PROJECT_ROOT);
+    return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
+  }
 
   if (name === "set_theme") {
     const newConfig = SetThemeSchema.parse(args);
