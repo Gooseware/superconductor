@@ -79,4 +79,13 @@ describe('QuorumValidator', () => {
       expect(result).toBe(true);
     });
   });
+
+  describe('gateOracle (static)', () => {
+    it('returns true when quorumPassed is true', () => {
+      expect(QuorumValidator.gateOracle({ quorumPassed: true })).toBe(true);
+    });
+    it('throws OracleGateError when quorumPassed is false', () => {
+      expect(() => QuorumValidator.gateOracle({ quorumPassed: false })).toThrow(OracleGateError);
+    });
+  });
 });

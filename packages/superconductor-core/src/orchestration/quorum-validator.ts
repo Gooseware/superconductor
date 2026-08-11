@@ -20,6 +20,13 @@ export class QuorumValidator {
     'regression-reviewer'
   ];
 
+  static gateOracle(state: { quorumPassed: boolean }): boolean {
+    if (!state.quorumPassed) {
+      throw new OracleGateError();
+    }
+    return true;
+  }
+
   validate(panel: string[]): { valid: true; panelComplete: true } {
     const present = new Set(panel);
     const missingRoles = this.requiredRoles.filter(role => !present.has(role));
@@ -32,9 +39,6 @@ export class QuorumValidator {
   }
 
   gateOracle(state: { quorumPassed: boolean }): boolean {
-    if (!state.quorumPassed) {
-      throw new OracleGateError();
-    }
-    return true;
+    return QuorumValidator.gateOracle(state);
   }
 }

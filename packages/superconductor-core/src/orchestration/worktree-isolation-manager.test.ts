@@ -14,7 +14,7 @@ describe('WorktreeIsolationManager', () => {
   beforeEach(() => {
     execSpy = vi.fn().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 });
     mockShell = {
-      exec: execSpy,
+      exec: execSpy as any,
     };
   });
 

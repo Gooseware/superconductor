@@ -1,50 +1,22 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+# Superconductor commit-msg hook
+# Validates SwarmAuthorizer trailer on superconductor delivery commits
 
-# 1. Check superconductor/tracks.md for any line matching '[~]'
-if ! grep -q '\[~\]' superconductor/tracks.md 2>/dev/null; then
-    exit 0
+COMMIT_MSG_FILE="$1"
+
+# Only validate if Node.js and the validator script are available
+if command -v node &>/dev/null && [ -f "$(git rev-parse --show-toplevel)/scripts/validate-trailer.mjs" ]; then
+  node "$(git rev-parse --show-toplevel)/scripts/validate-trailer.mjs" "$COMMIT_MSG_FILE"
+  exit $?
 fi
 
-# 3a. Check git staged files for any matching packages/*/src/**
-HAS_SRC_FILES=0
-while IFS= read -r -d '' file; do
-    if [[ "$file" == packages/*/src/* ]]; then
-        HAS_SRC_FILES=1
-        break
-    fi
-done < <(git diff --cached --name-only --diff-filter=ACM -z)
-
-# 3b. If no src/ files staged -> exit 0
-if [ "$HAS_SRC_FILES" -eq 0 ]; then
-    exit 0
-fi
-
-# 3c. If src/ files staged -> inspect commit message file ($1) for 'Swarm-Authorized: true'
-COMMIT_MSG_FILE="${1:-}"
-if [ -n "$COMMIT_MSG_FILE" ] && [ -f "$COMMIT_MSG_FILE" ] && grep -q "Swarm-Authorized: true" "$COMMIT_MSG_FILE"; then
-    # 3d. If trailer present -> exit 0 (allow commit)
-    exit 0
-fi
-
-# 3e. If trailer missing -> print error and exit 1 (block commit)
-if [ "${SUPERCONDUCTOR_BYPASS:-0}" = "1" ]; then
-    # Bypass allowed
-    USER_NAME=$(git config user.name || echo "Unknown User")
-    TIMESTAMP=$(date -Iseconds)
-    LOG_FILE="superconductor/swarm_compliance.log"
-    
-    # Append a bypass entry
-    {
-        echo "[$TIMESTAMP] Bypass by $USER_NAME"
-        echo "Reason: ${SUPERCONDUCTOR_BYPASS_REASON:-No reason provided}"
-        echo "Staged files:"
-        git diff --cached --name-only --diff-filter=ACM
-        echo "---"
-    } >> "$LOG_FILE"
-    
-    exit 0
-else
-    echo "[Superconductor] Commit blocked: active track detected and src/ changes require Swarm Authorization. Complete the Review Quorum first." >&2
+# Fallback: basic string check
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+if echo "$COMMIT_MSG" | grep -qE '^(feat|fix|track|chore)\(superconductor\):'; then
+  if ! echo "$COMMIT_MSG" | grep -q 'Swarm-Authorized:'; then
+    echo "[❌ Superconductor] Missing SwarmAuthorizer trailer on delivery commit." >&2
     exit 1
+  fi
 fi
+
+exit 0

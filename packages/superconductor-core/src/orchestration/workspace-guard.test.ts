@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import * as cp from 'child_process';
 import {
   WorkspaceGuard,
   ShellRunner,
@@ -6,6 +7,14 @@ import {
   TypeScriptError,
   UnauthorizedMergeError
 } from './workspace-guard.js';
+
+vi.mock('child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof cp>();
+  return {
+    ...actual,
+    execFileSync: vi.fn(),
+  };
+});
 
 describe('WorkspaceGuard', () => {
   describe('preCommitCheck', () => {
@@ -181,10 +190,39 @@ diff --git a/OtherFile.ts b/OtherFile.ts
     });
 
     it('resolves when trailerPresent is true', async () => {
-      const mockShell: ShellRunner = { exec: vi.fn() };
-      const guard = new WorkspaceGuard('main', mockShell);
+      vi.mocked(cp.execFileSync).mockReturnValue('track/feature-1' as any);
+      const mockShell: ShellRunner = {
+        exec: vi.fn().mockImplementation(async (cmd: string) => {
+          if (cmd === 'git branch --show-current') {
+            return { stdout: 'track/feature-1\n', stderr: '', exitCode: 0 };
+          }
+          if (cmd.includes('tsc')) {
+            return { stdout: '', stderr: '', exitCode: 0 };
+          }
+          return { stdout: '', stderr: '', exitCode: 0 };
+        })
+      };
+      const guard = new WorkspaceGuard('track/feature-1', mockShell);
 
       await expect(guard.commitToMain({ trailerPresent: true })).resolves.toBeUndefined();
+    });
+
+    it('throws UnauthorizedMergeError when called from main branch', async () => {
+      vi.mocked(cp.execFileSync).mockReturnValue('main' as any);
+      const mockShell: ShellRunner = { exec: vi.fn() };
+      const guard = new WorkspaceGuard('track/feature-1', mockShell);
+
+      await expect(guard.commitToMain({ trailerPresent: true })).rejects.toThrow(
+        'commitToMain must be called from a track branch, not from main'
+      );
+    });
+
+    it('throws UnauthorizedMergeError when called from master branch', async () => {
+      vi.mocked(cp.execFileSync).mockReturnValue('master' as any);
+      const mockShell: ShellRunner = { exec: vi.fn() };
+      const guard = new WorkspaceGuard('track/feature-1', mockShell);
+
+      await expect(guard.commitToMain({ trailerPresent: true })).rejects.toThrow(UnauthorizedMergeError);
     });
   });
 });

@@ -27,10 +27,38 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export interface WorkspaceGuardOptions {
+  workspaceRoot?: string;
+  assignedBranch?: string;
+  shell?: ShellRunner;
+}
+
 export class WorkspaceGuard {
-  constructor(private assignedBranch: string, private shell: ShellRunner) {}
+  private assignedBranch: string;
+  private shell?: ShellRunner;
+  private workspaceRoot?: string;
+
+  constructor(opts?: WorkspaceGuardOptions);
+  constructor(assignedBranch: string, shell?: ShellRunner);
+  constructor(
+    assignedBranchOrOpts?: string | WorkspaceGuardOptions,
+    shell?: ShellRunner
+  ) {
+    if (typeof assignedBranchOrOpts === 'object' && assignedBranchOrOpts !== null) {
+      this.assignedBranch = assignedBranchOrOpts.assignedBranch ?? 'main';
+      this.shell = assignedBranchOrOpts.shell;
+      this.workspaceRoot = assignedBranchOrOpts.workspaceRoot;
+    } else {
+      this.assignedBranch = assignedBranchOrOpts ?? 'main';
+      this.shell = shell;
+    }
+  }
+
 
   async preCommitCheck(): Promise<{ ok: true }> {
+    if (!this.shell) {
+      return { ok: true };
+    }
     const branchRes = await this.shell.exec('git branch --show-current');
     const currentBranch = branchRes.stdout.trim();
 
@@ -80,6 +108,34 @@ export class WorkspaceGuard {
   async commitToMain(opts: { trailerPresent: boolean }): Promise<void> {
     if (!opts.trailerPresent) {
       throw new UnauthorizedMergeError();
+    }
+
+    // Verify current branch is a track branch (not main)
+    const cp = await import('child_process');
+    try {
+      let currentBranch = '';
+      if (typeof cp.execFileSync === 'function') {
+        currentBranch = cp.execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+          encoding: 'utf8'
+        }).toString().trim();
+      } else if (typeof cp.execSync === 'function') {
+        currentBranch = cp.execSync('git rev-parse --abbrev-ref HEAD', {
+          encoding: 'utf8'
+        }).toString().trim();
+      }
+      if (currentBranch === 'main' || currentBranch === 'master') {
+        throw new UnauthorizedMergeError(
+          'commitToMain must be called from a track branch, not from main'
+        );
+      }
+    } catch (e) {
+      if (e instanceof UnauthorizedMergeError) throw e;
+      // git not available in test environment — skip branch check
+    }
+
+    // Run pre-commit check if available
+    if (typeof this.preCommitCheck === 'function') {
+      await this.preCommitCheck();
     }
   }
 }

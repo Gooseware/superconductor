@@ -398,6 +398,13 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 ## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
 **PROTOCOL: Perform a high-fidelity audit using the selected model.**
 
+0. **Step 0 — Quorum Pre-Condition (MANDATORY):**
+   Verify `quorumPassed === true`. The full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) MUST have reached unanimous RESOLVED before the Oracle is invoked.
+
+   If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
+
+   Enforcement: `QuorumValidator.gateOracle({ quorumPassed })` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`. Throws `OracleGateError` if `quorumPassed` is false.
+
 1.  **Initialize Oracle:**
     -   Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
     -   Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."

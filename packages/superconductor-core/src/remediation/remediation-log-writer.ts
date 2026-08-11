@@ -5,6 +5,7 @@ export interface LogWriterOptions {
   target: string;
   timestamp?: string;
   includeStats?: boolean;
+  fixCommitSha?: string;
 }
 
 export class RemediationLogWriter {
