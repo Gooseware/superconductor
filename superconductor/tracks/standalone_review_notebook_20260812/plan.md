@@ -171,59 +171,59 @@
 
 ### 2.1 — Package Scaffold + FSM Core
 
-- [ ] Task: Scaffold packages/quorum-fsm and implement FSM state machine [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/quorum-fsm/` with `package.json`, `tsconfig.json`, `vitest.config.ts` [TIER-1:TCS=3]
-    - [ ] Define FSM states: `INIT | REVIEWING | NEEDS_FIXES | REMEDIATING | VERIFYING | PASSED | HALTED` [TIER-1:TCS=3]
-    - [ ] Define FSM events: `START | FINDINGS_RETURNED | ALL_PASSED | FIXES_APPLIED | MAX_CYCLES_EXCEEDED | STAGNANT_DIFF` [TIER-1:TCS=3]
-    - [ ] Implement `QuorumFSM` class with `transition(event, payload): QuorumState` [TIER-1:TCS=3]
-    - [ ] LibSQL persistence via `LibSQLDatabaseManager` (ACID, not raw JSON) [TIER-1:TCS=3]
-    - [ ] State envelope: `{ state, trackId, cycleCount, lastDiffHash, reviewer_session_id, timestamp, sha256_checksum }` [TIER-1:TCS=3]
-    - [ ] SHA-256 checksum on full envelope: verify on read, throw `StateIntegrityError` if mismatch [TIER-1:TCS=3]
-    - [ ] Write tests for every state transition, including illegal transitions (throw `InvalidTransitionError`) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.1 - QuorumFSM with LibSQL persistence + checksum integrity` [TIER-1:TCS=3]
+- [x] Task: Scaffold packages/quorum-fsm and implement FSM state machine [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/quorum-fsm/` with `package.json`, `tsconfig.json`, `vitest.config.ts` [TIER-1:TCS=3]
+    - [x] Define FSM states: `INIT | REVIEWING | NEEDS_FIXES | REMEDIATING | VERIFYING | PASSED | HALTED` [TIER-1:TCS=3]
+    - [x] Define FSM events: `START | FINDINGS_RETURNED | ALL_PASSED | FIXES_APPLIED | MAX_CYCLES_EXCEEDED | STAGNANT_DIFF` [TIER-1:TCS=3]
+    - [x] Implement `QuorumFSM` class with `transition(event, payload): QuorumState` [TIER-1:TCS=3]
+    - [x] LibSQL persistence via `LibSQLDatabaseManager` (ACID, not raw JSON) [TIER-1:TCS=3]
+    - [x] State envelope: `{ state, trackId, cycleCount, lastDiffHash, reviewer_session_id, timestamp, sha256_checksum }` [TIER-1:TCS=3]
+    - [x] SHA-256 checksum on full envelope: verify on read, throw `StateIntegrityError` if mismatch [TIER-1:TCS=3]
+    - [x] Write tests for every state transition, including illegal transitions (throw `InvalidTransitionError`) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.1 - QuorumFSM LibSQL persistence + SHA-256 integrity` (d70d6084) [TIER-1:TCS=3]
 
 ### 2.2 — Circuit Breaker + Zero-Bias Re-run
 
-- [ ] Task: Implement STAGNANT_DIFF_HALT circuit breaker and zero-bias re-run protocol [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] After each REMEDIATING cycle: compute SHA-256 of diff AST [TIER-1:TCS=3]
-    - [ ] If current diff hash == previous diff hash → emit `STAGNANT_DIFF` event → FSM → `HALTED` [TIER-1:TCS=3]
-    - [ ] Zero-bias enforcement: fresh reviewer subagents receive ONLY `{ diff, preflight_output, finding_fingerprint }` — no prior reasoning, no prior finding text [TIER-1:TCS=3]
-    - [ ] Max cycles: 5 → FSM → `HALTED` → escalate to Oracle [TIER-1:TCS=3]
-    - [ ] Write tests: stagnant diff detection, max cycles, zero-bias payload structure [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.2 - STAGNANT_DIFF_HALT circuit breaker + zero-bias re-run` [TIER-1:TCS=3]
+- [x] Task: Implement STAGNANT_DIFF_HALT circuit breaker and zero-bias re-run protocol [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] After each REMEDIATING cycle: compute SHA-256 of diff AST [TIER-1:TCS=3]
+    - [x] If current diff hash == previous diff hash → emit `STAGNANT_DIFF` event → FSM → `HALTED` [TIER-1:TCS=3]
+    - [x] Zero-bias enforcement: fresh reviewer subagents receive ONLY `{ diff, preflight_output, finding_fingerprint }` — no prior reasoning, no prior finding text [TIER-1:TCS=3]
+    - [x] Max cycles: 5 → FSM → `HALTED` → escalate to Oracle [TIER-1:TCS=3]
+    - [x] Write tests: stagnant diff detection, max cycles, zero-bias payload structure [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.2 - STAGNANT_DIFF_HALT circuit breaker + zero-bias context builder` (3863d205) [TIER-1:TCS=3]
 
 ### 2.3 — quorum-review.ts Orchestration Script
 
-- [ ] Task: Implement scripts/quorum-review.ts FSM orchestration loop [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] CLI: `node scripts/quorum-review.ts --branch <b> [--codebase] [--fast] [--remediate] [--no-signoff]` [TIER-1:TCS=3]
-    - [ ] On NEEDS_FIXES: call `DomainSplitRemediationDispatcher` (existing), pass domain-split findings [TIER-1:TCS=3]
-    - [ ] On each RESOLVED finding: call `notebook_write({ type: "quorum", reviewer_token: state.reviewer_session_id, ... })` [TIER-1:TCS=3]
-    - [ ] On PASSED: call `QuorumValidator.gateOracle({ quorumPassed: true })` → invoke Oracle [TIER-1:TCS=3]
-    - [ ] On HALTED (stagnant/max): emit structured escalation report [TIER-1:TCS=3]
-    - [ ] Write integration tests (mock subagents, verify FSM transitions + notebook writes) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.3 - quorum-review.ts orchestration loop with cementation` [TIER-1:TCS=3]
+- [x] Task: Implement scripts/quorum-review.ts FSM orchestration loop [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] CLI: `node scripts/quorum-review.ts --branch <b> [--codebase] [--fast] [--remediate] [--no-signoff]` [TIER-1:TCS=3]
+    - [x] On NEEDS_FIXES: call `DomainSplitRemediationDispatcher` (existing), pass domain-split findings [TIER-1:TCS=3]
+    - [x] On each RESOLVED finding: call `notebook_write({ type: "quorum", reviewer_token: state.reviewer_session_id, ... })` [TIER-1:TCS=3]
+    - [x] On PASSED: call `QuorumValidator.gateOracle({ quorumPassed: true })` → invoke Oracle [TIER-1:TCS=3]
+    - [x] On HALTED (stagnant/max): emit structured escalation report [TIER-1:TCS=3]
+    - [x] Write integration tests (mock subagents, verify FSM transitions + notebook writes) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.3 - quorum-review.ts orchestration script` (ea614b7b) [TIER-1:TCS=3]
 
 ### 2.4 — Domain Scorer + Codebase Orchestrator
 
-- [ ] Task: Implement domain-scorer.ts and codebase-review-orchestrator.ts [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `scripts/domain-scorer.ts`: load domain-partitioner.ts output + topography-map.ts hotspots [TIER-1:TCS=3]
-    - [ ] Priority score: S = 0.4 × Hotspot + 0.35 × FanIn + 0.25 × GitChurn(90d) [TIER-1:TCS=3]
-    - [ ] Sort descending → return ordered domain list with scores [TIER-1:TCS=3]
-    - [ ] `scripts/codebase-review-orchestrator.ts`: sequential domain loop [TIER-1:TCS=3]
+- [x] Task: Implement domain-scorer.ts and codebase-review-orchestrator.ts [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `scripts/domain-scorer.ts`: load domain-partitioner.ts output + topography-map.ts hotspots [TIER-1:TCS=3]
+    - [x] Priority score: S = 0.4 × Hotspot + 0.35 × FanIn + 0.25 × GitChurn(90d) [TIER-1:TCS=3]
+    - [x] Sort descending → return ordered domain list with scores [TIER-1:TCS=3]
+    - [x] `scripts/codebase-review-orchestrator.ts`: sequential domain loop [TIER-1:TCS=3]
         - For each domain in priority order: run quorum-review.ts → wait for PASSED → move to next
         - Cross-domain Oracle synthesis after all domains green
         - Emit per-domain green badge with cycle count
-    - [ ] Write tests for scoring formula (boundary: N=0 hotspot, N=0 fan-in), sequential ordering [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.4 - domain-scorer + codebase-review-orchestrator sequential` [TIER-1:TCS=3]
+    - [x] Write tests for scoring formula (boundary: N=0 hotspot, N=0 fan-in), sequential ordering [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.4 - domain-scorer + codebase-review-orchestrator sequential` (f595fd7d) [TIER-1:TCS=3]
 
 ### 2.5 — Update standalone-review SKILL.md
 
-- [ ] Task: Replace standalone-review SKILL.md skeleton with wired implementation [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Update `skills/standalone-review/SKILL.md` §5.0: point to `quorum-review.ts` (not skeleton scripts) [TIER-1:TCS=3]
-    - [ ] Update `skills/standalone-review/SKILL.md` §3.0: point to `domain-scorer.ts` + `codebase-review-orchestrator.ts` [TIER-1:TCS=3]
-    - [ ] Remove "This skill is a skeleton" note (§8.0) [TIER-1:TCS=3]
-    - [ ] Add `--no-signoff` flag documentation to §2.0 and §9.7 [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.5 - standalone-review SKILL.md unwrap skeleton` [TIER-1:TCS=3]
+- [x] Task: Replace standalone-review SKILL.md skeleton with wired implementation [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Update `skills/standalone-review/SKILL.md` §5.0: point to `quorum-review.ts` (not skeleton scripts) [TIER-1:TCS=3]
+    - [x] Update `skills/standalone-review/SKILL.md` §3.0: point to `domain-scorer.ts` + `codebase-review-orchestrator.ts` [TIER-1:TCS=3]
+    - [x] Remove "This skill is a skeleton" note (§8.0) [TIER-1:TCS=3]
+    - [x] Add `--no-signoff` flag documentation to §2.0 and §9.7 [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.5 - standalone-review SKILL.md unwrap skeleton + document new scripts` (ff237e73) [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Loop FSM' (Protocol in workflow.md) [TIER-1:TCS=3]
 
