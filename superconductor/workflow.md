@@ -287,6 +287,23 @@ Before requesting review:
 
 ## Commit Gate
 
+> **Required sequence: `Quorum → Oracle → Merge`. This order is non-negotiable. See HARD GATE below.**
+
+#### HARD GATE — Oracle Precondition (MANDATORY)
+
+Before invoking the Oracle for final track verdict, the orchestrator MUST verify quorum state:
+
+```
+QuorumValidator.gateOracle({ quorumPassed })
+// Source: packages/superconductor-core/src/orchestration/quorum-validator.ts
+// Throws OracleGateError if quorumPassed is false
+```
+
+- If `quorumPassed !== true`: **HALT**. Return to the Quorum loop. Oracle MUST NOT be invoked.
+- Any Oracle verdict obtained before quorum-green is **VOID** and must be discarded.
+- After quorum green, a NEW Oracle MUST be invoked with full track diff context.
+- Required sequence: `Quorum (unanimous RESOLVED) → Oracle (READY) → Merge`
+
 - Sequential mode and swarm mode both require the Quorum → Remediate → Quorum loop to complete before the finalization commit step.
 - The finalization commit (`chore(superconductor): Mark track X as complete`) is explicitly gated — it MUST NOT run until all 4 reviewers report `RESOLVED`.
 - After the Quorum loop completes and all reviewers are `RESOLVED`, the Orchestrator MUST invoke `SwarmAuthorizer.generateTrailer(reviewerConvIds)` (via `packages/superconductor-core/src/track/swarm-authorizer.ts` or equivalent execution) and append the authorization trailer to the commit message before the finalization commit.
