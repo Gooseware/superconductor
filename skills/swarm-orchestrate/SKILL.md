@@ -164,10 +164,12 @@ Task 5:  [Processor: T5 ────────────]  [Reviewer: T4 ─
    - **HARD-BLOCK ON APPROVAL:** The pipeline cannot unpause and resume Task N until the Reviewer explicitly outputs a `json:review-findings` block with `"status": "RESOLVED"` via the secured channel.
    - **ESCALATION THEATRE (Soft Bypass):** If the maximum 3-iteration cap is hit, the swarm MUST physically yield control by using the `ask_question` tool. The `ask_question` tool must ONLY provide terminal options (e.g. `["Acknowledge & Abort", "Acknowledge & Revert"]`). It must NEVER provide an "Ignore and Continue" option.
 
-### 4.2 Periodic Oracle Cadence
+### 4.2 Periodic Oracle Cadence **[ADVISORY ONLY — NOT A MERGE GATE]**
 1. **Cadence Trigger:** Every `oracleCadence` tasks (default: `3`), the Oracle agent fires concurrently alongside Processor N and Reviewer N-1.
 2. **Advisory Audit:** The periodic Oracle cycle MUST use the heterogeneous Review Panel (Flash swarm) to feed into the Oracle Arbiter to catch drift early, unless the `--fast` (or `--lite`) flag was passed in `{{args}}`, in which case it may use Monolithic mode. The Oracle evaluates the overall trajectory across the last N tasks, checking plan adherence, DRY principles, and code quality.
 3. **Score & Report:** Oracle logs a numeric score (1-10) and brief rationale to `swarm_log.md`. The Oracle score is advisory and does not pause pipeline progression.
+
+> ⚠️ **Advisory Only:** The Pipeline Mode periodic Oracle runs concurrently during implementation and is ADVISORY ONLY. Its verdict MUST NOT be used as a merge gate, track completion signal, or substitute for the mandatory post-quorum Gate Oracle. Any verdict obtained before quorum-green is VOID.
 
 ---
 
@@ -255,6 +257,9 @@ When `Review Panel Mode` is active, execution proceeds through the following 10-
 ---
 
 ## 9.0 FINALIZATION & AUTHORIZATION STAMPING
+
+### Mandatory Post-Quorum Gate Oracle
+After the Quorum loop reaches unanimous green (all 4 reviewers RESOLVED), the orchestrator MUST invoke a dedicated Gate Oracle with full track diff context. This is the ONLY Oracle verdict that unlocks merge to main. `QuorumValidator.gateOracle({ quorumPassed: true })` MUST be called before the Oracle is invoked.
 
 Before running `git commit` to finalize a track phase or completion:
 1. Ensure a unanimous `RESOLVED` status has been achieved from all required reviewers (Quorum).
