@@ -30,7 +30,6 @@ const commitMsg = readFileSync(commitMsgPath, 'utf8').trim();
 
 // Check if this is a track merge commit that requires authorization
 // Only gate commits that touch packages/*/src/** (per GEMINI.md guardrail)
-const SWARM_AUTH_HEADER = /^Swarm-Authorized:\s*true\s*\|\s*reviewers:\s*([^\n\r]+)/m;
 const REQUIRES_AUTH = /^(feat|fix|track|chore)\(superconductor\):/m;
 
 if (!REQUIRES_AUTH.test(commitMsg)) {
@@ -38,7 +37,31 @@ if (!REQUIRES_AUTH.test(commitMsg)) {
   process.exit(0);
 }
 
-if (!SWARM_AUTH_HEADER.test(commitMsg)) {
+// Try importing SwarmAuthorizer from built dist package
+let SwarmAuthorizer;
+try {
+  const require = createRequire(import.meta.url);
+  const corePackage = require('../packages/superconductor-core/dist/index.js');
+  SwarmAuthorizer = corePackage.SwarmAuthorizer;
+} catch (e) {
+  // Fall back if dist is not built
+  console.warn('[Superconductor] Warning: using fallback regex validation (dist not built)');
+}
+
+let isValid = false;
+if (SwarmAuthorizer && typeof SwarmAuthorizer.validateTrailer === 'function') {
+  isValid = SwarmAuthorizer.validateTrailer(commitMsg);
+} else {
+  // Fallback regex logic matching SwarmAuthorizer.validateTrailer
+  const regex = /Swarm-Authorized:\s*true\s*\|\s*reviewers:\s*([^\n\r]+)(?:\r?\n)*$/;
+  const match = commitMsg.match(regex);
+  if (match) {
+    const ids = match[1].split(',').map(id => id.trim()).filter(id => id.length > 0);
+    isValid = ids.length > 0;
+  }
+}
+
+if (!isValid) {
   console.error('[❌ Superconductor] Missing SwarmAuthorizer trailer on delivery commit.');
   console.error('    Required: Swarm-Authorized: true | reviewers: <id1>,<id2>');
   console.error('    Generate with: SwarmAuthorizer.generateTrailer(reviewerConvIds)');
