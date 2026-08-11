@@ -10,26 +10,32 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip explicit rendering of checklists during user prompts.
 
 
-## 0.5 Intelligence Preflight
-1. Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
-2. Load the intelligence snapshot via `IntelligenceSnapshotReader.load(outputDir)`
-3. If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)` and proceed with keyword heuristics only.
-4. Emit the degradation banner (LIVE / STALE / NONE)
-5. If STALE (> 24h or > 10 commits behind current HEAD):
-   - Identify changed files: `git diff --name-only HEAD~10..HEAD`
-   - Trigger incremental update: `node packages/superconductor-core/dist/intelligence/cli-update.js <files>`
-   - Reload snapshot and emit updated banner
-6. Proceed to Phase 0 with RepoContext available for task context injection
+## 0.5 Intelligence Preflight (MANDATORY — no exceptions)
+1. Call MCP tool: `kernel_intelligence_status()` 
+2. Your response MUST begin with this header block or the correctness reviewer will FAIL you:
 
-### 0.6 Notebook Preflight (MANDATORY — no exceptions)
+```
+🔍 Intelligence: [LIVE|STALE|NONE] (Xd old, Y commits behind)
+```
+
+If STALE: also trigger incremental update before proceeding:
+```
+node packages/superconductor-core/dist/intelligence/cli-update.js <changed_files>
+```
+
+3. Record in quorum state: `intelligenceStatusChecked: true`
+
+## 0.6 Notebook Preflight (MANDATORY — no exceptions)
 Call MCP tool: `notebook_query({ files: <task_files>, domain: <domain>, limit: 5 })`
 
-Your response MUST include this in the preflight header block:
+Append to header block:
 📓 Notebook: N notes found
-  [⚠️/🛑/ℹ️] <note content>  (one per line, max 5)
+  [⚠️/🛑/ℹ️] <note content>
 
 If 0 notes: write "📓 Notebook: 0 notes found" and proceed.
-Correctness reviewer will reject your output if this line is absent.
+Record in quorum state: `notebookQueried: true`
+
+Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebook lines are absent.
 
 
 ## 1.1 HEADLESS MODE HANDLING
