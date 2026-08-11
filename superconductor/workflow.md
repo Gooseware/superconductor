@@ -291,6 +291,29 @@ Before requesting review:
 - The finalization commit (`chore(superconductor): Mark track X as complete`) is explicitly gated — it MUST NOT run until all 4 reviewers report `RESOLVED`.
 - After the Quorum loop completes and all reviewers are `RESOLVED`, the Orchestrator MUST invoke `SwarmAuthorizer.generateTrailer(reviewerConvIds)` (via `packages/superconductor-core/src/track/swarm-authorizer.ts` or equivalent execution) and append the authorization trailer to the commit message before the finalization commit.
 
+### Post-Quorum Remediation Protocol (MANDATORY)
+
+When any quorum reviewer returns `NEEDS_FIXES`:
+
+1. **Collect all findings.** Aggregate findings from ALL 4 reviewers (security, correctness, adversarial, regression) into a unified list.
+
+2. **Domain-split dispatch (MUST).** Use `DomainSplitRemediationDispatcher`
+   (`packages/superconductor-core/src/remediation/domain-split-remediation-dispatcher.ts`)
+   to group findings by domain and spawn one Flash remediator per domain in parallel.
+
+3. **MUST NOT self-fix.** The root orchestrator agent MUST NOT call `write_to_file`,
+   `multi_replace_file_content`, `replace_file_content`, or `run_command` to fix findings
+   directly. This constitutes "Hero-Agenting" and is a protocol violation.
+
+4. **MUST NOT spawn a single monolithic remediator.** Every remediator agent MUST have
+   a singular focused task: one domain, one file, one concern.
+
+5. **Re-run full quorum.** After ALL remediators complete and merge their fixes, re-run
+   the complete 4-reviewer quorum (all 4 types: security, correctness, adversarial, regression).
+
+6. **Loop.** Repeat until quorum is unanimous green. If findings persist after 5 remediation
+   cycles, escalate to Oracle for architectural guidance before continuing.
+
 ## Commit Guidelines
 
 ### Message Format
@@ -399,3 +422,28 @@ A task is complete when:
 - Document lessons learned
 - Optimize for user happiness
 - Keep things simple and maintainable
+
+---
+
+## Anti-Patterns (PROHIBITED)
+
+These behaviours are explicitly forbidden during track execution.
+
+### Polling Loop
+
+Calling `manage_subagents(action="list")` or `manage_task(action="status")` in a loop is **PROHIBITED**.
+
+After spawning subagents or background tasks, the orchestrator **MUST stop calling tools** and yield execution. The messaging system delivers subagent responses reactively — polling actively blocks message delivery and causes stalls.
+
+**Rule:** Maximum 1 status check per subagent per orchestrator turn. After that: stop calling tools entirely.
+
+### Background Task Neglect
+
+Background tasks MUST be monitored for hung state. A task that has not completed within 30 minutes MUST be killed and re-launched. Use `BackgroundTaskMonitor` (`packages/superconductor-core/src/orchestration/background-task-monitor.ts`) as the mandatory wrapper for all background task launches during track execution.
+
+Detect hung tasks: if stdout/stderr contains `Press Ctrl+C`, `press any key`, `[Y/n]`, `[y/N]`, `Enter password`, or `Password:` — the task is hung. Kill it immediately.
+
+### Hero-Agenting
+
+See **§ Post-Quorum Remediation Protocol**. The root orchestrator agent MUST NOT call `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command` to fix review findings directly.
+
