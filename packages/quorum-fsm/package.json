@@ -1,0 +1,23 @@
+{
+  "name": "@superconductor/quorum-fsm",
+  "version": "1.0.0",
+  "description": "Quorum Loop FSM and State Persistence for Superconductor",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "scripts": {
+    "build": "npx --package typescript tsc",
+    "test": "npx --package vitest vitest run"
+  },
+  "dependencies": {
+    "@superconductor/core": "workspace:*",
+    "@libsql/client": "^0.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.0"
+  }
+}
