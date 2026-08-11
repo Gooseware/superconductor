@@ -27,8 +27,33 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export interface WorkspaceGuardOptions {
+  workspaceRoot?: string;
+  assignedBranch?: string;
+  shell?: ShellRunner;
+}
+
 export class WorkspaceGuard {
-  constructor(private assignedBranch: string, private shell: ShellRunner) {}
+  private assignedBranch: string;
+  private shell?: ShellRunner;
+  private workspaceRoot?: string;
+
+  constructor(opts?: WorkspaceGuardOptions);
+  constructor(assignedBranch: string, shell?: ShellRunner);
+  constructor(
+    assignedBranchOrOpts?: string | WorkspaceGuardOptions,
+    shell?: ShellRunner
+  ) {
+    if (typeof assignedBranchOrOpts === 'object' && assignedBranchOrOpts !== null) {
+      this.assignedBranch = assignedBranchOrOpts.assignedBranch ?? 'main';
+      this.shell = assignedBranchOrOpts.shell;
+      this.workspaceRoot = assignedBranchOrOpts.workspaceRoot;
+    } else {
+      this.assignedBranch = assignedBranchOrOpts ?? 'main';
+      this.shell = shell;
+    }
+  }
+
 
   async preCommitCheck(): Promise<{ ok: true }> {
     const branchRes = await this.shell.exec('git branch --show-current');

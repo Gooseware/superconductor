@@ -10,6 +10,7 @@ import { runCliDispatcher } from './dispatcher.js';
 export * from './dispatcher.js';
 export * from './interactive.js';
 export * from './headless.js';
+export * from './merge-track.js';
 
 export async function runCli(args: string[] = process.argv.slice(2)): Promise<void> {
   const command = args[0] || 'context';
