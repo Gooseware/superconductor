@@ -71,7 +71,7 @@
 - [x] Task: Build shared infrastructure (LibSQLDatabaseManager + AbstractGate + test mocks) [TIER-3:TCS=3] [AGENT:superconductor-processor]
     - [x] Create `packages/superconductor-core/src/shared/libsql-database-manager.ts` (connection pool, migrations, transactions) [TIER-1:TCS=3]
     - [x] Create `packages/superconductor-core/src/orchestration/abstract-gate.ts` (AbstractGate base class with audit log + typed error) [TIER-1:TCS=3]
-    - [ ] Refactor `QuorumValidator`, `WorkspaceGuard` to extend AbstractGate [TIER-1:TCS=3]
+    - [x] Refactor `QuorumValidator`, `WorkspaceGuard` to extend AbstractGate (fb6e364b) [TIER-1:TCS=3]
     - [x] Create `packages/superconductor-core/src/test-utils/in-memory-libsql-client.ts` [TIER-1:TCS=3]
     - [x] Create `packages/superconductor-core/src/test-utils/mock-notebook-provider.ts` [TIER-1:TCS=3]
     - [x] Create `packages/superconductor-core/src/test-utils/test-token-signer.ts` [TIER-1:TCS=3]
@@ -233,68 +233,68 @@
 
 ### 3.1 — kernel_intelligence_status MCP Tool
 
-- [ ] Task: Add kernel_intelligence_status MCP tool to superconductor-kernel [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-kernel/src/services/IntelligenceStatusService.ts` [TIER-1:TCS=3]
-    - [ ] Returns: `{ status: "LIVE"|"STALE"|"NONE", age_days, commits_behind, snapshot_path, phases: Record<string, "ok"|"degraded"> }` [TIER-1:TCS=3]
-    - [ ] LIVE: age < 1d AND commits_behind < 10 [TIER-1:TCS=3]
-    - [ ] STALE: age ≥ 1d OR commits_behind ≥ 10 [TIER-1:TCS=3]
-    - [ ] NONE: no snapshot exists [TIER-1:TCS=3]
-    - [ ] Wire into superconductor-kernel MCP tools list [TIER-1:TCS=3]
-    - [ ] Write tests for all three status cases [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.1 - kernel_intelligence_status MCP tool` [TIER-1:TCS=3]
+- [x] Task: Add kernel_intelligence_status MCP tool to superconductor-kernel [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-kernel/src/services/IntelligenceStatusService.ts` [TIER-1:TCS=3]
+    - [x] Returns: `{ status: "LIVE"|"STALE"|"NONE", age_days, commits_behind, snapshot_path, phases: Record<string, "ok"|"degraded"> }` [TIER-1:TCS=3]
+    - [x] LIVE: age < 1d AND commits_behind < 10 [TIER-1:TCS=3]
+    - [x] STALE: age ≥ 1d OR commits_behind ≥ 10 [TIER-1:TCS=3]
+    - [x] NONE: no snapshot exists [TIER-1:TCS=3]
+    - [x] Wire into superconductor-kernel MCP tools list [TIER-1:TCS=3]
+    - [x] Write tests for all three status cases [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.1 - kernel_intelligence_status MCP tool` (d5ed63ac) [TIER-1:TCS=3]
 
 ### 3.2 — PreflightGate + SignOffGate (extending AbstractGate)
 
-- [ ] Task: Implement PreflightGate and SignOffGate extending AbstractGate [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `PreflightGate extends AbstractGate`: checks quorum-state for `{ intelligenceStatusChecked: true, notebookQueried: true }` → throws `PreflightSkippedError` if absent [TIER-1:TCS=3]
-    - [ ] `SignOffGate extends AbstractGate`: [TIER-1:TCS=3]
+- [x] Task: Implement PreflightGate and SignOffGate extending AbstractGate [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `PreflightGate extends AbstractGate`: checks quorum-state for `{ intelligenceStatusChecked: true, notebookQueried: true }` → throws `PreflightSkippedError` if absent [TIER-1:TCS=3]
+    - [x] `SignOffGate extends AbstractGate`: [TIER-1:TCS=3]
         - Interactive: `ask_user()` with diff summary, test counts, quorum rounds, resolved findings, notebook notes written
         - Headless: emit report, set `pending_merge: true` in quorum-state — do NOT auto-merge
         - `--no-signoff`: bypass gate, log to `superconductor/logs/yolo-audit.log`
         - On approval: write sign-off record to quorum-state: `{ approvedBy: "user", timestamp, oracleConvId, signKey: SHA-256(session_id:track_id:oracle_ts) }`
-    - [ ] Update `WorkspaceGuard.commitToMain()`: call `SignOffGate.isApproved(trackId)` → throw `SignOffRequiredError` if absent [TIER-1:TCS=3]
-    - [ ] Write tests: each gate mode, bypass path, error types [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.2 - PreflightGate + SignOffGate extending AbstractGate` [TIER-1:TCS=3]
+    - [x] Update `WorkspaceGuard.commitToMain()`: call `SignOffGate.isApproved(trackId)` → throw `SignOffRequiredError` if absent [TIER-1:TCS=3]
+    - [x] Write tests: each gate mode, bypass path, error types [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.2 - PreflightGate + SignOffGate extending AbstractGate` (fb6e364b) [TIER-1:TCS=3]
 
 ### 3.3 — Git Pre-Commit Hook
 
-- [ ] Task: Update scripts/hooks/commit-msg to verify sign-off token independently [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Read `quorum-state.json`: extract `signKey` from sign-off record for current track [TIER-1:TCS=3]
-    - [ ] Re-compute: `SHA-256({session_id}:{track_id}:{oracle_verdict_timestamp})` [TIER-1:TCS=3]
-    - [ ] If mismatch or absent → block commit with: `[Superconductor] SignOff token invalid. Run /superconductor:implement to complete sign-off.` [TIER-1:TCS=3]
-    - [ ] Exception: commits to non-track branches (e.g., chore commits to main) skip this check [TIER-1:TCS=3]
-    - [ ] Write tests for: valid token, invalid token, missing token, non-track branch bypass [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.3 - pre-commit hook sign-off token verification` [TIER-1:TCS=3]
+- [x] Task: Update scripts/hooks/commit-msg to verify sign-off token independently [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Read `quorum-state.json`: extract `signKey` from sign-off record for current track [TIER-1:TCS=3]
+    - [x] Re-compute: `SHA-256({session_id}:{track_id}:{oracle_verdict_timestamp})` [TIER-1:TCS=3]
+    - [x] If mismatch or absent → block commit with: `[Superconductor] SignOff token invalid. Run /superconductor:implement to complete sign-off.` [TIER-1:TCS=3]
+    - [x] Exception: commits to non-track branches (e.g., chore commits to main) skip this check [TIER-1:TCS=3]
+    - [x] Write tests for: valid token, invalid token, missing token, non-track branch bypass [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.3 - pre-commit hook sign-off token verification` (c8ded24a) [TIER-1:TCS=3]
 
 ### 3.4 — implement/SKILL.md Preflight Hardening
 
-- [ ] Task: Replace prose preflight instructions with mandatory MCP calls + required header block [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Rewrite `skills/implement/SKILL.md §0.5`: [TIER-1:TCS=3]
+- [x] Task: Replace prose preflight instructions with mandatory MCP calls + required header block [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Rewrite `skills/implement/SKILL.md §0.5`: [TIER-1:TCS=3]
         ```
         MANDATORY: Call kernel_intelligence_status() MCP tool.
         Your response MUST begin with this header block or correctness reviewer will FAIL you:
         🔍 Intelligence: [LIVE|STALE|NONE] (Xd old, Y commits behind)
         ```
-    - [ ] Add `skills/implement/SKILL.md §0.6`: [TIER-1:TCS=3]
+    - [x] Add `skills/implement/SKILL.md §0.6`: [TIER-1:TCS=3]
         ```
         MANDATORY: Call notebook_query({ files: <task_files>, domain: <domain> }) MCP tool.
         Append to header block:
         📓 Notebook: N notes found
           [⚠️/🛑/ℹ️] <note content>
         ```
-    - [ ] Commit: `track(standalone_review_notebook): phase3.4 - implement SKILL.md hard preflight MCP calls` [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.4 - implement SKILL.md hard preflight MCP calls` (e01a08b6) [TIER-1:TCS=3]
 
 ### 3.5 — Correctness Reviewer Template Update
 
-- [ ] Task: Add preflight header block AC to correctness reviewer template [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Update `templates/reviewers/correctness-reviewer.md` (or equivalent): [TIER-1:TCS=3]
+- [x] Task: Add preflight header block AC to correctness reviewer template [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Update `templates/reviewers/correctness-reviewer.md` (or equivalent): [TIER-1:TCS=3]
         - Add mandatory AC: "Agent emitted preflight header block containing '🔍 Intelligence:' AND '📓 Notebook:' lines"
         - Verdict if absent: NEEDS_FIXES (blocking, not advisory)
-    - [ ] Update `skills/correctness-reviewer/SKILL.md` with same AC [TIER-1:TCS=3]
-    - [ ] Write test: correctness reviewer prompt contains the AC text [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.5 - correctness reviewer preflight header block AC` [TIER-1:TCS=3]
+    - [x] Update `skills/correctness-reviewer/SKILL.md` with same AC [TIER-1:TCS=3]
+    - [x] Write test: correctness reviewer prompt contains the AC text [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.5 - correctness reviewer preflight header block AC` (579fbdda) [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Enforcement Hardening' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Enforcement Hardening' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---
 
