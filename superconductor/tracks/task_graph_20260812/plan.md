@@ -29,7 +29,7 @@
 ## Phase 6: status skill [checkpoint: 259b6397]
 - [x] Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via `task_query` or dedicated endpoint rather than regexing markdown.
 
-## Phase 7: Dreamer enhancement [checkpoint: a4b1c50d]
+## Phase 7: Dreamer enhancement [checkpoint: 74bb8513]
 - [x] Modify the Dreamer agent prompt/system instructions to generate `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields within the task cards in `plan.md`.
 
 ## Phase 8: Regression reviewer
