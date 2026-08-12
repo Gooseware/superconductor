@@ -8,10 +8,10 @@
 - [x] Define libSQL schema for `tasks`, `invariants`, and `invariant_overrides` with all required fields.
 - [x] Implement `LibSQLTaskProvider` and migration logic.
 
-## Phase 2: task-store LanceDB
-- Implement LanceDB integration within `task-store` using the exact `taskSchema`.
-- Implement `LanceDBTaskProvider` and `task-provider-factory`.
-- Verify vector embedding logic for task items.
+## Phase 2: task-store LanceDB [checkpoint: 3101047a]
+- [x] Implement LanceDB integration within `task-store` using the exact `taskSchema`.
+- [x] Implement `LanceDBTaskProvider` and `task-provider-factory`.
+- [x] Verify vector embedding logic for task items.
 
 ## Phase 3: MCP tools
 - Implement all 6 exact MCP tools (`task_create`, `task_update`, `task_query`, `invariant_query`, `invariant_override`, `task_get_invariants`) in `packages/task-store/src/mcp/handlers.ts` or directly within `superconductor-kernel`.
