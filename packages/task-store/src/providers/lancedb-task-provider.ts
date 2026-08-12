@@ -149,7 +149,7 @@ export class LanceDBTaskProvider implements TaskProvider {
     if (res.success && args.status && this.table) {
       try {
         await this.table.update({
-          where: `id = '${args.id.replace(/'/g, "''")}'`,
+          where: `id = '${(() => { if (/[;'"\\\\]/.test(args.id)) throw new Error("Invalid format"); return args.id; })()}'`,
           values: { status: args.status }
         });
       } catch (err) {
@@ -182,14 +182,18 @@ export class LanceDBTaskProvider implements TaskProvider {
       let query = this.table.search(vector);
 
       const whereClauses: string[] = [];
+      const validateId = (val: string) => {
+        if (/[;'"\\\\]/.test(val)) throw new Error('Invalid format');
+        return val;
+      };
       if (args.track_id) {
-        whereClauses.push(`track_id = '${args.track_id.replace(/'/g, "''")}'`);
+        whereClauses.push(`track_id = '${validateId(args.track_id)}'`);
       }
       if (args.status) {
-        whereClauses.push(`status = '${args.status.replace(/'/g, "''")}'`);
+        whereClauses.push(`status = '${validateId(args.status)}'`);
       }
       if (args.agent) {
-        whereClauses.push(`agent = '${args.agent.replace(/'/g, "''")}'`);
+        whereClauses.push(`agent = '${validateId(args.agent)}'`);
       }
 
       if (whereClauses.length > 0) {

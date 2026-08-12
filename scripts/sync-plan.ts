@@ -72,8 +72,12 @@ async function main() {
     process.exit(1);
   }
 
-  const trackId = path.basename(path.dirname(absPlanPath));
-  const workspacePath = path.resolve(__dirname, '..'); 
+  const workspacePath = path.resolve(__dirname, '..');
+  if (!absPlanPath.startsWith(workspacePath)) {
+    console.error(`Error: Path ${absPlanPath} is outside workspace ${workspacePath}`);
+    process.exit(1);
+  }
+  const trackId = path.basename(path.dirname(absPlanPath)); 
   
   const provider = await createTaskProvider(workspacePath);
   const tasks = await provider.queryTasks({ track_id: trackId });
