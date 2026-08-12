@@ -192,8 +192,10 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
            - **SYSTEMATIC BUG DIAGNOSIS:** During the testing feedback loop, if tests fail, you MUST employ Systematic Bug Diagnosis heuristics (isolate variables, trace execution, state assumptions clearly) rather than blindly patching code.
 
 5.  **Finalize Track:**
-    - After all tasks for the track are completed, you MUST update the track's status via the task provider (e.g., `task_update({ status: 'completed' })`).
-    - Announce that the track is fully complete and its status has been updated.
+    - After all tasks for the track are completed, you MUST update the task status via the task provider (e.g., `task_update({ id: task.id, status: 'completed' })`).
+    - You MUST ALSO update the overall track status in the `superconductor/tracks.md` file by changing `## [~] Track:` to `## [x] Track:` for the respective track.
+    - Commit the change to `tracks.md` with a descriptive message.
+    - Announce that the track is fully complete and its status has been updated in both the task provider and the tracks registry.
 
 
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
