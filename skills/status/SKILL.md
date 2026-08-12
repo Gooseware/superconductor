@@ -31,10 +31,11 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 **PROTOCOL: Follow this sequence to provide a status overview.**
 
 ### 2.1 Retrieve Status from Task Store
-1.  **Query Task Store:** Use `task_query` or the dedicated `task-store` endpoint to pull real-time statuses and aggregations for all registered tracks. Do NOT manually parse or regex markdown files for track progress.
+1.  **Query Task Store:** Use `task_query` or the dedicated `task-store` endpoint to pull real-time statuses and aggregations for all registered tracks. Do NOT manually parse or regex markdown files for track progress unless falling back.
 2.  **Locate and Read Tracks:**
     -   Retrieve track metadata and paths directly from the `task-store` response.
     -   Identify active and pending tracks programmatically.
+    -   **Fallback for Legacy Tracks:** If no tracks are found in the task store, fallback to parsing the **Tracks Registry** manually. Look for lines matching either the new standard format `- [ ] **Track:` or the legacy format `## [ ] Track:`.
 
 ### 2.2 Parse and Summarize Plan
 1.  **Process Aggregations:**

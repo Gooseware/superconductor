@@ -65,7 +65,11 @@ The Superconductor engine operates in either Interactive or Headless mode.
 9. **Record Task Commit SHA:**
     - **Step 9.1: Update Task:** Use the `task_update` MCP tool to change the task status to complete and attach the first 7 characters of the *just-completed commit's* commit hash to the task metadata.
 
-10. **Proceed to Next Task:**
+10. **Commit Task State Update:**
+    - **Action:** Stage the modified task store file(s).
+    - **Action:** Commit this change with a descriptive message (e.g., `superconductor(task): Mark task 'Create user model' as complete`).
+
+11. **Proceed to Next Task:**
     - **Action:** Continue with the next task using `task_query`.
 
 ### Phase Completion Verification and Checkpointing Protocol
@@ -156,10 +160,14 @@ The Superconductor engine operates in either Interactive or Headless mode.
     -   **Step 10.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
     -   **Step 10.2: Update Task Metadata:** Use the `task_update` MCP tool to attach the first 7 characters of the commit hash as checkpoint metadata to the task in the task provider.
 
-11. **Finalize Phase:**
+11. **Commit Task State Update:**
+    - **Action:** Stage the modified task store file(s).
+    - **Action:** Commit this change with a descriptive message following the format `superconductor(task): Mark phase '<PHASE NAME>' as complete`.
+
+12. **Finalize Phase:**
     - **Action:** Ensure the phase is marked complete in the task provider.
 
-12. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+13. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
 ### Oracle Code Review Loop (Advanced Verification)
 
