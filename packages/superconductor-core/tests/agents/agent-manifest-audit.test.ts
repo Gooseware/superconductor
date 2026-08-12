@@ -25,7 +25,8 @@ const ROLES = {
     "superconductor-oracle": [...READ_TOOLS, ...RUN_TOOLS, "ask_question"],
     "superconductor-processor": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],
     "superconductor-dreamer": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],
-    "remediation-processor": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS]
+    "remediation-processor": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS],
+    "superconductor-invariant-discovery": [...READ_TOOLS, ...RUN_TOOLS, ...WRITE_TOOLS]
 } as Record<string, string[]>;
 
 describe('Agent Manifests Audit', () => {
