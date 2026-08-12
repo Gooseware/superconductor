@@ -40,7 +40,9 @@
 - [x] Write script to seed existing invariants (commands, MCP tools, core orchestration).
 - [x] Register `superconductor-invariant-discovery` agent that assesses invariant confidence (HIGH -> active, MEDIUM/LOW -> untriaged output to `superconductor/invariants-untriaged.md`).
 
-## Phase 10: Integration & Finalization
-- Test end-to-end integration across Swarm, `newTrack`, `implement`, and `sync-plan`.
-- Verify `superconductor/invariants.md` gets correctly generated at finalization via `task_get_invariants()`.
-- Ensure >80% coverage and `tsc --noEmit` passes cleanly.
+## Phase 10: Integration & Finalization [checkpoint: a4b1c50d]
+- [x] Test end-to-end integration across Swarm, `newTrack`, `implement`, and `sync-plan`.
+- [x] Make any final adjustments.
+- [x] Update `superconductor/workflow.md` reflecting the new invariant-driven DB tracking.
+- [x] Verify `superconductor/invariants.md` gets correctly generated at finalization via `task_get_invariants()`.
+- [x] Ensure >80% coverage and `tsc --noEmit` passes cleanly.

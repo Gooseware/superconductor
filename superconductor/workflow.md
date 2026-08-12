@@ -14,6 +14,13 @@
    - **Decision:** State which path is chosen and why. If the rebuilding case is materially stronger, rebuilding is the correct choice. If the cases are roughly equal, prefer extension to reduce risk and regression surface.
    - This reasoning must be present before any implementation begins. An agent that silently extends OR silently rebuilds without surfacing this analysis is out of compliance with the workflow.
 
+## Invariants & The Task Store
+
+The `task-store` manages not only tasks but also **Invariants**. Invariants are critical paths, MCP tools, and orchestration logic that MUST NOT be broken. 
+1. **Pre-Check:** Before reviewing any code, the Regression Reviewer MUST query the `task-store` (via `invariant_query`) and assert that all invariant paths exist. Missing paths without an active override trigger a `REG-INV-N: CRITICAL` failure.
+2. **Discovery:** The `superconductor-invariant-discovery` agent runs in the background or during setup to discover unprotected critical paths and register them as invariants with a `HIGH` (active) or `MEDIUM/LOW` (untriaged) confidence.
+3. **Dreamer Tasks:** The Dreamer agent MUST tag all new task cards in `plan.md` with `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields to seed the task store with new invariants as features are built.
+
 ## Task Workflow
 
 All tasks follow a strict lifecycle:
