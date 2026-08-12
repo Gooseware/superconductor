@@ -2,16 +2,31 @@ import { describe, it, expect } from 'vitest';
 import { normalizeTitle, processPlan } from '../../../../scripts/sync-plan.ts';
 
 describe('normalizeTitle', () => {
-    it('strips markdown bolding', () => {
-        expect(normalizeTitle('**My Task**')).toBe('My Task');
-        expect(normalizeTitle('*My Task*')).toBe('My Task');
+    it('strips Task: prefix case-insensitively', () => {
+        expect(normalizeTitle('Task: My Task')).toBe('My Task');
+        expect(normalizeTitle('task: My Task')).toBe('My Task');
     });
 
-    it('strips trailing metadata', () => {
+    it('strips markdown bolding and italics', () => {
+        expect(normalizeTitle('**My Task**')).toBe('My Task');
+        expect(normalizeTitle('*My Task*')).toBe('My Task');
+        expect(normalizeTitle('_My Task_')).toBe('My Task');
+    });
+
+    it('strips bolded or italicized Task: prefix', () => {
+        expect(normalizeTitle('**Task:** My Task')).toBe('My Task');
+        expect(normalizeTitle('**Task: My Task**')).toBe('My Task');
+        expect(normalizeTitle('*Task:* My Task')).toBe('My Task');
+        expect(normalizeTitle('_Task:_ My Task')).toBe('My Task');
+    });
+
+    it('strips metadata tags globally, including mid-line tags and trailing notes', () => {
         expect(normalizeTitle('My Task [TIER-1]')).toBe('My Task');
         expect(normalizeTitle('My Task [AGENT:processor]')).toBe('My Task');
         expect(normalizeTitle('My Task [checkpoint:123]')).toBe('My Task');
         expect(normalizeTitle('My Task [TIER-2] [AGENT:test]')).toBe('My Task');
+        expect(normalizeTitle('My Task [TIER-1] with trailing notes')).toBe('My Task with trailing notes');
+        expect(normalizeTitle('My Task [AGENT:processor] mid-line [checkpoint:456] note')).toBe('My Task mid-line note');
     });
 
     it('trims whitespace', () => {
