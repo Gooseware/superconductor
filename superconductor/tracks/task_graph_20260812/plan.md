@@ -24,7 +24,7 @@
 - [x] Create/update a `sync-plan` script that pulls state from DB and rewrites `plan.md` checkboxes.
 
 ## Phase 5: implement skill
-- Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
+- [x] Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
 
 ## Phase 6: status skill
 - Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via `task_query` or dedicated endpoint rather than regexing markdown.
