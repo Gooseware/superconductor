@@ -3,41 +3,44 @@
 ## Phase 0: Swarm Preflight
 - Setup test environments and verify current baseline `tsc --noEmit` passes.
 
-## Phase 1: task-store package (libSQL)
-- Create `packages/task-store/` following the structure of `notebook-store/`.
-- Define libSQL schema for `tasks`, `invariants`, and `invariant_overrides`.
-- Implement migration logic and base database provider classes.
+## Phase 1: task-store libSQL
+- Create `packages/task-store/` following the exact structure specified (like `notebook-store`).
+- Define libSQL schema for `tasks`, `invariants`, and `invariant_overrides` with all required fields.
+- Implement `LibSQLTaskProvider` and migration logic.
 
 ## Phase 2: task-store LanceDB
-- Implement LanceDB integration within `task-store` for semantic search over tasks.
-- Ensure hybrid search (vector + BM25 if applicable) works for task queries.
+- Implement LanceDB integration within `task-store` using the exact `taskSchema`.
+- Implement `LanceDBTaskProvider` and `task-provider-factory`.
+- Verify vector embedding logic for task items.
 
-## Phase 3: MCP tools registration
-- Update `superconductor-kernel` (`packages/superconductor-kernel/src/index.ts`) to register `task_create`, `task_update`, `task_query`, `invariant_query`, `invariant_override`, and `task_get_invariants`.
-- Add comprehensive unit tests for all new MCP tools.
+## Phase 3: MCP tools
+- Implement all 6 exact MCP tools (`task_create`, `task_update`, `task_query`, `invariant_query`, `invariant_override`, `task_get_invariants`) in `packages/task-store/src/mcp/handlers.ts` or directly within `superconductor-kernel`.
+- Register them in `superconductor-kernel`.
+- Add full test coverage for these tools.
 
-## Phase 4: newTrack skill update
-- Modify the `newTrack` skill script to sync generated tasks into the DB via `task_create` immediately after generating the human-readable `plan.md`.
+## Phase 4: newTrack skill + sync-plan script
+- Update `newTrack` skill to parse `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields from `plan.md`.
+- Call `task_create` for each parsed task.
+- Create/update a `sync-plan` script that pulls state from DB and rewrites `plan.md` checkboxes.
 
-## Phase 5: implement skill update
-- Refactor the `implement` skill to query `task_query()` for assignments instead of parsing the markdown plan.
+## Phase 5: implement skill
+- Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
 
-## Phase 6: status skill update
-- Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via MCP queries rather than regexing markdown checkboxes.
+## Phase 6: status skill
+- Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via `task_query` or dedicated endpoint rather than regexing markdown.
 
-## Phase 7: Dreamer task card enhancement
-- Modify the Dreamer agent prompts/logic to append `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields on new task generation.
-- Ensure these new fields flow correctly into the task DB.
+## Phase 7: Dreamer enhancement
+- Modify the Dreamer agent prompt/system instructions to generate `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields within the task cards in `plan.md`.
 
-## Phase 8: Regression reviewer enhancement
-- Add the invariant pre-check step to `agents/regression-reviewer/agent.md`.
-- Query `invariant_query()` and emit `REG-INV-N: CRITICAL` if paths are missing without overrides.
+## Phase 8: Regression reviewer
+- Add invariant pre-check step to `agents/regression-reviewer/agent.md`.
+- Ensure it queries `invariant_query()` and emits `REG-INV-N: CRITICAL` if paths are missing and not overridden.
 
 ## Phase 9: Bootstrap + Discovery agent
-- Write a bootstrap script to seed existing codebase invariants (slash commands, tools, core files).
-- Implement a discovery agent that reasons over brownfield codebases to output `superconductor/invariants-untriaged.md`.
-- Add functionality to auto-generate/sync `superconductor/invariants.md`.
+- Write script to seed existing invariants (commands, MCP tools, core orchestration).
+- Build the brownfield discovery bootstrap agent that assesses invariant confidence (HIGH -> active, MEDIUM/LOW -> untriaged output to `superconductor/invariants-untriaged.md`).
 
 ## Phase 10: Integration & Finalization
-- End-to-end testing of the Swarm executing a track end-to-end with the new DB.
-- Validate test coverage (>80%) and `tsc --noEmit`.
+- Test end-to-end integration across Swarm, `newTrack`, `implement`, and `sync-plan`.
+- Verify `superconductor/invariants.md` gets correctly generated at finalization via `task_get_invariants()`.
+- Ensure >80% coverage and `tsc --noEmit` passes cleanly.
