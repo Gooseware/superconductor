@@ -434,7 +434,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
             i.   **Extract Feedback:** Identify the specific issues or tasks from the Oracle report that require manual intervention.
             ii.  **Identify Iteration:** Determine the next iteration number.
             iii. **Generate Phase:** Use the task provider to add a new `Review Remediation (Iteration X)` task or phase.
-            iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
+            iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. Remediation tasks have been added via the task provider. Please implement the tasks to address the feedback."
     - If the report suggests **Kernel Sync Candidates**:
         - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `superconductor-kernel`. Would you like me to publish them now?" (type: "yesno")
         - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_superconductor-kernel_publish_vetted_component` tool.

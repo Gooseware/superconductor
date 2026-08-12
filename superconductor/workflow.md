@@ -2,7 +2,7 @@
 
 ## Guiding Principles
 
-1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
+1. **The Task Provider (task-store) is the Source of Truth:** All work must be tracked via the task provider.
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
 3. **Test-Driven Development:** Write unit tests before implementing functionality
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
@@ -154,12 +154,10 @@ The Superconductor engine operates in either Interactive or Headless mode.
 
 10. **Get and Record Phase Checkpoint SHA:**
     -   **Step 10.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
-    -   **Step 10.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
-    -   **Step 10.3: Write Plan:** Write the updated content back to `plan.md`.
+    -   **Step 10.2: Update Task Metadata:** Use the `task_update` MCP tool to attach the first 7 characters of the commit hash as checkpoint metadata to the task in the task provider.
 
-11. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message following the format `superconductor(plan): Mark phase '<PHASE NAME>' as complete`.
+11. **Finalize Phase:**
+    - **Action:** Ensure the phase is marked complete in the task provider.
 
 12. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
