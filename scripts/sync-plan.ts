@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 export function normalizeTitle(rawTitle: string): string {
     let title = rawTitle;
     
-    // 1. Strip Task: case-insensitively at the start
-    title = title.replace(/^\s*task:\s*/i, '');
+    // 1. Strip metadata tags ([TIER-...], [AGENT:...], [checkpoint:...]) globally
+    title = title.replace(/(?:\s*\[TIER-[^\]]*\]|\s*\[AGENT:[^\]]*\]|\s*\[checkpoint:[^\]]*\])/gi, '');
     
     // 2. Strip markdown bolding (**) and italics (*, _)
     title = title
@@ -18,13 +18,10 @@ export function normalizeTitle(rawTitle: string): string {
         .replace(/\*(.*?)\*/g, '$1')
         .replace(/_(.*?)_/g, '$1');
     
-    // 3. Strip Task: case-insensitively again (in case it was inside the bolding)
+    // 3. Strip Task: case-insensitively at the start
     title = title.replace(/^\s*task:\s*/i, '');
     
-    // 4. Strip metadata tags ([TIER-...], [AGENT:...], [checkpoint:...]) globally
-    title = title.replace(/(?:\s*\[TIER-[^\]]*\]|\s*\[AGENT:[^\]]*\]|\s*\[checkpoint:[^\]]*\])/gi, '');
-    
-    // 5. Trim whitespace
+    // 4. Trim whitespace
     return title.trim();
 }
 

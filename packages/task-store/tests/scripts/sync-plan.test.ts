@@ -20,7 +20,9 @@ describe('normalizeTitle', () => {
         expect(normalizeTitle('_Task:_ My Task')).toBe('My Task');
     });
 
-    it('strips metadata tags globally, including mid-line tags and trailing notes', () => {
+    it('strips metadata tags globally, including front-positioned tags, mid-line tags, and trailing notes', () => {
+        expect(normalizeTitle('[TIER-1] Task: Something')).toBe('Something');
+        expect(normalizeTitle('[TIER-1] [AGENT:processor] Task: Something')).toBe('Something');
         expect(normalizeTitle('My Task [TIER-1]')).toBe('My Task');
         expect(normalizeTitle('My Task [AGENT:processor]')).toBe('My Task');
         expect(normalizeTitle('My Task [checkpoint:123]')).toBe('My Task');
