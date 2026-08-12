@@ -25,14 +25,15 @@ Resolve the review target by checking the following in priority order:
 
 1. **Parse `{{args}}`** for flags:
    - `--staged` → run `git diff --staged`
-   - `--branch <b>` → run `git diff main..<b>` (substitute detected default branch if `main` doesn't exist)
+   - `--branch <b>` → Runs automatic quorum loop via `scripts/quorum-review.ts`. FSM state persisted to LibSQL. Max 5 cycles. Zero-bias re-run on each cycle.
    - `--pr <url>` → fetch PR diff (see §7.0)
    - `--file <path>` → read file content directly; verify path exists, abort with clear error if not
-   - `--dir <path>` → trigger Directory Triage Protocol (see §3.0)
+   - `--codebase` / `--dir <path>` → Runs `scripts/codebase-review-orchestrator.ts`. Domains scored by 0.4×Hotspot + 0.35×FanIn + 0.25×GitChurn. Sequential processing, most critical first.
    - `--fast` → set depth mode to `fast`
    - `--deep` → set depth mode to `deep`
    - `--remediate` → forces launch of the Swarm Remediation Engine regardless of mode
    - `--headless` → auto-launches remediation for CRITICAL or HIGH findings (see §9.1)
+   - `--no-signoff` → Skips SignOffGate user approval. Activity logged to `superconductor/logs/yolo-audit.log`.
    - `--stats` → append Token Efficiency Report to output
    - `--no-track` → explicitly disable track detection, force zero-context mode
    - No target flags → proceed to step 2
@@ -91,40 +92,6 @@ If no incomplete tracks or `superconductor/tracks.md` does not exist:
 ╚══════════════════════════════════════════════╝
 ```
 
-## 3.0 DIRECTORY TRIAGE PROTOCOL
-
-*Triggered when input is `--dir` or when the resolved diff exceeds context limits.*
-
-Large codebases cannot be reviewed as a single panel pass. Apply the following triage to prioritise:
-
-### 3.1 Hot-Path Scoring
-```bash
-git log --since=30.days --name-only --pretty=format: | sort | uniq -c | sort -rn | head -50
-```
-Rank files by commit frequency. Files changed most in last 30 days are highest priority.
-
-### 3.2 Entry-Point Detection
-- Identify files matching: `index.*`, `main.*`, `app.*`, `server.*`, `router.*`
-- Count import fan-in per file (rough heuristic: `grep -r "from.*<filename>" .` count)
-- Files with highest fan-in are critical paths — always included
-
-### 3.3 Concern Chunking
-Group files into concern buckets by directory boundary:
-- `auth/`, `security/` → Security concern
-- `api/`, `routes/` → API surface concern
-- `db/`, `models/`, `repository/` → Data access concern
-- `utils/`, `helpers/`, `lib/` → Shared logic concern
-- `tests/`, `__tests__/`, `*.test.*`, `*.spec.*` → Test coverage concern
-
-Run a **separate panel pass per concern group**. Emit partial findings as each group completes (progressive output).
-
-### 3.4 Context Budget Guardrail
-If any single concern group exceeds ~100 files:
-- Apply hot-path scoring within that group
-- Cap at top 30 files by change frequency + all entry points
-- Note in report: "Review coverage: top 30 high-frequency files. Run `--deep` for full coverage."
-
----
 
 ## 4.0 NO-CONTEXT FALLBACK RULES
 
@@ -147,6 +114,14 @@ Include this directly in the adversarial reviewer prompt when `skills/code-revie
 - Semantic drift (implementation technically works but violates intent)
 - Coverage map gaming (manifest claims coverage of unreviewed areas)
 - Silent degradation (error paths that swallow failures without surfacing them)
+
+### 4.2 Manual Orchestration Protocol (Fallback)
+
+If the automated orchestration scripts (`scripts/quorum-review.ts`, `scripts/codebase-review-orchestrator.ts`, etc.) are unavailable, you MUST manually execute the review pipeline:
+1. Fetch the diff or target files directly via `git` or file reads.
+2. Manually dispatch the four reviewer roles (Security, Correctness, Adversarial, Regression) as subagents via `send_message` or execute their roles directly in parallel.
+3. Wait for all reviewers to return their findings.
+4. Manually aggregate the findings into the final structured report and self-check it.
 
 ### Adversarial Edge Case Execution Protocol
 
@@ -338,13 +313,9 @@ A report without this block is a reading-only review. Its verdict is voided unde
 
 ---
 
-## 8.0 NOTES FOR IMPLEMENTOR
+## 8.0 IMPLEMENTATION STATUS
 
-*This skill is a skeleton. Phase 8 of track `review_panel_20260722` completes the full implementation.*
-
-*Dependencies: All scripts in `scripts/` (Phase 3–6 of the track plan) and all templates in `templates/reviewers/` (Phase 1) must exist before this skill can execute the full pipeline.*
-
-*The `--fast` mode is intentionally usable before the scripts exist — it relies only on the reviewer templates and direct subagent output, with no aggregation scripting required.*
+The review pipeline is fully operational with FSM state machine persistence (`packages/quorum-fsm`), `scripts/quorum-review.ts` quorum loop, zero-bias re-run context builder, `scripts/domain-scorer.ts`, and `scripts/codebase-review-orchestrator.ts`.
 
 ## 9.0 SWARM REMEDIATION PROTOCOL
 

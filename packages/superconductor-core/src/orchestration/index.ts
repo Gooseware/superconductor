@@ -1,3 +1,6 @@
+export * from './abstract-gate.js';
+export * from './preflight-gate.js';
+export * from './sign-off-gate.js';
 export * from './workspace-guard.js';
 export * from './quorum-validator.js';
 export * from './worktree-isolation-manager.js';

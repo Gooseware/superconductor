@@ -1,242 +1,292 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { execFile } from 'node:child_process';
-import * as util from 'node:util';
-import { RemediatorPromptBuilder } from '../packages/superconductor-core/src/swarm/RemediatorPromptBuilder.js';
-import { LanguageAdapter } from '../packages/superconductor-core/src/swarm/LanguageAdapter.js';
+#!/usr/bin/env node
+// Usage: node scripts/quorum-review.ts --branch <b> [--codebase] [--fast] [--remediate] [--no-signoff]
 
-const execFileAsync = util.promisify(execFile);
+import { parseArgs } from 'node:util';
+import { promisify } from 'node:util';
+import * as child_process from 'node:child_process';
+import { QuorumFSM } from '../packages/quorum-fsm/src/fsm/quorum-fsm.js';
+import { QuorumStateStore } from '../packages/quorum-fsm/src/persistence/quorum-state-store.js';
+import { StagnantDiffDetector } from '../packages/quorum-fsm/src/circuit-breaker/stagnant-diff-detector.js';
+import { ZeroBiasContextBuilder } from '../packages/quorum-fsm/src/zero-bias/zero-bias-context-builder.js';
+import { DomainSplitRemediationDispatcher } from '../packages/superconductor-core/dist/remediation/domain-split-remediation-dispatcher.js';
+import { aggregateFindings } from './aggregate-findings.js';
+import { QuorumValidator } from '../packages/superconductor-core/dist/orchestration/quorum-validator.js';
+import { PreflightGate } from '../packages/superconductor-core/dist/orchestration/preflight-gate.js';
 
-export type FSMState = 'IDLE' | 'REVIEW_PENDING' | 'ANALYSIS' | 'REMEDIATION_REQUIRED' | 'APPROVED' | 'FAILED' | 'REQUIRES_HUMAN_INTERVENTION';
+const execFileAsync = promisify(child_process.execFile);
+const MAX_CYCLES = 5;
 
-export interface QuorumState {
-    state: FSMState;
-    loops: number;
-    findings: string[];
-    history: string[];
+export interface RunQuorumOptions {
+  store?: QuorumStateStore;
+  fsm?: QuorumFSM;
+  getDiffFn?: (branch?: string) => string;
+  exitFn?: (code: number) => never | void;
+  sessionId?: string;
 }
 
-export const MAX_QUORUM_LOOPS = 3;
-
-export class QuorumFSM {
-    stateData: QuorumState = {
-        state: 'IDLE',
-        loops: 0,
-        findings: [],
-        history: []
-    };
-    
-    constructor(private targetFile: string) { this.loadState(); }
-
-    private loadState() {
-        const stateFile = require('node:path').join(process.cwd(), 'superconductor/logs/quorum-state.json');
-        if (require('node:fs').existsSync(stateFile)) {
-            try {
-                const data = require('node:fs').readFileSync(stateFile, 'utf8');
-                this.stateData = JSON.parse(data);
-            } catch (err) {
-                console.error("Failed to load state", err);
-            }
-        }
-    }
-
-    private persistState() {
-        const logDir = path.join(process.cwd(), 'superconductor/logs');
-        if (!fs.existsSync(logDir)) {
-            fs.mkdirSync(logDir, { recursive: true });
-        }
-        const stateFile = path.join(logDir, 'quorum-state.json');
-        const tempFile = stateFile + '.tmp';
-        fs.writeFileSync(tempFile, JSON.stringify(this.stateData, null, 2), 'utf8');
-        fs.renameSync(tempFile, stateFile); // atomic write
-    }
-
-    public transition(newState: FSMState) {
-        switch (newState) {
-            case 'IDLE':
-            case 'REVIEW_PENDING':
-            case 'ANALYSIS':
-            case 'REMEDIATION_REQUIRED':
-            case 'APPROVED':
-            case 'FAILED':
-            case 'REQUIRES_HUMAN_INTERVENTION':
-                this.stateData.state = newState;
-                break;
-            default:
-                throw new Error(`Invalid FSM transition: ${newState}`);
-        }
-        this.persistState();
-    }
-
-    async run() {
-        this.transition('REVIEW_PENDING');
-        
-        while (this.stateData.loops < MAX_QUORUM_LOOPS) {
-            this.transition('ANALYSIS');
-            
-            // Dispatch reviewers in parallel
-            const reviewers = ['correctness-reviewer', 'security-reviewer', 'adversarial-reviewer'];
-            const results = await Promise.allSettled(reviewers.map(reviewer => 
-                execFileAsync('antigravity', ['--skill', reviewer, '--file', this.targetFile])
-            ));
-
-            let allFindings: string[] = [];
-            
-            for (const result of results) {
-                if (result.status === 'fulfilled') {
-                    const output = result.value.stdout;
-                    const lines = output.split('\n').map((l: string) => l.trim());
-                    const hasApprovalLine = lines.some((l: string) => /^APPROVED:\s*NO\s+FINDINGS$/i.test(l));
-                    const findingsBlock = output.match(/```json:review-findings([\s\S]*?)```/);
-                    const hasStructuredFindings = !!(findingsBlock && findingsBlock[1].trim() !== '[]' && findingsBlock[1].trim() !== '');
-                    // Also catch plain-text finding indicators outside the fenced block.
-                    // Allows optional bullet/quote prefix (- * + > or numbered 1. 1)) and narrows to known
-                    // finding ID prefixes to avoid false positives on tags like NOTE-1, TODO-1.
-                    const hasPlainTextFindings = lines.some((l: string) =>
-                        /^(([-*+>]|\d+[.)])\s*)?(NEEDS\s+FIXES|(ADV|SEC|COR|REG|REV)-\d+[\s:—])/i.test(l));
-                    const approved = hasApprovalLine && !hasStructuredFindings && !hasPlainTextFindings;
-                    if (approved) {
-                        // 0 findings, valid pass
-                        continue;
-                    } else if (findingsBlock) {
-                        try {
-                            const parsed = JSON.parse(findingsBlock[1]);
-                            if (Array.isArray(parsed)) {
-                                allFindings.push(...parsed.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
-                            } else if (parsed && typeof parsed === 'object') {
-                                if (parsed.findings && Array.isArray(parsed.findings)) {
-                                    allFindings.push(...parsed.findings.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
-                                } else {
-                                    allFindings.push(JSON.stringify(parsed));
-                                }
-                            }
-                        } catch (err: any) {
-                            allFindings.push(`Failed to parse reviewer output: ${err.message || 'Invalid JSON'}`);
-                        }
-                    } else if (output.includes('Findings') || output.includes('findings')) {
-                        const jsonMatch = output.match(/\{[\s\S]*"findings"\s*:\s*\[[\s\S]*?\][\s\S]*\}/);
-                        if (jsonMatch) {
-                            try {
-                                const parsed = JSON.parse(jsonMatch[0]);
-                                if (parsed.findings && Array.isArray(parsed.findings)) {
-                                    allFindings.push(...parsed.findings.map((f: any) => typeof f === 'string' ? f : JSON.stringify(f)));
-                                }
-                            } catch (err: any) {
-                                allFindings.push(`Failed to parse reviewer output: ${err.message || 'Invalid JSON'}`);
-                            }
-                        } else {
-                            allFindings.push('Review panel reported findings');
-                        }
-                    } else {
-                        // Missing/ambiguous output -> treat as PARSE_ERROR
-                        this.transition('REQUIRES_HUMAN_INTERVENTION');
-                        return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'PARSE_ERROR: Missing or ambiguous reviewer output' };
-                    }
-                } else {
-                    // Process crash / non-zero exit code -> treat as reviewer failure, not as approval
-                    this.transition('REQUIRES_HUMAN_INTERVENTION');
-                    return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'Reviewer process crashed or failed: ' + (result.reason?.message || 'unknown error') };
-                }
-            }
-            
-            // Deduplication (reject if matches verbatim)
-            const duplicateFindings = allFindings.filter(f => this.stateData.history.includes(f));
-            if (duplicateFindings.length > 0) {
-                this.transition('FAILED');
-                return { status: 'FAILED', findings: duplicateFindings, reason: 'Duplicate findings detected (matches verbatim)' };
-            }
-            
-            const newFindings = [...new Set(allFindings)];
-            this.stateData.history.push(...newFindings);
-            this.stateData.findings = newFindings;
-
-            if (newFindings.length === 0) {
-                this.transition('APPROVED');
-                return { status: 'APPROVED', findings: [] };
-            }
-
-            this.stateData.loops++;
-            if (this.stateData.loops >= MAX_QUORUM_LOOPS) {
-                this.transition('REQUIRES_HUMAN_INTERVENTION');
-                return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings };
-            }
-
-            this.transition('REMEDIATION_REQUIRED');
-            
-            // Dispatch remediators in parallel grouped by domain (file prefix + category)
-            const groupedFindings: Record<string, any[]> = {};
-            this.stateData.findings.forEach(findingStr => {
-                let parsedFinding: any;
-                try {
-                    parsedFinding = JSON.parse(findingStr);
-                } catch {
-                    parsedFinding = { description: findingStr };
-                }
-                const file = parsedFinding.file || this.targetFile;
-                const category = parsedFinding.category || 'general';
-                const domain = `${file}-${category}`;
-                
-                if (!groupedFindings[domain]) {
-                    groupedFindings[domain] = [];
-                }
-                groupedFindings[domain].push(parsedFinding);
-            });
-            
-            const profile = LanguageAdapter.detect(process.cwd());
-            
-            const remediationPromises = Object.values(groupedFindings).map(group => {
-                const category = group[0]?.category || 'general';
-                const prompt = RemediatorPromptBuilder.build(profile, category, JSON.stringify(group), this.targetFile);
-                const findingsArg = JSON.stringify(prompt);
-                return execFileAsync('antigravity', ['--skill', 'remediation-processor', '--file', this.targetFile, '--findings', findingsArg]);
-            });
-            
-            const remResults = await Promise.allSettled(remediationPromises);
-            for (const res of remResults) {
-                if (res.status === 'rejected') {
-                    this.transition('REQUIRES_HUMAN_INTERVENTION');
-                    return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'Remediator process rejected', error: String(res.reason) };
-                }
-                const output = ((res.value as any)?.stdout ?? '') + ((res.value as any)?.stderr ?? '');
-                if (((res.value as any)?.exitCode ?? (res.value as any)?.code ?? 0) !== 0 || /ERROR|FAILED/i.test(output)) {
-                    this.transition('REQUIRES_HUMAN_INTERVENTION');
-                    return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings, reason: 'Remediator reported failure', output: output.slice(0, 500) };
-                }
-            }
-            
-            // Wait for all remediators to complete before re-entering REVIEW_PENDING
-            this.transition('REVIEW_PENDING');
-        }
-        
-        this.transition('REQUIRES_HUMAN_INTERVENTION');
-        return { status: 'REQUIRES_HUMAN_INTERVENTION', findings: this.stateData.findings };
-    }
-}
-
-function validateTargetFile(input: string): string {
-  const trimmed = input.trim();
-  const resolved = path.resolve(trimmed);
-  if (trimmed.startsWith('-') || path.basename(resolved).trimStart().startsWith('-')) {
-    throw new Error(`Invalid target file: argument injection risk in "${input}"`);
+function sanitizePath(p?: string): string {
+  if (!p) return '';
+  const sanitized = p.replace(/[^a-zA-Z0-9_\-\.\/]/g, '');
+  if (sanitized.startsWith('-')) {
+    throw new Error('Invalid path: cannot start with a hyphen');
   }
-  if (!fs.existsSync(resolved)) throw new Error(`Target file not found: ${resolved}`);
-  return resolved;
+  return sanitized;
 }
 
-if (require.main === module) {
-    const targetFileRaw = process.argv[2];
-    if (!targetFileRaw) {
-        console.error('Usage: tsx quorum-review.ts <file-to-review>');
-        process.exit(1);
-    }
-    const targetFile = validateTargetFile(targetFileRaw);
+export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptions = {}): Promise<{ cycles: number; state: string }> {
+  const { values } = parseArgs({
+    args: rawArgs,
+    options: {
+      branch: { type: 'string' },
+      domain: { type: 'string' },
+      codebase: { type: 'boolean' },
+      fast: { type: 'boolean' },
+      remediate: { type: 'boolean' },
+      'no-signoff': { type: 'boolean' },
+    },
+  });
 
-    const fsm = new QuorumFSM(targetFile);
-    fsm.run().then(res => {
-        console.log('Quorum Review Result:', res);
-        process.exit(res.status === 'APPROVED' ? 0 : 1);
-    }).catch(err => {
-        console.error('Quorum Review Error:', err);
-        process.exit(1);
+  const track_id = sanitizePath(values.domain) || sanitizePath(values.branch) || 'codebase';
+  const session_id = options.sessionId || Date.now().toString();
+  const store = options.store || new QuorumStateStore();
+  const fsm = options.fsm || new QuorumFSM();
+  const exit = options.exitFn || ((code: number) => process.exit(code));
+  const defaultGetDiff = (branchName?: string) => {
+    try {
+      return child_process.execFileSync('git', ['diff', `main..${sanitizePath(branchName) || 'HEAD'}`]).toString();
+    } catch (error: any) {
+      console.error(`[QuorumFSM] Failed to get diff: ${error.message}`);
+      return exit(1);
+    }
+  };
+  const getDiff = options.getDiffFn || defaultGetDiff;
+
+  let record = await store.load(track_id, session_id);
+  if (!record) {
+    record = {
+      track_id,
+      session_id,
+      state: 'INIT',
+      cycle_count: 0,
+      last_diff_hash: null,
+      reviewer_session_id: null,
+      timestamp: Date.now(),
+      sha256_checksum: '',
+    };
+  }
+
+  if (record.cycle_count >= MAX_CYCLES) {
+    record.state = fsm.transition(record.state, 'MAX_CYCLES_EXCEEDED').newState;
+    await store.save(record);
+    console.error(`[QuorumFSM] MAX_CYCLES (${MAX_CYCLES}) exceeded. Escalating to Oracle.`);
+    console.log(JSON.stringify({ type: 'escalation_report', reason: 'MAX_CYCLES_EXCEEDED', track_id }));
+    return exit(2) as never;
+  }
+
+  if (record.state === 'INIT') {
+    record.state = fsm.transition(record.state, 'START').newState;
+    await store.save(record);
+    console.log(`[QuorumFSM] State: ${record.state} | Cycle: ${record.cycle_count}/${MAX_CYCLES}`);
+  }
+
+  // In --fast mode: single pass, no loop
+  if (values.fast) {
+    console.log('[QuorumFSM] Fast mode: single pass, no quorum loop.');
+    return { cycles: record.cycle_count, state: record.state };
+  }
+
+  // PreflightGate verification
+  const preflightGate = new PreflightGate(store);
+  const preflightRes = await preflightGate.check({ trackId: track_id, sessionId: session_id });
+  if (!preflightRes.passed) {
+    console.error(`[PreflightGate] Blocked: ${preflightRes.reason}`);
+    return exit(3) as never;
+  }
+
+  // Main quorum loop (max MAX_CYCLES)
+  while (record.state !== 'PASSED' && record.state !== 'HALTED' && record.cycle_count < MAX_CYCLES) {
+    const diff = getDiff(values.branch || values.domain);
+    const diffHash = StagnantDiffDetector.hashDiff(diff);
+
+    // Check stagnant diff
+    if (StagnantDiffDetector.isStagnant(diffHash, record.last_diff_hash)) {
+      console.error('[QuorumFSM] STAGNANT_DIFF detected: remediation produced identical diff. Halting.');
+      record.state = fsm.transition(record.state, 'STAGNANT_DIFF').newState;
+      await store.save(record);
+      console.log(JSON.stringify({ type: 'escalation_report', reason: 'STAGNANT_DIFF', track_id }));
+      return exit(1) as never;
+    }
+
+    record.last_diff_hash = diffHash;
+    record.cycle_count++;
+    await store.save(record);
+
+    let priorFindings: any[] = [];
+    if (record.metadata) {
+      try {
+        const meta = JSON.parse(record.metadata);
+        if (meta.unresolvedFindings && Array.isArray(meta.unresolvedFindings)) {
+          priorFindings = meta.unresolvedFindings;
+        }
+      } catch (e) {}
+    }
+
+    const zbContext = ZeroBiasContextBuilder.build({
+      diff,
+      preflight_output: '',
+      prior_findings: priorFindings,
+      cycle: record.cycle_count
     });
+
+    console.log(`[QuorumFSM] Cycle ${record.cycle_count}: reviewing diff (hash: ${diffHash.slice(0, 8)}...). ZeroBias context built.`);
+    console.log(`[QuorumFSM] Dispatching reviewer for cycle ${record.cycle_count}.`);
+    
+    try {
+      if (values.remediate) {
+        let reviewerOutputs: { reviewer_id: string; raw_text?: string }[] = [
+          { reviewer_id: 'security-reviewer' },
+          { reviewer_id: 'correctness-reviewer' },
+          { reviewer_id: 'adversarial-reviewer' },
+          { reviewer_id: 'regression-reviewer' }
+        ];
+        
+        if (priorFindings.length > 0) {
+          reviewerOutputs = reviewerOutputs.concat(priorFindings.map((f: any) => ({
+            reviewer_id: f.reviewer_id || 'system',
+            raw_text: `\`\`\`json:review-findings\n[${JSON.stringify(f)}]\n\`\`\``
+          })));
+        }
+        
+        const manifestsDir = require('node:path').join(process.cwd(), 'superconductor', 'manifests');
+        const findings = aggregateFindings(reviewerOutputs, manifestsDir);
+        const dispatcher = new DomainSplitRemediationDispatcher({
+          spawner: async (info) => {
+            await execFileAsync('antigravity', ['--remediate', track_id, '--domain', info.domain, '--zero-bias-context', JSON.stringify(zbContext)]);
+          }
+        });
+        await dispatcher.dispatch(findings, { trackId: track_id });
+        try {
+          record.state = fsm.transition(record.state, 'FIXES_APPLIED').newState;
+          await store.save(record);
+        } catch (e) {}
+      } else {
+        await execFileAsync('antigravity', ['--review', track_id, '--zero-bias-context', JSON.stringify(zbContext)]);
+        
+        try {
+          const temp = await store.load(track_id, session_id);
+          let hasFindings = false;
+          if (temp && temp.metadata) {
+            const m = JSON.parse(temp.metadata);
+            if (m.unresolvedFindings && m.unresolvedFindings.length > 0) hasFindings = true;
+          }
+          if (hasFindings) {
+            record.state = fsm.transition(record.state, 'FINDINGS_RETURNED').newState;
+            await store.save(record);
+          }
+        } catch (e) {}
+        
+        if (priorFindings.length > 0) {
+          try {
+            const refreshedForCheck = await store.load(track_id, session_id);
+            if (refreshedForCheck && refreshedForCheck.metadata) {
+              const newStateData = JSON.parse(refreshedForCheck.metadata);
+              if (newStateData.unresolvedFindings && Array.isArray(newStateData.unresolvedFindings)) {
+                const priorStrs = new Set(priorFindings.map((f: any) => JSON.stringify(f)));
+                for (const f of newStateData.unresolvedFindings) {
+                  if (priorStrs.has(JSON.stringify(f))) {
+                    console.error('[QuorumFSM] EXACT_FINDING_DUPLICATED: exact same finding emitted again. Fast-failing.');
+                    record.state = fsm.transition(record.state, 'STAGNANT_DIFF').newState;
+                    await store.save(record);
+                    return exit(1) as never;
+                  }
+                }
+              }
+            }
+          } catch (e) {}
+        }
+      }
+    } catch (err: any) {
+      console.error(`[QuorumFSM] Sub-process failed: ${err.message}`);
+      record.state = 'HALTED';
+      await store.save(record);
+      return exit(1) as never;
+    }
+
+    // Refresh state after run
+    const refreshed = await store.load(track_id, session_id);
+    if (refreshed) {
+      record = refreshed;
+    }
+
+    let unresolvedCount = 0;
+    let successfullyParsed = false;
+    if (record.metadata) {
+      try {
+        const meta = JSON.parse(record.metadata);
+        if (meta.unresolvedFindings && Array.isArray(meta.unresolvedFindings)) {
+          unresolvedCount = meta.unresolvedFindings.filter((f: any) => f.status !== 'RESOLVED').length;
+          successfullyParsed = true;
+        }
+      } catch (e) {}
+    }
+
+    if (successfullyParsed && unresolvedCount === 0) {
+      record.state = fsm.transition(record.state, 'ALL_PASSED').newState;
+      await store.save(record);
+    }
+  }
+
+  if (record.cycle_count >= MAX_CYCLES && record.state !== 'PASSED') {
+    record.state = fsm.transition(record.state, 'MAX_CYCLES_EXCEEDED').newState;
+    await store.save(record);
+    console.error(`[QuorumFSM] MAX_CYCLES (${MAX_CYCLES}) exceeded. Escalating to Oracle.`);
+    console.log(JSON.stringify({ type: 'escalation_report', reason: 'MAX_CYCLES_EXCEEDED', track_id }));
+    return exit(2) as never;
+  }
+
+  if (record.state === 'PASSED') {
+    QuorumValidator.gateOracle({ quorumPassed: true });
+    try {
+      let invoked = false;
+      if (record.metadata) {
+        const meta = JSON.parse(record.metadata);
+        const resolvedFindings = (meta.resolvedFindings || []).filter((f: any) => f.status === 'RESOLVED');
+        for (const finding of resolvedFindings) {
+          await execFileAsync('antigravity', [
+            '--mcp', 'notebook_write',
+            '--note_type', 'quorum',
+            '--content', `[${finding.finding_id || finding.id || 'N/A'}] Quorum resolved: ${finding.description || 'Issue fixed'}`,
+            '--files', '[]',
+            '--domain', values.domain || 'codebase',
+            '--severity', 'info',
+            '--invocation_id', Date.now().toString(),
+            '--reviewer_token', finding.reviewer_id || record.reviewer_session_id || record.session_id || ''
+          ]);
+          invoked = true;
+        }
+      }
+      if (!invoked) {
+        await execFileAsync('antigravity', [
+          '--mcp', 'notebook_write',
+          '--note_type', 'quorum',
+          '--content', `Quorum passed for ${track_id}`,
+          '--files', '[]',
+          '--domain', values.domain || 'codebase',
+          '--severity', 'info',
+          '--invocation_id', Date.now().toString(),
+          '--reviewer_token', record.reviewer_session_id || record.session_id || ''
+        ]);
+      }
+    } catch (e: any) {
+      console.error(`[QuorumFSM] Failed to emit notebook_write: ${e.message}`);
+      return exit(1) as never;
+    }
+  }
+
+  console.log(`[QuorumFSM] Final state: ${record.state}`);
+  return { cycles: record.cycle_count, state: record.state };
+}
+
+if (process.argv[1] && process.argv[1].endsWith('quorum-review.ts')) {
+  runQuorumReview(process.argv.slice(2)).catch(console.error);
 }

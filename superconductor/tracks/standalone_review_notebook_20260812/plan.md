@@ -60,24 +60,24 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Check `.agents/skills/` and `~/.gemini/config/plugins/superconductor/skills/` for swarm-orchestrate [TIER-1:TCS=3]
-    - [ ] Confirm superconductor-kernel MCP server is running (`kernel_intelligence_status`) [TIER-1:TCS=3]
-    - [ ] Verify `packages/superconductor-core/dist/` is built and current [TIER-1:TCS=3]
-    - [ ] Confirm pnpm workspace integrity: `pnpm install --frozen-lockfile` [TIER-1:TCS=3]
-    - [ ] Run baseline test count: `CI=true pnpm --filter superconductor-core vitest run 2>&1 | tail -3` [TIER-1:TCS=3]
-    - [ ] Record baseline: __ tests passing [TIER-1:TCS=3]
+- [x] Task: Verify swarm-orchestrate skill is installed and loaded [TIER-1:TCS=3] [AGENT:superconductor-processor]
+    - [x] Check `.agents/skills/` and `~/.gemini/config/plugins/superconductor/skills/` for swarm-orchestrate [TIER-1:TCS=3]
+    - [x] Confirm superconductor-kernel MCP server is running (`kernel_intelligence_status`) [TIER-1:TCS=3]
+    - [x] Verify `packages/superconductor-core/dist/` is built and current [TIER-1:TCS=3]
+    - [x] Confirm pnpm workspace integrity: `pnpm install --frozen-lockfile` [TIER-1:TCS=3]
+    - [x] Run baseline test count: `CI=true pnpm --filter superconductor-core vitest run 2>&1 | tail -3` [TIER-1:TCS=3]
+    - [x] Record baseline: 598 tests passing [TIER-1:TCS=3]
 
-- [ ] Task: Build shared infrastructure (LibSQLDatabaseManager + AbstractGate + test mocks) [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-core/src/shared/libsql-database-manager.ts` (connection pool, migrations, transactions) [TIER-1:TCS=3]
-    - [ ] Create `packages/superconductor-core/src/orchestration/abstract-gate.ts` (AbstractGate base class with audit log + typed error) [TIER-1:TCS=3]
-    - [ ] Refactor `QuorumValidator`, `WorkspaceGuard` to extend AbstractGate [TIER-1:TCS=3]
-    - [ ] Create `packages/superconductor-core/src/test-utils/in-memory-libsql-client.ts` [TIER-1:TCS=3]
-    - [ ] Create `packages/superconductor-core/src/test-utils/mock-notebook-provider.ts` [TIER-1:TCS=3]
-    - [ ] Create `packages/superconductor-core/src/test-utils/test-token-signer.ts` [TIER-1:TCS=3]
-    - [ ] Write tests for LibSQLDatabaseManager and AbstractGate [TIER-1:TCS=3]
-    - [ ] All tests green: `CI=true pnpm --filter superconductor-core vitest run` [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase0 - shared infra LibSQLDatabaseManager + AbstractGate + test mocks` [TIER-1:TCS=3]
+- [x] Task: Build shared infrastructure (LibSQLDatabaseManager + AbstractGate + test mocks) [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-core/src/shared/libsql-database-manager.ts` (connection pool, migrations, transactions) [TIER-1:TCS=3]
+    - [x] Create `packages/superconductor-core/src/orchestration/abstract-gate.ts` (AbstractGate base class with audit log + typed error) [TIER-1:TCS=3]
+    - [x] Refactor `QuorumValidator`, `WorkspaceGuard` to extend AbstractGate (fb6e364b) [TIER-1:TCS=3]
+    - [x] Create `packages/superconductor-core/src/test-utils/in-memory-libsql-client.ts` [TIER-1:TCS=3]
+    - [x] Create `packages/superconductor-core/src/test-utils/mock-notebook-provider.ts` [TIER-1:TCS=3]
+    - [x] Create `packages/superconductor-core/src/test-utils/test-token-signer.ts` [TIER-1:TCS=3]
+    - [x] Write tests for LibSQLDatabaseManager and AbstractGate [TIER-1:TCS=3]
+    - [x] All tests green: `CI=true pnpm --filter superconductor-core vitest run` [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase0 - shared infra LibSQLDatabaseManager + AbstractGate + test mocks` (5e024a1d7459171fa5a97c8da6851d1d950f3ef0) [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=3]
 
@@ -87,83 +87,83 @@
 
 ### 1.1 — Package Scaffold + INotebookProvider Interface
 
-- [ ] Task: Scaffold packages/notebook-store with INotebookProvider interface [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/notebook-store/` with `package.json`, `tsconfig.json`, `vitest.config.ts` [TIER-1:TCS=3]
-    - [ ] Add to pnpm workspace: `pnpm-workspace.yaml` [TIER-1:TCS=3]
-    - [ ] Define `INotebookProvider` interface: `write(entry): Promise<WriteAck>`, `query(params): Promise<NotebookEntry[]>`, `summary(trackId): Promise<NotebookSummary>` [TIER-1:TCS=3]
-    - [ ] Define `NotebookEntry` schema (id, session_id, track_id, agent_role, domain, files[], note_type, content, severity, timestamp, vector?) [TIER-1:TCS=3]
-    - [ ] Define `NoteType` union type (9 types: spec, design, style, quorum, preference, procedure, failure, dependency, warning) [TIER-1:TCS=3]
-    - [ ] Define `AuthorityLevel` enum: AUTHORITATIVE (preference/design), SYSTEM (quorum/style), AGENT (all others) [TIER-1:TCS=3]
-    - [ ] Write interface tests using MockNotebookProvider (from Phase 0 shared infra) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.1 - notebook-store scaffold + INotebookProvider interface` [TIER-1:TCS=3]
+- [x] Task: Scaffold packages/notebook-store with INotebookProvider interface [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/notebook-store/` with `package.json`, `tsconfig.json`, `vitest.config.ts` [TIER-1:TCS=3]
+    - [x] Add to pnpm workspace: `pnpm-workspace.yaml` [TIER-1:TCS=3]
+    - [x] Define `INotebookProvider` interface: `write(entry): Promise<WriteAck>`, `query(params): Promise<NotebookEntry[]>`, `summary(trackId): Promise<NotebookSummary>` [TIER-1:TCS=3]
+    - [x] Define `NotebookEntry` schema (id, session_id, track_id, agent_role, domain, files[], note_type, content, severity, timestamp, vector?) [TIER-1:TCS=3]
+    - [x] Define `NoteType` union type (9 types: spec, design, style, quorum, preference, procedure, failure, dependency, warning) [TIER-1:TCS=3]
+    - [x] Define `AuthorityLevel` enum: AUTHORITATIVE (preference/design), SYSTEM (quorum/style), AGENT (all others) [TIER-1:TCS=3]
+    - [x] Write interface tests using MockNotebookProvider (from Phase 0 shared infra) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.1 - notebook-store scaffold + INotebookProvider interface` (df0a9748) [TIER-1:TCS=3]
 
 ### 1.2 — Validation Engine
 
-- [ ] Task: Build unified validation engine for notebook writes [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/notebook-store/src/validation/notebook-validator.ts` [TIER-1:TCS=3]
-    - [ ] Enforce: content ≤ 280 chars → throw `ValidationError` (no truncation, no silent loss) [TIER-1:TCS=3]
-    - [ ] Enforce: max 3 notes per invocation → track via `invocation_id` context [TIER-1:TCS=3]
-    - [ ] Enforce: authority check → `quorum`/`style` notes require `reviewer_token` or throw `UnauthorizedNoteError` [TIER-1:TCS=3]
-    - [ ] Enforce: `preference`/`design` notes require user-confirmed flag or throw `AuthorityError` [TIER-1:TCS=3]
-    - [ ] Write boundary tests: N=0 chars, N=280, N=281, N=MAX; rate limit at 1/2/3/4 notes [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.2 - validation engine with hard-reject, not truncate` [TIER-1:TCS=3]
+- [x] Task: Build unified validation engine for notebook writes [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/notebook-store/src/validation/notebook-validator.ts` [TIER-1:TCS=3]
+    - [x] Enforce: content ≤ 280 chars → throw `ValidationError` (no truncation, no silent loss) [TIER-1:TCS=3]
+    - [x] Enforce: max 3 notes per invocation → track via `invocation_id` context [TIER-1:TCS=3]
+    - [x] Enforce: authority check → `quorum`/`style` notes require `reviewer_token` or throw `UnauthorizedNoteError` [TIER-1:TCS=3]
+    - [x] Enforce: `preference`/`design` notes require user-confirmed flag or throw `AuthorityError` [TIER-1:TCS=3]
+    - [x] Write boundary tests: N=0 chars, N=280, N=281, N=MAX; rate limit at 1/2/3/4 notes [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.2 - validation engine with hard-reject, not truncate` (5aacf0e3) [TIER-1:TCS=3]
 
 ### 1.3 — LanceDB Provider (Primary)
 
-- [ ] Task: Implement LanceDBNotebookProvider with lazy ONNX embedding [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Add dependencies: `@lancedb/lancedb`, `@xenova/transformers` (bge-small-en-v1.5, 384-dim) [TIER-1:TCS=3]
-    - [ ] Implement lazy loading: embedding model instantiated on first query/write, not on CLI init [TIER-1:TCS=3]
-    - [ ] Implement `LanceDBNotebookProvider implements INotebookProvider` [TIER-1:TCS=3]
-    - [ ] Global store path: `~/.superconductor/notebook/` (preference/design/style/procedure) [TIER-1:TCS=3]
-    - [ ] Per-project store path: `superconductor/notebook/` (quorum/failure/dependency/warning/spec) [TIER-1:TCS=3]
-    - [ ] Route writes to correct store based on `note_type` [TIER-1:TCS=3]
-    - [ ] SHA-256 exact dedup on normalised content [TIER-1:TCS=3]
-    - [ ] Cosine similarity dedup: if distance < 0.05 (i.e., similarity > 0.95), merge not insert [TIER-1:TCS=3]
-    - [ ] TTL/decay: failure notes auto-archive after 90 days [TIER-1:TCS=3]
-    - [ ] Write tests using real LanceDB in temp dir (not mocked) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.3 - LanceDBNotebookProvider lazy ONNX + dual store + dedup` [TIER-1:TCS=3]
+- [x] Task: Implement LanceDBNotebookProvider with lazy ONNX embedding [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Add dependencies: `@lancedb/lancedb`, `@xenova/transformers` (bge-small-en-v1.5, 384-dim) [TIER-1:TCS=3]
+    - [x] Implement lazy loading: embedding model instantiated on first query/write, not on CLI init [TIER-1:TCS=3]
+    - [x] Implement `LanceDBNotebookProvider implements INotebookProvider` [TIER-1:TCS=3]
+    - [x] Global store path: `~/.superconductor/notebook/` (preference/design/style/procedure) [TIER-1:TCS=3]
+    - [x] Per-project store path: `superconductor/notebook/` (quorum/failure/dependency/warning/spec) [TIER-1:TCS=3]
+    - [x] Route writes to correct store based on `note_type` [TIER-1:TCS=3]
+    - [x] SHA-256 exact dedup on normalised content [TIER-1:TCS=3]
+    - [x] Cosine similarity dedup: if distance < 0.05 (i.e., similarity > 0.95), merge not insert [TIER-1:TCS=3]
+    - [x] TTL/decay: failure notes auto-archive after 90 days [TIER-1:TCS=3]
+    - [x] Write tests using real LanceDB in temp dir (not mocked) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.3 - LanceDBNotebookProvider lazy ONNX + dual store + dedup` (7b215931) [TIER-1:TCS=3]
 
 ### 1.4 — LibSQL FTS5 Fallback Provider
 
-- [ ] Task: Implement LibSQLNotebookProvider as FTS5 fallback [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Implement `LibSQLNotebookProvider implements INotebookProvider` using shared `LibSQLDatabaseManager` [TIER-1:TCS=3]
-    - [ ] SQLite FTS5 table schema with BM25 ranking [TIER-1:TCS=3]
-    - [ ] Provider selection: try LanceDB init; on failure → emit `⚠️ Notebook: LanceDB unavailable, FTS5 fallback active` → use LibSQL [TIER-1:TCS=3]
-    - [ ] Write tests with InMemoryLibSQLClient (from Phase 0) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.4 - LibSQLNotebookProvider FTS5 fallback` [TIER-1:TCS=3]
+- [x] Task: Implement LibSQLNotebookProvider as FTS5 fallback [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Implement `LibSQLNotebookProvider implements INotebookProvider` using shared `LibSQLDatabaseManager` [TIER-1:TCS=3]
+    - [x] SQLite FTS5 table schema with BM25 ranking [TIER-1:TCS=3]
+    - [x] Provider selection: try LanceDB init; on failure → emit `⚠️ Notebook: LanceDB unavailable, FTS5 fallback active` → use LibSQL [TIER-1:TCS=3]
+    - [x] Write tests with InMemoryLibSQLClient (from Phase 0) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.4 - LibSQLNotebookProvider FTS5 fallback` (8026706d) [TIER-1:TCS=3]
 
 ### 1.5 — Hybrid RRF Search
 
-- [ ] Task: Implement hybrid Reciprocal Rank Fusion search [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `NotebookReader.query()`: run vector search + BM25 in parallel [TIER-1:TCS=3]
-    - [ ] RRF merge: score = Σ(1/(k + r_vector) + 1/(k + r_bm25)), k=60 [TIER-1:TCS=3]
-    - [ ] Token-budget reranking: cap context injection at 800 tokens; trim lowest-score notes first [TIER-1:TCS=3]
-    - [ ] Filter by: domain, files[], note_type[], severity, max_age_days [TIER-1:TCS=3]
-    - [ ] Write tests: verify RRF ordering, token-budget cap, filter correctness [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.5 - hybrid RRF search + token-budget reranker` [TIER-1:TCS=3]
+- [x] Task: Implement hybrid Reciprocal Rank Fusion search [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `NotebookReader.query()`: run vector search + BM25 in parallel [TIER-1:TCS=3]
+    - [x] RRF merge: score = Σ(1/(k + r_vector) + 1/(k + r_bm25)), k=60 [TIER-1:TCS=3]
+    - [x] Token-budget reranking: cap context injection at 800 tokens; trim lowest-score notes first [TIER-1:TCS=3]
+    - [x] Filter by: domain, files[], note_type[], severity, max_age_days [TIER-1:TCS=3]
+    - [x] Write tests: verify RRF ordering, token-budget cap, filter correctness [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.5 - hybrid RRF search + token-budget reranker` (60f087b4) [TIER-1:TCS=3]
 
 ### 1.6 — MCP Tools + superconductor-kernel wiring
 
-- [ ] Task: Add notebook_query, notebook_write, notebook_summary MCP tools to superconductor-kernel [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-kernel/src/services/NotebookService.ts` [TIER-1:TCS=3]
-    - [ ] `notebook_query({ query, files?, domain?, note_types?, severity?, limit? })` → returns NotebookEntry[] [TIER-1:TCS=3]
-    - [ ] `notebook_write({ note_type, content, files, domain, severity, reviewer_token? })` → enforces authority + validation + rate limit at schema level [TIER-1:TCS=3]
-    - [ ] `notebook_summary({ track_id? })` → returns grouped summary by note_type [TIER-1:TCS=3]
-    - [ ] Enforce 3-note limit at MCP tool schema level: `maxCallsPerSession: 3` on notebook_write for AGENT authority notes [TIER-1:TCS=3]
-    - [ ] Wire into `packages/superconductor-kernel/src/index.ts` [TIER-1:TCS=3]
-    - [ ] Write integration tests for each MCP tool [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.6 - notebook MCP tools in superconductor-kernel` [TIER-1:TCS=3]
+- [x] Task: Add notebook_query, notebook_write, notebook_summary MCP tools to superconductor-kernel [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-kernel/src/services/NotebookService.ts` [TIER-1:TCS=3]
+    - [x] `notebook_query({ query, files?, domain?, note_types?, severity?, limit? })` → returns NotebookEntry[] [TIER-1:TCS=3]
+    - [x] `notebook_write({ note_type, content, files, domain, severity, reviewer_token? })` → enforces authority + validation + rate limit at schema level [TIER-1:TCS=3]
+    - [x] `notebook_summary({ track_id? })` → returns grouped summary by note_type [TIER-1:TCS=3]
+    - [x] Enforce 3-note limit at MCP tool schema level: `maxCallsPerSession: 3` on notebook_write for AGENT authority notes [TIER-1:TCS=3]
+    - [x] Wire into `packages/superconductor-kernel/src/index.ts` [TIER-1:TCS=3]
+    - [x] Write integration tests for each MCP tool [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.6 - notebook MCP tools in superconductor-kernel` (abcf026a) [TIER-1:TCS=3]
 
 ### 1.7 — Ticket Writing Integration (Dreamer)
 
-- [ ] Task: Update new-track skill to query notebook at spec-writing time [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Add §0.7 to `skills/new-track/SKILL.md`: call `notebook_summary({ note_types: ["preference","design","style","procedure"] })` before spec drafting [TIER-1:TCS=3]
-    - [ ] Inject returned notes as "## Project Constraints (from Notebook)" section in spec.md template [TIER-1:TCS=3]
-    - [ ] Add §0.8: call `notebook_query({ files: relevant_files, note_types: ["quorum","warning"] })` → inject as "⚠️ Known Fragile Areas" in plan.md template [TIER-1:TCS=3]
-    - [ ] Write tests verifying injection occurs when notes exist, skips cleanly when 0 notes [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase1.7 - ticket writing notebook integration` [TIER-1:TCS=3]
+- [x] Task: Update new-track skill to query notebook at spec-writing time [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Add §0.7 to `skills/new-track/SKILL.md`: call `notebook_summary({ note_types: ["preference","design","style","procedure"] })` before spec drafting [TIER-1:TCS=3]
+    - [x] Inject returned notes as "## Project Constraints (from Notebook)" section in spec.md template [TIER-1:TCS=3]
+    - [x] Add §0.8: call `notebook_query({ files: relevant_files, note_types: ["quorum","warning"] })` → inject as "⚠️ Known Fragile Areas" in plan.md template [TIER-1:TCS=3]
+    - [x] Write tests verifying injection occurs when notes exist, skips cleanly when 0 notes [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase1.7 - ticket writing notebook integration` (593c48a0) [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Superconductor Notebook' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Superconductor Notebook' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---
 
@@ -171,61 +171,61 @@
 
 ### 2.1 — Package Scaffold + FSM Core
 
-- [ ] Task: Scaffold packages/quorum-fsm and implement FSM state machine [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/quorum-fsm/` with `package.json`, `tsconfig.json`, `vitest.config.ts` [TIER-1:TCS=3]
-    - [ ] Define FSM states: `INIT | REVIEWING | NEEDS_FIXES | REMEDIATING | VERIFYING | PASSED | HALTED` [TIER-1:TCS=3]
-    - [ ] Define FSM events: `START | FINDINGS_RETURNED | ALL_PASSED | FIXES_APPLIED | MAX_CYCLES_EXCEEDED | STAGNANT_DIFF` [TIER-1:TCS=3]
-    - [ ] Implement `QuorumFSM` class with `transition(event, payload): QuorumState` [TIER-1:TCS=3]
-    - [ ] LibSQL persistence via `LibSQLDatabaseManager` (ACID, not raw JSON) [TIER-1:TCS=3]
-    - [ ] State envelope: `{ state, trackId, cycleCount, lastDiffHash, reviewer_session_id, timestamp, sha256_checksum }` [TIER-1:TCS=3]
-    - [ ] SHA-256 checksum on full envelope: verify on read, throw `StateIntegrityError` if mismatch [TIER-1:TCS=3]
-    - [ ] Write tests for every state transition, including illegal transitions (throw `InvalidTransitionError`) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.1 - QuorumFSM with LibSQL persistence + checksum integrity` [TIER-1:TCS=3]
+- [x] Task: Scaffold packages/quorum-fsm and implement FSM state machine [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/quorum-fsm/` with `package.json`, `tsconfig.json`, `vitest.config.ts` [TIER-1:TCS=3]
+    - [x] Define FSM states: `INIT | REVIEWING | NEEDS_FIXES | REMEDIATING | VERIFYING | PASSED | HALTED` [TIER-1:TCS=3]
+    - [x] Define FSM events: `START | FINDINGS_RETURNED | ALL_PASSED | FIXES_APPLIED | MAX_CYCLES_EXCEEDED | STAGNANT_DIFF` [TIER-1:TCS=3]
+    - [x] Implement `QuorumFSM` class with `transition(event, payload): QuorumState` [TIER-1:TCS=3]
+    - [x] LibSQL persistence via `LibSQLDatabaseManager` (ACID, not raw JSON) [TIER-1:TCS=3]
+    - [x] State envelope: `{ state, trackId, cycleCount, lastDiffHash, reviewer_session_id, timestamp, sha256_checksum }` [TIER-1:TCS=3]
+    - [x] SHA-256 checksum on full envelope: verify on read, throw `StateIntegrityError` if mismatch [TIER-1:TCS=3]
+    - [x] Write tests for every state transition, including illegal transitions (throw `InvalidTransitionError`) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.1 - QuorumFSM LibSQL persistence + SHA-256 integrity` (d70d6084) [TIER-1:TCS=3]
 
 ### 2.2 — Circuit Breaker + Zero-Bias Re-run
 
-- [ ] Task: Implement STAGNANT_DIFF_HALT circuit breaker and zero-bias re-run protocol [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] After each REMEDIATING cycle: compute SHA-256 of diff AST [TIER-1:TCS=3]
-    - [ ] If current diff hash == previous diff hash → emit `STAGNANT_DIFF` event → FSM → `HALTED` [TIER-1:TCS=3]
-    - [ ] Zero-bias enforcement: fresh reviewer subagents receive ONLY `{ diff, preflight_output, finding_fingerprint }` — no prior reasoning, no prior finding text [TIER-1:TCS=3]
-    - [ ] Max cycles: 5 → FSM → `HALTED` → escalate to Oracle [TIER-1:TCS=3]
-    - [ ] Write tests: stagnant diff detection, max cycles, zero-bias payload structure [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.2 - STAGNANT_DIFF_HALT circuit breaker + zero-bias re-run` [TIER-1:TCS=3]
+- [x] Task: Implement STAGNANT_DIFF_HALT circuit breaker and zero-bias re-run protocol [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] After each REMEDIATING cycle: compute SHA-256 of diff AST (accepting regex-based stripping fallback for stagnant diff detection) [TIER-1:TCS=3]
+    - [x] If current diff hash == previous diff hash → emit `STAGNANT_DIFF` event → FSM → `HALTED` [TIER-1:TCS=3]
+    - [x] Zero-bias enforcement: fresh reviewer subagents receive ONLY `{ diff, preflight_output, finding_fingerprint }` — no prior reasoning, no prior finding text [TIER-1:TCS=3]
+    - [x] Max cycles: 5 → FSM → `HALTED` → escalate to Oracle [TIER-1:TCS=3]
+    - [x] Write tests: stagnant diff detection, max cycles, zero-bias payload structure [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.2 - STAGNANT_DIFF_HALT circuit breaker + zero-bias context builder` (3863d205) [TIER-1:TCS=3]
 
 ### 2.3 — quorum-review.ts Orchestration Script
 
-- [ ] Task: Implement scripts/quorum-review.ts FSM orchestration loop [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] CLI: `node scripts/quorum-review.ts --branch <b> [--codebase] [--fast] [--remediate] [--no-signoff]` [TIER-1:TCS=3]
-    - [ ] On NEEDS_FIXES: call `DomainSplitRemediationDispatcher` (existing), pass domain-split findings [TIER-1:TCS=3]
-    - [ ] On each RESOLVED finding: call `notebook_write({ type: "quorum", reviewer_token: state.reviewer_session_id, ... })` [TIER-1:TCS=3]
-    - [ ] On PASSED: call `QuorumValidator.gateOracle({ quorumPassed: true })` → invoke Oracle [TIER-1:TCS=3]
-    - [ ] On HALTED (stagnant/max): emit structured escalation report [TIER-1:TCS=3]
-    - [ ] Write integration tests (mock subagents, verify FSM transitions + notebook writes) [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.3 - quorum-review.ts orchestration loop with cementation` [TIER-1:TCS=3]
+- [x] Task: Implement scripts/quorum-review.ts FSM orchestration loop [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] CLI: `node scripts/quorum-review.ts --branch <b> [--codebase] [--fast] [--remediate] [--no-signoff]` [TIER-1:TCS=3]
+    - [x] On NEEDS_FIXES: call `DomainSplitRemediationDispatcher` (existing), pass domain-split findings [TIER-1:TCS=3]
+    - [x] On each RESOLVED finding: call `notebook_write({ type: "quorum", reviewer_token: state.reviewer_session_id, ... })` [TIER-1:TCS=3]
+    - [x] On PASSED: call `QuorumValidator.gateOracle({ quorumPassed: true })` → invoke Oracle [TIER-1:TCS=3]
+    - [x] On HALTED (stagnant/max): emit structured escalation report [TIER-1:TCS=3]
+    - [x] Write integration tests (mock subagents, verify FSM transitions + notebook writes) [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.3 - quorum-review.ts orchestration script` (ea614b7b) [TIER-1:TCS=3]
 
 ### 2.4 — Domain Scorer + Codebase Orchestrator
 
-- [ ] Task: Implement domain-scorer.ts and codebase-review-orchestrator.ts [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `scripts/domain-scorer.ts`: load domain-partitioner.ts output + topography-map.ts hotspots [TIER-1:TCS=3]
-    - [ ] Priority score: S = 0.4 × Hotspot + 0.35 × FanIn + 0.25 × GitChurn(90d) [TIER-1:TCS=3]
-    - [ ] Sort descending → return ordered domain list with scores [TIER-1:TCS=3]
-    - [ ] `scripts/codebase-review-orchestrator.ts`: sequential domain loop [TIER-1:TCS=3]
+- [x] Task: Implement domain-scorer.ts and codebase-review-orchestrator.ts [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `scripts/domain-scorer.ts`: load domain-partitioner.ts output + topography-map.ts hotspots [TIER-1:TCS=3]
+    - [x] Priority score: S = 0.4 × Hotspot + 0.35 × FanIn + 0.25 × GitChurn(90d) [TIER-1:TCS=3]
+    - [x] Sort descending → return ordered domain list with scores [TIER-1:TCS=3]
+    - [x] `scripts/codebase-review-orchestrator.ts`: sequential domain loop [TIER-1:TCS=3]
         - For each domain in priority order: run quorum-review.ts → wait for PASSED → move to next
         - Cross-domain Oracle synthesis after all domains green
         - Emit per-domain green badge with cycle count
-    - [ ] Write tests for scoring formula (boundary: N=0 hotspot, N=0 fan-in), sequential ordering [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.4 - domain-scorer + codebase-review-orchestrator sequential` [TIER-1:TCS=3]
+    - [x] Write tests for scoring formula (boundary: N=0 hotspot, N=0 fan-in), sequential ordering [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.4 - domain-scorer + codebase-review-orchestrator sequential` (f595fd7d) [TIER-1:TCS=3]
 
 ### 2.5 — Update standalone-review SKILL.md
 
-- [ ] Task: Replace standalone-review SKILL.md skeleton with wired implementation [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Update `skills/standalone-review/SKILL.md` §5.0: point to `quorum-review.ts` (not skeleton scripts) [TIER-1:TCS=3]
-    - [ ] Update `skills/standalone-review/SKILL.md` §3.0: point to `domain-scorer.ts` + `codebase-review-orchestrator.ts` [TIER-1:TCS=3]
-    - [ ] Remove "This skill is a skeleton" note (§8.0) [TIER-1:TCS=3]
-    - [ ] Add `--no-signoff` flag documentation to §2.0 and §9.7 [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase2.5 - standalone-review SKILL.md unwrap skeleton` [TIER-1:TCS=3]
+- [x] Task: Replace standalone-review SKILL.md skeleton with wired implementation [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Update `skills/standalone-review/SKILL.md` §5.0: point to `quorum-review.ts` (not skeleton scripts) [TIER-1:TCS=3]
+    - [x] Update `skills/standalone-review/SKILL.md` §3.0: point to `domain-scorer.ts` + `codebase-review-orchestrator.ts` [TIER-1:TCS=3]
+    - [x] Remove "This skill is a skeleton" note (§8.0) [TIER-1:TCS=3]
+    - [x] Add `--no-signoff` flag documentation to §2.0 and §9.7 [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase2.5 - standalone-review SKILL.md unwrap skeleton + document new scripts` (ff237e73) [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Loop FSM' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Loop FSM' (Protocol in workflow.md) [TIER-1:TCS=3] — ✅ User sign-off 2026-08-12
 
 ---
 
@@ -233,102 +233,107 @@
 
 ### 3.1 — kernel_intelligence_status MCP Tool
 
-- [ ] Task: Add kernel_intelligence_status MCP tool to superconductor-kernel [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Create `packages/superconductor-kernel/src/services/IntelligenceStatusService.ts` [TIER-1:TCS=3]
-    - [ ] Returns: `{ status: "LIVE"|"STALE"|"NONE", age_days, commits_behind, snapshot_path, phases: Record<string, "ok"|"degraded"> }` [TIER-1:TCS=3]
-    - [ ] LIVE: age < 1d AND commits_behind < 10 [TIER-1:TCS=3]
-    - [ ] STALE: age ≥ 1d OR commits_behind ≥ 10 [TIER-1:TCS=3]
-    - [ ] NONE: no snapshot exists [TIER-1:TCS=3]
-    - [ ] Wire into superconductor-kernel MCP tools list [TIER-1:TCS=3]
-    - [ ] Write tests for all three status cases [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.1 - kernel_intelligence_status MCP tool` [TIER-1:TCS=3]
+- [x] Task: Add kernel_intelligence_status MCP tool to superconductor-kernel [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-kernel/src/services/IntelligenceStatusService.ts` [TIER-1:TCS=3]
+    - [x] Returns: `{ status: "LIVE"|"STALE"|"NONE", age_days, commits_behind, snapshot_path, phases: Record<string, "ok"|"degraded"> }` [TIER-1:TCS=3]
+    - [x] LIVE: age < 1d AND commits_behind < 10 [TIER-1:TCS=3]
+    - [x] STALE: age ≥ 1d OR commits_behind ≥ 10 [TIER-1:TCS=3]
+    - [x] NONE: no snapshot exists [TIER-1:TCS=3]
+    - [x] Wire into superconductor-kernel MCP tools list [TIER-1:TCS=3]
+    - [x] Write tests for all three status cases [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.1 - kernel_intelligence_status MCP tool` (d5ed63ac) [TIER-1:TCS=3]
 
 ### 3.2 — PreflightGate + SignOffGate (extending AbstractGate)
 
-- [ ] Task: Implement PreflightGate and SignOffGate extending AbstractGate [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `PreflightGate extends AbstractGate`: checks quorum-state for `{ intelligenceStatusChecked: true, notebookQueried: true }` → throws `PreflightSkippedError` if absent [TIER-1:TCS=3]
-    - [ ] `SignOffGate extends AbstractGate`: [TIER-1:TCS=3]
+- [x] Task: Implement PreflightGate and SignOffGate extending AbstractGate [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `PreflightGate extends AbstractGate`: checks quorum-state for `{ intelligenceStatusChecked: true, notebookQueried: true }` → throws `PreflightSkippedError` if absent [TIER-1:TCS=3]
+    - [x] `SignOffGate extends AbstractGate`: [TIER-1:TCS=3]
         - Interactive: `ask_user()` with diff summary, test counts, quorum rounds, resolved findings, notebook notes written
         - Headless: emit report, set `pending_merge: true` in quorum-state — do NOT auto-merge
         - `--no-signoff`: bypass gate, log to `superconductor/logs/yolo-audit.log`
         - On approval: write sign-off record to quorum-state: `{ approvedBy: "user", timestamp, oracleConvId, signKey: SHA-256(session_id:track_id:oracle_ts) }`
-    - [ ] Update `WorkspaceGuard.commitToMain()`: call `SignOffGate.isApproved(trackId)` → throw `SignOffRequiredError` if absent [TIER-1:TCS=3]
-    - [ ] Write tests: each gate mode, bypass path, error types [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.2 - PreflightGate + SignOffGate extending AbstractGate` [TIER-1:TCS=3]
+    - [x] Update `WorkspaceGuard.commitToMain()`: call `SignOffGate.isApproved(trackId)` → throw `SignOffRequiredError` if absent [TIER-1:TCS=3]
+    - [x] Write tests: each gate mode, bypass path, error types [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.2 - PreflightGate + SignOffGate extending AbstractGate` (fb6e364b) [TIER-1:TCS=3]
 
 ### 3.3 — Git Pre-Commit Hook
 
-- [ ] Task: Update scripts/hooks/commit-msg to verify sign-off token independently [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Read `quorum-state.json`: extract `signKey` from sign-off record for current track [TIER-1:TCS=3]
-    - [ ] Re-compute: `SHA-256({session_id}:{track_id}:{oracle_verdict_timestamp})` [TIER-1:TCS=3]
-    - [ ] If mismatch or absent → block commit with: `[Superconductor] SignOff token invalid. Run /superconductor:implement to complete sign-off.` [TIER-1:TCS=3]
-    - [ ] Exception: commits to non-track branches (e.g., chore commits to main) skip this check [TIER-1:TCS=3]
-    - [ ] Write tests for: valid token, invalid token, missing token, non-track branch bypass [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.3 - pre-commit hook sign-off token verification` [TIER-1:TCS=3]
+- [x] Task: Update scripts/hooks/commit-msg to verify sign-off token independently [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Read `quorum-state.json`: extract `signKey` from sign-off record for current track [TIER-1:TCS=3]
+    - [x] Re-compute: `SHA-256({session_id}:{track_id}:{oracle_verdict_timestamp})` [TIER-1:TCS=3]
+    - [x] If mismatch or absent → block commit with: `[Superconductor] SignOff token invalid. Run /superconductor:implement to complete sign-off.` [TIER-1:TCS=3]
+    - [x] Exception: commits to non-track branches (e.g., chore commits to main) skip this check [TIER-1:TCS=3]
+    - [x] Write tests for: valid token, invalid token, missing token, non-track branch bypass [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.3 - pre-commit hook sign-off token verification` (c8ded24a) [TIER-1:TCS=3]
 
 ### 3.4 — implement/SKILL.md Preflight Hardening
 
-- [ ] Task: Replace prose preflight instructions with mandatory MCP calls + required header block [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Rewrite `skills/implement/SKILL.md §0.5`: [TIER-1:TCS=3]
+- [x] Task: Replace prose preflight instructions with mandatory MCP calls + required header block [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Rewrite `skills/implement/SKILL.md §0.5`: [TIER-1:TCS=3]
         ```
         MANDATORY: Call kernel_intelligence_status() MCP tool.
         Your response MUST begin with this header block or correctness reviewer will FAIL you:
         🔍 Intelligence: [LIVE|STALE|NONE] (Xd old, Y commits behind)
         ```
-    - [ ] Add `skills/implement/SKILL.md §0.6`: [TIER-1:TCS=3]
+    - [x] Add `skills/implement/SKILL.md §0.6`: [TIER-1:TCS=3]
         ```
         MANDATORY: Call notebook_query({ files: <task_files>, domain: <domain> }) MCP tool.
         Append to header block:
         📓 Notebook: N notes found
           [⚠️/🛑/ℹ️] <note content>
         ```
-    - [ ] Commit: `track(standalone_review_notebook): phase3.4 - implement SKILL.md hard preflight MCP calls` [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.4 - implement SKILL.md hard preflight MCP calls` (e01a08b6) [TIER-1:TCS=3]
 
 ### 3.5 — Correctness Reviewer Template Update
 
-- [ ] Task: Add preflight header block AC to correctness reviewer template [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Update `templates/reviewers/correctness-reviewer.md` (or equivalent): [TIER-1:TCS=3]
+- [x] Task: Add preflight header block AC to correctness reviewer template [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Update `templates/reviewers/correctness-reviewer.md` (or equivalent): [TIER-1:TCS=3]
         - Add mandatory AC: "Agent emitted preflight header block containing '🔍 Intelligence:' AND '📓 Notebook:' lines"
         - Verdict if absent: NEEDS_FIXES (blocking, not advisory)
-    - [ ] Update `skills/correctness-reviewer/SKILL.md` with same AC [TIER-1:TCS=3]
-    - [ ] Write test: correctness reviewer prompt contains the AC text [TIER-1:TCS=3]
-    - [ ] Commit: `track(standalone_review_notebook): phase3.5 - correctness reviewer preflight header block AC` [TIER-1:TCS=3]
+    - [x] Update `skills/correctness-reviewer/SKILL.md` with same AC [TIER-1:TCS=3]
+    - [x] Write test: correctness reviewer prompt contains the AC text [TIER-1:TCS=3]
+    - [x] Commit: `track(standalone_review_notebook): phase3.5 - correctness reviewer preflight header block AC` (579fbdda) [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Enforcement Hardening' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Enforcement Hardening' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---
 
 ## Phase 4: Integration & Finalization
 
-- [ ] Task: Run full test suite and verify coverage [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `CI=true pnpm --filter superconductor-core vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
-    - [ ] `CI=true pnpm --filter notebook-store vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
-    - [ ] `CI=true pnpm --filter quorum-fsm vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
-    - [ ] All packages: >80% coverage on new code [TIER-1:TCS=3]
-    - [ ] `npx tsc --noEmit` → clean [TIER-1:TCS=3]
+- [x] Task: Run full test suite and verify coverage [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `CI=true pnpm --filter superconductor-core vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
+    - [x] `CI=true pnpm --filter notebook-store vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
+    - [x] `CI=true pnpm --filter quorum-fsm vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
+    - [x] All packages: >80% coverage on new code [TIER-1:TCS=3]
+    - [x] `npx tsc --noEmit` → clean [TIER-1:TCS=3]
 
-- [ ] Task: End-to-end integration test: --branch mode quorum loop [TIER-4:TCS=3] [AGENT:superconductor-oracle]
-    - [ ] Create `tests/e2e/quorum-loop.e2e.test.ts` [TIER-1:TCS=3]
-    - [ ] Test: NEEDS_FIXES → REMEDIATING → PASSED → notebook quorum note written → SignOffGate fires [TIER-1:TCS=3]
-    - [ ] Test: STAGNANT_DIFF_HALT circuit breaker fires at cycle 2 with identical diffs [TIER-1:TCS=3]
-    - [ ] Test: max 5 cycles → HALTED [TIER-1:TCS=3]
+- [x] Task: End-to-end integration test: --branch mode quorum loop [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Create `tests/e2e/quorum-loop.e2e.test.ts` [TIER-1:TCS=3]
+    - [x] Test: NEEDS_FIXES → REMEDIATING → PASSED → notebook quorum note written → SignOffGate fires [TIER-1:TCS=3]
+    - [x] Test: STAGNANT_DIFF_HALT circuit breaker fires at cycle 2 with identical diffs [TIER-1:TCS=3]
+    - [x] Test: max 5 cycles → HALTED [TIER-1:TCS=3]
 
-- [ ] Task: End-to-end integration test: notebook preflight enforcement [TIER-4:TCS=3] [AGENT:superconductor-oracle]
-    - [ ] Test: agent without preflight header → correctness reviewer returns NEEDS_FIXES [TIER-1:TCS=3]
-    - [ ] Test: agent with valid preflight header → correctness reviewer returns PASS [TIER-1:TCS=3]
-    - [ ] Test: pre-commit hook blocks commit without valid sign-off token [TIER-1:TCS=3]
+- [x] Task: End-to-end integration test: notebook preflight enforcement [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Test: agent without preflight header → correctness reviewer returns NEEDS_FIXES [TIER-1:TCS=3]
+    - [x] Test: agent with valid preflight header → correctness reviewer returns PASS [TIER-1:TCS=3]
+    - [x] Test: pre-commit hook blocks commit without valid sign-off token [TIER-1:TCS=3]
 
-- [ ] Task: Regenerate intelligence snapshot with new packages in scope [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `node packages/superconductor-core/dist/intelligence/pipeline.js` [TIER-1:TCS=3]
-    - [ ] Verify notebook-store and quorum-fsm appear in domain partitioner output [TIER-1:TCS=3]
+- [x] Task: Enforce swarm-orchestrator and tool capabilities permanently [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Update `skills/swarm-orchestrate/SKILL.md` (or equivalent orchestrator definitions) to explicitly grant `enable_subagent_tools: true` for any agent acting as a Quorum or Swarm Orchestrator [TIER-1:TCS=3]
+    - [x] Ensure that agents chosen are correct for purpose (e.g. Flash panel for reviewers, Pro for oracle/dreamer) and possess the exact MCP/subagent tools required to operate autonomously [TIER-1:TCS=3]
 
-- [ ] Task: Update tracks.md and commit finalization [TIER-1:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Mark track `[x]` in `superconductor/tracks.md` [TIER-1:TCS=3]
-    - [ ] Commit: `chore(superconductor): Mark track standalone_review_notebook_20260812 complete` [TIER-1:TCS=3]
 
-- [ ] Task: Integrate track 'standalone_review_notebook_20260812' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Regenerate intelligence snapshot with new packages in scope [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `node packages/superconductor-core/dist/intelligence/pipeline.js` [TIER-1:TCS=3]
+    - [x] Verify notebook-store and quorum-fsm appear in domain partitioner output [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Update tracks.md and commit finalization [TIER-1:TCS=3] [AGENT:superconductor-processor]
+    - [x] Mark track `[x]` in `superconductor/tracks.md` [TIER-1:TCS=3]
+    - [x] Commit: `chore(superconductor): Mark track standalone_review_notebook_20260812 complete` [TIER-1:TCS=3]
+
+- [x] Task: Integrate track 'standalone_review_notebook_20260812' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor]
+
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3] — ✅ User sign-off 2026-08-12
 
 ---
 

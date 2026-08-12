@@ -78,7 +78,7 @@ describe('WorkspaceGuard', () => {
     });
   });
 
-  describe('detectSharedSingletonOverwrite', () => {
+  describe('detectHeavyLineDeletions', () => {
     it('triggers finding when array content in MockFeedService.ts is directly replaced', async () => {
       const mockShell: ShellRunner = { exec: vi.fn() };
       const guard = new WorkspaceGuard('main', mockShell);
@@ -96,7 +96,7 @@ diff --git a/MockFeedService.ts b/MockFeedService.ts
 +export const mockItems = [{ id: 99, name: 'Replaced' }];
 `;
 
-      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
+      const findings = await guard.detectHeavyLineDeletions(['MockFeedService.ts'], diffContent);
       expect(findings.length).toBeGreaterThan(0);
       expect(findings[0]).toContain('MockFeedService.ts');
     });
@@ -117,7 +117,7 @@ diff --git a/ConsumerComponent.ts b/ConsumerComponent.ts
 +import { mockItems } from './MockFeedService.ts';
 `;
 
-      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
+      const findings = await guard.detectHeavyLineDeletions(['MockFeedService.ts'], diffContent);
       expect(findings).toEqual([]);
     });
 
@@ -138,7 +138,7 @@ diff --git a/src/services/ConsumerService.ts b/src/services/ConsumerService.ts
 +import { MockFeedService } from './MockFeedService.ts';
 `;
 
-      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
+      const findings = await guard.detectHeavyLineDeletions(['MockFeedService.ts'], diffContent);
       expect(findings).toEqual([]);
     });
 
@@ -157,7 +157,7 @@ diff --git a/MockFeedService.ts b/MockFeedService.ts
  ];
 `;
 
-      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], diffContent);
+      const findings = await guard.detectHeavyLineDeletions(['MockFeedService.ts'], diffContent);
       expect(findings).toEqual([]);
     });
 
@@ -165,7 +165,7 @@ diff --git a/MockFeedService.ts b/MockFeedService.ts
       const mockShell: ShellRunner = { exec: vi.fn() };
       const guard = new WorkspaceGuard('main', mockShell);
 
-      const findings = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], '');
+      const findings = await guard.detectHeavyLineDeletions(['MockFeedService.ts'], '');
       expect(findings).toEqual([]);
 
       const unrelatedDiff = `
@@ -176,7 +176,7 @@ diff --git a/OtherFile.ts b/OtherFile.ts
 -old line
 +new line
 `;
-      const findings2 = await guard.detectSharedSingletonOverwrite(['MockFeedService.ts'], unrelatedDiff);
+      const findings2 = await guard.detectHeavyLineDeletions(['MockFeedService.ts'], unrelatedDiff);
       expect(findings2).toEqual([]);
     });
   });
@@ -204,7 +204,9 @@ diff --git a/OtherFile.ts b/OtherFile.ts
       };
       const guard = new WorkspaceGuard('track/feature-1', mockShell);
 
-      await expect(guard.commitToMain({ trailerPresent: true })).resolves.toBeUndefined();
+      const { SignOffGate } = await import('../../src/orchestration/sign-off-gate.js');
+      vi.spyOn(SignOffGate, 'isApproved').mockResolvedValue(true);
+      await expect(guard.commitToMain({ trailerPresent: true, trackId: 't1', sessionId: 's1' })).resolves.toBeUndefined();
     });
 
     it('throws UnauthorizedMergeError when called from main branch', async () => {
@@ -212,7 +214,9 @@ diff --git a/OtherFile.ts b/OtherFile.ts
       const mockShell: ShellRunner = { exec: vi.fn() };
       const guard = new WorkspaceGuard('track/feature-1', mockShell);
 
-      await expect(guard.commitToMain({ trailerPresent: true })).rejects.toThrow(
+      const { SignOffGate } = await import('../../src/orchestration/sign-off-gate.js');
+      vi.spyOn(SignOffGate, 'isApproved').mockResolvedValue(true);
+      await expect(guard.commitToMain({ trailerPresent: true, trackId: 't1', sessionId: 's1' })).rejects.toThrow(
         'commitToMain must be called from a track branch, not from main'
       );
     });
@@ -222,7 +226,30 @@ diff --git a/OtherFile.ts b/OtherFile.ts
       const mockShell: ShellRunner = { exec: vi.fn() };
       const guard = new WorkspaceGuard('track/feature-1', mockShell);
 
-      await expect(guard.commitToMain({ trailerPresent: true })).rejects.toThrow(UnauthorizedMergeError);
+      const { SignOffGate } = await import('../../src/orchestration/sign-off-gate.js');
+      vi.spyOn(SignOffGate, 'isApproved').mockResolvedValue(true);
+      await expect(guard.commitToMain({ trailerPresent: true, trackId: 't1', sessionId: 's1' })).rejects.toThrow(UnauthorizedMergeError);
+    });
+
+    it('throws SignOffRequiredError when called with trackId and sessionId without signoff', async () => {
+      vi.mocked(cp.execFileSync).mockReturnValue('track/feature-1' as any);
+      const mockShell: ShellRunner = { exec: vi.fn() };
+      const guard = new WorkspaceGuard('track/feature-1', mockShell);
+
+      await expect(guard.commitToMain('track-no-signoff', 'sess-123')).rejects.toThrow();
+    });
+
+    it('implements AbstractGate check() method', async () => {
+      const mockShell: ShellRunner = {
+        exec: vi.fn().mockImplementation(async (cmd: string) => {
+          if (cmd === 'git branch --show-current') return { stdout: 'main\n', stderr: '', exitCode: 0 };
+          if (cmd.includes('tsc')) return { stdout: '', stderr: '', exitCode: 0 };
+          return { stdout: '', stderr: '', exitCode: 0 };
+        })
+      };
+      const guard = new WorkspaceGuard('main', mockShell);
+      const res = await guard.check({ trackId: 't1', sessionId: 's1' });
+      expect(res.passed).toBe(true);
     });
   });
 });

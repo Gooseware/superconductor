@@ -6,9 +6,19 @@ This file configures the model preferences and proxy endpoints for the Supercond
 
 Adjust the mapping of model identifiers to each logic tier based on your provider and budget:
 
-- **Tier 2 (Triage & Extraction):** `gemini-2.0-flash-lite`
-- **Tier 3 (Standard Inference):** `gemini-2.5-pro`
-- **Tier 4 (Frontier Reasoning):** `gemini-2.5-pro` (thinking)
+- **Tier 2 (Triage & Extraction):** `gemini-3.6-flash-high`
+- **Tier 3 (Standard Inference / Processors):** `gemini-3.6-flash-high`
+- **Tier 3 (Quorum Reviewers):** `gemini-3.6-flash-high`
+- **Tier 4 (Frontier Reasoning / Oracle):** `gemini-3.1-pro-high`
+
+## Swarm Agent Model Assignments
+
+| Role | Model |
+|------|-------|
+| superconductor-processor | `gemini-3.6-flash-high` |
+| superconductor-reviewer (quorum) | `gemini-3.6-flash-high` |
+| superconductor-dreamer | `gemini-3.1-pro-high` |
+| superconductor-oracle | `gemini-3.1-pro-high` |
 
 ## Proxy & Endpoint Settings
 

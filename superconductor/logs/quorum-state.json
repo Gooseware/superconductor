@@ -1,6 +1,1 @@
-{
-  "state": "APPROVED",
-  "loops": 0,
-  "findings": [],
-  "history": []
-}
+{"findings":[{"status":"RESOLVED","reviewer_id":"test"}]}

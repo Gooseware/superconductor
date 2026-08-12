@@ -1,3 +1,6 @@
+import { AbstractGate, GateContext, GateResult, GateError } from './abstract-gate.js';
+import { SignOffGate, SignOffRequiredError } from './sign-off-gate.js';
+
 export interface ShellRunner {
   exec(cmd: string): Promise<{ stdout: string; stderr: string; exitCode: number }>;
 }
@@ -23,20 +26,20 @@ export class UnauthorizedMergeError extends Error {
   }
 }
 
-function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 export interface WorkspaceGuardOptions {
   workspaceRoot?: string;
   assignedBranch?: string;
   shell?: ShellRunner;
+  stateStore?: any;
 }
 
-export class WorkspaceGuard {
+export class WorkspaceGuard extends AbstractGate {
+  public readonly gateName = 'WorkspaceGuard';
+
   private assignedBranch: string;
   private shell?: ShellRunner;
   private workspaceRoot?: string;
+  protected stateStore?: any;
 
   constructor(opts?: WorkspaceGuardOptions);
   constructor(assignedBranch: string, shell?: ShellRunner);
@@ -44,21 +47,39 @@ export class WorkspaceGuard {
     assignedBranchOrOpts?: string | WorkspaceGuardOptions,
     shell?: ShellRunner
   ) {
+    super();
     if (typeof assignedBranchOrOpts === 'object' && assignedBranchOrOpts !== null) {
       this.assignedBranch = assignedBranchOrOpts.assignedBranch ?? 'main';
       this.shell = assignedBranchOrOpts.shell;
       this.workspaceRoot = assignedBranchOrOpts.workspaceRoot;
+      this.stateStore = assignedBranchOrOpts.stateStore;
     } else {
       this.assignedBranch = assignedBranchOrOpts ?? 'main';
       this.shell = shell;
     }
   }
 
+  protected createError(message: string): GateError {
+    return new GateError(message);
+  }
+
+  async check(context: GateContext): Promise<GateResult> {
+    try {
+      await this.preCommitCheck();
+      return { passed: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { passed: false, reason: msg };
+    }
+  }
 
   async preCommitCheck(): Promise<{ ok: true }> {
+    // Skip checks if no shell runner is provided
     if (!this.shell) {
       return { ok: true };
     }
+    
+    // Verify that the current git branch matches the assigned branch
     const branchRes = await this.shell.exec('git branch --show-current');
     const currentBranch = branchRes.stdout.trim();
 
@@ -68,6 +89,7 @@ export class WorkspaceGuard {
       );
     }
 
+    // Run TypeScript compiler to ensure there are no type errors
     const tscRes = await this.shell.exec('npx tsc --noEmit');
     if (tscRes.exitCode !== 0) {
       const output = (tscRes.stdout + '\n' + tscRes.stderr).trim();
@@ -77,7 +99,7 @@ export class WorkspaceGuard {
     return { ok: true };
   }
 
-  async detectSharedSingletonOverwrite(sharedFiles: string[], diffContent: string): Promise<string[]> {
+  async detectHeavyLineDeletions(sharedFiles: string[], diffContent: string): Promise<string[]> {
     const findings: string[] = [];
     if (!sharedFiles || sharedFiles.length === 0 || !diffContent || !diffContent.trim()) {
       return findings;
@@ -105,9 +127,42 @@ export class WorkspaceGuard {
     return findings;
   }
 
-  async commitToMain(opts: { trailerPresent: boolean }): Promise<void> {
-    if (!opts.trailerPresent) {
+  async detectSharedSingletonOverwrite(sharedFiles: string[], diffContent: string): Promise<string[]> {
+    return this.detectHeavyLineDeletions(sharedFiles, diffContent);
+  }
+
+  async commitToMain(
+    optsOrTrackId: { trailerPresent: boolean; trackId?: string; sessionId?: string } | string,
+    sessionId?: string,
+    stateStore?: any
+  ): Promise<void> {
+    let trackId: string | undefined;
+    let sessId: string | undefined;
+    let trailerPresent = true;
+    const store = stateStore || this.stateStore;
+
+    if (typeof optsOrTrackId === 'string') {
+      trackId = optsOrTrackId;
+      sessId = sessionId;
+    } else if (optsOrTrackId && typeof optsOrTrackId === 'object') {
+      trailerPresent = optsOrTrackId.trailerPresent;
+      trackId = optsOrTrackId.trackId;
+      sessId = optsOrTrackId.sessionId;
+    }
+
+    if (!trailerPresent) {
       throw new UnauthorizedMergeError();
+    }
+
+    if (!trackId || !sessId) {
+      throw new Error('trackId and sessionId are required for commitToMain');
+    }
+
+    if (trackId && sessId) {
+      const approved = await SignOffGate.isApproved(trackId, sessId, store);
+      if (!approved) {
+        throw new SignOffRequiredError();
+      }
     }
 
     // Verify current branch is a track branch (not main)
@@ -116,11 +171,11 @@ export class WorkspaceGuard {
       let currentBranch = '';
       if (typeof cp.execFileSync === 'function') {
         currentBranch = cp.execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
-          encoding: 'utf8'
+          encoding: 'utf8',
         }).toString().trim();
       } else if (typeof cp.execSync === 'function') {
         currentBranch = cp.execSync('git rev-parse --abbrev-ref HEAD', {
-          encoding: 'utf8'
+          encoding: 'utf8',
         }).toString().trim();
       }
       if (currentBranch === 'main' || currentBranch === 'master') {
@@ -129,8 +184,7 @@ export class WorkspaceGuard {
         );
       }
     } catch (e) {
-      if (e instanceof UnauthorizedMergeError) throw e;
-      // git not available in test environment — skip branch check
+      throw e;
     }
 
     // Run pre-commit check if available

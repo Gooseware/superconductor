@@ -18,7 +18,7 @@ export function validateBranchName(branch: string): void {
 export async function mergeTrack(
   trackBranch: string,
   reviewerConvIds: string[],
-  opts: { workspaceRoot?: string; dryRun?: boolean } = {},
+  opts: { workspaceRoot?: string; dryRun?: boolean; trackId?: string; sessionId?: string } = {},
 ): Promise<{ mergeCommitSha: string; trailer: string }> {
   validateBranchName(trackBranch);
 
@@ -36,7 +36,7 @@ export async function mergeTrack(
   }
 
   // Gate: throws UnauthorizedMergeError if trailer is missing
-  await guard.commitToMain({ trailerPresent });
+  await guard.commitToMain({ trailerPresent, trackId: opts.trackId, sessionId: opts.sessionId });
 
   if (opts.dryRun) {
     return { mergeCommitSha: 'dry-run', trailer };

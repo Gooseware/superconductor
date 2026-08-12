@@ -1,0 +1,6 @@
+node_modules
+dist
+coverage
+test-db/
+test-factory-fallback/
+test-out/

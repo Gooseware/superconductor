@@ -27,7 +27,9 @@ describe('validateBranchName', () => {
 
 describe('mergeTrack', () => {
   it('generates a trailer from reviewer IDs', async () => {
-    const result = await mergeTrack('track/test', ['id1', 'id2'], { dryRun: true });
+    const { SignOffGate } = await import('../orchestration/sign-off-gate.js');
+    vi.spyOn(SignOffGate, 'isApproved').mockResolvedValue(true);
+    const result = await mergeTrack('track/test', ['id1', 'id2'], { dryRun: true, trackId: 't1', sessionId: 's1' });
     expect(result.trailer).toBeTruthy();
     expect(result.trailer).toContain('id1');
     expect(result.trailer).toContain('id2');
@@ -39,11 +41,13 @@ describe('mergeTrack', () => {
     // We mock WorkspaceGuard to throw
     const { WorkspaceGuard } = await import('../orchestration/workspace-guard.js');
     vi.spyOn(WorkspaceGuard.prototype, 'commitToMain').mockRejectedValueOnce(new UnauthorizedMergeError());
-    await expect(mergeTrack('track/test', [], { dryRun: true })).rejects.toThrow(UnauthorizedMergeError);
+    await expect(mergeTrack('track/test', [], { dryRun: true, trackId: 't1', sessionId: 's1' })).rejects.toThrow(UnauthorizedMergeError);
   });
 
   it('returns mergeCommitSha and trailer in dryRun mode', async () => {
-    const result = await mergeTrack('track/test', ['reviewer1', 'reviewer2'], { dryRun: true });
+    const { SignOffGate } = await import('../orchestration/sign-off-gate.js');
+    vi.spyOn(SignOffGate, 'isApproved').mockResolvedValue(true);
+    const result = await mergeTrack('track/test', ['reviewer1', 'reviewer2'], { dryRun: true, trackId: 't1', sessionId: 's1' });
     expect(result.mergeCommitSha).toBe('dry-run');
     expect(result.trailer).toBeDefined();
   });

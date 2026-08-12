@@ -17,6 +17,8 @@ import { InstallerService } from "./services/InstallerService.js";
 import { DogmaService } from "./services/DogmaService.js";
 import { PublishService } from "./services/PublishService.js";
 import { CentralizedPublishService } from "./services/CentralizedPublishService.js";
+import { NotebookService } from "./services/NotebookService.js";
+import { IntelligenceStatusService } from "./services/IntelligenceStatusService.js";
 import { fileURLToPath } from "url";
 import os from "os";
 import path from "path";
@@ -49,6 +51,8 @@ const db = createClient({
 const gitService = new GitService(CACHE_DIR);
 const installerService = new InstallerService(db, PROJECT_ROOT);
 const dogmaService = new DogmaService();
+const notebookService = new NotebookService();
+const intelligenceStatusService = new IntelligenceStatusService();
 
 let currentRegistryPath = DEFAULT_REGISTRY_PATH;
 let registryService = new RegistryService(db, currentRegistryPath);
@@ -61,6 +65,78 @@ function updateRegistryPath(newPath: string) {
   centralizedPublishService = new CentralizedPublishService(currentRegistryPath);
   registryService = new RegistryService(db, currentRegistryPath);
   console.log(`[Registry] Switched active registry to: ${currentRegistryPath}`);
+}
+
+async function updateQuorumState(key: string, value: any, track_id: string, session_id: string) {
+  const quorumDbPath = path.join(PROJECT_ROOT, "superconductor", "quorum", "quorum_state.db");
+  if (!fs.existsSync(quorumDbPath)) {
+    console.warn(`Quorum state database not found at ${quorumDbPath}. Skipping.`);
+    return;
+  }
+  try {
+    const stat = fs.statSync(quorumDbPath);
+    if (stat.size === 0) {
+      console.warn(`Quorum state database is empty at ${quorumDbPath}. Skipping.`);
+      return;
+    }
+    const qdb = createClient({ url: `file:${quorumDbPath}` });
+    const rows = await qdb.execute({
+      sql: "SELECT * FROM quorum_state WHERE track_id = ? AND session_id = ? ORDER BY timestamp DESC LIMIT 1",
+      args: [track_id, session_id]
+    });
+    if (rows.rows.length > 0) {
+      const row = rows.rows[0];
+      let meta: any = {};
+      if (row.metadata) {
+        try { meta = JSON.parse(row.metadata as string); } catch {}
+      }
+      meta[key] = value;
+      const newMetadata = JSON.stringify(meta);
+
+      const payload = JSON.stringify({
+        track_id: row.track_id,
+        session_id: row.session_id,
+        state: row.state,
+        cycle_count: Number(row.cycle_count || 0),
+        last_diff_hash: row.last_diff_hash ?? null,
+        reviewer_session_id: row.reviewer_session_id ?? null,
+        timestamp: typeof row.timestamp === 'bigint' ? Number(row.timestamp) : row.timestamp,
+        sign_off_record: row.sign_off_record ?? null,
+        metadata: newMetadata,
+      });
+      const crypto = await import("crypto");
+      const checksum = crypto.createHash('sha256').update(payload).digest('hex');
+
+      await qdb.execute({
+        sql: "UPDATE quorum_state SET metadata = ?, sha256_checksum = ? WHERE track_id = ? AND session_id = ?",
+        args: [newMetadata, checksum, row.track_id, row.session_id]
+      });
+    } else {
+      const meta = { [key]: value };
+      const newMetadata = JSON.stringify(meta);
+      const timestamp = new Date().toISOString();
+      const payload = JSON.stringify({
+        track_id: track_id,
+        session_id: session_id,
+        state: "preflight",
+        cycle_count: 0,
+        last_diff_hash: null,
+        reviewer_session_id: null,
+        timestamp: timestamp,
+        sign_off_record: null,
+        metadata: newMetadata,
+      });
+      const crypto = await import("crypto");
+      const checksum = crypto.createHash('sha256').update(payload).digest('hex');
+
+      await qdb.execute({
+        sql: "INSERT INTO quorum_state (track_id, session_id, state, cycle_count, timestamp, metadata, sha256_checksum) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        args: [track_id, session_id, "preflight", 0, timestamp, newMetadata, checksum]
+      });
+    }
+  } catch (e) {
+    console.error("Failed to update quorum state", e);
+  }
 }
 
 async function initDb() {
@@ -472,6 +548,66 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ["name"]
         }
+      },
+      {
+        name: "notebook_query",
+        description: "Query Superconductor Notebook entries (semantic vector + BM25 hybrid search)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Search query text" },
+            files: { type: "array", items: { type: "string" }, description: "Filter by file paths" },
+            domain: { type: "string", description: "Filter by domain" },
+            note_types: { type: "array", items: { type: "string" }, description: "Filter by note types" },
+            severity: { type: "string", description: "Filter by severity (info, warning, critical)" },
+            limit: { type: "number", description: "Maximum number of notes to return" },
+            track_id: { type: "string", description: "Track ID" },
+            session_id: { type: "string", description: "Session ID" }
+          }
+        }
+      },
+      {
+        name: "notebook_write",
+        description: "Write a note to the Superconductor Notebook (max 280 chars, rate-limited to 3 per invocation)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            note_type: { type: "string", enum: ["spec", "design", "style", "quorum", "preference", "procedure", "failure", "dependency", "warning"], description: "Type of note" },
+            content: { type: "string", maxLength: 280, description: "Note content (max 280 characters)" },
+            files: { type: "array", items: { type: "string" }, description: "Related file paths" },
+            domain: { type: "string", description: "System domain" },
+            severity: { type: "string", enum: ["info", "warning", "critical"], description: "Note severity" },
+            session_id: { type: "string", description: "Session ID" },
+            track_id: { type: "string", description: "Track ID" },
+            agent_role: { type: "string", description: "Agent role" },
+            reviewer_token: { type: "string", description: "Required for quorum/style notes" },
+            user_confirmed: { type: "boolean", description: "Required for preference/design notes" },
+            invocation_id: { type: "string", description: "Unique invocation ID for rate limit tracking" }
+          },
+          required: ["note_type", "content", "files", "domain", "severity", "invocation_id"]
+        }
+      },
+      {
+        name: "notebook_summary",
+        description: "Get summary of notebook entries grouped by note_type",
+        inputSchema: {
+          type: "object",
+          properties: {
+            track_id: { type: "string", description: "Optional track ID filter" }
+          }
+        }
+      },
+      {
+        name: "kernel_intelligence_status",
+        description: "Gets status of superconductor intelligence snapshot (LIVE, STALE, or NONE)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" },
+            track_id: { type: "string", description: "Track ID" },
+            session_id: { type: "string", description: "Session ID" }
+          }
+        }
       }
     ],
   };
@@ -479,6 +615,34 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  if (name === "notebook_query") {
+    const results = await notebookService.query(args as any, PROJECT_ROOT);
+    if ((args as any).track_id && (args as any).session_id) {
+      await updateQuorumState('notebookQueried', true, (args as any).track_id, (args as any).session_id);
+    }
+    return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+  }
+
+  if (name === "notebook_write") {
+    const ack = await notebookService.write(args as any, PROJECT_ROOT);
+    return { content: [{ type: "text", text: JSON.stringify(ack, null, 2) }] };
+  }
+
+  if (name === "notebook_summary") {
+    const summary = await notebookService.summary(args as any, PROJECT_ROOT);
+    return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }] };
+  }
+
+  if (name === "kernel_intelligence_status") {
+    const { outputDir, track_id, session_id } = z.object({ outputDir: z.string().optional(), track_id: z.string().optional(), session_id: z.string().optional() }).parse(args || {});
+    const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
+    const result = await intelligenceStatusService.getStatus(targetDir);
+    if (track_id && session_id) {
+      await updateQuorumState('intelligenceStatusChecked', true, track_id, session_id);
+    }
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
 
   if (name === "set_theme") {
     const newConfig = SetThemeSchema.parse(args);
@@ -634,6 +798,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "registry_validate_file") {
     const { path: filePath } = z.object({ path: z.string() }).parse(args);
     const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(PROJECT_ROOT, filePath);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const result = await dogmaService.validate(absolutePath);
     
     let text = JSON.stringify(result, null, 2);
@@ -647,6 +812,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "registry_fix_dogma") {
     const { path: filePath } = z.object({ path: z.string() }).parse(args);
     const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(PROJECT_ROOT, filePath);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const result = await dogmaService.fix(absolutePath);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
@@ -656,6 +822,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       .object({ path: z.string(), family: z.string(), variant: z.string(), type: z.enum(["atom", "molecule", "organism", "page", "layout", "form", "util"]) })
       .parse(args);
     const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(PROJECT_ROOT, filePath);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const validation = await dogmaService.validate(absolutePath);
     if (!validation.success) {
       return { content: [{ type: "text", text: `REJECTED: Component does not meet dogma standards.\n${validation.errors.join("\n")}` }] };
@@ -674,6 +841,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       })
       .parse(args);
     const absolutePath = path.isAbsolute(data.path) ? data.path : path.resolve(PROJECT_ROOT, data.path);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const publishResult = await publishService.publish(absolutePath, data.family, data.variant, {
       type: data.type, description: data.description, intent: data.intent, tags: data.tags, dependencies: data.dependencies,
     });

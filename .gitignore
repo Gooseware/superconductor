@@ -37,6 +37,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+coverage/
 htmlcov/
 .tox/
 .nox/
@@ -240,3 +241,25 @@ packages/superconductor-core/coverage-report.txt
 packages/superconductor-core/fix_test*.cjs
 patch_plan.py
 !packages/superconductor-core/src/review/test-theatre-detector*
+
+# Temporary files
+patch*.js
+read_context.js
+replacement.js
+test_N0.js
+*.db
+
+
+# Swarm/test artefacts
+fix_test*.js
+test-*.js
+test-bypass.js
+test-fts.js
+test.db
+test-out/
+packages/quorum-fsm/coverage/
+packages/notebook-store/test-db/
+packages/notebook-store/test-factory-fallback/
+packages/superconductor-core/test-require.js
+packages/superconductor-core/tests/intelligence/tmp-test/
+superconductor/quorum/quorum_state.db
