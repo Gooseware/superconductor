@@ -120,6 +120,12 @@ describe('LibSQLTaskProvider', () => {
     expect(tasks.length).toBe(2);
   });
 
+  it('allows querying with limit: 0', async () => {
+    await provider.createTask({ track_id: 't-limit-zero', title: 'Task 1' });
+    const tasks = await provider.queryTasks({ track_id: 't-limit-zero', limit: 0 });
+    expect(tasks.length).toBe(0);
+  });
+
   it('filters invariants by capability', async () => {
     await provider.createInvariant({
       capability: 'Authentication',

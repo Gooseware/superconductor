@@ -219,6 +219,18 @@ describe('LanceDBTaskProvider', () => {
     });
   });
 
+    it('allows querying with limit: 0 (without semantic_query)', async () => {
+      await provider.createTask({ track_id: 'track-plain-limit-zero', title: 'Plain task 1' });
+      const limitResults = await provider.queryTasks({ track_id: 'track-plain-limit-zero', limit: 0 });
+      expect(limitResults.length).toBe(0);
+    });
+
+    it('allows querying with limit: 0 (with semantic_query)', async () => {
+      await provider.createTask({ track_id: 'track-semantic-limit-zero', title: 'Target task' });
+      const limitResults = await provider.queryTasks({ semantic_query: 'Target', track_id: 'track-semantic-limit-zero', limit: 0 });
+      expect(limitResults.length).toBe(0);
+    });
+
   describe('updateTask', () => {
     it('updates task status and committed_sha', async () => {
       const { id } = await provider.createTask({

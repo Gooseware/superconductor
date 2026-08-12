@@ -177,7 +177,7 @@ export class LanceDBTaskProvider implements TaskProvider {
 
     if (args.semantic_query) {
       const vector = await this.generateEmbedding(args.semantic_query);
-      const searchLimit = args.limit || 50;
+      const searchLimit = args.limit !== undefined ? args.limit : 50;
       
       let query = this.table.search(vector);
 
