@@ -13,6 +13,7 @@
 | `[x]` | `protocol_hardening_20260809` | Superconductor Protocol Hardening | `track/protocol_hardening_20260809` |
 | `[x]` | `protocol_enforcement_20260811` | Superconductor Protocol Enforcement | `track/protocol_enforcement_20260811` |
 | `[-]` | `regression_invariant_ledger_20260812` | Regression Protocol: Capability Invariant Ledger | `track/regression_invariant_ledger_20260812` |
+| `[~]` | `task_graph_20260812` | Superconductor v0.5: Task Graph + Invariant Ledger | `track/task_graph_20260812` |
 
 ## Absorbed / Closed Tracks
 

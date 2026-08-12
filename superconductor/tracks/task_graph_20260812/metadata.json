@@ -1,0 +1,12 @@
+{
+  "track_id": "task_graph_20260812",
+  "title": "Superconductor v0.5: Task Graph + Invariant Ledger",
+  "type": "feature",
+  "status": "planning",
+  "branch": "track/task_graph_20260812",
+  "created_at": "2026-08-12T11:41:00+04:00",
+  "updated_at": "2026-08-12T11:41:00+04:00",
+  "absorbs": ["regression_invariant_ledger_20260812"],
+  "phases": 11,
+  "estimated_waves": 11
+}
