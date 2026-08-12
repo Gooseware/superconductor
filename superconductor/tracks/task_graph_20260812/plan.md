@@ -36,7 +36,7 @@
 - [x] Add invariant pre-check step to `agents/regression-reviewer/agent.md`.
 - [x] Ensure it queries `invariant_query()` and emits `REG-INV-N: CRITICAL` if paths are missing and not overridden.
 
-## Phase 9: Bootstrap + Discovery agent [checkpoint: a4b1c50d]
+## Phase 9: Bootstrap + Discovery agent [checkpoint: 991ce6b6]
 - [x] Write script to seed existing invariants (commands, MCP tools, core orchestration).
 - [x] Register `superconductor-invariant-discovery` agent that assesses invariant confidence (HIGH -> active, MEDIUM/LOW -> untriaged output to `superconductor/invariants-untriaged.md`).
 
