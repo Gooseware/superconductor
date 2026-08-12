@@ -26,9 +26,9 @@ The Superconductor engine operates in either Interactive or Headless mode.
 
 ### Standard Task Workflow
 
-1. **Select Task:** Choose the next available task from `plan.md` in sequential order
+1. **Select Task:** Choose the next available task using the `task_query` MCP tool in sequential order
 
-2. **Mark In Progress & Load Context:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch. Using the **Universal File Resolution Protocol**, resolve and read `superconductor/CONTEXT.md` so ubiquitous language is active during implementation.
+2. **Mark In Progress & Load Context:** Before beginning work, use the `task_update` MCP tool to change the task status to in progress. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch. Using the **Universal File Resolution Protocol**, resolve and read `superconductor/CONTEXT.md` so ubiquitous language is active during implementation.
 
 3. **Write Failing Tests (Red Phase):**
    - Create a new test file for the feature or bug fix.
@@ -62,13 +62,11 @@ The Superconductor engine operates in either Interactive or Headless mode.
    - Propose a clear, concise commit message.
    - Perform the commit.
 
-9. **Get and Record Task Commit SHA:**
-    - **Step 9.1: Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`, and append the first 7 characters of the *just-completed commit's* commit hash.
-    - **Step 9.2: Write Plan:** Write the updated content back to `plan.md`.
+9. **Record Task Commit SHA:**
+    - **Step 9.1: Update Task:** Use the `task_update` MCP tool to change the task status to complete and attach the first 7 characters of the *just-completed commit's* commit hash to the task metadata.
 
-10. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message (e.g., `superconductor(plan): Mark task 'Create user model' as complete`).
+10. **Proceed to Next Task:**
+    - **Action:** Continue with the next task using `task_query`.
 
 ### Phase Completion Verification and Checkpointing Protocol
 

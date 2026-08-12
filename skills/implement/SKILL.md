@@ -125,21 +125,21 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - Before beginning any work, you MUST update the status of the selected track via the task provider (e.g., using `task_update` or equivalent tool) rather than manually editing a Tracks Registry file.
 
 3.  **Load Track Context & Manage Branch:**
-    a. **Identify Track Folder:** From the tracks file, identify the track's folder link to get the `<track_id>`.
+    a. **Identify Track Folder:** From the `task_query` metadata, identify the track's folder link to get the `<track_id>`.
     b. **Automated Branch Management:** 
         - Use the **GitWorkflowManager** utility to ensure the track branch exists and is derived from `main`.
         - Action: `GitWorkflowManager.createBranchFromMain(track_id)`.
         - Announce to the user: "Automated branching complete. Switched to branch 'track/<track_id>' (derived from 'main')."
     c. **Read Files:**
-        - **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** and **Implementation Plan** for the selected track.
+        - **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** for the selected track. Context and tasks are loaded via `task_query`.
         - **Workflow:** Resolve **Workflow** (via the **Universal File Resolution Protocol** using the project's index file).
         - **Ubiquitous Language:** Resolve and read `superconductor/CONTEXT.md` (via the **Universal File Resolution Protocol**) so ubiquitous language is active during implementation.
     d. **Error Handling:** If you fail to read any of these files, you MUST stop and inform the user of the error.
     e. **Activate Relevant Skills:**
         - Check for the existence of installed skills in `.agents/skills/` (Workspace tier) and `~/.agents/extensions/superconductor/skills/` (Extension tier).
         - If either exists, list the subdirectories to identify available skills.
-        - Based on the track's **Specification**, **Implementation Plan**, and the **Product Definition**, determine if any installed skills are relevant to the track.
-        - **UI Auto-Activation Check:** If the track's **Specification** or **Implementation Plan** contains any of the following UI keywords (case-insensitive: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`), you MUST prompt the user using the `ask_user` tool to suggest activating the `design-heuristics` skill:
+        - Based on the track's **Specification**, task metadata, and the **Product Definition**, determine if any installed skills are relevant to the track.
+        - **UI Auto-Activation Check:** If the track's **Specification** or task descriptions contain any of the following UI keywords (case-insensitive: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`), you MUST prompt the user using the `ask_user` tool to suggest activating the `design-heuristics` skill:
             - **Question:** "This track contains UI/UX elements. Would you like to activate the `design-heuristics` skill to enforce visual design rules?" (type: "yesno").
             - **If yes:** Explicitly activate the `design-heuristics` skill and read its `SKILL.md` and reference files.
         - **CRITICAL:** For every relevant skill identified, ask the agent to activate it and read its `SKILL.md` and reference files.
@@ -171,7 +171,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
          - **CRITICAL REQUIREMENT:** You MUST unconditionally transition execution to the `swarm-orchestrate` skill protocol for BOTH Headless and Interactive modes, and halt normal sequential implement execution. Do NOT prompt the user to choose an execution mode.
        - **If `swarm-orchestrate` is NOT available:**
          - Proceed directly to 4.b (Sequential execution).
-    b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
+    b. **Announce:** State that you will now execute the tasks from the task provider by following the procedures in the **Workflow**.
     c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
        - **Review Triggers:**
          1. **Git Commit:** If the last commit message contains `ready-for-review` (case-insensitive).
@@ -199,7 +199,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
 **PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
 
-1.  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
+1.  **Execution Trigger:** This protocol MUST only be executed when all tasks for the track are marked completed in the DB (via `task_query`). DO NOT execute this protocol for any other track status changes.
 
 2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
 
@@ -222,7 +222,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                 - **type:** "yesno"
         - **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
 
-4.  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
+4.  **Load Track Context:** Read the track's **Specification** and query its tasks.
 
 5.  **Load Project Documents:**
     - Resolve and read:
@@ -231,7 +231,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **Product Guidelines**
 
 6.  **Analyze and Update:**
-    a.  **Analyze Specification and Plan:** Carefully analyze the **Specification** and **Implementation Plan** to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
+    a.  **Analyze Specification and Tasks:** Carefully analyze the **Specification** and the track's tasks to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
         ii. **Propose and Confirm Changes:** If an update is needed:
