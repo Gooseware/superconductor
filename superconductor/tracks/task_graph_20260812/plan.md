@@ -32,7 +32,7 @@
 ## Phase 7: Dreamer enhancement [checkpoint: 74bb8513]
 - [x] Modify the Dreamer agent prompt/system instructions to generate `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields within the task cards in `plan.md`.
 
-## Phase 8: Regression reviewer [checkpoint: a4b1c50d]
+## Phase 8: Regression reviewer [checkpoint: 7e1e8a84]
 - [x] Add invariant pre-check step to `agents/regression-reviewer/agent.md`.
 - [x] Ensure it queries `invariant_query()` and emits `REG-INV-N: CRITICAL` if paths are missing and not overridden.
 
