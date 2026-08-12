@@ -139,6 +139,15 @@ export class LibSQLTaskProvider {
     return { success: result.rowsAffected > 0 };
   }
 
+  async deleteTask(id: string): Promise<void> {
+    if (!this.initialized) await this.init();
+    await this.client.execute({
+      sql: `DELETE FROM tasks WHERE id = ?`,
+      args: [id]
+    });
+  }
+
+
   async queryTasks(args: {
     track_id?: string; status?: string; agent?: string; limit?: number;
   }): Promise<Array<TaskResult>> {
