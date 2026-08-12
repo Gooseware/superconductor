@@ -10,6 +10,7 @@ export class LanceDBTaskProvider implements TaskProvider {
   private connection: any = null;
   private table: any = null;
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
   
   constructor(workspacePath: string) {
     const resolvedWorkspace = path.resolve(workspacePath);
@@ -22,34 +23,58 @@ export class LanceDBTaskProvider implements TaskProvider {
 
   async init(): Promise<void> {
     if (this.initialized) return;
-    await this.inner.init();
-    
-    fs.mkdirSync(this.lancedbPath, { recursive: true });
-    const lancedb = await import('@lancedb/lancedb');
-    this.connection = await lancedb.connect(this.lancedbPath);
+    if (this.initPromise) return this.initPromise;
 
-    const taskSchema = new Schema([
-      new Field("id", new Utf8(), false),
-      new Field("track_id", new Utf8(), false),
-      new Field("title", new Utf8(), false),
-      new Field("description", new Utf8(), true),
-      new Field("status", new Utf8(), true),
-      new Field("agent", new Utf8(), true),
-      new Field("vector", new FixedSizeList(1536, new Field("item", new Float32(), false)), false)
-    ]);
+    this.initPromise = (async () => {
+      await this.inner.init();
+      
+      fs.mkdirSync(this.lancedbPath, { recursive: true });
+      const lancedb = await import('@lancedb/lancedb');
+      this.connection = await lancedb.connect(this.lancedbPath);
 
-    const tableNames = await this.connection.tableNames();
-    if (tableNames.includes('tasks')) {
-      this.table = await this.connection.openTable('tasks');
-    } else {
-      this.table = await this.connection.createEmptyTable('tasks', taskSchema);
+      const taskSchema = new Schema([
+        new Field("id", new Utf8(), false),
+        new Field("track_id", new Utf8(), false),
+        new Field("title", new Utf8(), false),
+        new Field("description", new Utf8(), true),
+        new Field("status", new Utf8(), true),
+        new Field("agent", new Utf8(), true),
+        new Field("vector", new FixedSizeList(1536, new Field("item", new Float32(), false)), false)
+      ]);
+
+      const tableNames = await this.connection.tableNames();
+      if (tableNames.includes('tasks')) {
+        this.table = await this.connection.openTable('tasks');
+      } else {
+        try {
+          this.table = await this.connection.createEmptyTable('tasks', taskSchema);
+        } catch (err: any) {
+          if (err?.message?.includes('already exists')) {
+            this.table = await this.connection.openTable('tasks');
+          } else {
+            throw err;
+          }
+        }
+      }
+      this.initialized = true;
+    })();
+
+    try {
+      await this.initPromise;
+    } finally {
+      this.initPromise = null;
     }
-    this.initialized = true;
   }
 
   async close(): Promise<void> {
     await this.inner.close();
+    if (this.connection) {
+      await this.connection.close();
+      this.connection = null;
+    }
+    this.table = null;
     this.initialized = false;
+    this.initPromise = null;
   }
 
   private async generateEmbedding(text: string): Promise<number[]> {
@@ -118,14 +143,10 @@ export class LanceDBTaskProvider implements TaskProvider {
     if (!this.initialized) await this.init();
     const res = await this.inner.updateTask(args);
     if (res.success && args.status && this.table) {
-      try {
-        await this.table.update({
-          where: `id = '${args.id.replace(/'/g, "''")}'`,
-          values: { status: args.status }
-        });
-      } catch {
-        // ignore update failure on table if column or method unsupported
-      }
+      await this.table.update({
+        where: `id = '${args.id.replace(/'/g, "''")}'`,
+        values: { status: args.status }
+      });
     }
     return res;
   }
