@@ -13,10 +13,10 @@
 - [x] Implement `LanceDBTaskProvider` and `task-provider-factory`.
 - [x] Verify vector embedding logic for task items.
 
-## Phase 3: MCP tools
-- Implement all 6 exact MCP tools (`task_create`, `task_update`, `task_query`, `invariant_query`, `invariant_override`, `task_get_invariants`) in `packages/task-store/src/mcp/handlers.ts` or directly within `superconductor-kernel`.
-- Register them in `superconductor-kernel`.
-- Add full test coverage for these tools.
+## Phase 3: MCP tools [checkpoint: aca4280d]
+- [x] Implement all 6 exact MCP tools (`task_create`, `task_update`, `task_query`, `invariant_query`, `invariant_override`, `task_get_invariants`) in `packages/task-store/src/mcp/handlers.ts` or directly within `superconductor-kernel`.
+- [x] Register them in `superconductor-kernel`.
+- [x] Add full test coverage for these tools.
 
 ## Phase 4: newTrack skill + sync-plan script
 - Update `newTrack` skill to parse `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields from `plan.md`.
