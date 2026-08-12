@@ -110,6 +110,42 @@ export class LibSQLTaskProvider {
         args.tier || null, args.agent || null, now, now
       ]
     });
+
+    if (args.protected && args.protected.length > 0) {
+      for (const p of args.protected) {
+        await this.createInvariant({
+          capability: args.invariant_after || args.title,
+          path: p,
+          rationale: args.description,
+          track_id: args.track_id,
+          task_id: id,
+          status: 'active'
+        });
+      }
+    } else if (args.invariant_after) {
+      if (args.creates && args.creates.length > 0) {
+        for (const p of args.creates) {
+          await this.createInvariant({
+            capability: args.invariant_after,
+            path: p,
+            rationale: args.description,
+            track_id: args.track_id,
+            task_id: id,
+            status: 'active'
+          });
+        }
+      } else {
+        await this.createInvariant({
+          capability: args.invariant_after,
+          path: '*',
+          rationale: args.description,
+          track_id: args.track_id,
+          task_id: id,
+          status: 'active'
+        });
+      }
+    }
+
     return { id };
   }
 
@@ -141,10 +177,16 @@ export class LibSQLTaskProvider {
 
   async deleteTask(id: string): Promise<void> {
     if (!this.initialized) await this.init();
-    await this.client.execute({
-      sql: `DELETE FROM tasks WHERE id = ?`,
-      args: [id]
-    });
+    await this.client.batch([
+      {
+        sql: `DELETE FROM invariants WHERE task_id = ?`,
+        args: [id]
+      },
+      {
+        sql: `DELETE FROM tasks WHERE id = ?`,
+        args: [id]
+      }
+    ], 'write');
   }
 
 

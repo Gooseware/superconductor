@@ -324,5 +324,32 @@ describe('LanceDBTaskProvider', () => {
       expect(overrides.length).toBe(1);
       expect(overrides[0].reason).toBe('Migrated to OAuth2');
     });
+
+    it('auto-seeds invariants during createTask and allows overrides', async () => {
+      const task = await provider.createTask({
+        track_id: 'track-lance-auto',
+        title: 'LanceDB Auto Invariant Task',
+        protected: ['src/lance/core.ts'],
+        invariant_after: 'Core must not degrade'
+      });
+
+      const invariants = await provider.queryInvariants({ track_id: 'track-lance-auto' });
+      expect(invariants.length).toBe(1);
+      expect(invariants[0].task_id).toBe(task.id);
+      expect(invariants[0].path).toBe('src/lance/core.ts');
+      expect(invariants[0].capability).toBe('Core must not degrade');
+
+      const override = await provider.createOverride({
+        invariant_id: invariants[0].id,
+        track_id: 'track-lance-override',
+        reason: 'Authorized core change'
+      });
+
+      expect(override.override_id).toMatch(/^ovr-/);
+
+      const updated = await provider.queryInvariants({ track_id: 'track-lance-auto' });
+      expect(updated[0].status).toBe('overridden');
+    });
   });
 });
+

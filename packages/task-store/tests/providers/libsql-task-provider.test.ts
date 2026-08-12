@@ -163,4 +163,47 @@ describe('LibSQLTaskProvider', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('auto-seeds invariants during task creation with protected and invariant_after', async () => {
+    const { id } = await provider.createTask({
+      track_id: 'track-auto-seed',
+      title: 'Auto Seed Task',
+      description: 'Task with invariants',
+      protected: ['src/auth/session.ts'],
+      invariant_after: 'The session validator MUST never bypass token signature checks.'
+    });
+
+    const invariants = await provider.queryInvariants({ track_id: 'track-auto-seed' });
+    expect(invariants.length).toBe(1);
+    expect(invariants[0].task_id).toBe(id);
+    expect(invariants[0].path).toBe('src/auth/session.ts');
+    expect(invariants[0].capability).toBe('The session validator MUST never bypass token signature checks.');
+
+    const { override_id } = await provider.createOverride({
+      invariant_id: invariants[0].id,
+      track_id: 'track-override',
+      reason: 'Overriding for testing'
+    });
+
+    expect(override_id).toMatch(/^ovr-/);
+
+    const updatedInvariants = await provider.queryInvariants({ track_id: 'track-auto-seed' });
+    expect(updatedInvariants[0].status).toBe('overridden');
+  });
+
+  it('auto-seeds invariants during task creation with invariant_after and creates (no protected)', async () => {
+    const { id } = await provider.createTask({
+      track_id: 'track-auto-seed-2',
+      title: 'Auto Seed Task 2',
+      creates: ['src/auth/guard.ts'],
+      invariant_after: 'Guard must be active'
+    });
+
+    const invariants = await provider.queryInvariants({ track_id: 'track-auto-seed-2' });
+    expect(invariants.length).toBe(1);
+    expect(invariants[0].task_id).toBe(id);
+    expect(invariants[0].path).toBe('src/auth/guard.ts');
+    expect(invariants[0].capability).toBe('Guard must be active');
+  });
 });
+
