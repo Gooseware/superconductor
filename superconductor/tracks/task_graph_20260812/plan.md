@@ -26,7 +26,7 @@
 ## Phase 5: implement skill [checkpoint: 41e8d0b9]
 - [x] Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
 
-## Phase 6: status skill [checkpoint: a4b1c50d]
+## Phase 6: status skill [checkpoint: 259b6397]
 - [x] Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via `task_query` or dedicated endpoint rather than regexing markdown.
 
 ## Phase 7: Dreamer enhancement
