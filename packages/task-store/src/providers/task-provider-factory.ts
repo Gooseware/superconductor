@@ -8,7 +8,7 @@ export async function createTaskProvider(workspacePath: string): Promise<TaskPro
     await provider.init();
     return provider;
   } catch (e) {
-    console.warn('⚠️ TaskStore: LanceDB unavailable, falling back to LibSQL only');
+    console.warn('⚠️ TaskStore: LanceDB unavailable, falling back to LibSQL only. Error:', e);
     try {
       await provider.close();
     } catch {

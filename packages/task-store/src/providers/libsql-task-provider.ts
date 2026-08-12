@@ -216,7 +216,11 @@ export class LibSQLTaskProvider {
     const safeParse = (val: unknown): string[] | undefined => {
       if (typeof val !== 'string' || !val) return undefined;
       try {
-        return JSON.parse(val);
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
+          return parsed;
+        }
+        return undefined;
       } catch {
         return undefined;
       }
