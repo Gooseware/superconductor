@@ -13,6 +13,19 @@ import {
 } from '../types.js';
 import { NotebookValidator, ValidationOptions } from '../validation/notebook-validator.js';
 
+
+function stringSimilarity(a: string, b: string): number {
+  if (a === b) return 1.0;
+  const setA = new Set(a.toLowerCase().split(/\s+/));
+  const setB = new Set(b.toLowerCase().split(/\s+/));
+  let intersection = 0;
+  for (const item of setA) {
+    if (setB.has(item)) intersection++;
+  }
+  const union = setA.size + setB.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
 export class LibSQLNotebookProvider implements INotebookProvider {
   private dbManager: LibSQLDatabaseManager;
   private dbPath: string;
@@ -96,6 +109,28 @@ export class LibSQLNotebookProvider implements INotebookProvider {
         args: [now, matchId],
       });
       return { id: matchId, deduplicated: true };
+    }
+
+
+    // Check for near-duplicates via Jaccard similarity fallback (COR-3)
+    const allRows = await this.client!.execute({
+      sql: `SELECT id, content FROM notebook_fts`,
+      args: [],
+    });
+    
+    for (const row of allRows.rows) {
+      if (typeof row.content === 'string') {
+        const sim = stringSimilarity(normalizedContent, row.content.trim().toLowerCase());
+        if (sim > 0.85) {
+          const matchId = String(row.id);
+          const now = Date.now();
+          await this.client!.execute({
+            sql: `UPDATE notebook_fts SET timestamp = ? WHERE id = ?`,
+            args: [now, matchId],
+          });
+          return { id: matchId, deduplicated: true };
+        }
+      }
     }
 
     const id = crypto.randomUUID();

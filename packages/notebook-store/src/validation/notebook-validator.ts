@@ -47,7 +47,7 @@ export class NotebookValidator {
 
   private static fallbackCounts: Record<string, number> = Object.create(null);
 
-  private static loadCounts(): Record<string, number> {
+  private static loadCounts(): Record<string, number> | null {
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
         const data = fs.readFileSync(NotebookValidator.cacheFilePath, 'utf-8');
@@ -59,7 +59,7 @@ export class NotebookValidator {
       }
     } catch(e) {
       console.error('Failed to load rate limits:', e);
-      return NotebookValidator.fallbackCounts;
+      return null;
     }
     return Object.create(null);
   }
@@ -117,17 +117,21 @@ export class NotebookValidator {
 
     // 4. Invocation rate limit: max 3 AGENT-authority writes per invocation_id
     const authority = NOTE_AUTHORITY[entry.note_type] ?? 'agent';
-    if (authority === 'agent' && options?.invocation_id) {
+    if (authority === 'agent') {
+      const invId = options?.invocation_id || `anon_${entry.session_id}`;
       const counts = NotebookValidator.loadCounts();
-      const count = counts[options.invocation_id] || 0;
+      if (counts === null) {
+        throw new Error("Rate limit cache corrupted");
+      }
+      const count = counts[invId] || 0;
       
       if (count >= 3) {
         throw new RateLimitError(
-          `Invocation '${options.invocation_id}' has reached maximum rate limit of 3 agent-authority notes`
+          `Invocation '${invId}' has reached maximum rate limit of 3 agent-authority notes`
         );
       }
       
-      counts[options.invocation_id] = count + 1;
+      counts[invId] = count + 1;
       NotebookValidator.saveCounts(counts);
     }
   }

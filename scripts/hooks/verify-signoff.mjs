@@ -15,6 +15,10 @@ const trackId = path.basename(rawTrackId);
 // Check --no-signoff in SUPERCONDUCTOR_FLAGS env var
 const flags = process.env.SUPERCONDUCTOR_FLAGS || '';
 if (flags.includes('--no-signoff')) {
+  if (!process.stdout.isTTY) {
+    console.error('BYPASS: --no-signoff is only allowed in interactive TTY prompts');
+    process.exit(1);
+  }
   try {
     const logDir = path.resolve('superconductor/logs');
     fs.mkdirSync(logDir, { recursive: true });
@@ -95,7 +99,7 @@ if (!sessionId) {
 
 const expectedKey = generateSignKey(sessionId, trackId, signOffRecord.timestamp);
 
-if (signOffRecord.sign_key !== expectedKey) {
+if (signOffRecord.sign_key.length !== expectedKey.length || !crypto.timingSafeEqual(Buffer.from(signOffRecord.sign_key), Buffer.from(expectedKey))) {
   console.error(`Sign key mismatch for track ${trackId}`);
   process.exit(1);
 }

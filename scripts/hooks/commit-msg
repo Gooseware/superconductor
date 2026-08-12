@@ -11,6 +11,11 @@ fi
 
 TRACK_ID=$(echo "$BRANCH" | sed 's|track/||')
 
+if ! grep -q "^Swarm-Authorized:" "$1"; then
+  echo "[Superconductor] Missing Swarm-Authorized: trailer in commit message."
+  exit 1
+fi
+
 # Read quorum state from LibSQL or verify-signoff script
 STATE_DB="${HOME}/.superconductor/quorum-state.db"
 LOCAL_DB="superconductor/quorum/quorum_state.db"

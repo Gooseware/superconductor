@@ -200,16 +200,18 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
     }
 
     let unresolvedCount = 0;
+    let successfullyParsed = false;
     if (require('node:fs').existsSync(findingsPath)) {
       try {
         const stateData = JSON.parse(require('node:fs').readFileSync(findingsPath, 'utf8'));
         if (stateData.findings && Array.isArray(stateData.findings)) {
           unresolvedCount = stateData.findings.filter((f: any) => f.status !== 'RESOLVED').length;
+          successfullyParsed = true;
         }
       } catch (e) {}
     }
 
-    if (unresolvedCount === 0) {
+    if (successfullyParsed && unresolvedCount === 0) {
       record.state = fsm.transition(record.state, 'ALL_PASSED').newState;
       await store.save(record);
     }

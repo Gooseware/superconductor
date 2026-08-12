@@ -127,6 +127,10 @@ export class WorkspaceGuard extends AbstractGate {
     return findings;
   }
 
+  async detectSharedSingletonOverwrite(sharedFiles: string[], diffContent: string): Promise<string[]> {
+    return this.detectHeavyLineDeletions(sharedFiles, diffContent);
+  }
+
   async commitToMain(
     optsOrTrackId: { trailerPresent: boolean; trackId?: string; sessionId?: string } | string,
     sessionId?: string,

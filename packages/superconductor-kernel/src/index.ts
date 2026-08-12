@@ -547,7 +547,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: "Write a note to the Superconductor Notebook (max 280 chars, rate-limited to 3 per invocation)",
         inputSchema: {
           type: "object",
-          maxCallsPerSession: 3,
           properties: {
             note_type: { type: "string", enum: ["spec", "design", "style", "quorum", "preference", "procedure", "failure", "dependency", "warning"], description: "Type of note" },
             content: { type: "string", maxLength: 280, description: "Note content (max 280 characters)" },

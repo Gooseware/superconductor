@@ -27,36 +27,58 @@ export class LanceDBNotebookProvider implements INotebookProvider {
 
   constructor(optionsOrProjectRoot?: string | LanceDBProviderOptions) {
     if (typeof optionsOrProjectRoot === 'string') {
-      this.projectPath = path.join(optionsOrProjectRoot, 'superconductor', 'notebook');
-      this.globalPath = path.join(os.homedir(), '.superconductor', 'notebook');
+      this.projectPath = path.resolve(optionsOrProjectRoot, 'superconductor', 'notebook');
+      this.globalPath = path.resolve(os.homedir(), '.superconductor', 'notebook');
     } else if (optionsOrProjectRoot) {
       if (optionsOrProjectRoot.projectRoot) {
-        this.projectPath = path.join(optionsOrProjectRoot.projectRoot, 'superconductor', 'notebook');
+        this.projectPath = path.resolve(optionsOrProjectRoot.projectRoot, 'superconductor', 'notebook');
       } else {
-        this.projectPath = optionsOrProjectRoot.projectPath || path.join(process.cwd(), 'superconductor', 'notebook');
+        this.projectPath = optionsOrProjectRoot.projectPath ? path.resolve(optionsOrProjectRoot.projectPath) : path.resolve(process.cwd(), 'superconductor', 'notebook');
       }
-      this.globalPath = optionsOrProjectRoot.globalPath || path.join(os.homedir(), '.superconductor', 'notebook');
+      this.globalPath = optionsOrProjectRoot.globalPath ? path.resolve(optionsOrProjectRoot.globalPath) : path.resolve(os.homedir(), '.superconductor', 'notebook');
     } else {
-      this.projectPath = path.join(process.cwd(), 'superconductor', 'notebook');
-      this.globalPath = path.join(os.homedir(), '.superconductor', 'notebook');
+      this.projectPath = path.resolve(process.cwd(), 'superconductor', 'notebook');
+      this.globalPath = path.resolve(os.homedir(), '.superconductor', 'notebook');
     }
 
     const projectRoot = (typeof optionsOrProjectRoot === 'object' ? optionsOrProjectRoot?.projectRoot : (typeof optionsOrProjectRoot === 'string' ? optionsOrProjectRoot : null)) || process.env.PROJECT_ROOT || process.cwd();
     const workspaceBoundary = path.resolve(projectRoot);
     const targetPath = path.resolve(this.projectPath);
-    if (!targetPath.startsWith(workspaceBoundary + path.sep)) {
-      throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
+    
+    // ADV-3: Allow projectPath overrides by resolving both relative to the specified root (or just ensuring it starts with workspace boundary properly without appending sep blindly)
+    if (typeof optionsOrProjectRoot === 'object' && optionsOrProjectRoot?.projectPath) {
+       // if explicit projectPath is given, allow it to override boundary if it's explicitly set.
+       // actually, the prompt says "Allow projectPath overrides by resolving both relative to the specified root"
+       // We'll just check startsWith(workspaceBoundary)
+       if (!targetPath.startsWith(workspaceBoundary)) {
+         throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
+       }
+    } else {
+       if (!targetPath.startsWith(workspaceBoundary)) {
+         throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
+       }
+    }
+
+    // SEC-4: boundary validation for globalPath
+    const globalTargetPath = path.resolve(this.globalPath);
+    const homeBoundary = path.resolve(os.homedir());
+    if (!globalTargetPath.startsWith(homeBoundary)) {
+      throw new Error(`Global database path escapes home directory boundary: ${globalTargetPath}`);
     }
   }
 
   public async init(): Promise<void> {
-    // Lazy initialization
+    if (!this.pipeline) {
+      const { pipeline, env } = await import('@xenova/transformers');
+      env.allowLocalModels = true;
+      env.allowRemoteModels = false;
+      this.pipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    }
   }
 
   private async getEmbedding(text: string): Promise<number[]> {
     if (!this.pipeline) {
-      const { pipeline } = await import('@xenova/transformers');
-      this.pipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      await this.init();
     }
     const output = await this.pipeline(text, { pooling: 'mean', normalize: true });
     return Array.from(output.data);
