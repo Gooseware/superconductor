@@ -1,6 +1,7 @@
 import { createClient, Client } from '@libsql/client';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { TaskResult, InvariantResult, OverrideResult } from '../types.js';
 
 export class LibSQLTaskProvider {
@@ -8,14 +9,20 @@ export class LibSQLTaskProvider {
   private initialized = false;
 
   constructor(workspacePath: string) {
-    const dbDir = path.join(workspacePath, '.superconductor');
+    const resolvedWorkspace = path.resolve(workspacePath);
+    const dbDir = path.join(resolvedWorkspace, '.superconductor');
+    const targetPath = path.join(dbDir, 'tasks.db');
+
+    if (!targetPath.startsWith(resolvedWorkspace)) {
+      throw new Error(`Target path ${targetPath} is outside workspace boundary ${resolvedWorkspace}`);
+    }
+
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }
-    const dbPath = path.join(dbDir, 'tasks.db');
     
     this.client = createClient({
-      url: `file:${dbPath}`,
+      url: `file:${targetPath}`,
     });
   }
 
@@ -86,7 +93,8 @@ export class LibSQLTaskProvider {
     creates?: string[]; protected?: string[]; invariant_after?: string;
     dependencies?: string[]; tier?: string; agent?: string;
   }): Promise<{ id: string }> {
-    const id = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    if (!this.initialized) await this.init();
+    const id = `task-${randomUUID()}`;
     const now = Date.now();
     await this.client.execute({
       sql: `INSERT INTO tasks (
@@ -108,6 +116,7 @@ export class LibSQLTaskProvider {
   async updateTask(args: {
     id: string; status?: 'pending'|'in_progress'|'completed'|'blocked'; committed_sha?: string;
   }): Promise<{ success: boolean }> {
+    if (!this.initialized) await this.init();
     const sets = [];
     const sqlArgs: any[] = [];
     if (args.status) {
@@ -123,16 +132,17 @@ export class LibSQLTaskProvider {
     sqlArgs.push(Date.now());
     sqlArgs.push(args.id);
     
-    await this.client.execute({
+    const result = await this.client.execute({
       sql: `UPDATE tasks SET ${sets.join(', ')} WHERE id = ?`,
       args: sqlArgs
     });
-    return { success: true };
+    return { success: result.rowsAffected > 0 };
   }
 
   async queryTasks(args: {
     track_id?: string; status?: string; agent?: string; limit?: number;
   }): Promise<Array<TaskResult>> {
+    if (!this.initialized) await this.init();
     let sql = 'SELECT * FROM tasks WHERE 1=1';
     const sqlArgs: any[] = [];
     if (args.track_id) {
@@ -152,12 +162,21 @@ export class LibSQLTaskProvider {
       sqlArgs.push(args.limit);
     }
 
+    const safeParse = (val: unknown): string[] | undefined => {
+      if (typeof val !== 'string' || !val) return undefined;
+      try {
+        return JSON.parse(val);
+      } catch {
+        return undefined;
+      }
+    };
+
     const result = await this.client.execute({ sql, args: sqlArgs });
     return result.rows.map(row => ({
       ...row,
-      creates: row.creates ? JSON.parse(row.creates as string) : undefined,
-      protected: row.protected ? JSON.parse(row.protected as string) : undefined,
-      dependencies: row.dependencies ? JSON.parse(row.dependencies as string) : undefined
+      creates: safeParse(row.creates),
+      protected: safeParse(row.protected),
+      dependencies: safeParse(row.dependencies)
     })) as unknown as TaskResult[];
   }
 
@@ -165,7 +184,8 @@ export class LibSQLTaskProvider {
     capability: string; path: string; rationale?: string; track_id?: string;
     task_id?: string; removable_if?: string; status?: 'active'|'overridden'|'untriaged';
   }): Promise<{ id: string }> {
-    const id = `inv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    if (!this.initialized) await this.init();
+    const id = `inv-${randomUUID()}`;
     const now = Date.now();
     await this.client.execute({
       sql: `INSERT INTO invariants (
@@ -182,6 +202,7 @@ export class LibSQLTaskProvider {
   async queryInvariants(args: {
     status?: 'active'|'overridden'|'untriaged'; path?: string; capability?: string; track_id?: string;
   }): Promise<Array<InvariantResult>> {
+    if (!this.initialized) await this.init();
     let sql = 'SELECT * FROM invariants WHERE 1=1';
     const sqlArgs: any[] = [];
     if (args.status) {
@@ -208,21 +229,48 @@ export class LibSQLTaskProvider {
   async createOverride(args: {
     invariant_id: string; track_id: string; reason: string;
   }): Promise<{ override_id: string }> {
-    const id = `ovr-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    if (!this.initialized) await this.init();
+    const id = `ovr-${randomUUID()}`;
     const now = Date.now();
     
-    // start transaction if possible, or just two statements
-    await this.client.execute({
-      sql: `INSERT INTO invariant_overrides (id, invariant_id, track_id, reason, status, created_at)
-            VALUES (?, ?, ?, ?, 'active', ?)`,
-      args: [id, args.invariant_id, args.track_id, args.reason, now]
-    });
-    
-    await this.client.execute({
-      sql: `UPDATE invariants SET status = 'overridden', updated_at = ? WHERE id = ?`,
-      args: [now, args.invariant_id]
-    });
+    await this.client.batch([
+      {
+        sql: `INSERT INTO invariant_overrides (id, invariant_id, track_id, reason, status, created_at)
+              VALUES (?, ?, ?, ?, 'active', ?)`,
+        args: [id, args.invariant_id, args.track_id, args.reason, now]
+      },
+      {
+        sql: `UPDATE invariants SET status = 'overridden', updated_at = ? WHERE id = ?`,
+        args: [now, args.invariant_id]
+      }
+    ], 'write');
 
     return { override_id: id };
   }
+
+  async queryOverrides(args: {
+    invariant_id?: string;
+    track_id?: string;
+    status?: 'active' | 'revoked';
+  }): Promise<Array<OverrideResult>> {
+    if (!this.initialized) await this.init();
+    let sql = 'SELECT * FROM invariant_overrides WHERE 1=1';
+    const sqlArgs: any[] = [];
+    if (args.invariant_id) {
+      sql += ' AND invariant_id = ?';
+      sqlArgs.push(args.invariant_id);
+    }
+    if (args.track_id) {
+      sql += ' AND track_id = ?';
+      sqlArgs.push(args.track_id);
+    }
+    if (args.status) {
+      sql += ' AND status = ?';
+      sqlArgs.push(args.status);
+    }
+
+    const result = await this.client.execute({ sql, args: sqlArgs });
+    return result.rows as unknown as OverrideResult[];
+  }
 }
+
