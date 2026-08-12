@@ -269,6 +269,10 @@ describe('LanceDBTaskProvider', () => {
       }
 
       expect(errorCaught).toBe(true);
+
+      const innerTasks = await (provider as any).inner.queryTasks({ track_id: 'track-update-fail' });
+      expect(innerTasks.length).toBe(1);
+      expect(innerTasks[0].status).toBe('pending');
     });
   });
 
