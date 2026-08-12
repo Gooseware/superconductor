@@ -60,6 +60,7 @@ export interface TaskProvider {
     track_id?: string;
     status?: string;
     agent?: string;
+    semantic_query?: string;
     limit?: number;
   }): Promise<TaskResult[]>;
   createInvariant(args: {

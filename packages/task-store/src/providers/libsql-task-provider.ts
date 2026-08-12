@@ -89,7 +89,7 @@ export class LibSQLTaskProvider {
   }
 
   async createTask(args: {
-    track_id: string; title: string; description: string;
+    track_id: string; title: string; description?: string;
     creates?: string[]; protected?: string[]; invariant_after?: string;
     dependencies?: string[]; tier?: string; agent?: string;
   }): Promise<{ id: string }> {

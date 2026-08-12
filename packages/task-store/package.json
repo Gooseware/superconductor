@@ -12,8 +12,9 @@
   },
   "dependencies": {
     "@lancedb/lancedb": "^0.20.0",
+    "@libsql/client": "^0.17.0",
     "@superconductor/core": "workspace:*",
-    "@libsql/client": "^0.17.0"
+    "apache-arrow": "^18.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
