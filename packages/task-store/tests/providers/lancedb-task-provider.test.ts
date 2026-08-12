@@ -10,6 +10,28 @@ describe('LanceDBTaskProvider', () => {
   beforeEach(async () => {
     tmpDir = fs.mkdtempSync(path.join(process.cwd(), 'lancedb-task-test-'));
     provider = new LanceDBTaskProvider(tmpDir);
+    // Mock generateEmbedding to use deterministic word-count hashing for tests
+    vi.spyOn(provider as any, 'generateEmbedding').mockImplementation(async (text: string) => {
+      const DIM = 1536;
+      const vector = new Array(DIM).fill(0);
+      const tokens = text.toLowerCase().split(/\W+/).filter(Boolean);
+      if (tokens.length === 0) return vector;
+      for (const token of tokens) {
+        let hash = 5381;
+        for (let i = 0; i < token.length; i++) {
+          hash = ((hash << 5) + hash) + token.charCodeAt(i);
+          hash = hash & hash;
+        }
+        const idx = Math.abs(hash) % DIM;
+        vector[idx] += 1;
+      }
+      const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+      if (magnitude > 0) {
+        for (let i = 0; i < DIM; i++) vector[i] /= magnitude;
+      }
+      return vector;
+    });
+
     await provider.init();
   });
 

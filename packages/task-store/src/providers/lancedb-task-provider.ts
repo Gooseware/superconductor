@@ -78,22 +78,20 @@ export class LanceDBTaskProvider implements TaskProvider {
   }
 
   private async generateEmbedding(text: string): Promise<number[]> {
+    const crypto = await import('node:crypto');
     const DIM = 1536;
     const vector = new Array(DIM).fill(0);
-    const tokens = text.toLowerCase().split(/\W+/).filter(Boolean);
     
-    if (tokens.length === 0) {
+    if (!text.trim()) {
       return vector;
     }
 
-    for (const token of tokens) {
-      let hash = 5381;
-      for (let i = 0; i < token.length; i++) {
-        hash = ((hash << 5) + hash) + token.charCodeAt(i);
-        hash = hash & hash;
-      }
-      const idx = Math.abs(hash) % DIM;
-      vector[idx] += 1;
+    const hash = crypto.createHash('sha256').update(text).digest();
+    
+    for (let i = 0; i < DIM; i++) {
+      const byteIdx = i % 32;
+      const val = (hash[byteIdx] / 255.0) * 2 - 1; 
+      vector[i] = val;
     }
 
     const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
@@ -128,8 +126,8 @@ export class LanceDBTaskProvider implements TaskProvider {
     } catch (err) {
       try {
         await this.inner.deleteTask(res.id);
-      } catch {
-        // ignore rollback error
+      } catch (rollbackErr) {
+        console.error(`[CRITICAL] Rollback failed for createTask (ID: ${res.id}):`, rollbackErr);
       }
       throw err;
     }
@@ -160,8 +158,8 @@ export class LanceDBTaskProvider implements TaskProvider {
               status: previousTask.status,
               committed_sha: previousTask.committed_sha
             });
-          } catch {
-            // ignore rollback error
+          } catch (rollbackErr) {
+            console.error(`[CRITICAL] Rollback failed for updateTask (ID: ${args.id}):`, rollbackErr);
           }
         }
         throw err;
