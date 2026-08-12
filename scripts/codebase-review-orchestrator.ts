@@ -50,7 +50,8 @@ export async function orchestrateCodebaseReview(options: CodebaseReviewOptions):
     await execFileAsync('antigravity', ['--oracle-synthesis']);
   } catch (err: any) {
     console.error(`[CodebaseReviewOrchestrator] Oracle synthesis failed: ${err.message}`);
+    throw err;
   }
 }
 
-
+export const orchestrateCopdebaseReview = orchestrateCodebaseReview;

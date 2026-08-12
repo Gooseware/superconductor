@@ -538,7 +538,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             domain: { type: "string", description: "Filter by domain" },
             note_types: { type: "array", items: { type: "string" }, description: "Filter by note types" },
             severity: { type: "string", description: "Filter by severity (info, warning, critical)" },
-            limit: { type: "number", description: "Maximum number of notes to return" }
+            limit: { type: "number", description: "Maximum number of notes to return" },
+            track_id: { type: "string", description: "Track ID" },
+            session_id: { type: "string", description: "Session ID" }
           }
         }
       },
@@ -579,7 +581,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
-            outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" }
+            outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" },
+            track_id: { type: "string", description: "Track ID" },
+            session_id: { type: "string", description: "Session ID" }
           }
         }
       }

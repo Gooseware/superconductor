@@ -242,7 +242,7 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
             '--domain', values.domain || 'codebase',
             '--severity', 'info',
             '--invocation_id', Date.now().toString(),
-            '--reviewer_token', finding.reviewer_id || record.reviewer_session_id || ''
+            '--reviewer_token', finding.reviewer_id || record.reviewer_session_id || record.session_id || ''
           ]);
           invoked = true;
         }
@@ -256,11 +256,12 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
           '--domain', values.domain || 'codebase',
           '--severity', 'info',
           '--invocation_id', Date.now().toString(),
-          '--reviewer_token', record.reviewer_session_id || ''
+          '--reviewer_token', record.reviewer_session_id || record.session_id || ''
         ]);
       }
     } catch (e: any) {
       console.error(`[QuorumFSM] Failed to emit notebook_write: ${e.message}`);
+      return exit(1) as never;
     }
   }
 

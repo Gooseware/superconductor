@@ -50,11 +50,11 @@ export class LanceDBNotebookProvider implements INotebookProvider {
        // if explicit projectPath is given, allow it to override boundary if it's explicitly set.
        // actually, the prompt says "Allow projectPath overrides by resolving both relative to the specified root"
        // We'll just check startsWith(workspaceBoundary)
-       if (!targetPath.startsWith(workspaceBoundary)) {
+       if (!(targetPath.startsWith(workspaceBoundary + path.sep) || targetPath === workspaceBoundary)) {
          throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
        }
     } else {
-       if (!targetPath.startsWith(workspaceBoundary)) {
+       if (!(targetPath.startsWith(workspaceBoundary + path.sep) || targetPath === workspaceBoundary)) {
          throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
        }
     }
@@ -151,7 +151,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
       // Check vector cosine similarity
       if (allRows.length > 0) {
         const searchResults = await existingTable.search(vector).distanceType('cosine').limit(1).toArray();
-        if (searchResults.length > 0 && searchResults[0]._distance !== undefined && searchResults[0]._distance < 0.05) {
+        if (searchResults.length > 0 && searchResults[0]._distance !== undefined && searchResults[0]._distance <= 0.05) {
           const match = searchResults[0];
           await existingTable.update({
             where: `id = '${match.id}'`,

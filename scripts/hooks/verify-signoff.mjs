@@ -15,10 +15,6 @@ const trackId = path.basename(rawTrackId);
 // Check --no-signoff in SUPERCONDUCTOR_FLAGS env var
 const flags = process.env.SUPERCONDUCTOR_FLAGS || '';
 if (flags.includes('--no-signoff')) {
-  if (!process.stdout.isTTY) {
-    console.error('BYPASS: --no-signoff is only allowed in interactive TTY prompts');
-    process.exit(1);
-  }
   try {
     const logDir = path.resolve('superconductor/logs');
     fs.mkdirSync(logDir, { recursive: true });

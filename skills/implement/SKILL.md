@@ -11,7 +11,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 
 
 ## 0.5 Intelligence Preflight (MANDATORY — no exceptions)
-1. Call MCP tool: `kernel_intelligence_status()` 
+1. Call MCP tool: `kernel_intelligence_status({ track_id: <track_id>, session_id: <session_id> })` 
 2. Your response MUST begin with this header block or the correctness reviewer will FAIL you:
 
 ```
@@ -26,7 +26,7 @@ node packages/superconductor-core/dist/intelligence/cli-update.js <changed_files
 3. Record in quorum state: `intelligenceStatusChecked: true`
 
 ## 0.6 Notebook Preflight (MANDATORY — no exceptions)
-Call MCP tool: `notebook_query({ files: <task_files>, domain: <domain>, limit: 5 })`
+Call MCP tool: `notebook_query({ files: <task_files>, domain: <domain>, limit: 5, track_id: <track_id>, session_id: <session_id> })`
 
 Append to header block:
 ```

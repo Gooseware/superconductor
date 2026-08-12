@@ -69,7 +69,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - ⚠️ WARNING notes shown prominently
    - 🛑 CRITICAL notes shown as blockers before proceeding
    - ℹ️ DECISION notes shown as context
-3. Call MCP tool: `notebook_query({ note_types: ["quorum","warning"], limit: 10 })`
+3. Call MCP tool: `notebook_query({ note_types: ["quorum","warning"], limit: 10, track_id: <track_id>, session_id: <session_id> })`
 4. If notes found → inject as "## ⚠️ Known Fragile Areas (Prior Quorum Findings)" in plan.md template
 5. If 0 notes found in both calls → proceed normally (no section injected)
 
