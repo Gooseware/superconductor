@@ -49,7 +49,8 @@ describe('taskProviderFactory', () => {
 
     expect(initSpy).toHaveBeenCalled();
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('LanceDB unavailable, falling back to LibSQL only')
+      expect.stringContaining('LanceDB unavailable, falling back to LibSQL only'),
+      expect.any(Error)
     );
     expect(provider).toBeInstanceOf(LibSQLTaskProvider);
     expect(provider).not.toBeInstanceOf(LanceDBTaskProvider);
