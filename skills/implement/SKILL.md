@@ -74,11 +74,11 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
 1.  **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
 
-2.  **Locate and Parse Tracks Registry:**
-    - Resolve the **Tracks Registry**.
-    - Read and parse this file. Identify all tracks, extracting their status (`[ ]`, `[~]`, `[x]`), description, and directory link.
+2.  **Query Task Provider:**
+    - Call the MCP tool `task_query({ status: 'pending' })` (or equivalent) to fetch tracks/tasks that need implementation.
+    - Extract their status, description, and directory link/metadata from the query results.
 
-3.  **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
+3.  **Identify Available Tracks:** Use the results from `task_query` to find tracks that are new or in progress.
 
 4.  **Selection and Initiation:**
     - **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
@@ -122,8 +122,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 1.  **Announce Action:** Announce which track you are beginning to implement.
 
 2.  **Update Status to 'In Progress':**
-    - Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
-    - This requires finding the specific heading for the track (e.g., `## [ ] Track: <Description>`) and replacing it with the updated status (e.g., `## [~] Track: <Description>`) in the **Tracks Registry** file you identified earlier.
+    - Before beginning any work, you MUST update the status of the selected track via the task provider (e.g., using `task_update` or equivalent tool) rather than manually editing a Tracks Registry file.
 
 3.  **Load Track Context & Manage Branch:**
     a. **Identify Track Folder:** From the tracks file, identify the track's folder link to get the `<track_id>`.
@@ -148,10 +147,10 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
 3.1 **Optional Plan Verification:**
     - **Headless Automation (`--headless`):** Skip this verification step.
-    - **Ask for Verification:** Use the `ask_user` tool to ask if the user wants an AI model to audit the existing `plan.md` before starting tasks.
+    - **Ask for Verification:** Use the `ask_user` tool to ask if the user wants an AI model to audit the existing tasks before starting.
         - **questions:**
             - **header:** "Plan Verification"
-            - **question:** "Would you like an AI model to audit and verify the existing `plan.md` before execution begins?"
+            - **question:** "Would you like an AI model to audit and verify the existing tasks before execution begins?"
             - **type:** "yesno"
     - **If yes:**
         - First, run `agy models` to fetch the list of available models.
@@ -161,9 +160,9 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                 - **question:** "Which model should verify the plan?"
                 - **type:** "choice"
                 - **options:** (Populate dynamically with the models returned by `agy models`)
-        - **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
-        - If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
-        - If approved, update `plan.md`.
+        - **Action:** Transition into a verification loop: Prompt the selected model to review the tasks against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
+        - If the model suggests changes, use `ask_user` to present the proposed updates and ask for approval (type: "yesno").
+        - If approved, update the tasks via the task provider.
 
 4.  **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Orchestration Skill:**
@@ -177,11 +176,11 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
        - **Review Triggers:**
          1. **Git Commit:** If the last commit message contains `ready-for-review` (case-insensitive).
          2. **CLI Command:** If the user has just run `/superconductor:review`.
-         3. **Plan Update:** If a task in `plan.md` is marked as `(READY FOR REVIEW)`.
+         3. **Plan Update:** If a task from the task provider is marked as `(READY FOR REVIEW)`.
        - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
-    d. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan one by one.**
+    d. **Iterate Through Tasks:** Use the MCP tool `task_query` (or equivalent) to fetch pending tasks for the current track. You MUST loop through each task one by one.
     e. **For Each Task, You MUST:**
-        i. **Determine Task Tier:** Read the parent task line in `plan.md` to parse the `[TIER-N]` annotation at the end of the line. If no annotation is found, default to `[TIER-3]`.
+        i. **Determine Task Tier:** Inspect the task metadata provided by `task_query` to identify its tier (e.g., `[TIER-N]`). If no tier is found in the metadata, default to `[TIER-3]`.
         ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
         iii. **Tier-Aware Execution Rules:**
             - **For `[TIER-1]` Tasks:** Execute any script, file existence checks, git operations, or test commands directly via `run_shell_command` (zero inference cost). Capture the exit status and stdout/stderr, and pass them back as structured input to the context. The agent will interpret the results (e.g. verifying a build or test run) deterministically.
@@ -193,10 +192,8 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
            - **SYSTEMATIC BUG DIAGNOSIS:** During the testing feedback loop, if tests fail, you MUST employ Systematic Bug Diagnosis heuristics (isolate variables, trace execution, state assumptions clearly) rather than blindly patching code.
 
 5.  **Finalize Track:**
-    - After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
-    - This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
-    - **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(superconductor): Mark track '<track_description>' as complete`.
-    - Announce that the track is fully complete and the tracks file has been updated.
+    - After all tasks for the track are completed, you MUST update the track's status via the task provider (e.g., `task_update({ status: 'completed' })`).
+    - Announce that the track is fully complete and its status has been updated.
 
 
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
@@ -407,7 +404,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 2.  **Audit Phase:**
     - The agent (using the user-selected model) executes the audit objectives:
         - Compare code against `spec.md`.
-        - Verify all `plan.md` tasks are complete.
+        - Verify all assigned tasks are complete.
         - Check `tech-stack.md` and `code_styleguides/`.
         - Scan for feature gaps and DRY violations.
     - **Generate Report:** Output the `Oracle Audit Report` according to the template.
@@ -416,7 +413,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - Load `skills/review/SKILL.md` §4.0 Adversarial Audit Protocol.
     - Execute the full protocol in sequence:
         - **§4.1 Undefined Path Hunting:** For every conditional block in the diff, find implicit branches. Flag any `if <X>` with no explicit `else` or fallthrough as `CRITICAL`.
-        - **§4.2 Plan Task Integrity:** For every task marked `[x]` in `plan.md`, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
+        - **§4.2 Plan Task Integrity:** For every task marked as complete by the task provider, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
         - **§4.3 Test Coverage Legitimacy:** Count new test files in the diff. If behavioral changes were added but zero new tests were written, flag as `HIGH`. Verify "tests passed" means *new code* was covered, not just that old code didn't break.
         - **§4.4 "Recommended" Label Audit:** For every prompt option or default labeled "Recommended", verify the recommendation is context-qualified, not blanket.
         - **§4.5 Shenanigan Checklist:** Run all 8 checks — grade inflation, no-op task completions, spec drift, missing else, self-referential verification, hollow tests, optimistic closures, prerequisite+shortcut traps.
@@ -435,8 +432,8 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **Action:** Transition to **Remediation Phase Generation**.
         - **Protocol:**
             i.   **Extract Feedback:** Identify the specific issues or tasks from the Oracle report that require manual intervention.
-            ii.  **Identify Iteration:** Determine the next iteration number (e.g., check `plan.md` for existing `Review Remediation (Iteration X)` phases).
-            iii. **Generate Phase:** Use the **PhaseGenerator** utility to append a new `## Review Remediation (Iteration X)` phase to the track's `plan.md`.
+            ii.  **Identify Iteration:** Determine the next iteration number.
+            iii. **Generate Phase:** Use the task provider to add a new `Review Remediation (Iteration X)` task or phase.
             iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
     - If the report suggests **Kernel Sync Candidates**:
         - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `superconductor-kernel`. Would you like me to publish them now?" (type: "yesno")
