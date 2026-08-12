@@ -18,7 +18,7 @@
 - [x] Register them in `superconductor-kernel`.
 - [x] Add full test coverage for these tools.
 
-## Phase 4: newTrack skill + sync-plan script
+## Phase 4: newTrack skill + sync-plan script [checkpoint: 9a030b36]
 - [x] Update `newTrack` skill to parse `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields from `plan.md`.
 - [x] Call `task_create` for each parsed task.
 - [x] Create/update a `sync-plan` script that pulls state from DB and rewrites `plan.md` checkboxes.
