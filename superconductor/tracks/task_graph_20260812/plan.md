@@ -1,12 +1,12 @@
 # Implementation Plan: Task Graph + Invariant Ledger
 
-## Phase 0: Swarm Preflight
-- Setup test environments and verify current baseline `tsc --noEmit` passes.
+## Phase 0: Swarm Preflight [checkpoint: fb02f4bd]
+- [x] Setup test environments and verify current baseline `tsc --noEmit` passes.
 
-## Phase 1: task-store libSQL
-- Create `packages/task-store/` following the exact structure specified (like `notebook-store`).
-- Define libSQL schema for `tasks`, `invariants`, and `invariant_overrides` with all required fields.
-- Implement `LibSQLTaskProvider` and migration logic.
+## Phase 1: task-store libSQL [checkpoint: fb02f4bd]
+- [x] Create `packages/task-store/` following the exact structure specified (like `notebook-store`).
+- [x] Define libSQL schema for `tasks`, `invariants`, and `invariant_overrides` with all required fields.
+- [x] Implement `LibSQLTaskProvider` and migration logic.
 
 ## Phase 2: task-store LanceDB
 - Implement LanceDB integration within `task-store` using the exact `taskSchema`.
