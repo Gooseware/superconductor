@@ -5,7 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./dist/*": "./dist/*"
+  },
   "scripts": {
     "build": "npx --package typescript tsc",
     "test": "npx --package vitest vitest run"

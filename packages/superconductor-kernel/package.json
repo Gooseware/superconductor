@@ -12,6 +12,7 @@
     "@libsql/client": "^0.17.0",
     "@modelcontextprotocol/sdk": "^1.6.0",
     "@superconductor/notebook-store": "workspace:*",
+    "@superconductor/task-store": "workspace:*",
     "simple-git": "^3.30.0",
     "ts-morph": "^27.0.2",
     "zod": "^3.25.76"
