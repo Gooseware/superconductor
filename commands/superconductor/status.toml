@@ -27,18 +27,17 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 ## 2.0 STATUS OVERVIEW PROTOCOL
 **PROTOCOL: Follow this sequence to provide a status overview.**
 
-### 2.1 Read Project Plan
-1.  **Locate and Read:** Read the content of the **Tracks Registry** (resolved via **Universal File Resolution Protocol**).
+### 2.1 Retrieve Status from Task Store
+1.  **Query Task Store:** Use `task_query` or the dedicated `task-store` endpoint to pull real-time statuses and aggregations for all registered tracks. Do NOT manually parse or regex markdown files for track progress.
 2.  **Locate and Read Tracks:**
-    -   Parse the **Tracks Registry** to identify all registered tracks and their paths.
-        *   **Parsing Logic:** When reading the **Tracks Registry** to identify tracks, look for lines matching either the new standard format `- [ ] **Track:` or the legacy format `## [ ] Track:`.
-    -   For each track, resolve and read its **Implementation Plan** (using **Universal File Resolution Protocol** via the track's index file).
+    -   Retrieve track metadata and paths directly from the `task-store` response.
+    -   Identify active and pending tracks programmatically.
 
 ### 2.2 Parse and Summarize Plan
-1.  **Parse Content:**
-    -   Identify major project phases/sections (e.g., top-level markdown headings).
-    -   Identify individual tasks and their current status (e.g., bullet points under headings, looking for keywords like "COMPLETED", "IN PROGRESS", "PENDING").
-2.  **Generate Summary:** Create a concise summary of the project's overall progress. This should include:
+1.  **Process Aggregations:**
+    -   Identify major project phases/sections from the structured task store data.
+    -   Extract individual tasks and their current statuses ("COMPLETED", "IN PROGRESS", "PENDING") directly from the task store fields.
+2.  **Generate Summary:** Create a concise summary of the project's overall progress based on task store data. This should include:
     -   The total number of major phases.
     -   The total number of tasks.
     -   The number of tasks completed, in progress, and pending.
