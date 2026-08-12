@@ -231,11 +231,15 @@ After generating the plan draft:
     *   Write the confirmed plan content to `<Tracks Directory>/<track_id>/plan.md`.
     *   Write the index file to `<Tracks Directory>/<track_id>/index.md`.
     *   **CRITICAL:** Generate the permission manifest by running `npx superconductor infer-permissions <Tracks Directory>/<track_id>/spec.md <Tracks Directory>/<track_id>/permission-manifest.toml`.
-6.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `<Tracks Directory>/<track_id>/index.md`.
-7.  **Update Tracks Registry:** Append a new section for the track to the end of the tracks file.
-8.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
-9.  **Announce Completion:** Inform the user:
-    > "New track '<track_id>' has been created and added to the tracks file. You can now start implementation by running `/superconductor:implement`."
+6.  **Register Tasks in Ledger:**
+    *   Parse the confirmed `plan.md` for task cards.
+    *   For each task, extract the `title`, `tier`, `agent`, as well as `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields if present.
+    *   Call the `task_create` MCP tool for each parsed task, using the `track_id` and passing these fields.
+7.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `<Tracks Directory>/<track_id>/index.md`.
+8.  **Update Tracks Registry:** Append a new section for the track to the end of the tracks file.
+9.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
+10. **Announce Completion:** Inform the user:
+    > "New track '<track_id>' has been created and tasks registered. You can now start implementation by running `/superconductor:implement`."
 
 ## Command Flow Diagram
 
