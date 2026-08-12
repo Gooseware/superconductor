@@ -19,9 +19,9 @@
 - [x] Add full test coverage for these tools.
 
 ## Phase 4: newTrack skill + sync-plan script
-- Update `newTrack` skill to parse `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields from `plan.md`.
-- Call `task_create` for each parsed task.
-- Create/update a `sync-plan` script that pulls state from DB and rewrites `plan.md` checkboxes.
+- [x] Update `newTrack` skill to parse `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields from `plan.md`.
+- [x] Call `task_create` for each parsed task.
+- [x] Create/update a `sync-plan` script that pulls state from DB and rewrites `plan.md` checkboxes.
 
 ## Phase 5: implement skill
 - Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
