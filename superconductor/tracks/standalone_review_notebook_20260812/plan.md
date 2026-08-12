@@ -225,7 +225,7 @@
     - [x] Add `--no-signoff` flag documentation to §2.0 and §9.7 [TIER-1:TCS=3]
     - [x] Commit: `track(standalone_review_notebook): phase2.5 - standalone-review SKILL.md unwrap skeleton + document new scripts` (ff237e73) [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Loop FSM' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Loop FSM' (Protocol in workflow.md) [TIER-1:TCS=3] — ✅ User sign-off 2026-08-12
 
 ---
 
@@ -333,7 +333,7 @@
 
 - [x] Task: Integrate track 'standalone_review_notebook_20260812' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor]
 
-- [x] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3] — ✅ User sign-off 2026-08-12
 
 ---
 
