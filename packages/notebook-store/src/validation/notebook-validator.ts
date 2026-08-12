@@ -45,15 +45,14 @@ export class NotebookValidator {
     return path.join(dir, 'notebook-ratelimits.json');
   }
 
-  private static fallbackCounts: Record<string, number> = Object.create(null);
+  private static fallbackCounts: Map<string, number> = new Map<string, number>();
 
-  private static loadCounts(): Record<string, number> | null {
+  private static loadCounts(): Map<string, number> | null {
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
         const data = fs.readFileSync(NotebookValidator.cacheFilePath, 'utf-8');
         const parsed = JSON.parse(data);
-        const counts = Object.create(null);
-        Object.assign(counts, parsed);
+        const counts = new Map<string, number>(Object.entries(parsed));
         NotebookValidator.fallbackCounts = counts;
         return counts;
       }
@@ -61,13 +60,14 @@ export class NotebookValidator {
       console.error('Failed to load rate limits:', e);
       return null;
     }
-    return Object.create(null);
+    return new Map<string, number>();
   }
 
-  private static saveCounts(counts: Record<string, number>) {
+  private static saveCounts(counts: Map<string, number>) {
     try {
       const tempPath = NotebookValidator.cacheFilePath + `.${Date.now()}.${Math.random().toString(36).substring(2)}.tmp`;
-      fs.writeFileSync(tempPath, JSON.stringify(counts), 'utf-8');
+      const obj = Object.fromEntries(counts);
+      fs.writeFileSync(tempPath, JSON.stringify(obj), 'utf-8');
       fs.renameSync(tempPath, NotebookValidator.cacheFilePath);
       NotebookValidator.fallbackCounts = counts;
     } catch(e) {
@@ -76,7 +76,7 @@ export class NotebookValidator {
   }
 
   public static resetRateLimits(): void {
-    NotebookValidator.fallbackCounts = Object.create(null);
+    NotebookValidator.fallbackCounts = new Map<string, number>();
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
         fs.unlinkSync(NotebookValidator.cacheFilePath);
@@ -123,7 +123,7 @@ export class NotebookValidator {
       if (counts === null) {
         throw new Error("Rate limit cache corrupted");
       }
-      const count = counts[invId] || 0;
+      const count = counts.get(invId) || 0;
       
       if (count >= 3) {
         throw new RateLimitError(
@@ -131,7 +131,7 @@ export class NotebookValidator {
         );
       }
       
-      counts[invId] = count + 1;
+      counts.set(invId, count + 1);
       NotebookValidator.saveCounts(counts);
     }
   }

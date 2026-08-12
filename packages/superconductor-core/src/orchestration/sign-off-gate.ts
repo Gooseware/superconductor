@@ -128,12 +128,6 @@ export class SignOffGate extends AbstractGate {
       }
     }
 
-    if (!record) {
-      record =
-        SignOffGate.inMemorySignOffs.get(`${trackId}:${sessionId}`) ||
-        SignOffGate.inMemorySignOffs.get(trackId) ||
-        null;
-    }
 
     if (!record) {
       const filePath = path.resolve(`superconductor/quorum/signoff_${trackId}.json`);

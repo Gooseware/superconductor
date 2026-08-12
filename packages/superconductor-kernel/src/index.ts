@@ -97,10 +97,10 @@ async function updateQuorumState(key: string, value: any, track_id: string, sess
         track_id: row.track_id,
         session_id: row.session_id,
         state: row.state,
-        cycle_count: row.cycle_count,
+        cycle_count: Number(row.cycle_count || 0),
         last_diff_hash: row.last_diff_hash ?? null,
         reviewer_session_id: row.reviewer_session_id ?? null,
-        timestamp: row.timestamp,
+        timestamp: typeof row.timestamp === 'bigint' ? Number(row.timestamp) : row.timestamp,
         sign_off_record: row.sign_off_record ?? null,
         metadata: newMetadata,
       });
@@ -110,6 +110,28 @@ async function updateQuorumState(key: string, value: any, track_id: string, sess
       await qdb.execute({
         sql: "UPDATE quorum_state SET metadata = ?, sha256_checksum = ? WHERE track_id = ? AND session_id = ?",
         args: [newMetadata, checksum, row.track_id, row.session_id]
+      });
+    } else {
+      const meta = { [key]: value };
+      const newMetadata = JSON.stringify(meta);
+      const timestamp = new Date().toISOString();
+      const payload = JSON.stringify({
+        track_id: track_id,
+        session_id: session_id,
+        state: "preflight",
+        cycle_count: 0,
+        last_diff_hash: null,
+        reviewer_session_id: null,
+        timestamp: timestamp,
+        sign_off_record: null,
+        metadata: newMetadata,
+      });
+      const crypto = await import("crypto");
+      const checksum = crypto.createHash('sha256').update(payload).digest('hex');
+
+      await qdb.execute({
+        sql: "INSERT INTO quorum_state (track_id, session_id, state, cycle_count, timestamp, metadata, sha256_checksum) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        args: [track_id, session_id, "preflight", 0, timestamp, newMetadata, checksum]
       });
     }
   } catch (e) {

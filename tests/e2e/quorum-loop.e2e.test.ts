@@ -1,40 +1,65 @@
-import { test, expect } from 'vitest';
-import { QuorumFSM, QuorumState } from '../../packages/quorum-fsm/src/fsm/quorum-fsm.js';
-import { StagnantDiffDetector } from '../../packages/quorum-fsm/src/circuit-breaker/stagnant-diff-detector.js';
+import { test, expect, vi } from 'vitest';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import { runQuorumReview } from '../../scripts/quorum-review.js';
+import { QuorumStateStore } from '../../packages/quorum-fsm/src/persistence/quorum-state-store.js';
 
-test('Quorum Loop - real end-to-end flow with FSM and StagnantDiffDetector', () => {
-  const fsm = new QuorumFSM();
-  let currentState: QuorumState = 'INIT';
+vi.mock('../../packages/superconductor-core/dist/orchestration/preflight-gate.js', () => {
+  return {
+    PreflightGate: class {
+      async check() { return { passed: true }; }
+    }
+  };
+});
 
-  // 1. Start the loop
-  currentState = fsm.transition(currentState, 'START').newState;
-  expect(currentState).toBe('REVIEWING');
+let diffCounter = 0;
+const dbPath = path.join(os.tmpdir(), 'quorum_test_' + Date.now() + '.db');
 
-  // 2. Findings returned -> needs fixes
-  currentState = fsm.transition(currentState, 'FINDINGS_RETURNED').newState;
-  expect(currentState).toBe('NEEDS_FIXES');
+vi.mock('node:child_process', () => {
+  return {
+    execFile: async (cmd: string, args: string[], callback: any) => {
+      const { QuorumStateStore } = await import('../../packages/quorum-fsm/src/persistence/quorum-state-store.js');
+      // The track_id and session_id should be extracted from args if possible, 
+      // but we know them: 'test-track' and 'test-session'.
+      const innerStore = new QuorumStateStore(dbPath);
+      await innerStore.init();
+      const record = await innerStore.load('test-track', 'test-session');
+      if (record) {
+        record.metadata = JSON.stringify({
+          unresolvedFindings: []
+        });
+        await innerStore.save(record);
+      }
+      callback(null, { stdout: '', stderr: '' });
+    },
+    execFileSync: () => Buffer.from(`mock-diff-${diffCounter++}`)
+  };
+});
 
-  // 3. First attempt to fix
-  const diff1 = '--- a/file\n+++ b/file\n@@ -1,1 +1,1 @@\n- foo\n+ bar';
-  const hash1 = StagnantDiffDetector.hashDiff(diff1);
-  const isStagnant1 = StagnantDiffDetector.isStagnant(hash1, null);
-  expect(isStagnant1).toBe(false);
-  
-  currentState = fsm.transition(currentState, 'FIXES_APPLIED').newState;
-  expect(currentState).toBe('REMEDIATING');
+test('Quorum Loop - validates DB transition path to PASSED using runQuorumReview', async () => {
+  const store = new QuorumStateStore(dbPath);
+  await store.init();
+  const trackId = 'test-track';
+  const sessionId = 'test-session';
 
-  // Remediating finishes, back to reviewing
-  // Wait, transition from REMEDIATING with VERIFY? 
-  // Let's assume it goes back to reviewing or needs fixes based on FSM.
-  // Actually, let's just trigger stagnant diff directly.
-  
-  const diff2 = '--- a/file\n+++ b/file\n@@ -1,1 +1,1 @@\n- foo\n+ bar';
-  const hash2 = StagnantDiffDetector.hashDiff(diff2);
-  const isStagnant2 = StagnantDiffDetector.isStagnant(hash2, hash1);
-  expect(isStagnant2).toBe(true);
-  
-  if (isStagnant2) {
-    currentState = fsm.transition(currentState, 'STAGNANT_DIFF').newState;
-  }
-  expect(currentState).toBe('HALTED');
+  await store.save({
+    track_id: trackId,
+    session_id: sessionId,
+    state: 'REVIEWING',
+    cycle_count: 0,
+    last_diff_hash: null,
+    reviewer_session_id: null,
+    timestamp: Date.now(),
+    sha256_checksum: ''
+  });
+
+  await runQuorumReview(['--branch', trackId], {
+    store,
+    sessionId,
+    getDiffFn: () => `mock-diff-${diffCounter++}`,
+    exitFn: (code) => { return undefined as never; }
+  });
+
+  const finalRecord = await store.load(trackId, sessionId);
+  expect(finalRecord?.state).toBe('PASSED');
 });

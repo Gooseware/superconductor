@@ -122,12 +122,11 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
     await store.save(record);
 
     let priorFindings: any[] = [];
-    const findingsPath = require('node:path').join(process.cwd(), 'superconductor', 'logs', 'quorum-state.json');
-    if (require('node:fs').existsSync(findingsPath)) {
+    if (record.metadata) {
       try {
-        const stateData = JSON.parse(require('node:fs').readFileSync(findingsPath, 'utf8'));
-        if (stateData.findings && Array.isArray(stateData.findings)) {
-          priorFindings = stateData.findings;
+        const meta = JSON.parse(record.metadata);
+        if (meta.unresolvedFindings && Array.isArray(meta.unresolvedFindings)) {
+          priorFindings = meta.unresolvedFindings;
         }
       } catch (e) {}
     }
@@ -166,20 +165,40 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
           }
         });
         await dispatcher.dispatch(findings, { trackId: track_id });
+        try {
+          record.state = fsm.transition(record.state, 'FIXES_APPLIED').newState;
+          await store.save(record);
+        } catch (e) {}
       } else {
         await execFileAsync('antigravity', ['--review', track_id, '--zero-bias-context', JSON.stringify(zbContext)]);
         
-        if (priorFindings.length > 0 && require('node:fs').existsSync(findingsPath)) {
+        try {
+          const temp = await store.load(track_id, session_id);
+          let hasFindings = false;
+          if (temp && temp.metadata) {
+            const m = JSON.parse(temp.metadata);
+            if (m.unresolvedFindings && m.unresolvedFindings.length > 0) hasFindings = true;
+          }
+          if (hasFindings) {
+            record.state = fsm.transition(record.state, 'FINDINGS_RETURNED').newState;
+            await store.save(record);
+          }
+        } catch (e) {}
+        
+        if (priorFindings.length > 0) {
           try {
-            const newStateData = JSON.parse(require('node:fs').readFileSync(findingsPath, 'utf8'));
-            if (newStateData.findings && Array.isArray(newStateData.findings)) {
-              const priorStrs = new Set(priorFindings.map((f: any) => JSON.stringify(f)));
-              for (const f of newStateData.findings) {
-                if (priorStrs.has(JSON.stringify(f))) {
-                  console.error('[QuorumFSM] EXACT_FINDING_DUPLICATED: exact same finding emitted again. Fast-failing.');
-                  record.state = fsm.transition(record.state, 'STAGNANT_DIFF').newState;
-                  await store.save(record);
-                  return exit(1) as never;
+            const refreshedForCheck = await store.load(track_id, session_id);
+            if (refreshedForCheck && refreshedForCheck.metadata) {
+              const newStateData = JSON.parse(refreshedForCheck.metadata);
+              if (newStateData.unresolvedFindings && Array.isArray(newStateData.unresolvedFindings)) {
+                const priorStrs = new Set(priorFindings.map((f: any) => JSON.stringify(f)));
+                for (const f of newStateData.unresolvedFindings) {
+                  if (priorStrs.has(JSON.stringify(f))) {
+                    console.error('[QuorumFSM] EXACT_FINDING_DUPLICATED: exact same finding emitted again. Fast-failing.');
+                    record.state = fsm.transition(record.state, 'STAGNANT_DIFF').newState;
+                    await store.save(record);
+                    return exit(1) as never;
+                  }
                 }
               }
             }
@@ -201,11 +220,11 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
 
     let unresolvedCount = 0;
     let successfullyParsed = false;
-    if (require('node:fs').existsSync(findingsPath)) {
+    if (record.metadata) {
       try {
-        const stateData = JSON.parse(require('node:fs').readFileSync(findingsPath, 'utf8'));
-        if (stateData.findings && Array.isArray(stateData.findings)) {
-          unresolvedCount = stateData.findings.filter((f: any) => f.status !== 'RESOLVED').length;
+        const meta = JSON.parse(record.metadata);
+        if (meta.unresolvedFindings && Array.isArray(meta.unresolvedFindings)) {
+          unresolvedCount = meta.unresolvedFindings.filter((f: any) => f.status !== 'RESOLVED').length;
           successfullyParsed = true;
         }
       } catch (e) {}
@@ -228,16 +247,15 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
   if (record.state === 'PASSED') {
     QuorumValidator.gateOracle({ quorumPassed: true });
     try {
-      const findingsPath = require('node:path').join(process.cwd(), 'superconductor', 'logs', 'quorum-state.json');
       let invoked = false;
-      if (require('node:fs').existsSync(findingsPath)) {
-        const stateData = JSON.parse(require('node:fs').readFileSync(findingsPath, 'utf8'));
-        const resolvedFindings = (stateData.findings || []).filter((f: any) => f.status === 'RESOLVED');
+      if (record.metadata) {
+        const meta = JSON.parse(record.metadata);
+        const resolvedFindings = (meta.resolvedFindings || []).filter((f: any) => f.status === 'RESOLVED');
         for (const finding of resolvedFindings) {
           await execFileAsync('antigravity', [
             '--mcp', 'notebook_write',
             '--note_type', 'quorum',
-            '--content', `Quorum passed for ${track_id}`,
+            '--content', `[${finding.finding_id || finding.id || 'N/A'}] Quorum resolved: ${finding.description || 'Issue fixed'}`,
             '--files', '[]',
             '--domain', values.domain || 'codebase',
             '--severity', 'info',

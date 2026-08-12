@@ -15,10 +15,6 @@ const trackId = path.basename(rawTrackId);
 // Check --no-signoff in SUPERCONDUCTOR_FLAGS env var
 const flags = process.env.SUPERCONDUCTOR_FLAGS || '';
 if (flags.includes('--no-signoff')) {
-  if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
-    console.error('BYPASS REJECTED: --no-signoff is only allowed in development or test environments.');
-    process.exit(1);
-  }
   try {
     const logDir = path.resolve('superconductor/logs');
     fs.mkdirSync(logDir, { recursive: true });

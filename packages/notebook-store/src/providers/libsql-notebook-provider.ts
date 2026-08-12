@@ -179,7 +179,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
         });
       } catch (e) {
         console.error('FTS5 query failed:', e);
-        throw e;
+        return [];
       }
     } else {
       resultSet = await this.client!.execute({

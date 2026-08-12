@@ -62,7 +62,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
     // SEC-4: boundary validation for globalPath
     const globalTargetPath = path.resolve(this.globalPath);
     const homeBoundary = path.resolve(os.homedir());
-    if (!globalTargetPath.startsWith(homeBoundary)) {
+    if (!(globalTargetPath.startsWith(homeBoundary + path.sep) || globalTargetPath === homeBoundary)) {
       throw new Error(`Global database path escapes home directory boundary: ${globalTargetPath}`);
     }
   }
@@ -71,8 +71,8 @@ export class LanceDBNotebookProvider implements INotebookProvider {
     if (!this.pipeline) {
       const { pipeline, env } = await import('@xenova/transformers');
       env.allowLocalModels = true;
-      env.allowRemoteModels = false;
-      this.pipeline = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+      env.allowRemoteModels = true;
+      this.pipeline = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5');
     }
   }
 
