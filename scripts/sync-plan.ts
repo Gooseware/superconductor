@@ -6,6 +6,52 @@ import { createTaskProvider } from '../packages/task-store/src/providers/task-pr
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export function normalizeTitle(rawTitle: string): string {
+    let title = rawTitle;
+    
+    // Strip markdown bolding and italics
+    title = title.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
+    
+    // Strip trailing metadata
+    title = title.replace(/(?:\s*\[TIER-\d+\]|\s*\[AGENT:[^\]]*\]|\s*\[checkpoint:[^\]]*\])*\s*$/, '');
+    
+    return title.trim();
+}
+
+export function processPlan(content: string, tasks: any[]): { content: string, updatedCount: number } {
+    const lines = content.split('\n');
+    let updatedCount = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // Match "- [ ]" or "- [x]" with optional "Task:"
+        const match = line.match(/^(\s*)-\s*\[([^\]])\]\s*(?:Task:\s*)?(.*)$/);
+        if (match) {
+            const checkboxState = match[2].toLowerCase(); // 'x', ' '
+            const rawTitle = match[3];
+            
+            // Only proceed if it looks like a checkbox space or x
+            if (checkboxState !== ' ' && checkboxState !== 'x') {
+                continue;
+            }
+
+            const title = normalizeTitle(rawTitle);
+            const task = tasks.find((t: any) => t.title === title);
+            
+            if (task) {
+                if (task.status === 'completed' && checkboxState === ' ') {
+                   lines[i] = line.replace(/^(\s*)-\s*\[\s*\]/, '$1- [x]');
+                   updatedCount++;
+                } else if (task.status !== 'completed' && checkboxState === 'x') {
+                   lines[i] = line.replace(/^(\s*)-\s*\[[xX]\]/, '$1- [ ]');
+                   updatedCount++;
+                }
+            }
+        }
+    }
+    return { content: lines.join('\n'), updatedCount };
+}
+
 async function main() {
   const planPath = process.argv[2];
   if (!planPath) {
@@ -27,37 +73,20 @@ async function main() {
   await provider.close();
 
   let content = fs.readFileSync(absPlanPath, 'utf8');
-  const lines = content.split('\n');
-  let updatedCount = 0;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const match = line.match(/^(\s*)-\s*\[([ xX])\]\s*Task:\s*(.*?)(?:\s*\[TIER-\d+\]|\s*\[AGENT:.*?\]|$)/);
-    if (match) {
-      const title = match[3].trim();
-      const task = tasks.find(t => t.title === title);
-      
-      if (task) {
-        if (task.status === 'completed' && match[2] === ' ') {
-           lines[i] = line.replace(/^(\s*)-\s*\[\s*\]/, '$1- [x]');
-           updatedCount++;
-        } else if (task.status !== 'completed' && match[2].toLowerCase() === 'x') {
-           lines[i] = line.replace(/^(\s*)-\s*\[[xX]\]/, '$1- [ ]');
-           updatedCount++;
-        }
-      }
-    }
-  }
+  
+  const { content: newContent, updatedCount } = processPlan(content, tasks);
 
   if (updatedCount > 0) {
-    fs.writeFileSync(absPlanPath, lines.join('\n'));
+    fs.writeFileSync(absPlanPath, newContent);
     console.log(`Synced ${updatedCount} tasks in ${planPath}`);
   } else {
     console.log(`No updates needed for ${planPath}`);
   }
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== 'test') {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
