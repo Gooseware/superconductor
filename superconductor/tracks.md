@@ -32,4 +32,4 @@ See `superconductor/tracks/archive/` for the following completed tracks:
 - `[ ]` — Planned / not started
 - `[~]` — In progress
 - `[x]` — Complete
-- `[-]` — Cancelled / absorbed| `[~]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
+- `[-]` — Cancelled / absorbed| `[x]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
