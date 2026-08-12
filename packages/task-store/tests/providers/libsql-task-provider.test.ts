@@ -85,4 +85,82 @@ describe('LibSQLTaskProvider', () => {
     const invariants = await provider.queryInvariants({ path: 'src/auth.ts' });
     expect(invariants[0].status).toBe('overridden');
   });
+
+  it('filters tasks by agent', async () => {
+    await provider.createTask({
+      track_id: 't-1',
+      title: 'Task Agent A',
+      description: '',
+      agent: 'processor-a'
+    });
+    await provider.createTask({
+      track_id: 't-1',
+      title: 'Task Agent B',
+      description: '',
+      agent: 'processor-b'
+    });
+
+    const tasksA = await provider.queryTasks({ agent: 'processor-a' });
+    expect(tasksA.length).toBe(1);
+    expect(tasksA[0].title).toBe('Task Agent A');
+    expect(tasksA[0].agent).toBe('processor-a');
+
+    const tasksB = await provider.queryTasks({ agent: 'processor-b' });
+    expect(tasksB.length).toBe(1);
+    expect(tasksB[0].title).toBe('Task Agent B');
+    expect(tasksB[0].agent).toBe('processor-b');
+  });
+
+  it('limits task query results', async () => {
+    await provider.createTask({ track_id: 't-limit', title: 'Task 1', description: '' });
+    await provider.createTask({ track_id: 't-limit', title: 'Task 2', description: '' });
+    await provider.createTask({ track_id: 't-limit', title: 'Task 3', description: '' });
+
+    const tasks = await provider.queryTasks({ track_id: 't-limit', limit: 2 });
+    expect(tasks.length).toBe(2);
+  });
+
+  it('filters invariants by capability', async () => {
+    await provider.createInvariant({
+      capability: 'Authentication',
+      path: 'src/auth.ts',
+      track_id: 't-1'
+    });
+    await provider.createInvariant({
+      capability: 'Encryption',
+      path: 'src/crypto.ts',
+      track_id: 't-1'
+    });
+
+    const authInvariants = await provider.queryInvariants({ capability: 'Authentication' });
+    expect(authInvariants.length).toBe(1);
+    expect(authInvariants[0].capability).toBe('Authentication');
+    expect(authInvariants[0].path).toBe('src/auth.ts');
+  });
+
+  it('filters invariants by track_id', async () => {
+    await provider.createInvariant({
+      capability: 'Cap 1',
+      path: 'src/file1.ts',
+      track_id: 'track-100'
+    });
+    await provider.createInvariant({
+      capability: 'Cap 2',
+      path: 'src/file2.ts',
+      track_id: 'track-200'
+    });
+
+    const track100Invariants = await provider.queryInvariants({ track_id: 'track-100' });
+    expect(track100Invariants.length).toBe(1);
+    expect(track100Invariants[0].capability).toBe('Cap 1');
+    expect(track100Invariants[0].track_id).toBe('track-100');
+  });
+
+  it('returns success false when updating non-existent task ID', async () => {
+    const result = await provider.updateTask({
+      id: 'task-non-existent-9999',
+      status: 'completed'
+    });
+    expect(result.success).toBe(false);
+  });
 });
