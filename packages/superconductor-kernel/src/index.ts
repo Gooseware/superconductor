@@ -219,6 +219,49 @@ const AnalyzeInspirationSchema = z.object({
   description: z.string().optional(),
 });
 
+const TaskCreateSchema = z.object({
+  track_id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  creates: z.array(z.string()).optional(),
+  protected: z.array(z.string()).optional(),
+  invariant_after: z.string().optional(),
+  dependencies: z.array(z.string()).optional(),
+  tier: z.string().optional(),
+  agent: z.string().optional(),
+});
+
+const TaskUpdateSchema = z.object({
+  id: z.string(),
+  status: z.enum(["pending", "in_progress", "completed", "blocked"]).optional(),
+  committed_sha: z.string().optional(),
+});
+
+const TaskQuerySchema = z.object({
+  track_id: z.string().optional(),
+  status: z.string().optional(),
+  agent: z.string().optional(),
+  semantic_query: z.string().optional(),
+  limit: z.number().optional(),
+});
+
+const InvariantQuerySchema = z.object({
+  status: z.enum(["active", "overridden", "untriaged"]).optional(),
+  path: z.string().optional(),
+  capability: z.string().optional(),
+  track_id: z.string().optional(),
+});
+
+const InvariantOverrideSchema = z.object({
+  invariant_id: z.string(),
+  track_id: z.string(),
+  reason: z.string(),
+});
+
+const TaskGetInvariantsSchema = z.object({
+  track_id: z.string(),
+});
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -705,33 +748,38 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   
   if (name === "task_create") {
+    const parsed = TaskCreateSchema.parse(args || {});
     const taskProvider = await getTaskProvider();
-    const result = await taskProvider.createTask(args as any);
+    const result = await taskProvider.createTask(parsed);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "task_update") {
+    const parsed = TaskUpdateSchema.parse(args || {});
     const taskProvider = await getTaskProvider();
-    const result = await taskProvider.updateTask(args as any);
+    const result = await taskProvider.updateTask(parsed);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "task_query") {
+    const parsed = TaskQuerySchema.parse(args || {});
     const taskProvider = await getTaskProvider();
-    const result = await taskProvider.queryTasks(args as any || {});
+    const result = await taskProvider.queryTasks(parsed);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "invariant_query") {
+    const parsed = InvariantQuerySchema.parse(args || {});
     const taskProvider = await getTaskProvider();
-    const result = await taskProvider.queryInvariants(args as any || {});
+    const result = await taskProvider.queryInvariants(parsed);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "invariant_override") {
+    const parsed = InvariantOverrideSchema.parse(args || {});
     const taskProvider = await getTaskProvider();
-    const result = await taskProvider.createOverride(args as any);
+    const result = await taskProvider.createOverride(parsed);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "task_get_invariants") {
+    const { track_id } = TaskGetInvariantsSchema.parse(args || {});
     const taskProvider = await getTaskProvider();
-    const { track_id } = args as any;
     const invariants = await taskProvider.queryInvariants({ track_id });
     const active_overrides = await taskProvider.queryOverrides({ track_id, status: 'active' });
     return { content: [{ type: "text", text: JSON.stringify({ invariants, active_overrides }, null, 2) }] };
