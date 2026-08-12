@@ -41,6 +41,7 @@ export async function orchestrateCodebaseReview(options: CodebaseReviewOptions):
       console.log(`[Badge] Domain ${d.domain}: GREEN (Cycles: ${cycles})`);
     } else {
       console.log(`[Badge] Domain ${d.domain}: RED (State: ${state}, Cycles: ${cycles})`);
+      throw new Error(`Domain review failed for domain ${d.domain} with state ${state}`);
     }
   }
 

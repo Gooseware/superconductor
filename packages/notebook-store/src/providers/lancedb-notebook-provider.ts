@@ -41,7 +41,8 @@ export class LanceDBNotebookProvider implements INotebookProvider {
       this.globalPath = path.join(os.homedir(), '.superconductor', 'notebook');
     }
 
-    const workspaceBoundary = path.resolve(process.cwd());
+    const projectRoot = (typeof optionsOrProjectRoot === 'object' ? optionsOrProjectRoot?.projectRoot : (typeof optionsOrProjectRoot === 'string' ? optionsOrProjectRoot : null)) || process.env.PROJECT_ROOT || process.cwd();
+    const workspaceBoundary = path.resolve(projectRoot);
     const targetPath = path.resolve(this.projectPath);
     if (!targetPath.startsWith(workspaceBoundary + path.sep)) {
       throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
@@ -177,7 +178,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
 
     if (params.query && params.query.trim() !== '') {
       const queryVector = await this.getEmbedding(params.query);
-      const queryTerms = params.query.toLowerCase().split(/\s+/);
+      const queryTerms = params.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
       let vectorRows: any[] = [];
       let bm25Rows: any[] = [];

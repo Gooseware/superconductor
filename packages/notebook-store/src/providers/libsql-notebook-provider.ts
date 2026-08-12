@@ -27,7 +27,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       targetPath = path.resolve(projectRootOrDbPath, 'superconductor', 'notebook', 'notebook_fts.db');
     }
 
-    const workspaceBoundary = path.resolve(process.cwd());
+    const projectRoot = process.env.PROJECT_ROOT || (projectRootOrDbPath.endsWith('.db') ? process.cwd() : projectRootOrDbPath);
+    const workspaceBoundary = path.resolve(projectRoot);
     if (!targetPath.startsWith(workspaceBoundary + path.sep)) {
       throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
     }
@@ -135,7 +136,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     let resultSet;
     if (params.query && params.query.trim() !== '') {
       try {
-        const terms = params.query.trim().split(/\\s+/).map(t => `"${t.replace(/"/g, '""')}"`);
+        const terms = params.query.trim().split(/\s+/).map(t => `"${t.replace(/"/g, '""')}"`);
         const sanitizedQuery = terms.join(' AND ');
         resultSet = await this.client!.execute({
           sql: `SELECT *, bm25(notebook_fts) as rank FROM notebook_fts WHERE notebook_fts MATCH ? ORDER BY rank`,

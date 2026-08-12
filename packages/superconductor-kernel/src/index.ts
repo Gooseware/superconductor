@@ -67,14 +67,23 @@ function updateRegistryPath(newPath: string) {
   console.log(`[Registry] Switched active registry to: ${currentRegistryPath}`);
 }
 
-async function updateQuorumState(key: string, value: any) {
+async function updateQuorumState(key: string, value: any, track_id: string, session_id: string) {
   const quorumDbPath = path.join(PROJECT_ROOT, "superconductor", "quorum", "quorum_state.db");
   if (!fs.existsSync(quorumDbPath)) {
-    throw new Error(`Quorum state database not found at ${quorumDbPath}`);
+    console.warn(`Quorum state database not found at ${quorumDbPath}. Skipping.`);
+    return;
   }
   try {
+    const stat = fs.statSync(quorumDbPath);
+    if (stat.size === 0) {
+      console.warn(`Quorum state database is empty at ${quorumDbPath}. Skipping.`);
+      return;
+    }
     const qdb = createClient({ url: `file:${quorumDbPath}` });
-    const rows = await qdb.execute("SELECT * FROM quorum_state ORDER BY timestamp DESC LIMIT 1");
+    const rows = await qdb.execute({
+      sql: "SELECT * FROM quorum_state WHERE track_id = ? AND session_id = ? ORDER BY timestamp DESC LIMIT 1",
+      args: [track_id, session_id]
+    });
     if (rows.rows.length > 0) {
       const row = rows.rows[0];
       let meta: any = {};
@@ -584,7 +593,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "notebook_query") {
     const results = await notebookService.query(args as any, PROJECT_ROOT);
-    await updateQuorumState('notebookQueried', true);
+    if ((args as any).track_id && (args as any).session_id) {
+      await updateQuorumState('notebookQueried', true, (args as any).track_id, (args as any).session_id);
+    }
     return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
   }
 
@@ -599,10 +610,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "kernel_intelligence_status") {
-    const { outputDir } = z.object({ outputDir: z.string().optional() }).parse(args || {});
+    const { outputDir, track_id, session_id } = z.object({ outputDir: z.string().optional(), track_id: z.string().optional(), session_id: z.string().optional() }).parse(args || {});
     const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
     const result = await intelligenceStatusService.getStatus(targetDir);
-    await updateQuorumState('intelligenceStatusChecked', true);
+    if (track_id && session_id) {
+      await updateQuorumState('intelligenceStatusChecked', true, track_id, session_id);
+    }
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 

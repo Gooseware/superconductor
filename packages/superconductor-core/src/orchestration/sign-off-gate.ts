@@ -155,9 +155,10 @@ export class SignOffGate extends AbstractGate {
         input: process.stdin,
         output: process.stdout
       });
-      rl.question(`Do you approve the merge for ${context.trackId}? (y/n) `, (answer: string) => {
+      rl.question(`Do you approve the merge for ${context.trackId}? (y/n) `, async (answer: string) => {
         rl.close();
         if (answer.trim().toLowerCase() === 'y') {
+          await SignOffGate.recordSignOff(context.trackId, context.sessionId, Date.now(), null, this.stateStore);
           resolve();
         } else {
           reject(new SignOffRequiredError('User denied merge'));

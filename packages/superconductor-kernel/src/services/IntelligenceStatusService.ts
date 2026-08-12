@@ -16,7 +16,7 @@ export class IntelligenceStatusService {
   async getStatus(outputDir: string): Promise<IntelligenceStatusResult> {
     const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
     const resolvedDir = path.resolve(outputDir);
-    if (!resolvedDir.startsWith(PROJECT_ROOT)) {
+    if (!resolvedDir.startsWith(PROJECT_ROOT + path.sep) && resolvedDir !== PROJECT_ROOT) {
       throw new Error('outputDir must be within the workspace root');
     }
     let effectiveDir = resolvedDir;

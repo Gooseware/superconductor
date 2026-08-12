@@ -8,13 +8,13 @@ import type {
 } from '@superconductor/notebook-store';
 
 export class NotebookService {
-  private provider: INotebookProvider | null = null;
+  private providers: Map<string, INotebookProvider> = new Map();
 
   async getProvider(projectRoot: string): Promise<INotebookProvider> {
-    if (!this.provider) {
-      this.provider = await createNotebookProvider(projectRoot);
+    if (!this.providers.has(projectRoot)) {
+      this.providers.set(projectRoot, await createNotebookProvider(projectRoot));
     }
-    return this.provider;
+    return this.providers.get(projectRoot)!;
   }
 
   async query(

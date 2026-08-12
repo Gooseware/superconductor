@@ -45,13 +45,15 @@ export class NotebookValidator {
     return path.join(dir, 'notebook-ratelimits.json');
   }
 
-  private static fallbackCounts: Record<string, number> = {};
+  private static fallbackCounts: Record<string, number> = Object.create(null);
 
   private static loadCounts(): Record<string, number> {
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
         const data = fs.readFileSync(NotebookValidator.cacheFilePath, 'utf-8');
-        const counts = JSON.parse(data);
+        const parsed = JSON.parse(data);
+        const counts = Object.create(null);
+        Object.assign(counts, parsed);
         NotebookValidator.fallbackCounts = counts;
         return counts;
       }
@@ -59,7 +61,7 @@ export class NotebookValidator {
       console.error('Failed to load rate limits:', e);
       return NotebookValidator.fallbackCounts;
     }
-    return {};
+    return Object.create(null);
   }
 
   private static saveCounts(counts: Record<string, number>) {
@@ -74,6 +76,7 @@ export class NotebookValidator {
   }
 
   public static resetRateLimits(): void {
+    NotebookValidator.fallbackCounts = Object.create(null);
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
         fs.unlinkSync(NotebookValidator.cacheFilePath);

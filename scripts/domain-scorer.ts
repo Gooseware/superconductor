@@ -58,19 +58,6 @@ export async function scoreDomains(intelligenceDir: string): Promise<DomainScore
     }
   }
 
-  let max_hotspot = 0;
-  let max_fan_in = 0;
-  let max_churn = 0;
-
-  for (const d of rawDomains) {
-    const hs = d.hotspot_score ?? d.hotspotScore ?? 0;
-    const fi = d.fan_in ?? d.fanIn ?? 0;
-    const gc = d.git_churn_90d ?? d.gitChurn90d ?? 0;
-    if (hs > max_hotspot) max_hotspot = hs;
-    if (fi > max_fan_in) max_fan_in = fi;
-    if (gc > max_churn) max_churn = gc;
-  }
-
   const scores: DomainScore[] = rawDomains.map((d) => {
     const domainName = d.domain || d.id || 'unknown';
     const files = d.files || [];
@@ -78,11 +65,7 @@ export async function scoreDomains(intelligenceDir: string): Promise<DomainScore
     const fan_in = d.fan_in ?? d.fanIn ?? 0;
     const git_churn_90d = d.git_churn_90d ?? d.gitChurn90d ?? 0;
     
-    const norm_hotspot = max_hotspot > 0 ? hotspot_score / max_hotspot : 0;
-    const norm_fan_in = max_fan_in > 0 ? fan_in / max_fan_in : 0;
-    const norm_churn = max_churn > 0 ? git_churn_90d / max_churn : 0;
-    
-    const priority_score = 0.4 * norm_hotspot + 0.35 * norm_fan_in + 0.25 * norm_churn;
+    const priority_score = 0.4 * hotspot_score + 0.35 * fan_in + 0.25 * git_churn_90d;
 
     return {
       domain: domainName,
