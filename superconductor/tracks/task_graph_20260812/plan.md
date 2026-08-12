@@ -33,8 +33,8 @@
 - [x] Modify the Dreamer agent prompt/system instructions to generate `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields within the task cards in `plan.md`.
 
 ## Phase 8: Regression reviewer
-- Add invariant pre-check step to `agents/regression-reviewer/agent.md`.
-- Ensure it queries `invariant_query()` and emits `REG-INV-N: CRITICAL` if paths are missing and not overridden.
+- [x] Add invariant pre-check step to `agents/regression-reviewer/agent.md`.
+- [x] Ensure it queries `invariant_query()` and emits `REG-INV-N: CRITICAL` if paths are missing and not overridden.
 
 ## Phase 9: Bootstrap + Discovery agent
 - Write script to seed existing invariants (commands, MCP tools, core orchestration).
