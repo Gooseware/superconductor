@@ -12,8 +12,11 @@ export class ResearchProviderRegistry {
     if (providerName === 'google') {
       return new GoogleDeepResearchProvider(executeTool, options);
     }
-    if (providerName === 'gemini_api_deep_research') {
-      return new GeminiAPIProvider(options);
+    if (providerName === 'gemini_api_deep_research' || providerName === 'gemini-api-deep-research') {
+      return new GeminiApiDeepResearchProvider(options);
+    }
+    if (providerName === 'vertex-ai-deep-research') {
+      return new VertexAiDeepResearchProvider(options);
     }
     throw new Error(`Unknown research provider requested: ${providerName}`);
   }
