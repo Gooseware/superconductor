@@ -160,6 +160,31 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         - `- [ ] Task: Run security validation [TIER-4] [AGENT:superconductor-oracle]`
         - `- [ ] Task: Identify path traversal vulnerabilities [TIER-3] [AGENT:superconductor-reviewer]`
         - `- [ ] Task: Create module architecture [TIER-4] [AGENT:superconductor-dreamer]`
+    *   **Task Metadata Formatting (`CREATES`, `PROTECTED`, `INVARIANT_AFTER`):** Task cards in `plan.md` may specify file paths created/modified, protected critical paths, and invariant post-conditions. These fields MUST be indented directly below the task line (4 spaces indent).
+        - `CREATES:` Specifies files created or modified by the task. Can be specified as a single-line comma-separated list or an indented multi-line bullet list.
+        - `PROTECTED:` Specifies existing critical files or resources that must not be broken or mutated by the task. Can be specified as a single-line comma-separated list or an indented multi-line bullet list.
+        - `INVARIANT_AFTER:` Specifies a post-condition or invariant assertion string (enclosed in double or single quotes).
+        - **Single-Line Format Example:**
+          ```markdown
+          - [ ] Task: Add Auth Guard [TIER-3] [AGENT:superconductor-processor]
+              CREATES: src/auth/guard.ts, src/auth/types.ts
+              PROTECTED: src/auth/session.ts
+              INVARIANT_AFTER: "The session validator MUST never bypass token signature checks."
+              - [ ] Write tests
+              - [ ] Implement
+          ```
+        - **Multi-Line List Format Example:**
+          ```markdown
+          - [ ] Task: Generate database models [TIER-3] [AGENT:superconductor-processor]
+              CREATES:
+                - src/db/models/user.ts
+                - src/db/models/auth.ts
+              PROTECTED:
+                - src/db/schema.ts
+              INVARIANT_AFTER: "User schema migrations MUST preserve backward compatibility."
+              - [ ] Write tests
+              - [ ] Implement
+          ```
     *   **CRITICAL: Inject Phase Completion Tasks.** Determine if a "Phase Completion Verification and Checkpointing Protocol" is defined in the **Workflow**. If this protocol exists, then for each **Phase** that you generate in `plan.md`, you MUST append a final meta-task to that phase. The format for this meta-task is: `- [ ] Task: Superconductor - User Manual Verification '<Phase Name>' (Protocol in workflow.md)`. This meta-task does not need a tier hint.
 
 ### 2.3a Swarm Blueprint Generation
@@ -233,8 +258,25 @@ After generating the plan draft:
     *   **CRITICAL:** Generate the permission manifest by running `npx superconductor infer-permissions <Tracks Directory>/<track_id>/spec.md <Tracks Directory>/<track_id>/permission-manifest.toml`.
 6.  **Register Tasks in Ledger:**
     *   Parse the confirmed `plan.md` for task cards.
-    *   For each task, extract the `title`, `tier`, `agent`, as well as `CREATES`, `PROTECTED`, and `INVARIANT_AFTER` fields if present.
-    *   Call the `task_create` MCP tool for each parsed task, using the `track_id` and passing these fields.
+    *   For each task card line:
+        - **Title Normalization:** Strip checkbox status (`- [ ]`, `- [x]`), optional `Task:` prefix, routing tier hints (`[TIER-N]`), and agent role suggestions (`[AGENT:...]`). Trim leading and trailing whitespace to produce the clean `title`. Extract `tier` (e.g., `"TIER-3"`) and `agent` (e.g., `"superconductor-processor"`) into dedicated string parameters.
+        - **Parsing `CREATES` and `PROTECTED` into String Arrays:**
+          - *Single-Line Comma-Separated:* If the field value is on a single line following the key (e.g., `CREATES: src/auth/guard.ts, src/auth/types.ts`), split the string by `,`, trim whitespace from each item, and filter out empty strings.
+          - *Multi-Line Bullet List:* If the field value spans multiple lines with indented items (e.g., lines starting with `-`), parse each line, strip the leading `-` marker and whitespace, and filter out empty strings.
+          - Pass the resulting string arrays as `creates` and `protected` parameters to `task_create`. If no paths are specified, pass an empty array `[]` or omit.
+        - **Parsing `INVARIANT_AFTER`:** Extract the text following `INVARIANT_AFTER:`, strip any surrounding double (`"`) or single (`'`) quotes, and trim whitespace. Pass the resulting clean string as `invariant_after`.
+    *   Call the `task_create` MCP tool for each parsed task, passing:
+        ```json
+        {
+          "track_id": "<track_id>",
+          "title": "<normalized title>",
+          "tier": "<extracted tier>",
+          "agent": "<extracted agent>",
+          "creates": ["<file_path_1>", "<file_path_2>"],
+          "protected": ["<file_path_1>"],
+          "invariant_after": "<invariant string>"
+        }
+        ```
 7.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `<Tracks Directory>/<track_id>/index.md`.
 8.  **Update Tracks Registry:** Append a new section for the track to the end of the tracks file.
 9.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
