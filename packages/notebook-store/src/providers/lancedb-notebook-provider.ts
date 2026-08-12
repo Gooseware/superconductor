@@ -40,6 +40,12 @@ export class LanceDBNotebookProvider implements INotebookProvider {
       this.projectPath = path.join(process.cwd(), 'superconductor', 'notebook');
       this.globalPath = path.join(os.homedir(), '.superconductor', 'notebook');
     }
+
+    const workspaceBoundary = path.resolve(process.cwd());
+    const targetPath = path.resolve(this.projectPath);
+    if (!targetPath.startsWith(workspaceBoundary + path.sep)) {
+      throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
+    }
   }
 
   public async init(): Promise<void> {
@@ -178,7 +184,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
 
       for (const table of [globalTable, projectTable]) {
         if (!table) continue;
-        const vSearch = await table.search(queryVector).distanceType('cosine').limit(params.limit || 50).toArray();
+        const vSearch = await table.search(queryVector).distanceType('cosine').limit(params.limit !== undefined ? params.limit : 50).toArray();
         vectorRows.push(...vSearch);
 
         const allTableRows = await table.query().toArray();
@@ -236,7 +242,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
       if (e.note_type === 'failure' && now - e.timestamp > ninetyDaysMs) {
         return false;
       }
-      if (params.max_age_days) {
+      if (params.max_age_days !== undefined) {
         const maxAgeMs = params.max_age_days * 24 * 60 * 60 * 1000;
         if (now - e.timestamp > maxAgeMs) {
           return false;
@@ -263,7 +269,7 @@ export class LanceDBNotebookProvider implements INotebookProvider {
 
     entries = applyTokenBudget(entries);
 
-    const limit = params.limit || 5;
+    const limit = params.limit !== undefined ? params.limit : 5;
     return entries.slice(0, limit);
   }
 

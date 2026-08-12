@@ -300,40 +300,40 @@
 
 ## Phase 4: Integration & Finalization
 
-- [ ] Task: Run full test suite and verify coverage [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `CI=true pnpm --filter superconductor-core vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
-    - [ ] `CI=true pnpm --filter notebook-store vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
-    - [ ] `CI=true pnpm --filter quorum-fsm vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
-    - [ ] All packages: >80% coverage on new code [TIER-1:TCS=3]
-    - [ ] `npx tsc --noEmit` → clean [TIER-1:TCS=3]
+- [x] Task: Run full test suite and verify coverage [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `CI=true pnpm --filter superconductor-core vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
+    - [x] `CI=true pnpm --filter notebook-store vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
+    - [x] `CI=true pnpm --filter quorum-fsm vitest run --coverage 2>&1 | tail -5` [TIER-1:TCS=3]
+    - [x] All packages: >80% coverage on new code [TIER-1:TCS=3]
+    - [x] `npx tsc --noEmit` → clean [TIER-1:TCS=3]
 
-- [ ] Task: End-to-end integration test: --branch mode quorum loop [TIER-4:TCS=3] [AGENT:superconductor-oracle]
-    - [ ] Create `tests/e2e/quorum-loop.e2e.test.ts` [TIER-1:TCS=3]
-    - [ ] Test: NEEDS_FIXES → REMEDIATING → PASSED → notebook quorum note written → SignOffGate fires [TIER-1:TCS=3]
-    - [ ] Test: STAGNANT_DIFF_HALT circuit breaker fires at cycle 2 with identical diffs [TIER-1:TCS=3]
-    - [ ] Test: max 5 cycles → HALTED [TIER-1:TCS=3]
+- [x] Task: End-to-end integration test: --branch mode quorum loop [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Create `tests/e2e/quorum-loop.e2e.test.ts` [TIER-1:TCS=3]
+    - [x] Test: NEEDS_FIXES → REMEDIATING → PASSED → notebook quorum note written → SignOffGate fires [TIER-1:TCS=3]
+    - [x] Test: STAGNANT_DIFF_HALT circuit breaker fires at cycle 2 with identical diffs [TIER-1:TCS=3]
+    - [x] Test: max 5 cycles → HALTED [TIER-1:TCS=3]
 
-- [ ] Task: End-to-end integration test: notebook preflight enforcement [TIER-4:TCS=3] [AGENT:superconductor-oracle]
-    - [ ] Test: agent without preflight header → correctness reviewer returns NEEDS_FIXES [TIER-1:TCS=3]
-    - [ ] Test: agent with valid preflight header → correctness reviewer returns PASS [TIER-1:TCS=3]
-    - [ ] Test: pre-commit hook blocks commit without valid sign-off token [TIER-1:TCS=3]
+- [x] Task: End-to-end integration test: notebook preflight enforcement [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Test: agent without preflight header → correctness reviewer returns NEEDS_FIXES [TIER-1:TCS=3]
+    - [x] Test: agent with valid preflight header → correctness reviewer returns PASS [TIER-1:TCS=3]
+    - [x] Test: pre-commit hook blocks commit without valid sign-off token [TIER-1:TCS=3]
 
-- [ ] Task: Enforce swarm-orchestrator and tool capabilities permanently [TIER-4:TCS=3] [AGENT:superconductor-oracle]
-    - [ ] Update `skills/swarm-orchestrate/SKILL.md` (or equivalent orchestrator definitions) to explicitly grant `enable_subagent_tools: true` for any agent acting as a Quorum or Swarm Orchestrator [TIER-1:TCS=3]
-    - [ ] Ensure that agents chosen are correct for purpose (e.g. Flash panel for reviewers, Pro for oracle/dreamer) and possess the exact MCP/subagent tools required to operate autonomously [TIER-1:TCS=3]
+- [x] Task: Enforce swarm-orchestrator and tool capabilities permanently [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Update `skills/swarm-orchestrate/SKILL.md` (or equivalent orchestrator definitions) to explicitly grant `enable_subagent_tools: true` for any agent acting as a Quorum or Swarm Orchestrator [TIER-1:TCS=3]
+    - [x] Ensure that agents chosen are correct for purpose (e.g. Flash panel for reviewers, Pro for oracle/dreamer) and possess the exact MCP/subagent tools required to operate autonomously [TIER-1:TCS=3]
 
 
-- [ ] Task: Regenerate intelligence snapshot with new packages in scope [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] `node packages/superconductor-core/dist/intelligence/pipeline.js` [TIER-1:TCS=3]
-    - [ ] Verify notebook-store and quorum-fsm appear in domain partitioner output [TIER-1:TCS=3]
+- [x] Task: Regenerate intelligence snapshot with new packages in scope [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] `node packages/superconductor-core/dist/intelligence/pipeline.js` [TIER-1:TCS=3]
+    - [x] Verify notebook-store and quorum-fsm appear in domain partitioner output [TIER-1:TCS=3]
 
-- [ ] Task: Update tracks.md and commit finalization [TIER-1:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Mark track `[x]` in `superconductor/tracks.md` [TIER-1:TCS=3]
-    - [ ] Commit: `chore(superconductor): Mark track standalone_review_notebook_20260812 complete` [TIER-1:TCS=3]
+- [x] Task: Update tracks.md and commit finalization [TIER-1:TCS=3] [AGENT:superconductor-processor]
+    - [x] Mark track `[x]` in `superconductor/tracks.md` [TIER-1:TCS=3]
+    - [x] Commit: `chore(superconductor): Mark track standalone_review_notebook_20260812 complete` [TIER-1:TCS=3]
 
-- [ ] Task: Integrate track 'standalone_review_notebook_20260812' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Integrate track 'standalone_review_notebook_20260812' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---
 

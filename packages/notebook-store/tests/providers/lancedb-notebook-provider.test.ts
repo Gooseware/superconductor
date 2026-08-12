@@ -12,7 +12,7 @@ describe('LanceDBNotebookProvider', () => {
   let provider: LanceDBNotebookProvider;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lancedb-test-'));
+    tmpDir = fs.mkdtempSync(path.join(process.cwd(), 'lancedb-test-'));
     globalDir = path.join(tmpDir, 'global');
     projectDir = path.join(tmpDir, 'project');
     provider = new LanceDBNotebookProvider({

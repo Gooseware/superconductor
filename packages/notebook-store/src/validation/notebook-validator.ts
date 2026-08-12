@@ -45,20 +45,29 @@ export class NotebookValidator {
     return path.join(dir, 'notebook-ratelimits.json');
   }
 
+  private static fallbackCounts: Record<string, number> = {};
+
   private static loadCounts(): Record<string, number> {
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
-        return JSON.parse(fs.readFileSync(NotebookValidator.cacheFilePath, 'utf-8'));
+        const data = fs.readFileSync(NotebookValidator.cacheFilePath, 'utf-8');
+        const counts = JSON.parse(data);
+        NotebookValidator.fallbackCounts = counts;
+        return counts;
       }
     } catch(e) {
       console.error('Failed to load rate limits:', e);
+      return NotebookValidator.fallbackCounts;
     }
     return {};
   }
 
   private static saveCounts(counts: Record<string, number>) {
     try {
-      fs.writeFileSync(NotebookValidator.cacheFilePath, JSON.stringify(counts), 'utf-8');
+      const tempPath = NotebookValidator.cacheFilePath + `.${Date.now()}.${Math.random().toString(36).substring(2)}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(counts), 'utf-8');
+      fs.renameSync(tempPath, NotebookValidator.cacheFilePath);
+      NotebookValidator.fallbackCounts = counts;
     } catch(e) {
       console.error('Failed to save rate limits:', e);
     }
@@ -104,7 +113,7 @@ export class NotebookValidator {
     }
 
     // 4. Invocation rate limit: max 3 AGENT-authority writes per invocation_id
-    const authority = NOTE_AUTHORITY[entry.note_type];
+    const authority = NOTE_AUTHORITY[entry.note_type] ?? 'agent';
     if (authority === 'agent' && options?.invocation_id) {
       const counts = NotebookValidator.loadCounts();
       const count = counts[options.invocation_id] || 0;

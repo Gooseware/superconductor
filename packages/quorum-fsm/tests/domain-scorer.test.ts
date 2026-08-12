@@ -109,8 +109,8 @@ describe('domain-scorer', () => {
       runQuorumFn,
     });
 
-    expect(runQuorumFn).toHaveBeenNthCalledWith(1, ['--branch', 'dom-top', '--no-signoff']);
-    expect(runQuorumFn).toHaveBeenNthCalledWith(2, ['--branch', 'dom-next', '--no-signoff']);
+    expect(runQuorumFn).toHaveBeenNthCalledWith(1, ['--domain', 'dom-top', '--no-signoff']);
+    expect(runQuorumFn).toHaveBeenNthCalledWith(2, ['--domain', 'dom-next', '--no-signoff']);
 
     // Check typo alias works identically
     expect(orchestrateCopdebaseReview).toBe(orchestrateCodebaseReview);

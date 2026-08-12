@@ -142,7 +142,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
           args: [sanitizedQuery],
         });
       } catch (e) {
-        resultSet = { rows: [] };
+        console.error('FTS5 query failed:', e);
+        throw e;
       }
     } else {
       resultSet = await this.client!.execute({
@@ -173,7 +174,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       if (e.note_type === 'failure' && now - e.timestamp > ninetyDaysMs) {
         return false;
       }
-      if (params.max_age_days) {
+      if (params.max_age_days !== undefined) {
         const maxAgeMs = params.max_age_days * 24 * 60 * 60 * 1000;
         if (now - e.timestamp > maxAgeMs) {
           return false;
@@ -197,7 +198,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       entries = entries.filter((e) => e.severity === params.severity);
     }
 
-    const limit = params.limit || 5;
+    const limit = params.limit !== undefined ? params.limit : 5;
     return entries.slice(0, limit);
   }
 

@@ -33,7 +33,7 @@ function sanitizePath(p?: string): string {
   return sanitized;
 }
 
-export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptions = {}): Promise<number> {
+export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptions = {}): Promise<{ cycles: number; state: string }> {
   const { values } = parseArgs({
     args: rawArgs,
     options: {
@@ -92,7 +92,7 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
   // In --fast mode: single pass, no loop
   if (values.fast) {
     console.log('[QuorumFSM] Fast mode: single pass, no quorum loop.');
-    return record.cycle_count;
+    return { cycles: record.cycle_count, state: record.state };
   }
 
   // PreflightGate verification
@@ -105,7 +105,7 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
 
   // Main quorum loop (max MAX_CYCLES)
   while (record.state !== 'PASSED' && record.state !== 'HALTED' && record.cycle_count < MAX_CYCLES) {
-    const diff = getDiff(values.branch);
+    const diff = getDiff(values.branch || values.domain);
     const diffHash = StagnantDiffDetector.hashDiff(diff);
 
     // Check stagnant diff
@@ -188,6 +188,9 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
       }
     } catch (err: any) {
       console.error(`[QuorumFSM] Sub-process failed: ${err.message}`);
+      record.state = 'HALTED';
+      await store.save(record);
+      return exit(1) as never;
     }
 
     // Refresh state after run
@@ -214,12 +217,30 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
         const stateData = JSON.parse(require('node:fs').readFileSync(findingsPath, 'utf8'));
         const resolvedFindings = (stateData.findings || []).filter((f: any) => f.status === 'RESOLVED');
         for (const finding of resolvedFindings) {
-          await execFileAsync('antigravity', ['--mcp', 'notebook_write', '--type', 'quorum', '--reviewer_token', finding.reviewer_id || record.reviewer_session_id || '']);
+          await execFileAsync('antigravity', [
+            '--mcp', 'notebook_write',
+            '--note_type', 'quorum',
+            '--content', `Quorum passed for ${track_id}`,
+            '--files', '[]',
+            '--domain', values.domain || 'codebase',
+            '--severity', 'info',
+            '--invocation_id', Date.now().toString(),
+            '--reviewer_token', finding.reviewer_id || record.reviewer_session_id || ''
+          ]);
           invoked = true;
         }
       }
       if (!invoked) {
-        await execFileAsync('antigravity', ['--mcp', 'notebook_write', '--type', 'quorum', '--reviewer_token', record.reviewer_session_id || '']);
+        await execFileAsync('antigravity', [
+          '--mcp', 'notebook_write',
+          '--note_type', 'quorum',
+          '--content', `Quorum passed for ${track_id}`,
+          '--files', '[]',
+          '--domain', values.domain || 'codebase',
+          '--severity', 'info',
+          '--invocation_id', Date.now().toString(),
+          '--reviewer_token', record.reviewer_session_id || ''
+        ]);
       }
     } catch (e: any) {
       console.error(`[QuorumFSM] Failed to emit notebook_write: ${e.message}`);
@@ -227,7 +248,7 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
   }
 
   console.log(`[QuorumFSM] Final state: ${record.state}`);
-  return record.cycle_count;
+  return { cycles: record.cycle_count, state: record.state };
 }
 
 if (process.argv[1] && process.argv[1].endsWith('quorum-review.ts')) {

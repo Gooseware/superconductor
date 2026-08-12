@@ -8,13 +8,17 @@ describe('IntelligenceStatusService', () => {
   let tempDir: string;
   let service: IntelligenceStatusService;
 
+  let originalProjectRoot: string | undefined;
+
   beforeEach(() => {
+    originalProjectRoot = process.env.PROJECT_ROOT;
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-intel-status-test-'));
     const { execSync } = require('child_process');
     execSync('git init', { cwd: tempDir });
     execSync('git config user.name "Test"', { cwd: tempDir });
     execSync('git config user.email "test@example.com"', { cwd: tempDir });
     execSync('git commit --allow-empty -m "Initial commit"', { cwd: tempDir });
+    process.env.PROJECT_ROOT = tempDir;
     service = new IntelligenceStatusService();
   });
 
@@ -22,6 +26,7 @@ describe('IntelligenceStatusService', () => {
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+    process.env.PROJECT_ROOT = originalProjectRoot;
   });
 
   it('returns NONE when no manifest file exists', async () => {
@@ -37,7 +42,7 @@ describe('IntelligenceStatusService', () => {
     const intelDir = path.join(tempDir, 'intelligence');
     fs.mkdirSync(intelDir, { recursive: true });
 
-    const recentTimestamp = Date.now() - 3600 * 1000; // 1 hour ago
+    const recentTimestamp = Date.now(); // Right now, so commits_behind will be 0 when we add +1000 in service
     fs.writeFileSync(
       path.join(intelDir, '00_manifest.json'),
       JSON.stringify({ timestamp: recentTimestamp })

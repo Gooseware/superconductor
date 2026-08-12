@@ -69,25 +69,42 @@ function updateRegistryPath(newPath: string) {
 
 async function updateQuorumState(key: string, value: any) {
   const quorumDbPath = path.join(PROJECT_ROOT, "superconductor", "quorum", "quorum_state.db");
-  if (fs.existsSync(quorumDbPath)) {
-    try {
-      const qdb = createClient({ url: `file:${quorumDbPath}` });
-      const rows = await qdb.execute("SELECT track_id, session_id, metadata FROM quorum_state ORDER BY timestamp DESC LIMIT 1");
-      if (rows.rows.length > 0) {
-        const row = rows.rows[0];
-        let meta: any = {};
-        if (row.metadata) {
-          try { meta = JSON.parse(row.metadata as string); } catch {}
-        }
-        meta[key] = value;
-        await qdb.execute({
-          sql: "UPDATE quorum_state SET metadata = ? WHERE track_id = ? AND session_id = ?",
-          args: [JSON.stringify(meta), row.track_id, row.session_id]
-        });
+  if (!fs.existsSync(quorumDbPath)) {
+    throw new Error(`Quorum state database not found at ${quorumDbPath}`);
+  }
+  try {
+    const qdb = createClient({ url: `file:${quorumDbPath}` });
+    const rows = await qdb.execute("SELECT * FROM quorum_state ORDER BY timestamp DESC LIMIT 1");
+    if (rows.rows.length > 0) {
+      const row = rows.rows[0];
+      let meta: any = {};
+      if (row.metadata) {
+        try { meta = JSON.parse(row.metadata as string); } catch {}
       }
-    } catch (e) {
-      console.error("Failed to update quorum state", e);
+      meta[key] = value;
+      const newMetadata = JSON.stringify(meta);
+
+      const payload = JSON.stringify({
+        track_id: row.track_id,
+        session_id: row.session_id,
+        state: row.state,
+        cycle_count: row.cycle_count,
+        last_diff_hash: row.last_diff_hash ?? null,
+        reviewer_session_id: row.reviewer_session_id ?? null,
+        timestamp: row.timestamp,
+        sign_off_record: row.sign_off_record ?? null,
+        metadata: newMetadata,
+      });
+      const crypto = await import("crypto");
+      const checksum = crypto.createHash('sha256').update(payload).digest('hex');
+
+      await qdb.execute({
+        sql: "UPDATE quorum_state SET metadata = ?, sha256_checksum = ? WHERE track_id = ? AND session_id = ?",
+        args: [newMetadata, checksum, row.track_id, row.session_id]
+      });
     }
+  } catch (e) {
+    console.error("Failed to update quorum state", e);
   }
 }
 

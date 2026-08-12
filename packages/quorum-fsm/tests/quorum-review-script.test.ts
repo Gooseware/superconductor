@@ -26,9 +26,11 @@ describe('quorum-review.ts script integration', () => {
     const exitFn = vi.fn();
     const getDiffFn = vi.fn().mockReturnValue('diff 1');
 
+    await store.save({ track_id: 'feature-x', session_id: 'session-test', state: 'INIT', cycle_count: 0, last_diff_hash: null, reviewer_session_id: null, timestamp: Date.now(), sha256_checksum: '', metadata: JSON.stringify({ intelligenceStatusChecked: true, notebookQueried: true }) });
+
     await runQuorumReview(
       ['--branch', 'feature-x', '--fast'],
-      { store, getDiffFn, exitFn }
+      { store, getDiffFn, exitFn, sessionId: 'session-test' }
     );
 
     const record = await store.load('feature-x', 'session-test');
@@ -38,6 +40,8 @@ describe('quorum-review.ts script integration', () => {
   it('should detect STAGNANT_DIFF and exit with code 1', async () => {
     const exitFn = vi.fn();
     const getDiffFn = vi.fn().mockReturnValue('identical diff string');
+
+    await store.save({ track_id: 'feature-stagnant', session_id: 's1', state: 'INIT', cycle_count: 0, last_diff_hash: null, reviewer_session_id: null, timestamp: Date.now(), sha256_checksum: '', metadata: JSON.stringify({ intelligenceStatusChecked: true, notebookQueried: true }) });
 
     // First cycle: sets last_diff_hash
     await runQuorumReview(
@@ -68,6 +72,7 @@ describe('quorum-review.ts script integration', () => {
       reviewer_session_id: null,
       timestamp: Date.now(),
       sha256_checksum: '',
+      metadata: JSON.stringify({ intelligenceStatusChecked: true, notebookQueried: true })
     };
     await store.save(record);
 

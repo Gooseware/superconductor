@@ -18,7 +18,7 @@ export class ZeroBiasContextBuilder {
       diff: params.diff,
       preflight_output: params.preflight_output,
       finding_fingerprints: params.prior_findings.map((f) =>
-        crypto.createHash('sha256').update(f).digest('hex')
+        crypto.createHash('sha256').update(JSON.stringify(f)).digest('hex')
       ),
       cycle_number: params.cycle,
     };

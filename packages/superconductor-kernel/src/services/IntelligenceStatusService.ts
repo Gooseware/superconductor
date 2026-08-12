@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 export type IntelligenceStatus = 'LIVE' | 'STALE' | 'NONE';
 
@@ -14,7 +14,12 @@ export interface IntelligenceStatusResult {
 
 export class IntelligenceStatusService {
   async getStatus(outputDir: string): Promise<IntelligenceStatusResult> {
-    let effectiveDir = outputDir;
+    const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
+    const resolvedDir = path.resolve(outputDir);
+    if (!resolvedDir.startsWith(PROJECT_ROOT)) {
+      throw new Error('outputDir must be within the workspace root');
+    }
+    let effectiveDir = resolvedDir;
     let manifestPath = path.join(effectiveDir, 'intelligence', '00_manifest.json');
     if (!fs.existsSync(manifestPath) && fs.existsSync(path.join(effectiveDir, 'superconductor', 'intelligence', '00_manifest.json'))) {
       effectiveDir = path.join(effectiveDir, 'superconductor');
@@ -40,11 +45,12 @@ export class IntelligenceStatusService {
 
     let commits_behind = 0;
     try {
-      const sinceIso = new Date(manifest.timestamp).toISOString();
-      const output = execSync(`git log --oneline --since="${sinceIso}" 2>/dev/null | wc -l`, {
+      const sinceIso = new Date(manifest.timestamp + 1000).toISOString();
+      const output = execFileSync('git', ['log', '--oneline', `--since=${sinceIso}`], {
         cwd: effectiveDir,
-      }).toString().trim();
-      commits_behind = parseInt(output, 10) || 0;
+        encoding: 'utf8',
+      }).trim();
+      commits_behind = output ? output.split('\n').length : 0;
     } catch (err) {
       console.error(`[IntelligenceStatusService] Failed to check commits behind:`, err);
       throw err;

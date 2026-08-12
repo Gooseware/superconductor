@@ -5,7 +5,7 @@ import { ZeroBiasContextBuilder } from '../src/zero-bias/zero-bias-context-build
 describe('ZeroBiasContextBuilder', () => {
   it('should build context with hashed finding fingerprints', () => {
     const rawFinding = 'Security vulnerability in file.ts line 42';
-    const expectedHash = crypto.createHash('sha256').update(rawFinding).digest('hex');
+    const expectedHash = crypto.createHash('sha256').update(JSON.stringify(rawFinding)).digest('hex');
 
     const result = ZeroBiasContextBuilder.build({
       diff: 'git diff content',

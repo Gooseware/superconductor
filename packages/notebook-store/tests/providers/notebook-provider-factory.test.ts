@@ -6,7 +6,7 @@ import { LibSQLNotebookProvider } from '../../src/providers/libsql-notebook-prov
 
 describe('createNotebookProvider Factory', () => {
   it('returns LanceDBNotebookProvider by default', async () => {
-    const provider = await createNotebookProvider('/tmp/test-factory-lancedb');
+    const provider = await createNotebookProvider(path.join(process.cwd(), 'test-factory-lancedb'));
     expect(provider).toBeInstanceOf(LanceDBNotebookProvider);
     await provider.close();
   });

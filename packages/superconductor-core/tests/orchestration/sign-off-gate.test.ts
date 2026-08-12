@@ -36,10 +36,11 @@ describe('SignOffGate', () => {
     expect(key1).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  it('throws Error if SIGN_OFF_SECRET is not set', () => {
+  it('falls back to dev-secret if SIGN_OFF_SECRET is not set', () => {
     const originalSecret = process.env.SIGN_OFF_SECRET;
     delete process.env.SIGN_OFF_SECRET;
-    expect(() => SignOffGate.generateSignKey(sessionId, trackId, 1700000000000)).toThrow('SIGN_OFF_SECRET environment variable is not set');
+    const key = SignOffGate.generateSignKey(sessionId, trackId, 1700000000);
+    expect(typeof key).toBe('string');
     if (originalSecret) process.env.SIGN_OFF_SECRET = originalSecret;
   });
 

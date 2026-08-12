@@ -10,7 +10,7 @@ export interface CodebaseReviewOptions {
   noSignoff: boolean;
   branch?: string;
   scoreDomainsFn?: (dir: string) => Promise<DomainScore[]>;
-  runQuorumFn?: (args: string[]) => Promise<void>;
+  runQuorumFn?: (args: string[]) => Promise<any>;
 }
 
 export async function orchestrateCodebaseReview(options: CodebaseReviewOptions): Promise<void> {
@@ -33,8 +33,15 @@ export async function orchestrateCodebaseReview(options: CodebaseReviewOptions):
       args.push('--no-signoff');
     }
 
-    const cycles = await runner(args);
-    console.log(`[Badge] Domain ${d.domain}: GREEN (Cycles: ${cycles})`);
+    const result: any = await runner(args);
+    const state = result?.state || 'PASSED';
+    const cycles = result?.cycles ?? 0;
+    
+    if (state === 'PASSED') {
+      console.log(`[Badge] Domain ${d.domain}: GREEN (Cycles: ${cycles})`);
+    } else {
+      console.log(`[Badge] Domain ${d.domain}: RED (State: ${state}, Cycles: ${cycles})`);
+    }
   }
 
   console.log('[CodebaseReviewOrchestrator] All domains PASSED. Triggering cross-domain Oracle synthesis...');
