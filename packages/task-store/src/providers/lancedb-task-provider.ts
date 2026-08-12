@@ -141,12 +141,31 @@ export class LanceDBTaskProvider implements TaskProvider {
     id: string; status?: 'pending' | 'in_progress' | 'completed' | 'blocked'; committed_sha?: string;
   }): Promise<{ success: boolean }> {
     if (!this.initialized) await this.init();
+
+    const existingTasks = await this.inner.queryTasks({});
+    const previousTask = existingTasks.find(t => t.id === args.id);
+
     const res = await this.inner.updateTask(args);
     if (res.success && args.status && this.table) {
-      await this.table.update({
-        where: `id = '${args.id.replace(/'/g, "''")}'`,
-        values: { status: args.status }
-      });
+      try {
+        await this.table.update({
+          where: `id = '${args.id.replace(/'/g, "''")}'`,
+          values: { status: args.status }
+        });
+      } catch (err) {
+        if (previousTask) {
+          try {
+            await this.inner.updateTask({
+              id: args.id,
+              status: previousTask.status,
+              committed_sha: previousTask.committed_sha
+            });
+          } catch {
+            // ignore rollback error
+          }
+        }
+        throw err;
+      }
     }
     return res;
   }
