@@ -23,7 +23,7 @@
 - [x] Call `task_create` for each parsed task.
 - [x] Create/update a `sync-plan` script that pulls state from DB and rewrites `plan.md` checkboxes.
 
-## Phase 5: implement skill
+## Phase 5: implement skill [checkpoint: 41e8d0b9]
 - [x] Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
 
 ## Phase 6: status skill
