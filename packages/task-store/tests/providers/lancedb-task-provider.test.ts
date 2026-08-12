@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { LanceDBTaskProvider } from '../../src/providers/lancedb-task-provider.js';
@@ -32,6 +32,60 @@ describe('LanceDBTaskProvider', () => {
     const results = await provider.queryTasks({ semantic_query: 'test task' });
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].id).toBe(task.id);
+  });
+
+  describe('init', () => {
+    it('handles concurrent init() calls without throwing "Table \'tasks\' already exists"', async () => {
+      const dir = fs.mkdtempSync(path.join(process.cwd(), 'lancedb-concurrent-init-'));
+      const testProvider = new LanceDBTaskProvider(dir);
+      try {
+        await expect(Promise.all([
+          testProvider.init(),
+          testProvider.init(),
+          testProvider.init()
+        ])).resolves.not.toThrow();
+      } finally {
+        await testProvider.close();
+        if (fs.existsSync(dir)) {
+          fs.rmSync(dir, { recursive: true, force: true });
+        }
+      }
+    });
+  });
+
+  describe('close', () => {
+    it('successfully terminates LanceDB connection and resets initialized state', async () => {
+      const dir = fs.mkdtempSync(path.join(process.cwd(), 'lancedb-close-1-'));
+      const testProvider = new LanceDBTaskProvider(dir);
+      await testProvider.init();
+
+      expect((testProvider as any).initialized).toBe(true);
+      await testProvider.close();
+      expect((testProvider as any).initialized).toBe(false);
+
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('invokes connection.close if present or sets connection to null on close()', async () => {
+      const dir = fs.mkdtempSync(path.join(process.cwd(), 'lancedb-close-2-'));
+      const testProvider = new LanceDBTaskProvider(dir);
+      await testProvider.init();
+
+      const closeSpy = vi.fn();
+      if ((testProvider as any).connection) {
+        (testProvider as any).connection.close = closeSpy;
+      }
+
+      await testProvider.close();
+      expect((testProvider as any).initialized).toBe(false);
+      expect(closeSpy.mock.calls.length > 0 || (testProvider as any).connection === null).toBe(true);
+
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('queryTasks', () => {
@@ -190,6 +244,31 @@ describe('LanceDBTaskProvider', () => {
         status: 'completed'
       });
       expect(updateRes.success).toBe(false);
+    });
+
+    it('throws or handles failure when LanceDB table update fails (simulate table.update throwing)', async () => {
+      const { id } = await provider.createTask({
+        track_id: 'track-update-fail',
+        title: 'Task update failure test'
+      });
+
+      const table = (provider as any).table;
+      if (table) {
+        table.update = vi.fn().mockRejectedValue(new Error('LanceDB update error'));
+      }
+
+      let errorCaught = false;
+      try {
+        const res = await provider.updateTask({ id, status: 'completed' });
+        if (!res.success) {
+          errorCaught = true;
+        }
+      } catch (err: any) {
+        errorCaught = true;
+        expect(err.message).toContain('LanceDB update error');
+      }
+
+      expect(errorCaught).toBe(true);
     });
   });
 
