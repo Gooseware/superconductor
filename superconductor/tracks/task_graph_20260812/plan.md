@@ -26,8 +26,8 @@
 ## Phase 5: implement skill [checkpoint: 41e8d0b9]
 - [x] Refactor the `implement` skill to query `task_query()` for assignments, fully decoupling from reading markdown files for execution dispatch.
 
-## Phase 6: status skill
-- Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via `task_query` or dedicated endpoint rather than regexing markdown.
+## Phase 6: status skill [checkpoint: a4b1c50d]
+- [x] Update the `status` skill to pull real-time statuses and aggregations from the `task-store` via `task_query` or dedicated endpoint rather than regexing markdown.
 
 ## Phase 7: Dreamer enhancement
 - Modify the Dreamer agent prompt/system instructions to generate `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields within the task cards in `plan.md`.
