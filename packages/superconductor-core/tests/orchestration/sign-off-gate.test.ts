@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { SignOffGate, SignOffRequiredError } from '../../src/orchestration/sign-off-gate.js';
@@ -24,14 +24,23 @@ describe('SignOffGate', () => {
         fs.rmSync(f, { force: true });
       }
     }
+    vi.restoreAllMocks();
   });
 
   it('generates deterministic SHA-256 sign key', () => {
     const ts = 1700000000000;
+    process.env.SIGN_OFF_SECRET = 'test-secret';
     const key1 = SignOffGate.generateSignKey(sessionId, trackId, ts);
     const key2 = SignOffGate.generateSignKey(sessionId, trackId, ts);
     expect(key1).toBe(key2);
     expect(key1).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('throws Error if SIGN_OFF_SECRET is not set', () => {
+    const originalSecret = process.env.SIGN_OFF_SECRET;
+    delete process.env.SIGN_OFF_SECRET;
+    expect(() => SignOffGate.generateSignKey(sessionId, trackId, 1700000000000)).toThrow('SIGN_OFF_SECRET environment variable is not set');
+    if (originalSecret) process.env.SIGN_OFF_SECRET = originalSecret;
   });
 
   it('returns false for isApproved when no sign_off_record exists', async () => {
@@ -63,5 +72,39 @@ describe('SignOffGate', () => {
     const gate = new SignOffGate();
     const context: GateContext = { trackId: 'unapproved-track', sessionId: 'unapproved-sess' };
     await expect(gate.assert(context)).rejects.toThrow(SignOffRequiredError);
+  });
+
+  it('returns passed true for --no-signoff bypass', async () => {
+    process.env.SUPERCONDUCTOR_FLAGS = '--no-signoff';
+    const gate = new SignOffGate();
+    const context: GateContext = { trackId: 'test-track', sessionId: 'test-sess' };
+    const res = await gate.check(context);
+    expect(res.passed).toBe(true);
+    expect(res.reason).toContain('Bypassed via --no-signoff');
+    delete process.env.SUPERCONDUCTOR_FLAGS;
+  });
+
+  it('returns passed false for interactive mode', async () => {
+    process.env.SUPERCONDUCTOR_INTERACTIVE = 'true';
+    const gate = new SignOffGate();
+    const context: GateContext = { trackId: 'test-track', sessionId: 'test-sess' };
+    const askUserSpy = vi.spyOn(gate, 'askUser').mockRejectedValue(new Error('ask_user'));
+    const res = await gate.check(context);
+    expect(res.passed).toBe(false);
+    expect(res.reason).toBe('ask_user');
+    expect(askUserSpy).toHaveBeenCalledWith(context);
+    delete process.env.SUPERCONDUCTOR_INTERACTIVE;
+  });
+
+  it('returns passed false for headless mode and sets pending_merge', async () => {
+    process.env.SUPERCONDUCTOR_HEADLESS = 'true';
+    const mockStore = { saveSignOffRecord: vi.fn() };
+    const gate = new SignOffGate(mockStore);
+    const context: GateContext = { trackId: 'test-track', sessionId: 'test-sess' };
+    const res = await gate.check(context);
+    expect(res.passed).toBe(false);
+    expect(res.reason).toBe('pending_merge: true');
+    expect(mockStore.saveSignOffRecord).toHaveBeenCalledWith('test-track', 'test-sess', { pending_merge: true });
+    delete process.env.SUPERCONDUCTOR_HEADLESS;
   });
 });

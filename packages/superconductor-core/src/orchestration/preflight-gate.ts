@@ -27,7 +27,14 @@ export class PreflightGate extends AbstractGate {
         record = null;
       }
     }
-    const metadata = (record && record.metadata) || record || context.metadata;
+    let metadata = (record && record.metadata) || record || context.metadata;
+    if (typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch {
+        // ignore
+      }
+    }
 
     if (!metadata || !metadata.intelligenceStatusChecked) {
       return { passed: false, reason: 'Intelligence status MCP call not recorded in quorum state' };

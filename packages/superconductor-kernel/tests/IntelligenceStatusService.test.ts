@@ -10,6 +10,11 @@ describe('IntelligenceStatusService', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-intel-status-test-'));
+    const { execSync } = require('child_process');
+    execSync('git init', { cwd: tempDir });
+    execSync('git config user.name "Test"', { cwd: tempDir });
+    execSync('git config user.email "test@example.com"', { cwd: tempDir });
+    execSync('git commit --allow-empty -m "Initial commit"', { cwd: tempDir });
     service = new IntelligenceStatusService();
   });
 

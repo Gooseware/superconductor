@@ -74,9 +74,12 @@ export class WorkspaceGuard extends AbstractGate {
   }
 
   async preCommitCheck(): Promise<{ ok: true }> {
+    // Skip checks if no shell runner is provided
     if (!this.shell) {
       return { ok: true };
     }
+    
+    // Verify that the current git branch matches the assigned branch
     const branchRes = await this.shell.exec('git branch --show-current');
     const currentBranch = branchRes.stdout.trim();
 
@@ -86,6 +89,7 @@ export class WorkspaceGuard extends AbstractGate {
       );
     }
 
+    // Run TypeScript compiler to ensure there are no type errors
     const tscRes = await this.shell.exec('npx tsc --noEmit');
     if (tscRes.exitCode !== 0) {
       const output = (tscRes.stdout + '\n' + tscRes.stderr).trim();
@@ -95,22 +99,26 @@ export class WorkspaceGuard extends AbstractGate {
     return { ok: true };
   }
 
-  async detectSharedSingletonOverwrite(sharedFiles: string[], diffContent: string): Promise<string[]> {
+  async detectHeavyLineDeletions(sharedFiles: string[], diffContent: string): Promise<string[]> {
     const findings: string[] = [];
     if (!sharedFiles || sharedFiles.length === 0 || !diffContent || !diffContent.trim()) {
       return findings;
     }
 
+    // Split diff into per-file blocks using 'diff --git ' headers
     const fileBlocks = diffContent.split(/^diff --git /m);
     for (const block of fileBlocks) {
+      // Extract the actual changed file path from 'diff --git a/foo b/foo'
       const headerMatch = block.match(/^a\/(.+?) b\//);
       if (!headerMatch) continue;
       const changedFile = headerMatch[1];
       if (!sharedFiles.some(sf => changedFile.endsWith(sf))) continue;
 
+      // Check if the diff for THIS specific file contains array/object replacements
       const removedLines = block.match(/^-(?!--).*/gm) || [];
       const addedLines = block.match(/^\+(?!\+\+).*/gm) || [];
 
+      // Flag if removed lines significantly exceed added lines (overwrite pattern)
       if (removedLines.length > 3 && addedLines.length < removedLines.length * 0.5) {
         findings.push(changedFile);
       }
@@ -142,6 +150,10 @@ export class WorkspaceGuard extends AbstractGate {
       throw new UnauthorizedMergeError();
     }
 
+    if (!trackId || !sessId) {
+      throw new Error('trackId and sessionId are required for commitToMain');
+    }
+
     if (trackId && sessId) {
       const approved = await SignOffGate.isApproved(trackId, sessId, store);
       if (!approved) {
@@ -149,6 +161,7 @@ export class WorkspaceGuard extends AbstractGate {
       }
     }
 
+    // Verify current branch is a track branch (not main)
     const cp = await import('child_process');
     try {
       let currentBranch = '';
@@ -168,8 +181,12 @@ export class WorkspaceGuard extends AbstractGate {
       }
     } catch (e) {
       if (e instanceof UnauthorizedMergeError) throw e;
+      if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
+        throw e;
+      }
     }
 
+    // Run pre-commit check if available
     if (typeof this.preCommitCheck === 'function') {
       await this.preCommitCheck();
     }

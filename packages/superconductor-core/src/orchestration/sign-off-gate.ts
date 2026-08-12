@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import readline from 'readline';
 import { AbstractGate, GateContext, GateResult, GateError } from './abstract-gate.js';
 
 export class SignOffRequiredError extends GateError {
@@ -35,8 +36,12 @@ export class SignOffGate extends AbstractGate {
   }
 
   static generateSignKey(sessionId: string, trackId: string, oracleTs: number): string {
+    if (!process.env.SIGN_OFF_SECRET) {
+      throw new Error('SIGN_OFF_SECRET environment variable is not set');
+    }
+    const secret = process.env.SIGN_OFF_SECRET;
     return crypto
-      .createHash('sha256')
+      .createHmac('sha256', secret)
       .update(`${sessionId}:${trackId}:${oracleTs}`)
       .digest('hex');
   }
@@ -48,6 +53,7 @@ export class SignOffGate extends AbstractGate {
     oracleConvId: string | null = null,
     stateStore?: any
   ): Promise<SignOffRecord> {
+    trackId = path.basename(trackId);
     const signKey = SignOffGate.generateSignKey(sessionId, trackId, oracleTs);
     const record: SignOffRecord = {
       approved_by: 'user',
@@ -67,8 +73,8 @@ export class SignOffGate extends AbstractGate {
         path.join(dir, `signoff_${trackId}.json`),
         JSON.stringify({ ...record, track_id: trackId, session_id: sessionId })
       );
-    } catch {
-      // Ignore if filesystem is read-only
+    } catch (e) {
+      console.warn(`[SignOffGate] Failed to write signoff for ${trackId}:`, e);
     }
 
     SignOffGate.inMemorySignOffs.set(`${trackId}:${sessionId}`, record);
@@ -77,12 +83,23 @@ export class SignOffGate extends AbstractGate {
   }
 
   static async isApproved(trackId: string, sessionId: string, stateStore?: any): Promise<boolean> {
+    trackId = path.basename(trackId);
     let record: SignOffRecord | null = null;
 
     if (stateStore && typeof stateStore.getSignOffRecord === 'function') {
       try {
-        record = await stateStore.getSignOffRecord(trackId, sessionId);
-      } catch {
+        let rawRecord = await stateStore.getSignOffRecord(trackId, sessionId);
+        if (typeof rawRecord === 'string') {
+          try {
+            rawRecord = JSON.parse(rawRecord);
+          } catch (e) {
+            console.error('[SignOffGate] Failed to parse sign_off_record:', e);
+            rawRecord = null;
+          }
+        }
+        record = rawRecord;
+      } catch (e) {
+        console.warn(`[SignOffGate] stateStore.getSignOffRecord failed:`, e);
         record = null;
       }
     }
@@ -92,8 +109,17 @@ export class SignOffGate extends AbstractGate {
         const stateRecord = await stateStore.load(trackId, sessionId);
         if (stateRecord) {
           record = stateRecord.sign_off_record || stateRecord.metadata?.sign_off_record || null;
+          if (typeof record === 'string') {
+            try {
+              record = JSON.parse(record);
+            } catch (e) {
+              console.error('[SignOffGate] Failed to parse sign_off_record from stateRecord:', e);
+              record = null;
+            }
+          }
         }
-      } catch {
+      } catch (e) {
+        console.warn(`[SignOffGate] stateStore.load failed:`, e);
         record = null;
       }
     }
@@ -110,7 +136,8 @@ export class SignOffGate extends AbstractGate {
       if (fs.existsSync(filePath)) {
         try {
           record = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        } catch {
+        } catch (e) {
+          console.warn(`[SignOffGate] failed to parse signoff from fs:`, e);
           record = null;
         }
       }
@@ -124,7 +151,59 @@ export class SignOffGate extends AbstractGate {
     return record.sign_key === expectedKey;
   }
 
+  async askUser(context: GateContext): Promise<void> {
+    console.log(`[SignOffGate] ask_user(): diff summary, test counts, quorum rounds, resolved findings, notebook notes written for ${context.trackId}`);
+    return new Promise((resolve, reject) => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      rl.question(`Do you approve the merge for ${context.trackId}? (y/n) `, (answer: string) => {
+        rl.close();
+        if (answer.trim().toLowerCase() === 'y') {
+          resolve();
+        } else {
+          reject(new SignOffRequiredError('User denied merge'));
+        }
+      });
+    });
+  }
+
   async check(context: GateContext): Promise<GateResult> {
+    const flags = process.env.SUPERCONDUCTOR_FLAGS || '';
+
+    if (flags.includes('--no-signoff')) {
+      if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
+        return { passed: false, reason: '--no-signoff bypass is only allowed in test environments' };
+      }
+      try {
+        const logDir = path.resolve('superconductor/logs');
+        fs.mkdirSync(logDir, { recursive: true });
+        const logMsg = `[${new Date().toISOString()}] YOLO BYPASS: --no-signoff flag present for track ${context.trackId}\n`;
+        fs.appendFileSync(path.join(logDir, 'yolo-audit.log'), logMsg);
+      } catch (e) {
+        // ignore
+      }
+      return { passed: true, reason: 'Bypassed via --no-signoff' };
+    }
+
+    if (process.env.SUPERCONDUCTOR_HEADLESS === 'true') {
+      console.log(`[SignOffGate] Emitting report for headless mode...`);
+      if (this.stateStore && typeof this.stateStore.saveSignOffRecord === 'function') {
+        await this.stateStore.saveSignOffRecord(context.trackId, context.sessionId, { pending_merge: true } as any);
+      }
+      return { passed: false, reason: 'pending_merge: true' };
+    }
+
+    if (process.env.SUPERCONDUCTOR_INTERACTIVE === 'true') {
+      try {
+        await this.askUser(context);
+        return { passed: true, reason: 'Approved interactively' };
+      } catch (e: any) {
+        return { passed: false, reason: e.message || 'ask_user failed' };
+      }
+    }
+
     const approved = await SignOffGate.isApproved(context.trackId, context.sessionId, this.stateStore);
     return { passed: approved, reason: approved ? undefined : 'Sign-off not yet recorded' };
   }

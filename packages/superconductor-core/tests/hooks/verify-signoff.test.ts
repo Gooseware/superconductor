@@ -23,9 +23,12 @@ describe('Git Pre-Commit SignOff Verification Hook', () => {
   });
 
   it('exits 0 when a valid sign-off token exists', () => {
+    process.env.SIGN_OFF_SECRET = 'test-secret';
     const timestamp = Date.now();
+    const secret = process.env.SIGN_OFF_SECRET;
+    if (!secret) throw new Error('SIGN_OFF_SECRET environment variable is not set');
     const signKey = crypto
-      .createHash('sha256')
+      .createHmac('sha256', secret)
       .update(`${testSessionId}:${testTrackId}:${timestamp}`)
       .digest('hex');
 
@@ -45,6 +48,7 @@ describe('Git Pre-Commit SignOff Verification Hook', () => {
     const output = execSync(`node "${verifyScriptPath}" "${testTrackId}"`, {
       cwd: repoRoot,
       encoding: 'utf8',
+      env: { ...process.env, SIGN_OFF_SECRET: 'test-secret' },
     });
     expect(output).toContain('Approved by user at');
   });
@@ -61,7 +65,7 @@ describe('Git Pre-Commit SignOff Verification Hook', () => {
   it('exits 0 and logs to yolo-audit.log when --no-signoff flag is set', () => {
     const output = execSync(`node "${verifyScriptPath}" "${testTrackId}"`, {
       cwd: repoRoot,
-      env: { ...process.env, SUPERCONDUCTOR_FLAGS: '--no-signoff' },
+      env: { ...process.env, SUPERCONDUCTOR_FLAGS: '--no-signoff', NODE_ENV: 'test', SIGN_OFF_SECRET: 'test-secret' },
       encoding: 'utf8',
     });
 

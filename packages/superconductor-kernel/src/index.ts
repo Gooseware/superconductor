@@ -67,6 +67,30 @@ function updateRegistryPath(newPath: string) {
   console.log(`[Registry] Switched active registry to: ${currentRegistryPath}`);
 }
 
+async function updateQuorumState(key: string, value: any) {
+  const quorumDbPath = path.join(PROJECT_ROOT, "superconductor", "quorum", "quorum_state.db");
+  if (fs.existsSync(quorumDbPath)) {
+    try {
+      const qdb = createClient({ url: `file:${quorumDbPath}` });
+      const rows = await qdb.execute("SELECT track_id, session_id, metadata FROM quorum_state ORDER BY timestamp DESC LIMIT 1");
+      if (rows.rows.length > 0) {
+        const row = rows.rows[0];
+        let meta: any = {};
+        if (row.metadata) {
+          try { meta = JSON.parse(row.metadata as string); } catch {}
+        }
+        meta[key] = value;
+        await qdb.execute({
+          sql: "UPDATE quorum_state SET metadata = ? WHERE track_id = ? AND session_id = ?",
+          args: [JSON.stringify(meta), row.track_id, row.session_id]
+        });
+      }
+    } catch (e) {
+      console.error("Failed to update quorum state", e);
+    }
+  }
+}
+
 async function initDb() {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS themes (
@@ -497,6 +521,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: "Write a note to the Superconductor Notebook (max 280 chars, rate-limited to 3 per invocation)",
         inputSchema: {
           type: "object",
+          maxCallsPerSession: 3,
           properties: {
             note_type: { type: "string", enum: ["spec", "design", "style", "quorum", "preference", "procedure", "failure", "dependency", "warning"], description: "Type of note" },
             content: { type: "string", maxLength: 280, description: "Note content (max 280 characters)" },
@@ -542,6 +567,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "notebook_query") {
     const results = await notebookService.query(args as any, PROJECT_ROOT);
+    await updateQuorumState('notebookQueried', true);
     return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
   }
 
@@ -559,6 +585,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { outputDir } = z.object({ outputDir: z.string().optional() }).parse(args || {});
     const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
     const result = await intelligenceStatusService.getStatus(targetDir);
+    await updateQuorumState('intelligenceStatusChecked', true);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
 
@@ -716,6 +743,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "registry_validate_file") {
     const { path: filePath } = z.object({ path: z.string() }).parse(args);
     const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(PROJECT_ROOT, filePath);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const result = await dogmaService.validate(absolutePath);
     
     let text = JSON.stringify(result, null, 2);
@@ -729,6 +757,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (name === "registry_fix_dogma") {
     const { path: filePath } = z.object({ path: z.string() }).parse(args);
     const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(PROJECT_ROOT, filePath);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const result = await dogmaService.fix(absolutePath);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
@@ -738,6 +767,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       .object({ path: z.string(), family: z.string(), variant: z.string(), type: z.enum(["atom", "molecule", "organism", "page", "layout", "form", "util"]) })
       .parse(args);
     const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(PROJECT_ROOT, filePath);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const validation = await dogmaService.validate(absolutePath);
     if (!validation.success) {
       return { content: [{ type: "text", text: `REJECTED: Component does not meet dogma standards.\n${validation.errors.join("\n")}` }] };
@@ -756,6 +786,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       })
       .parse(args);
     const absolutePath = path.isAbsolute(data.path) ? data.path : path.resolve(PROJECT_ROOT, data.path);
+    if (!absolutePath.startsWith(PROJECT_ROOT + path.sep)) throw new Error("Path traversal detected");
     const publishResult = await publishService.publish(absolutePath, data.family, data.variant, {
       type: data.type, description: data.description, intent: data.intent, tags: data.tags, dependencies: data.dependencies,
     });

@@ -14,6 +14,8 @@ export interface QuorumStateRecord {
   reviewer_session_id: string | null;
   timestamp: number;
   sha256_checksum: string;
+  sign_off_record?: string | null;
+  metadata?: string | null;
 }
 
 export class StateIntegrityError extends Error {
@@ -31,9 +33,11 @@ export function computeStateChecksum(
     session_id: record.session_id,
     state: record.state,
     cycle_count: record.cycle_count,
-    last_diff_hash: record.last_diff_hash,
-    reviewer_session_id: record.reviewer_session_id,
+    last_diff_hash: record.last_diff_hash ?? null,
+    reviewer_session_id: record.reviewer_session_id ?? null,
     timestamp: record.timestamp,
+    sign_off_record: record.sign_off_record ?? null,
+    metadata: record.metadata ?? null,
   });
   return crypto.createHash('sha256').update(payload).digest('hex');
 }
@@ -69,6 +73,8 @@ export class QuorumStateStore {
       reviewer_session_id TEXT,
       timestamp INT,
       sha256_checksum TEXT,
+      sign_off_record TEXT,
+      metadata TEXT,
       PRIMARY KEY(track_id, session_id)
     );`;
     await this.dbManager.runMigration(this.client, sql);
@@ -84,8 +90,8 @@ export class QuorumStateStore {
 
     await this.client!.execute({
       sql: `INSERT OR REPLACE INTO quorum_state (
-        track_id, session_id, state, cycle_count, last_diff_hash, reviewer_session_id, timestamp, sha256_checksum
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        track_id, session_id, state, cycle_count, last_diff_hash, reviewer_session_id, timestamp, sha256_checksum, sign_off_record, metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         record.track_id,
         record.session_id,
@@ -95,6 +101,8 @@ export class QuorumStateStore {
         record.reviewer_session_id,
         record.timestamp,
         record.sha256_checksum,
+        record.sign_off_record || null,
+        record.metadata || null,
       ],
     });
   }
@@ -121,6 +129,8 @@ export class QuorumStateStore {
       reviewer_session_id: row.reviewer_session_id ? String(row.reviewer_session_id) : null,
       timestamp: Number(row.timestamp),
       sha256_checksum: String(row.sha256_checksum),
+      sign_off_record: row.sign_off_record ? String(row.sign_off_record) : null,
+      metadata: row.metadata ? String(row.metadata) : null,
     };
 
     const expectedChecksum = computeStateChecksum(record);

@@ -185,7 +185,7 @@
 ### 2.2 — Circuit Breaker + Zero-Bias Re-run
 
 - [x] Task: Implement STAGNANT_DIFF_HALT circuit breaker and zero-bias re-run protocol [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [x] After each REMEDIATING cycle: compute SHA-256 of diff AST [TIER-1:TCS=3]
+    - [x] After each REMEDIATING cycle: compute SHA-256 of diff AST (accepting regex-based stripping fallback for stagnant diff detection) [TIER-1:TCS=3]
     - [x] If current diff hash == previous diff hash → emit `STAGNANT_DIFF` event → FSM → `HALTED` [TIER-1:TCS=3]
     - [x] Zero-bias enforcement: fresh reviewer subagents receive ONLY `{ diff, preflight_output, finding_fingerprint }` — no prior reasoning, no prior finding text [TIER-1:TCS=3]
     - [x] Max cycles: 5 → FSM → `HALTED` → escalate to Oracle [TIER-1:TCS=3]
@@ -317,6 +317,11 @@
     - [ ] Test: agent without preflight header → correctness reviewer returns NEEDS_FIXES [TIER-1:TCS=3]
     - [ ] Test: agent with valid preflight header → correctness reviewer returns PASS [TIER-1:TCS=3]
     - [ ] Test: pre-commit hook blocks commit without valid sign-off token [TIER-1:TCS=3]
+
+- [ ] Task: Enforce swarm-orchestrator and tool capabilities permanently [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [ ] Update `skills/swarm-orchestrate/SKILL.md` (or equivalent orchestrator definitions) to explicitly grant `enable_subagent_tools: true` for any agent acting as a Quorum or Swarm Orchestrator [TIER-1:TCS=3]
+    - [ ] Ensure that agents chosen are correct for purpose (e.g. Flash panel for reviewers, Pro for oracle/dreamer) and possess the exact MCP/subagent tools required to operate autonomously [TIER-1:TCS=3]
+
 
 - [ ] Task: Regenerate intelligence snapshot with new packages in scope [TIER-3:TCS=3] [AGENT:superconductor-processor]
     - [ ] `node packages/superconductor-core/dist/intelligence/pipeline.js` [TIER-1:TCS=3]

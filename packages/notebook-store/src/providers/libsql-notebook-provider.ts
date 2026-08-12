@@ -20,12 +20,24 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
   constructor(projectRootOrDbPath: string) {
     this.dbManager = new LibSQLDatabaseManager();
+    let targetPath: string;
     if (projectRootOrDbPath.endsWith('.db')) {
-      this.dbPath = projectRootOrDbPath;
+      targetPath = path.resolve(projectRootOrDbPath);
     } else {
-      const dir = path.join(projectRootOrDbPath, 'superconductor', 'notebook');
+      targetPath = path.resolve(projectRootOrDbPath, 'superconductor', 'notebook', 'notebook_fts.db');
+    }
+
+    const workspaceBoundary = path.resolve(process.cwd());
+    if (!targetPath.startsWith(workspaceBoundary + path.sep)) {
+      throw new Error(`Database path escapes workspace boundary: ${targetPath}`);
+    }
+
+    if (projectRootOrDbPath.endsWith('.db')) {
+      this.dbPath = targetPath;
+    } else {
+      const dir = path.dirname(targetPath);
       fs.mkdirSync(dir, { recursive: true });
-      this.dbPath = path.join(dir, 'notebook_fts.db');
+      this.dbPath = targetPath;
     }
   }
 
@@ -50,6 +62,13 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       content_sha256 UNINDEXED
     );`;
     await this.dbManager.runMigration(this.client, sql);
+    
+    const sqlMeta = `CREATE TABLE IF NOT EXISTS notebook_metadata (
+      id TEXT PRIMARY KEY,
+      content_sha256 TEXT UNIQUE
+    );`;
+    await this.dbManager.runMigration(this.client, sqlMeta);
+    await this.dbManager.runMigration(this.client, `CREATE INDEX IF NOT EXISTS idx_notebook_metadata_sha256 ON notebook_metadata(content_sha256);`);
   }
 
   public async write(
@@ -64,7 +83,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     // Check for exact SHA-256 match
     const existing = await this.client!.execute({
-      sql: `SELECT id FROM notebook_fts WHERE content_sha256 = ?`,
+      sql: `SELECT id FROM notebook_metadata WHERE content_sha256 = ?`,
       args: [sha256],
     });
 
@@ -102,6 +121,11 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       ],
     });
 
+    await this.client!.execute({
+      sql: `INSERT OR IGNORE INTO notebook_metadata (id, content_sha256) VALUES (?, ?)`,
+      args: [id, sha256]
+    });
+
     return { id, deduplicated: false };
   }
 
@@ -110,12 +134,16 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     let resultSet;
     if (params.query && params.query.trim() !== '') {
-      // Escape FTS5 query characters if needed, or query MATCH
-      const sanitizedQuery = params.query.replace(/['"]/g, ' ');
-      resultSet = await this.client!.execute({
-        sql: `SELECT *, bm25(notebook_fts) as rank FROM notebook_fts WHERE notebook_fts MATCH ? ORDER BY rank`,
-        args: [sanitizedQuery],
-      });
+      try {
+        const terms = params.query.trim().split(/\\s+/).map(t => `"${t.replace(/"/g, '""')}"`);
+        const sanitizedQuery = terms.join(' AND ');
+        resultSet = await this.client!.execute({
+          sql: `SELECT *, bm25(notebook_fts) as rank FROM notebook_fts WHERE notebook_fts MATCH ? ORDER BY rank`,
+          args: [sanitizedQuery],
+        });
+      } catch (e) {
+        resultSet = { rows: [] };
+      }
     } else {
       resultSet = await this.client!.execute({
         sql: `SELECT * FROM notebook_fts ORDER BY timestamp DESC`,
@@ -132,7 +160,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       track_id: String(r.track_id),
       agent_role: String(r.agent_role),
       domain: String(r.domain),
-      files: typeof r.files === 'string' ? JSON.parse(r.files) : r.files,
+      files: typeof r.files === 'string' ? (() => { try { return JSON.parse(r.files); } catch { return []; } })() : (r.files || []),
       note_type: String(r.note_type) as NoteType,
       content: String(r.content),
       severity: String(r.severity) as any,
@@ -187,7 +215,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
       track_id: String(r.track_id),
       agent_role: String(r.agent_role),
       domain: String(r.domain),
-      files: typeof r.files === 'string' ? JSON.parse(r.files) : r.files,
+      files: typeof r.files === 'string' ? (() => { try { return JSON.parse(r.files); } catch { return []; } })() : (r.files || []),
       note_type: String(r.note_type) as NoteType,
       content: String(r.content),
       severity: String(r.severity) as any,

@@ -3,16 +3,22 @@ import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
 
-const trackId = process.argv[2];
+const rawTrackId = process.argv[2];
 
-if (!trackId) {
+if (!rawTrackId) {
   console.error('Missing trackId argument');
   process.exit(1);
 }
 
+const trackId = path.basename(rawTrackId);
+
 // Check --no-signoff in SUPERCONDUCTOR_FLAGS env var
 const flags = process.env.SUPERCONDUCTOR_FLAGS || '';
 if (flags.includes('--no-signoff')) {
+  if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
+    console.error('BYPASS: --no-signoff flag is only allowed in test environments.');
+    process.exit(1);
+  }
   try {
     const logDir = path.resolve('superconductor/logs');
     fs.mkdirSync(logDir, { recursive: true });
@@ -26,8 +32,13 @@ if (flags.includes('--no-signoff')) {
 }
 
 function generateSignKey(sessionId, trackId, oracleTs) {
+  if (!process.env.SIGN_OFF_SECRET) {
+    console.error('SIGN_OFF_SECRET environment variable is not set');
+    process.exit(1);
+  }
+  const secret = process.env.SIGN_OFF_SECRET;
   return crypto
-    .createHash('sha256')
+    .createHmac('sha256', secret)
     .update(`${sessionId}:${trackId}:${oracleTs}`)
     .digest('hex');
 }
@@ -67,6 +78,9 @@ if (!signOffRecord) {
           } else if (row.metadata) {
             const meta = JSON.parse(String(row.metadata));
             signOffRecord = meta.sign_off_record || null;
+          }
+          if (signOffRecord && !signOffRecord.session_id && !signOffRecord.sessionId && row.session_id) {
+            signOffRecord.session_id = String(row.session_id);
           }
         }
       } catch (e) {

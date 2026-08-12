@@ -21,7 +21,10 @@ export function rrfMerge(
 export function applyTokenBudget(entries: NotebookEntry[], maxChars = 3200): NotebookEntry[] {
   let total = 0;
   return entries.filter((e) => {
-    total += e.content.length;
-    return total <= maxChars;
+    if (total + e.content.length <= maxChars) {
+      total += e.content.length;
+      return true;
+    }
+    return false;
   });
 }

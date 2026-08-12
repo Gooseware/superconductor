@@ -5,6 +5,11 @@ import * as os from 'node:os';
 import { scoreDomains, DomainScore } from '../../../scripts/domain-scorer.js';
 import { orchestrateCopdebaseReview, orchestrateCodebaseReview } from '../../../scripts/codebase-review-orchestrator.js';
 
+vi.mock('node:child_process', () => ({
+  execFile: vi.fn((cmd, args, cb) => cb(null, { stdout: '' })),
+}));
+
+
 describe('domain-scorer', () => {
   let tmpDir: string;
 
@@ -68,6 +73,24 @@ describe('domain-scorer', () => {
     const scores = await scoreDomains(tmpDir);
     expect(scores).toHaveLength(1);
     expect(scores[0].priority_score).toBe(0);
+  });
+
+  it('should handle boundary N=1 correctly', async () => {
+    const domainData = [
+      {
+        domain: 'domain-one',
+        files: ['a.ts'],
+        hotspot_score: 1,
+        fan_in: 1,
+        git_churn_90d: 1,
+      },
+    ];
+    fs.writeFileSync(path.join(tmpDir, 'domain_data.json'), JSON.stringify(domainData));
+
+    const scores = await scoreDomains(tmpDir);
+    expect(scores).toHaveLength(1);
+    // 0.4*1 + 0.35*1 + 0.25*1 = 0.4 + 0.35 + 0.25 = 1.0
+    expect(scores[0].priority_score).toBeCloseTo(1.0);
   });
 
   it('should orchestrate sequential codebase review starting with highest priority domain', async () => {

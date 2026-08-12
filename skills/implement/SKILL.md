@@ -29,10 +29,12 @@ node packages/superconductor-core/dist/intelligence/cli-update.js <changed_files
 Call MCP tool: `notebook_query({ files: <task_files>, domain: <domain>, limit: 5 })`
 
 Append to header block:
+```
 📓 Notebook: N notes found
   [⚠️/🛑/ℹ️] <note content>
+```
 
-If 0 notes: write "📓 Notebook: 0 notes found" and proceed.
+If 0 notes: write `📓 Notebook: 0 notes found` and proceed.
 Record in quorum state: `notebookQueried: true`
 
 Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebook lines are absent.

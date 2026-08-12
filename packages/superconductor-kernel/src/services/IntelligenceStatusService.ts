@@ -28,6 +28,9 @@ export class IntelligenceStatusService {
     let manifest: { timestamp: number };
     try {
       manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      if (typeof manifest?.timestamp !== 'number' || isNaN(manifest.timestamp)) {
+        throw new Error('Invalid manifest timestamp');
+      }
     } catch {
       return { status: 'NONE', age_days: 0, commits_behind: 0, snapshot_path: outputDir, phases: {} };
     }
@@ -42,8 +45,9 @@ export class IntelligenceStatusService {
         cwd: effectiveDir,
       }).toString().trim();
       commits_behind = parseInt(output, 10) || 0;
-    } catch {
-      commits_behind = 0;
+    } catch (err) {
+      console.error(`[IntelligenceStatusService] Failed to check commits behind:`, err);
+      throw err;
     }
 
     // LIVE: age < 1 day AND commits_behind < 10

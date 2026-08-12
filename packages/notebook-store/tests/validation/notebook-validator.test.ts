@@ -30,6 +30,11 @@ describe('NotebookValidator', () => {
       NotebookValidator.validate({ ...baseEntry, content: validContent })
     ).not.toThrow();
 
+    const emptyContent = '';
+    expect(() =>
+      NotebookValidator.validate({ ...baseEntry, content: emptyContent })
+    ).not.toThrow();
+
     const invalidContent = 'a'.repeat(281);
     expect(() =>
       NotebookValidator.validate({ ...baseEntry, content: invalidContent })

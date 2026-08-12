@@ -10,7 +10,7 @@ describe('LibSQLNotebookProvider & Factory', () => {
   let provider: LibSQLNotebookProvider;
 
   beforeEach(async () => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'libsql-test-'));
+    tmpDir = fs.mkdtempSync(path.join(process.cwd(), 'libsql-test-'));
     provider = new LibSQLNotebookProvider(tmpDir);
     await provider.init();
   });

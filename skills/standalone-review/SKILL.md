@@ -92,40 +92,6 @@ If no incomplete tracks or `superconductor/tracks.md` does not exist:
 ╚══════════════════════════════════════════════╝
 ```
 
-## 3.0 DIRECTORY TRIAGE PROTOCOL
-
-*Triggered when input is `--dir` or when the resolved diff exceeds context limits.*
-
-Large codebases cannot be reviewed as a single panel pass. Apply the following triage to prioritise:
-
-### 3.1 Hot-Path Scoring
-```bash
-git log --since=30.days --name-only --pretty=format: | sort | uniq -c | sort -rn | head -50
-```
-Rank files by commit frequency. Files changed most in last 30 days are highest priority.
-
-### 3.2 Entry-Point Detection
-- Identify files matching: `index.*`, `main.*`, `app.*`, `server.*`, `router.*`
-- Count import fan-in per file (rough heuristic: `grep -r "from.*<filename>" .` count)
-- Files with highest fan-in are critical paths — always included
-
-### 3.3 Concern Chunking
-Group files into concern buckets by directory boundary:
-- `auth/`, `security/` → Security concern
-- `api/`, `routes/` → API surface concern
-- `db/`, `models/`, `repository/` → Data access concern
-- `utils/`, `helpers/`, `lib/` → Shared logic concern
-- `tests/`, `__tests__/`, `*.test.*`, `*.spec.*` → Test coverage concern
-
-Run a **separate panel pass per concern group**. Emit partial findings as each group completes (progressive output).
-
-### 3.4 Context Budget Guardrail
-If any single concern group exceeds ~100 files:
-- Apply hot-path scoring within that group
-- Cap at top 30 files by change frequency + all entry points
-- Note in report: "Review coverage: top 30 high-frequency files. Run `--deep` for full coverage."
-
----
 
 ## 4.0 NO-CONTEXT FALLBACK RULES
 
@@ -148,6 +114,14 @@ Include this directly in the adversarial reviewer prompt when `skills/code-revie
 - Semantic drift (implementation technically works but violates intent)
 - Coverage map gaming (manifest claims coverage of unreviewed areas)
 - Silent degradation (error paths that swallow failures without surfacing them)
+
+### 4.2 Manual Orchestration Protocol (Fallback)
+
+If the automated orchestration scripts (`scripts/quorum-review.ts`, `scripts/codebase-review-orchestrator.ts`, etc.) are unavailable, you MUST manually execute the review pipeline:
+1. Fetch the diff or target files directly via `git` or file reads.
+2. Manually dispatch the four reviewer roles (Security, Correctness, Adversarial, Regression) as subagents via `send_message` or execute their roles directly in parallel.
+3. Wait for all reviewers to return their findings.
+4. Manually aggregate the findings into the final structured report and self-check it.
 
 ### Adversarial Edge Case Execution Protocol
 
