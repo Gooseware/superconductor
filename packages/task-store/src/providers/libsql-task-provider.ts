@@ -111,6 +111,8 @@ export class LibSQLTaskProvider {
       ]
     });
 
+    let createdAnyInvariant = false;
+
     if (args.protected && args.protected.length > 0) {
       for (const p of args.protected) {
         await this.createInvariant({
@@ -122,7 +124,10 @@ export class LibSQLTaskProvider {
           status: 'active'
         });
       }
-    } else if (args.invariant_after) {
+      createdAnyInvariant = true;
+    }
+
+    if (args.invariant_after) {
       if (args.creates && args.creates.length > 0) {
         for (const p of args.creates) {
           await this.createInvariant({
@@ -134,7 +139,7 @@ export class LibSQLTaskProvider {
             status: 'active'
           });
         }
-      } else {
+      } else if (!createdAnyInvariant) {
         await this.createInvariant({
           capability: args.invariant_after,
           path: '*',
@@ -208,7 +213,7 @@ export class LibSQLTaskProvider {
       sql += ' AND agent = ?';
       sqlArgs.push(args.agent);
     }
-    if (args.limit) {
+    if (args.limit !== undefined) {
       sql += ' LIMIT ?';
       sqlArgs.push(args.limit);
     }
@@ -221,7 +226,8 @@ export class LibSQLTaskProvider {
           return parsed;
         }
         return undefined;
-      } catch {
+      } catch (err) {
+        console.error('Error parsing task field:', err);
         return undefined;
       }
     };
