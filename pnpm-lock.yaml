@@ -225,6 +225,31 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  packages/task-store:
+    dependencies:
+      '@lancedb/lancedb':
+        specifier: ^0.20.0
+        version: 0.20.0(apache-arrow@18.1.0)
+      '@libsql/client':
+        specifier: ^0.17.0
+        version: 0.17.4
+      '@superconductor/core':
+        specifier: workspace:*
+        version: link:../superconductor-core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      '@vitest/coverage-v8':
+        specifier: ^1.6.1
+        version: 1.6.1(vitest@1.6.1(@types/node@20.19.43)(lightningcss@1.33.0))
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1(@types/node@20.19.43)(lightningcss@1.33.0)
+
 packages:
 
   '@ampproject/remapping@2.3.0':
@@ -495,7 +520,6 @@ packages:
   '@lancedb/lancedb@0.20.0':
     resolution: {integrity: sha512-w7FtasLLHGkHwyO8F1Egioy1YFilVVShot9xqslxroNueZwU+jOZsUzAoAqXKh0iaQkfZL+Lnyh9q2UcPwhQGQ==}
     engines: {node: '>= 18'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
     peerDependencies:
       apache-arrow: '>=15.0.0 <=18.1.0'
