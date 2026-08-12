@@ -143,6 +143,41 @@ export class QuorumStateStore {
     return record;
   }
 
+  public async saveSignOffRecord(trackId: string, sessionId: string, record: any): Promise<void> {
+    if (!this.client) await this.init();
+    const signOffString = typeof record === 'string' ? record : JSON.stringify(record);
+    
+    const existing = await this.load(trackId, sessionId);
+    if (existing) {
+      existing.sign_off_record = signOffString;
+      await this.save(existing);
+    } else {
+      const stubRecord: QuorumStateRecord = {
+        track_id: trackId,
+        session_id: sessionId,
+        state: 'INIT',
+        cycle_count: 0,
+        last_diff_hash: null,
+        reviewer_session_id: null,
+        timestamp: Date.now(),
+        sha256_checksum: '',
+        sign_off_record: signOffString,
+      };
+      await this.save(stubRecord);
+    }
+  }
+
+  public async getSignOffRecord(trackId: string, sessionId: string): Promise<string | null> {
+    if (!this.client) await this.init();
+    const resultSet = await this.client!.execute({
+      sql: `SELECT sign_off_record FROM quorum_state WHERE track_id = ? AND session_id = ?`,
+      args: [trackId, sessionId],
+    });
+    if (resultSet.rows.length === 0) return null;
+    const row = resultSet.rows[0];
+    return row.sign_off_record ? String(row.sign_off_record) : null;
+  }
+
   public async close(): Promise<void> {
     if (this.client) {
       await this.dbManager.close(this.dbPath);

@@ -184,10 +184,7 @@ export class WorkspaceGuard extends AbstractGate {
         );
       }
     } catch (e) {
-      if (e instanceof UnauthorizedMergeError) throw e;
-      if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
-        throw e;
-      }
+      throw e;
     }
 
     // Run pre-commit check if available

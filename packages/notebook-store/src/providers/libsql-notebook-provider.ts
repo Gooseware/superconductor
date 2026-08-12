@@ -114,7 +114,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     // Check for near-duplicates via Jaccard similarity fallback (COR-3)
     const allRows = await this.client!.execute({
-      sql: `SELECT id, content FROM notebook_fts`,
+      sql: `SELECT id, content FROM notebook_fts ORDER BY rowid DESC LIMIT 100`,
       args: [],
     });
     

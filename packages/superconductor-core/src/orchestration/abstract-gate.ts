@@ -55,7 +55,7 @@ export abstract class AbstractGate {
     message += '\n';
 
     try {
-      const logDir = path.resolve('superconductor/logs');
+      const logDir = path.resolve(process.env.PROJECT_ROOT || process.cwd(), 'superconductor/logs');
       fs.mkdirSync(logDir, { recursive: true });
       fs.appendFileSync(path.join(logDir, 'gate-audit.log'), message);
     } catch (e) {

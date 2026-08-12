@@ -37,7 +37,13 @@ export class SignOffGate extends AbstractGate {
   }
 
   static generateSignKey(sessionId: string, trackId: string, oracleTs: number): string {
-    const secret = process.env.SIGN_OFF_SECRET || 'dev-secret';
+    let secret = process.env.SIGN_OFF_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+        throw new Error('SIGN_OFF_SECRET must be set');
+      }
+      secret = 'dev-secret';
+    }
     return crypto
       .createHmac('sha256', secret)
       .update(`${sessionId}:${trackId}:${oracleTs}`)

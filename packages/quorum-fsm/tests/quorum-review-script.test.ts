@@ -40,6 +40,17 @@ describe('quorum-review.ts script integration', () => {
   it('should detect STAGNANT_DIFF and exit with code 1', async () => {
     const exitFn = vi.fn();
     const getDiffFn = vi.fn().mockReturnValue('identical diff string');
+    
+    vi.mock('node:child_process', async (importOriginal) => {
+      const original = await importOriginal<typeof import('node:child_process')>();
+      return {
+        ...original,
+        execFile: vi.fn((cmd, args, cb) => {
+          if (cb) cb(null, { stdout: '', stderr: '' });
+          return {} as any;
+        }),
+      };
+    });
 
     await store.save({ track_id: 'feature-stagnant', session_id: 's1', state: 'INIT', cycle_count: 0, last_diff_hash: null, reviewer_session_id: null, timestamp: Date.now(), sha256_checksum: '', metadata: JSON.stringify({ intelligenceStatusChecked: true, notebookQueried: true }) });
 

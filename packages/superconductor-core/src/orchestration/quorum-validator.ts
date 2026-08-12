@@ -47,7 +47,7 @@ export class QuorumValidator extends AbstractGate {
       }
     }
 
-    return { passed: true };
+    return { passed: false, reason: 'Quorum metadata missing' };
   }
 
   static gateOracle(state: { quorumPassed: boolean }): boolean {

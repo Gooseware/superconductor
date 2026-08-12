@@ -162,12 +162,12 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
         const findings = aggregateFindings(reviewerOutputs, manifestsDir);
         const dispatcher = new DomainSplitRemediationDispatcher({
           spawner: async (info) => {
-            await execFileAsync('antigravity', ['--remediate', track_id, '--domain', info.domain]);
+            await execFileAsync('antigravity', ['--remediate', track_id, '--domain', info.domain, '--zero-bias-context', JSON.stringify(zbContext)]);
           }
         });
         await dispatcher.dispatch(findings, { trackId: track_id });
       } else {
-        await execFileAsync('antigravity', ['--review', track_id]);
+        await execFileAsync('antigravity', ['--review', track_id, '--zero-bias-context', JSON.stringify(zbContext)]);
         
         if (priorFindings.length > 0 && require('node:fs').existsSync(findingsPath)) {
           try {
