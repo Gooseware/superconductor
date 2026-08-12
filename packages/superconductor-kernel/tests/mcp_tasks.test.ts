@@ -10,24 +10,11 @@ describe('MCP Task Tools Integration', () => {
   let proc: ChildProcess;
   let messageId = 0;
 
-  beforeAll(async () => {
-    // Delete any existing test task store? No, we will just create unique tracks
-    proc = spawn('npx', ['tsx', 'src/index.ts'], {
-      cwd: path.join(__dirname, '..'),
-      env: { ...process.env }
-    });
-
-    // Wait for server to start and init db
-    await new Promise(r => setTimeout(r, 5000));
-  });
-
-  afterAll(() => {
-    proc.kill();
-  });
-
-  const sendRequest = (method: string, params: any) => {
+  const sendRequest = (method: string, params: any, timeoutMs = 5000) => {
     return new Promise((resolve, reject) => {
       const id = ++messageId;
+      let timer: NodeJS.Timeout | undefined;
+
       const onData = (data: Buffer) => {
         const str = data.toString();
         const lines = str.split('\n').filter(l => l.trim());
@@ -35,6 +22,7 @@ describe('MCP Task Tools Integration', () => {
           try {
             const parsed = JSON.parse(line);
             if (parsed.id === id) {
+              if (timer) clearTimeout(timer);
               proc.stdout!.off('data', onData);
               if (parsed.error) reject(parsed.error);
               else resolve(parsed.result);
@@ -44,6 +32,14 @@ describe('MCP Task Tools Integration', () => {
           }
         }
       };
+
+      if (timeoutMs > 0) {
+        timer = setTimeout(() => {
+          proc.stdout!.off('data', onData);
+          reject(new Error(`Request ${method} (id=${id}) timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+      }
+
       proc.stdout!.on('data', onData);
       
       const req = {
@@ -55,6 +51,37 @@ describe('MCP Task Tools Integration', () => {
       proc.stdin!.write(JSON.stringify(req) + '\n');
     });
   };
+
+  beforeAll(async () => {
+    // Delete any existing test task store? No, we will just create unique tracks
+    proc = spawn('npx', ['tsx', 'src/index.ts'], {
+      cwd: path.join(__dirname, '..'),
+      env: { ...process.env }
+    });
+
+    // Poll until server is ready by calling tools/list repeatedly
+    const startTime = Date.now();
+    const timeout = 10000;
+    let ready = false;
+
+    while (Date.now() - startTime < timeout) {
+      try {
+        await sendRequest('tools/list', {}, 500);
+        ready = true;
+        break;
+      } catch {
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
+
+    if (!ready) {
+      throw new Error('Server failed to initialize within timeout');
+    }
+  });
+
+  afterAll(() => {
+    proc.kill();
+  });
 
   it('can create a task, query it, and get invariants', async () => {
     const track_id = 'test_track_' + Date.now();
