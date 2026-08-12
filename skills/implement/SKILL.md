@@ -193,6 +193,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
 5.  **Finalize Track:**
     - After all tasks for the track are completed, you MUST update the task status via the task provider (e.g., `task_update({ id: task.id, status: 'completed' })`).
+    - **CRITICAL:** Immediately after updating the task status via `task_update` on task completion, you MUST execute the sync script to flush changes to disk: `npx tsx scripts/sync-plan.ts`.
     - You MUST ALSO update the overall track status in the `superconductor/tracks.md` file by changing `## [~] Track:` to `## [x] Track:` for the respective track.
     - Commit the change to `tracks.md` with a descriptive message.
     - Announce that the track is fully complete and its status has been updated in both the task provider and the tracks registry.
