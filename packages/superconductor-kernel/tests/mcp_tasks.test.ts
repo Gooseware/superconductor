@@ -107,31 +107,43 @@ describe('MCP Task Tools Integration', () => {
     expect(queryData2[0].status).toBe('in_progress');
     expect(queryData2[0].committed_sha).toBe('123456');
 
-    // 5. Query invariant specifically
+    // 5. Seed an invariant explicitly using invariant_create
+    const invCreateRes: any = await sendRequest('tools/call', {
+      name: 'invariant_create',
+      arguments: {
+        capability: 'core_lock',
+        path: 'src/core.ts',
+        rationale: 'The core MUST not break',
+        track_id
+      }
+    });
+    const invCreateData = JSON.parse(invCreateRes.content[0].text);
+    expect(invCreateData.id).toBeTruthy();
+    const invId = invCreateData.id;
+
+    // 6. Override the invariant
+    const overrideRes: any = await sendRequest('tools/call', {
+      name: 'invariant_override',
+      arguments: {
+        invariant_id: invId,
+        track_id,
+        reason: 'Because test'
+      }
+    });
+    const overrideData = JSON.parse(overrideRes.content[0].text);
+    expect(overrideData.override_id).toBeTruthy();
+
+    // 7. Verify invariant status updated to 'overridden'
     const invQueryRes: any = await sendRequest('tools/call', {
       name: 'invariant_query',
       arguments: { track_id }
     });
     const invQueryData = JSON.parse(invQueryRes.content[0].text);
-    // Note: Depends on whether taskProvider automatically seeds invariant_after. Let's just assume it might be there.
-    
-    // We can also create an override
-    const invId = invQueryData.length > 0 ? invQueryData[0].id : 'dummy_inv_id';
-    
-    if (invId !== 'dummy_inv_id') {
-        const overrideRes: any = await sendRequest('tools/call', {
-        name: 'invariant_override',
-        arguments: {
-            invariant_id: invId,
-            track_id,
-            reason: 'Because test'
-        }
-        });
-        const overrideData = JSON.parse(overrideRes.content[0].text);
-        expect(overrideData.override_id).toBeTruthy();
-    }
-    
-    // Get all invariants
+    const updatedInv = invQueryData.find((i: any) => i.id === invId);
+    expect(updatedInv).toBeTruthy();
+    expect(updatedInv.status).toBe('overridden');
+
+    // 8. Get all invariants and active overrides for track
     const invsRes: any = await sendRequest('tools/call', {
       name: 'task_get_invariants',
       arguments: { track_id }
@@ -139,5 +151,6 @@ describe('MCP Task Tools Integration', () => {
     const invsData = JSON.parse(invsRes.content[0].text);
     expect(invsData).toHaveProperty('invariants');
     expect(invsData).toHaveProperty('active_overrides');
+    expect(invsData.active_overrides.length).toBeGreaterThan(0);
   });
 });

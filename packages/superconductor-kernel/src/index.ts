@@ -19,7 +19,7 @@ import { PublishService } from "./services/PublishService.js";
 import { CentralizedPublishService } from "./services/CentralizedPublishService.js";
 import { NotebookService } from "./services/NotebookService.js";
 import { IntelligenceStatusService } from "./services/IntelligenceStatusService.js";
-import { createTaskProvider } from "@superconductor/task-store/dist/providers/task-provider-factory.js";
+import { createTaskProvider } from "@superconductor/task-store";
 import { fileURLToPath } from "url";
 import os from "os";
 import path from "path";
@@ -55,8 +55,8 @@ const dogmaService = new DogmaService();
 const notebookService = new NotebookService();
 const intelligenceStatusService = new IntelligenceStatusService();
 
-let taskProvider: any;
-(async () => { try { taskProvider = await createTaskProvider(PROJECT_ROOT); } catch (e: any) { process.stderr.write("Failed to init taskProvider " + (e as any).stack + "\n"); } })();
+const taskProviderPromise = createTaskProvider(PROJECT_ROOT);
+const getTaskProvider = async () => await taskProviderPromise;
 
 let currentRegistryPath = DEFAULT_REGISTRY_PATH;
 let registryService = new RegistryService(db, currentRegistryPath);
@@ -705,32 +705,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   
   if (name === "task_create") {
-    if (!taskProvider) throw new Error("TaskProvider not initialized");
+    const taskProvider = await getTaskProvider();
     const result = await taskProvider.createTask(args as any);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "task_update") {
-    if (!taskProvider) throw new Error("TaskProvider not initialized");
+    const taskProvider = await getTaskProvider();
     const result = await taskProvider.updateTask(args as any);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "task_query") {
-    if (!taskProvider) throw new Error("TaskProvider not initialized");
+    const taskProvider = await getTaskProvider();
     const result = await taskProvider.queryTasks(args as any || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "invariant_query") {
-    if (!taskProvider) throw new Error("TaskProvider not initialized");
+    const taskProvider = await getTaskProvider();
     const result = await taskProvider.queryInvariants(args as any || {});
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "invariant_override") {
-    if (!taskProvider) throw new Error("TaskProvider not initialized");
+    const taskProvider = await getTaskProvider();
     const result = await taskProvider.createOverride(args as any);
     return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
   }
   if (name === "task_get_invariants") {
-    if (!taskProvider) throw new Error("TaskProvider not initialized");
+    const taskProvider = await getTaskProvider();
     const { track_id } = args as any;
     const invariants = await taskProvider.queryInvariants({ track_id });
     const active_overrides = await taskProvider.queryOverrides({ track_id, status: 'active' });
