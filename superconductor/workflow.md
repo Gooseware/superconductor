@@ -143,7 +143,7 @@ The Superconductor engine operates in either Interactive or Headless mode.
     -   Provide only the minimized context (task spec, git diff, modified files) to the panel.
     -   **Streaming Review Protocol:** The Reviewer panel must stream its diagnostic output via Server-Sent Events (SSE). If a `CRITICAL` finding is detected dynamically during the stream, the orchestrator MUST trigger an early abort (halting immediately to save time and tokens) and initiate remediation.
     -   The checkpointing process is blocked until the Phase Gate returns a PASS (zero CRITICAL findings). This enforcement MUST be validated using `QuorumValidator.validate()`.
-    -   If CRITICAL findings are found, auto-remediate up to 2 times. If it still fails, escalate to manual intervention.
+    -   If CRITICAL findings are found, auto-remediate up to 3 cycles <!-- Canonical: 3 cycles. Matches swarm-execute/SKILL.md §Step 4 hard cap. Do not change without updating both files. -->. If it still fails, escalate to manual intervention.
 
 8.  **Create Checkpoint Commit:**
     -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.
@@ -329,8 +329,7 @@ When any quorum reviewer returns `NEEDS_FIXES`:
 5. **Re-run full quorum.** After ALL remediators complete and merge their fixes, re-run
    the complete 4-reviewer quorum (all 4 types: security, correctness, adversarial, regression).
 
-6. **Loop.** Repeat until quorum is unanimous green. If findings persist after 5 remediation
-   cycles, escalate to Oracle for architectural guidance before continuing.
+6. **Loop.** Repeat until quorum is unanimous green. If findings persist after 3 remediation cycles <!-- Canonical: 3 cycles. Matches swarm-execute/SKILL.md §Step 4 hard cap. Do not change without updating both files. -->, escalate to Oracle for architectural guidance before continuing.
 
 ## Commit Guidelines
 

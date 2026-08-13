@@ -70,6 +70,7 @@ After all domain remediators complete:
 - If quorum is unanimous `RESOLVED`: proceed to Oracle gate.
 - If findings persist: repeat Steps 1–3 (new remediation cycle).
 - **Hard cap: 3 remediation cycles.** After 3 cycles with persistent findings, the swarm MUST yield to the user using `ask_question` with only terminal options: `["Acknowledge & Abort", "Acknowledge & Revert to last green checkpoint"]`. NEVER offer "Ignore and Continue".
+- **If domain remediator subagent fails to spawn:** Log the failure to `swarm_log.md`, merge findings for that domain into the adjacent domain remediator, and proceed. Do NOT silently drop findings. If ALL remediator spawns fail, HALT and escalate to user immediately.
 
 ### Identity Spoofing Prevention
 
