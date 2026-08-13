@@ -191,9 +191,9 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
     a. **Assert Quorum Green:** Verify that the full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) has reached unanimous `RESOLVED` status.
        - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
-       - Enforcement: Run `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
+       - Enforcement: Run `node scripts/quorum-gate.mjs --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
     
-    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
+    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node scripts/quorum-gate.mjs --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
     
     c. **Generate and Validate Authorization Trailer:**
