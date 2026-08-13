@@ -397,7 +397,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
    If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
 
-   Enforcement: `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`. Throws `OracleGateError` if `quorumPassed` is false.
+   Enforcement: `node scripts/quorum-gate.mjs --gate` — CLI gate runner for `QuorumValidator` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Exits code 0 if quorum is green; exits code 1 if quorum is incomplete/not green; exits code 2 if quorum state cannot be read. If exit code is non-zero: HALT. Do not proceed to Oracle or tracks.md update.
  **Initialize Oracle:**
     - Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
     - Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."
