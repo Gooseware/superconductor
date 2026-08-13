@@ -15,7 +15,7 @@
 | `[-]` | `regression_invariant_ledger_20260812` | Regression Protocol: Capability Invariant Ledger | `track/regression_invariant_ledger_20260812` |
 | `[x]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
 | `[~]` | `task_graph_20260812` | Superconductor v0.5: Task Graph + Invariant Ledger | `track/task_graph_20260812` |
-| `[~]` | `clean_test_tracks_20260813` | Clean Up Test Tracks | `track/clean_test_tracks_20260813` |
+| `[x]` | `clean_test_tracks_20260813` | Protocol Drift Remediation | `track/clean_test_tracks_20260813` |
 
 ## Absorbed / Closed Tracks
 
