@@ -166,12 +166,14 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - If approved, update `plan.md`.
 
 4.  **Execute Tasks and Update Track Plan:**
-    a. **Check for Swarm Orchestration Skill:**
-       - Search for the `swarm-orchestrate` skill in the catalog and active skills.
-       - **If `swarm-orchestrate` is available:**
-         - **CRITICAL REQUIREMENT:** You MUST unconditionally transition execution to the `swarm-orchestrate` skill protocol for BOTH Headless and Interactive modes, and halt normal sequential implement execution. Do NOT prompt the user to choose an execution mode.
-       - **If `swarm-orchestrate` is NOT available:**
-         - Proceed directly to 4.b (Sequential execution).
+    a. **Check for Swarm Execution Skill:**
+       - Search for the `swarm-execute` skill in the catalog and active skills.
+       - **If `swarm-execute` is available:**
+         - **CRITICAL REQUIREMENT:** You MUST unconditionally transition execution to the `swarm-execute` skill protocol for BOTH Headless and Interactive modes. Do NOT prompt the user to choose an execution mode. Do NOT fall through to sequential execution.
+         - Read `skills/swarm-execute/SKILL.md` and follow its protocol precisely, including its remediation section.
+       - **If `swarm-execute` is NOT available:**
+         - **HALT.** Do NOT fall through to sequential execution silently. Announce: "swarm-execute skill not found. Cannot proceed. Please ensure the Superconductor skills are installed correctly." and await user instructions.
+       - **NOTE:** `swarm-orchestrate` is DEPRECATED. If only `swarm-orchestrate` is found, treat it as NOT available and HALT per the above rule.
     b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
     c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
        - **Review Triggers:**
@@ -191,12 +193,38 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
            - **CRITICAL:** To minimize human-in-the-loop interruptions, phase completion checkpoints in the workflow must run all tests and verify test coverage automatically. Do NOT prompt the user for manual verification checkpoints during intermediate phases. All human-in-the-loop checks must be deferred to the final track review and cleanup phase at the very end of the track.
            - **STRICT TDD ENFORCEMENT:** You MUST strictly enforce Red-Green-Refactor cycles. You are forbidden from implementing feature logic without first writing and running a failing test (Red phase).
            - **SYSTEMATIC BUG DIAGNOSIS:** During the testing feedback loop, if tests fail, you MUST employ Systematic Bug Diagnosis heuristics (isolate variables, trace execution, state assumptions clearly) rather than blindly patching code.
+           - **QUORUM REMEDIATION (MANDATORY — NO HERO-AGENTING):** If at any point during task execution the quorum loop returns `NEEDS_FIXES`, the root orchestrator MUST NOT call `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command` to fix findings directly. This is Hero-Agenting and is a PROTOCOL VIOLATION. Instead, MUST invoke domain-split remediation as specified in `skills/swarm-execute/SKILL.md §Remediation Protocol`.
 
-5.  **Finalize Track:**
-    - After all tasks in the track's local **Implementation Plan** are completed, you MUST update the track's status in the **Tracks Registry**.
-    - This requires finding the specific heading for the track (e.g., `## [~] Track: <Description>`) and replacing it with the completed status (e.g., `## [x] Track: <Description>`).
-    - **Commit Changes:** Stage the **Tracks Registry** file and commit with the message `chore(superconductor): Mark track '<track_description>' as complete`.
-    - Announce that the track is fully complete and the tracks file has been updated.
+        v. **AUTO-ADVANCE (MANDATORY — no user prompt between tasks):**
+           - Immediately after `task_update({ id: task.id, status: 'completed' })` succeeds:
+             1. Call `task_query({ status: 'pending', track_id: <current_track_id> })` to fetch the next task.
+             2. If a next task exists: begin it immediately without pausing, without prompting the user, and without waiting for acknowledgement.
+             3. If no pending tasks remain: proceed directly to §3.0 Finalize Track.
+           - **PROHIBITED:** Asking the user "shall I continue to the next task?", stopping to summarize between tasks, or waiting for user re-trigger. The only permitted mid-track human-in-the-loop event is an ESCALATION (test failure after 2 attempts, or 3-iteration remediation cap exceeded).
+
+5.  **Finalize Track (HARD GATE ENFORCED):**
+
+    **BEFORE touching `tracks.md` or making any finalization commit, you MUST complete ALL of the following in order:**
+
+    a. **Assert Quorum Green:** Verify that the full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) has reached unanimous `RESOLVED` status.
+       - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
+       - Enforcement: `QuorumValidator.gateOracle({ quorumPassed })` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`.
+    
+    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, call `QuorumValidator.gateOracle({ quorumPassed: true })`. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
+       - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
+    
+    c. **Generate Authorization Trailer:** Call `SwarmAuthorizer.generateTrailer(reviewerConvIds)` (source: `packages/superconductor-core/src/track/swarm-authorizer.ts`).
+    
+    d. **Update Tracks Registry:** Change the track status from `[~]` to `[x]` in `superconductor/tracks.md`.
+    
+    e. **Finalization Commit:** Stage `tracks.md` and commit with message:
+       ```
+       chore(superconductor): Mark track '<track_description>' as complete
+       
+       Swarm-Authorized: true | reviewers: <id1>,<id2>,<id3>,<id4>
+       ```
+    
+    f. **Announce:** State that the track is complete and the quorum + Oracle verdicts are on record.
 
 
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS

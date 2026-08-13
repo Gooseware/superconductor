@@ -131,11 +131,12 @@ The Superconductor engine operates in either Interactive or Headless mode.
         3.  **Confirm that you receive:** A JSON response with a status of `201 Created`.
         ```
 
-6.  **Await Explicit User Feedback (Interactive Mode Only):**
-    -   **Headless Mode:** Skip this step entirely if tests pass and coverage is >80%.
-    -   **Interactive Mode:** 
-        -   **Intermediate Phases:** If this is NOT the final implementation phase of the track, do NOT pause or ask the user for confirmation. Automatically approve the checkpoint and proceed to Step 7.
-        -   **Final Implementation Phase:** If this is the final implementation phase before review/integration, present the manual verification plan and ask: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**" PAUSE and await the user's response. Do not proceed without confirmation.
+6.  **Auto-Advance / Conditional User Feedback:**
+    - **Headless Mode:** Skip entirely if tests pass and coverage >80%.
+    - **Interactive Mode:**
+        - **Intermediate Phases (ALL phases except the final implementation phase):** Do NOT pause. Do NOT prompt the user. Automatically mark the checkpoint as passed and proceed immediately to Step 7. The agent MUST NOT ask "does this meet your expectations" or any equivalent at intermediate phases.
+        - **Final Implementation Phase ONLY (the last phase before review/integration):** Present the manual verification plan and ask: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**" PAUSE and await the user's response. Do not proceed without confirmation.
+    - **AUTO-GATE Tasks:** Tasks in `plan.md` titled or tagged `[AUTO-GATE]` or containing `User Manual Verification` are TIER-1 automated checks only. They run shell assertions and pass/fail deterministically. They MUST NOT invoke `ask_user`. They automatically advance on exit code 0.
 
 7.  **Swarm Phase Gate Review (Mandatory):**
     -   Execute the Swarm Phase Gate using a standard 4-reviewer Flash panel.
