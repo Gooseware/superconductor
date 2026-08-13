@@ -1,0 +1,17 @@
+# Auto-generated permission manifest
+# Track: clean_test_tracks_20260813
+version = "1.0"
+
+[permissions]
+read_paths = [
+    "superconductor/**",
+    "package.json",
+    "packages/**"
+]
+write_paths = [
+    "superconductor/tracks.md",
+    "superconductor/tracks/**"
+]
+execute_commands = [
+    "*"
+]

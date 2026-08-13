@@ -13,6 +13,9 @@
 | `[x]` | `protocol_hardening_20260809` | Superconductor Protocol Hardening | `track/protocol_hardening_20260809` |
 | `[x]` | `protocol_enforcement_20260811` | Superconductor Protocol Enforcement | `track/protocol_enforcement_20260811` |
 | `[-]` | `regression_invariant_ledger_20260812` | Regression Protocol: Capability Invariant Ledger | `track/regression_invariant_ledger_20260812` |
+| `[x]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
+| `[~]` | `task_graph_20260812` | Superconductor v0.5: Task Graph + Invariant Ledger | `track/task_graph_20260812` |
+| `[~]` | `clean_test_tracks_20260813` | Clean Up Test Tracks | `track/clean_test_tracks_20260813` |
 
 ## Absorbed / Closed Tracks
 
@@ -33,4 +36,4 @@ See `superconductor/tracks/archive/` for the following completed tracks:
 - `[ ]` — Planned / not started
 - `[~]` — In progress
 - `[x]` — Complete
-- `[-]` — Cancelled / absorbed| `[x]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
+- `[-]` — Cancelled / absorbed
