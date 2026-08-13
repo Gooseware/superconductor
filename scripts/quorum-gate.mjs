@@ -64,9 +64,19 @@ async function runGate() {
   // 1. If explicit --reviewer-ids argument is provided
   const reviewerIds = parseListArg(values['reviewer-ids']);
   if (reviewerIds.length > 0) {
+    console.error('WARNING: Running in prose-enforced mode. Reviewer IDs are taken on trust from the orchestrator. This gate does not cryptographically verify quorum approval state.');
     console.log(
       'QUORUM GATE: Prose-enforced only. Ensure all 4 reviewer conversation IDs are provided via --reviewer-ids arg.'
     );
+
+    for (const id of reviewerIds) {
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      const isShortId = /^[0-9a-f]{8,}$/i.test(id);
+      if (!isUUID && !isShortId) {
+        console.error(`WARNING: Reviewer ID '${id}' does not match expected UUID or short-ID format.`);
+      }
+    }
+
     if (reviewerIds.length >= 4) {
       console.log(`QUORUM GATE PASSED: 4 reviewer conversation IDs verified (${reviewerIds.join(', ')}).`);
       process.exit(0);
