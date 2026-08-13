@@ -215,11 +215,12 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
     
-    c. **Generate and Validate Authorization Trailer:** Run `node packages/superconductor-core/dist/track/swarm-authorizer.js --generate-trailer <reviewer_ids>`.
-       1. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
-       2. **HALT if validation fails.** Do NOT proceed to step 5.d.
-       3. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
-       4. **CRITICAL:** The reviewer IDs MUST be the actual conversation IDs returned by the quorum run (e.g., the `conversationId` from each reviewer subagent invocation), not placeholder strings.
+    c. **Generate and Validate Authorization Trailer:**
+       1. Call `node packages/superconductor-core/dist/track/swarm-authorizer.js --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
+       2. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
+       3. **HALT if validation fails.** Do NOT proceed to step 5.d.
+       4. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
+       5. **CRITICAL:** The reviewer IDs MUST be the actual conversation IDs returned by the quorum run (e.g., the `conversationId` from each reviewer subagent invocation), not placeholder strings.
     
     d. **Update Tracks Registry:** Change the track status from `[~]` to `[x]` in `superconductor/tracks.md`.
     
