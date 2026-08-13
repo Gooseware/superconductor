@@ -9,7 +9,6 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip explicit rendering of checklists during user prompts.
 
-
 ## 0.5 Intelligence Preflight (MANDATORY — no exceptions)
 1. Call MCP tool: `kernel_intelligence_status({ track_id: <track_id>, session_id: <session_id> })` 
 2. Your response MUST begin with this header block or the correctness reviewer will FAIL you:
@@ -22,8 +21,7 @@ If STALE: also trigger incremental update before proceeding:
 ```
 node packages/superconductor-core/dist/intelligence/cli-update.js <changed_files>
 ```
-
-3. Record in quorum state: `intelligenceStatusChecked: true`
+Record in quorum state: `intelligenceStatusChecked: true`
 
 ## 0.6 Notebook Preflight (MANDATORY — no exceptions)
 Call MCP tool: `notebook_query({ files: <task_files>, domain: <domain>, limit: 5, track_id: <track_id>, session_id: <session_id> })`
@@ -39,27 +37,22 @@ Record in quorum state: `notebookQueried: true`
 
 Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebook lines are absent.
 
-
 ## 1.1 HEADLESS MODE HANDLING
 **PROTOCOL: Detect and adapt to headless execution.**
-
-1. **Detection:** Check if the user's input arguments contain `--headless`.
+**Detection:** Check if the user's input arguments contain `--headless`.
 2. **Behavior Modification:** If `--headless` is detected:
    - You MUST NOT use the `ask_user` tool for any manual verification, review, or confirmation prompts.
    - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, skip cleanup/Oracle review) UNLESS specifically instructed otherwise.
    - For Phase Completion Checkpoints, follow the Headless bypass rule in `workflow.md`: automatically pass the checkpoint if automated tests and coverage assertions succeed.
 
-
 ## 1.2 SETUP CHECK
 **PROTOCOL: Verify that the Superconductor environment is properly set up.**
-
-1.  **Verify Core Context:** Using the **Universal File Resolution Protocol**, resolve and verify the existence of:
+ **Verify Core Context:** Using the **Universal File Resolution Protocol**, resolve and verify the existence of:
     - **Product Definition**
     - **Tech Stack**
     - **Workflow**
     - **Ubiquitous Language Context** (`superconductor/CONTEXT.md`)
-
-2.  **Handle Failure:** 
+ **Handle Failure:** 
     - If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
         - **questions:**
             - **header:** "Setup Required"
@@ -68,19 +61,14 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - **If yes:** Immediately transition to executing the `/superconductor:setup` skill protocol.
     - **If no:** Announce "Setup is required to proceed. Halting." and HALT.
 
-
 ## 2.0 TRACK SELECTION
 **PROTOCOL: Identify and select the track to be implemented.**
-
-1.  **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
-
-2.  **Locate and Parse Tracks Registry:**
+ **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
+ **Locate and Parse Tracks Registry:**
     - Resolve the **Tracks Registry**.
     - Read and parse this file. Identify all tracks, extracting their status (`[ ]`, `[~]`, `[x]`), description, and directory link.
-
-3.  **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
-
-4.  **Selection and Initiation:**
+ **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
+ **Selection and Initiation:**
     - **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
         1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro, Flash, Claude 3.5 Sonnet, Claude 3 Opus) to be used for the final Oracle Code Review. If in CI, default to Pro.
         2. If a specific track was provided, proceed with that track.
@@ -112,20 +100,15 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                     -   **Action:** Transition to the requirements gathering phase of a new track.
                     -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.
                 -   **If no tracks exist and no new description is provided:** Announce "No tracks available and no new track description provided." and HALT.
-
-5.  **Handle No Selection:** If no track is selected and no new track is initiated, inform the user and await further instructions.
-
+ **Handle No Selection:** If no track is selected and no new track is initiated, inform the user and await further instructions.
 
 ## 3.0 TRACK IMPLEMENTATION
 **PROTOCOL: Execute the selected track.**
-
-1.  **Announce Action:** Announce which track you are beginning to implement.
-
-2.  **Update Status to 'In Progress':**
+ **Announce Action:** Announce which track you are beginning to implement.
+ **Update Status to 'In Progress':**
     - Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
     - This requires finding the specific heading for the track (e.g., `## [ ] Track: <Description>`) and replacing it with the updated status (e.g., `## [~] Track: <Description>`) in the **Tracks Registry** file you identified earlier.
-
-3.  **Load Track Context & Manage Branch:**
+ **Load Track Context & Manage Branch:**
     a. **Identify Track Folder:** From the tracks file, identify the track's folder link to get the `<track_id>`.
     b. **Automated Branch Management:** 
         - Use the **GitWorkflowManager** utility to ensure the track branch exists and is derived from `main`.
@@ -164,8 +147,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
         - If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
         - If approved, update `plan.md`.
-
-4.  **Execute Tasks and Update Track Plan:**
+ **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Execution Skill:**
        - Search for the `swarm-execute` skill in the catalog and active skills.
        - **If `swarm-execute` is available:**
@@ -203,8 +185,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                 - Apply Systematic Bug Diagnosis (max 2 attempts). If unresolved after 2 attempts: ESCALATE to user (this is the ONLY permitted mid-track human interrupt besides the 3-cycle remediation cap).
              2. **Only on task success:** Call task_update({ id: task.id, status: 'completed' }), then call task_query({ status: 'pending', track_id }) and begin the next task immediately.
            - **PROHIBITED:** Asking the user "shall I continue to the next task?", stopping to summarize between tasks, or waiting for user re-trigger. The only permitted mid-track human-in-the-loop event is an ESCALATION (test failure after 2 attempts, or 3-iteration remediation cap exceeded).
-
-5.  **Finalize Track (HARD GATE ENFORCED):**
+ **Finalize Track (HARD GATE ENFORCED):**
 
     **BEFORE touching `tracks.md` or making any finalization commit, you MUST complete ALL of the following in order:**
 
@@ -230,15 +211,11 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     
     f. **Announce:** State that the track is complete and the quorum + Oracle verdicts are on record.
 
-
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
 **PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
-
-1.  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
-
-2.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
-
-3.  **Registry Inclusion Analysis:**
+ **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
+ **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
+ **Registry Inclusion Analysis:**
     - **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
         - **New Files Scan:** Check for new files in known component directories.
         - **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
@@ -256,16 +233,13 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                     I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?
                 - **type:** "yesno"
         - **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
-
-4.  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
-
-5.  **Load Project Documents:**
+ **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
+ **Load Project Documents:**
     - Resolve and read:
         - **Product Definition**
         - **Tech Stack**
         - **Product Guidelines**
-
-6.  **Analyze and Update:**
+ **Analyze and Update:**
     a.  **Analyze Specification and Plan:** Carefully analyze the **Specification** and **Implementation Plan** to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
@@ -348,24 +322,19 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                         <Insert Proposed AGENTS.md Updates/Diff Here>
                     - **type:** "yesno"
         iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **superconductor/AGENTS.md** file. Keep a record of whether this file was changed.
-
-7.  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
+ **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
     - **Commit Changes:**
         - If any files were changed (**Product Definition**, **Tech Stack**, **Product Guidelines**, **README.md**, or **AGENTS.md**), you MUST stage them and commit them.
         - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
 
-
 ## 5.0 TRACK CLEANUP
 **PROTOCOL: Offer to archive or delete the completed track.**
-
-1.  **Execution Trigger:** This protocol MUST only be executed after the current track has been successfully implemented and the `SYNCHRONIZE PROJECT DOCUMENTATION` step is complete.
-
-2.  **Approval Gate:** Finalization is strictly blocked until a two-stage approval is achieved.
+ **Execution Trigger:** This protocol MUST only be executed after the current track has been successfully implemented and the `SYNCHRONIZE PROJECT DOCUMENTATION` step is complete.
+ **Approval Gate:** Finalization is strictly blocked until a two-stage approval is achieved.
     - **Stage 1: Oracle Approval:** The Oracle must provide a "Ready" verdict based on automated checks and spec alignment.
     - **Stage 2: User Approval:** The User must manually confirm the final state after Oracle approval.
-
-3.  **Ask for User Choice:** Immediately call the `ask_user` tool to prompt the user (do not repeat the question in the chat):
+ **Ask for User Choice:** Immediately call the `ask_user` tool to prompt the user (do not repeat the question in the chat):
     - **questions:**
         - **header:** "Track Cleanup"
         - **question:** "Track '<track_description>' implementation is complete. How would you like to proceed with the approval and cleanup?"
@@ -378,8 +347,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
             - Label: "Archive", Description: "Move to archive (Requires Stage 1 & 2 approval)."
             - Label: "Delete", Description: "Permanently delete (Requires Stage 1 & 2 approval)."
             - Label: "Skip", Description: "Do nothing and leave it in the tracks file."
-
-4.  **Handle User Response:**
+ **Handle User Response:**
     *   **If user chooses "Oracle Review":**
         - **header:** "Oracle Model"
         - **question:** "Which model should the Oracle use for this deep audit? (Reasoning models — Pro, Sonnet Thinking, Opus — are strongly recommended. Fast models like Flash may miss subtle correctness issues and are prone to grade inflation on adversarial checks.)"
@@ -413,19 +381,16 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
             ii. **If 'yes'**: Delete track folder, remove from registry, commit with `chore(superconductor): Delete track '<track_description>'`, and announce success.
     *   **If user chooses "Skip":**
         - Announce: "Okay, the completed track will remain in your tracks file for now."
-
-    *   **Deployment Suggestion:**
+  **Deployment Suggestion:**
         - **Action:** Use the **ProjectConfigAnalyzer** to identify potential deployment commands for the `selected_target` branch.
         - **Logic:** `ProjectConfigAnalyzer.analyze('superconductor/tech-stack.md', 'package.json')`.
         - **Suggestion:** `ProjectConfigAnalyzer.suggestDeploymentCommand(selected_target)`.
         - **User Prompt:** If a command is found, ask: "Deployment command discovered for '<selected_target>': '<command>'. Would you like to execute it now?" (type: "yesno").
         - **Execution:** If 'yes', run the command and report status.
 
-
 ## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
 **PROTOCOL: Perform a high-fidelity audit using the selected model.**
-
-0. **Step 0 — Quorum Pre-Condition (MANDATORY — POST-IMPLEMENTATION GATE ORACLE ONLY):**
+**Step 0 — Quorum Pre-Condition (MANDATORY — POST-IMPLEMENTATION GATE ORACLE ONLY):**
    This step applies ONLY to the Post-Quorum Gate Oracle (the final merge gate). It does NOT apply to Periodic Advisory Oracle cycles (which fire during implementation and are advisory-only, never blocking).
 
    Verify `quorumPassed === true`. The full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) MUST have reached unanimous RESOLVED before the Oracle is invoked.
@@ -433,20 +398,17 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
    If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
 
    Enforcement: `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`. Throws `OracleGateError` if `quorumPassed` is false.
-
-1.  **Initialize Oracle:**
+ **Initialize Oracle:**
     - Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
     - Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."
-
-2.  **Audit Phase:**
+ **Audit Phase:**
     - The agent (using the user-selected model) executes the audit objectives:
         - Compare code against `spec.md`.
         - Verify all `plan.md` tasks are complete.
         - Check `tech-stack.md` and `code_styleguides/`.
         - Scan for feature gaps and DRY violations.
     - **Generate Report:** Output the `Oracle Audit Report` according to the template.
-
-3.  **Adversarial Audit Phase (Mandatory — runs after every standard audit):**
+ **Adversarial Audit Phase (Mandatory — runs after every standard audit):**
     - Load `skills/review/SKILL.md` §4.0 Adversarial Audit Protocol.
     - Execute the full protocol in sequence:
         - **§4.1 Undefined Path Hunting:** For every conditional block in the diff, find implicit branches. Flag any `if <X>` with no explicit `else` or fallthrough as `CRITICAL`.
@@ -456,8 +418,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **§4.5 Shenanigan Checklist:** Run all 8 checks — grade inflation, no-op task completions, spec drift, missing else, self-referential verification, hollow tests, optimistic closures, prerequisite+shortcut traps.
     - **Append findings** from the Adversarial Audit to the Oracle Audit Report under a dedicated `## Adversarial Audit Findings` section.
     - **CRITICAL:** If the Adversarial Audit finds any issue that the standard Audit Phase missed, the Oracle's final verdict MUST be `Needs Fixes` regardless of the standard audit result.
-
-4.  **Auto-Fix Loop & Remediation:**
+ **Auto-Fix Loop & Remediation:**
     - If the report contains "Auto-Fix Candidates":
         - **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
         - **Action:** If yes, for each candidate:
@@ -477,40 +438,32 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_superconductor-kernel_publish_vetted_component` tool.
     - If "Ready" verdict:
         - Proceed to finalization.
-
-5.  **Finalization:**
+ **Finalization:**
     - Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
-
 
 ## 7.0 ADVERSARIAL AUDIT DEBRIEF (ABI — Always Be Improving)
 **PROTOCOL: Evolve the adversarial checklist in situ after every Oracle review.**
 
 **Execution Trigger:** Run this protocol immediately after §6.0 Finalization, before §5.0 Track Cleanup. Takes ~60 seconds if patterns were found; gracefully exits in ~5 seconds if nothing is new.
-
-1.  **Oracle Self-Reflection:** Ask the Oracle (the same model that ran §6.0) to answer three questions using its completed audit context:
+ **Oracle Self-Reflection:** Ask the Oracle (the same model that ran §6.0) to answer three questions using its completed audit context:
     - **Q1 — New patterns:** "Did you encounter any shenanigan pattern during this audit that is NOT explicitly listed in `skills/review/SKILL.md §4.5` or `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5`? If yes, describe it as a new checklist row: `| **Pattern Name** | What to look for |`."
     - **Q2 — False positives:** "Did any existing checklist item fire incorrectly or feel misleading for this type of change? If yes, suggest a refinement."
     - **Q3 — Severity calibration:** "Were the right severity levels assigned? If any finding was mis-categorized (too harsh or too lenient), suggest the corrected mapping."
-
-2.  **Skip if nothing new:** If the Oracle answers "No new patterns" and "No refinements" to all three questions, announce: "Adversarial Audit Debrief: no protocol updates needed." and immediately exit to §5.0 Track Cleanup. Do NOT prompt the user.
-
-3.  **Draft Protocol Updates:** If the Oracle identified new or refined patterns:
+ **Skip if nothing new:** If the Oracle answers "No new patterns" and "No refinements" to all three questions, announce: "Adversarial Audit Debrief: no protocol updates needed." and immediately exit to §5.0 Track Cleanup. Do NOT prompt the user.
+ **Draft Protocol Updates:** If the Oracle identified new or refined patterns:
     - **Construct a unified diff** updating both:
         - `skills/review/SKILL.md §4.5` — append new rows to the Shenanigan Checklist table.
         - `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5` — append new rows to the Shenanigan Checklist table.
     - **Rationale:** Include a one-line comment above each new row: `<!-- Inducted: <track_id> — <date> —  <pattern trigger> -->`.
-
-4.  **Present and Gate:** Use `ask_user` to show the diff and request approval:
+ **Present and Gate:** Use `ask_user` to show the diff and request approval:
     - **header:** "Adversarial Audit — Protocol Evolution"
     - **question:** "The Oracle identified new patterns during this audit. Approve these additions to the adversarial checklist?\n\n---\n\n<Insert proposed diff here>"
     - **type:** "yesno"
-
-5.  **Commit if approved:**
+ **Commit if approved:**
     - Apply the diffs to both files.
     - Commit: `docs(review): Evolve adversarial audit protocol — patterns inducted from track '<track_description>'`
     - Announce: "Adversarial checklist updated. The Oracle is sharper now than it was before this run."
-
-6.  **Proceed to §5.0 Track Cleanup.**
+ **Proceed to §5.0 Track Cleanup.**
 
 ## Command Flow Diagram
 

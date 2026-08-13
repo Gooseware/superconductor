@@ -8,12 +8,15 @@ export interface ResearchToolExecutor {
 }
 
 export class ResearchProviderRegistry {
-  resolve(providerName: string = 'google', options?: { authMode?: 'apiKey' | 'vertexai' }, executeTool?: ResearchToolExecutor | any): IResearchProvider {
+  resolve(providerName: string = 'google', options?: any, executeTool?: ResearchToolExecutor | any): IResearchProvider {
     if (providerName === 'google') {
       return new GoogleDeepResearchProvider(executeTool, options);
     }
-    if (providerName === 'gemini_api_deep_research') {
-      return new GeminiAPIProvider(options);
+    if (providerName === 'gemini_api_deep_research' || providerName === 'gemini-api-deep-research') {
+      return new GeminiApiDeepResearchProvider(options);
+    }
+    if (providerName === 'vertex-ai-deep-research' || providerName === 'vertex_ai_deep_research') {
+      return new VertexAiDeepResearchProvider(options);
     }
     throw new Error(`Unknown research provider requested: ${providerName}`);
   }

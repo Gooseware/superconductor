@@ -155,6 +155,16 @@ Trailing text.
     const result = extractJsonBlock(text);
     expect(result).toEqual(payload);
   });
+
+  it('should throw on RESOLVED status with non-empty findings', () => {
+    const invalidPayload = '```json:review-findings\n{"status": "RESOLVED", "findings": [{"id": "X"}]}\n```';
+    expect(() => extractJsonBlock(invalidPayload)).toThrow('Schema violation');
+  });
+
+  it('should throw on NEEDS_FIXES status with empty findings', () => {
+    const invalidPayload = '```json:review-findings\n{"status": "NEEDS_FIXES", "findings": []}\n```';
+    expect(() => extractJsonBlock(invalidPayload)).toThrow('Schema violation');
+  });
 });
 
 // ---------------------------------------------------------------------------

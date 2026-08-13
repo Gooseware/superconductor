@@ -127,7 +127,29 @@ export class ReviewerResponseBroker {
 export function extractJsonBlock(text: string): unknown | null {
   const match = text.match(/```json:review-findings\s*([\s\S]*?)```/);
   if (!match) return null;
+  let parsed: unknown;
   try {
-    return JSON.parse(match[1].trim());
-  } catch (e) { console.debug('Failed to parse json block:', e instanceof Error ? e.message : String(e)); return null; }
+    parsed = JSON.parse(match[1].trim());
+  } catch (e) {
+    console.debug('Failed to parse json block:', e instanceof Error ? e.message : String(e));
+    return null;
+  }
+
+  if (parsed && typeof parsed === 'object') {
+    const p = parsed as { status?: string; findings?: unknown[] };
+    if (p.status === 'RESOLVED' && p.findings && p.findings.length > 0) {
+      throw new Error(
+        `Schema violation: status is RESOLVED but findings array is non-empty (${p.findings.length} findings). ` +
+        `A RESOLVED payload MUST have an empty findings array.`
+      );
+    }
+    if (p.status === 'NEEDS_FIXES' && (!p.findings || p.findings.length === 0)) {
+      throw new Error(
+        `Schema violation: status is NEEDS_FIXES but findings array is empty. ` +
+        `A NEEDS_FIXES payload MUST contain at least one finding.`
+      );
+    }
+  }
+
+  return parsed;
 }

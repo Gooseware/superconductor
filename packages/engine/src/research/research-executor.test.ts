@@ -6,6 +6,7 @@ import { IResearchProvider, IResearchQuery, IResearchBrief } from './types.js';
 import { WorkUnit, WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-error.js';
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
+import { FallbackFailedError } from './errors/fallback-failed-error.js';
 import { SemanticCache } from '@superconductor/core/src/cache/semantic-cache.js';
 import { ResearchProviderRegistry } from './provider-registry.js';
 
@@ -159,7 +160,7 @@ describe('ResearchExecutor', () => {
         (executor as any).cache = { get: mockCacheGet };
 
         const queries = [{ term: 'fallback-fail-test' }];
-        await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow('FallbackFailedError');
+        await expect(executor.execute('t1', queries, mockProvider)).rejects.toThrow(FallbackFailedError);
     });
 
     it('instantiates the new provider end-to-end from agent-config.md', async () => {
