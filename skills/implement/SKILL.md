@@ -172,7 +172,8 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
          - **CRITICAL REQUIREMENT:** You MUST unconditionally transition execution to the `swarm-execute` skill protocol for BOTH Headless and Interactive modes. Do NOT prompt the user to choose an execution mode. Do NOT fall through to sequential execution.
          - Read `skills/swarm-execute/SKILL.md` and follow its protocol precisely, including its remediation section.
        - **If `swarm-execute` is NOT available:**
-         - **HALT.** Do NOT fall through to sequential execution silently. Announce: "swarm-execute skill not found. Cannot proceed. Please ensure the Superconductor skills are installed correctly." and await user instructions.
+         - **Interactive Mode:** HALT. Announce: "swarm-execute skill not found. Cannot proceed. Please ensure the Superconductor skills are installed correctly." and await user instructions.
+         - **Headless Mode:** Exit with non-zero status code. Write error to swarm_log.md: `ERROR: swarm-execute skill not found. Aborting headless run.` This constitutes a CI failure and MUST be surfaced to the CI pipeline.
        - **NOTE:** `swarm-orchestrate` is DEPRECATED. If only `swarm-orchestrate` is found, treat it as NOT available and HALT per the above rule.
     b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
     c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
@@ -196,10 +197,11 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
            - **QUORUM REMEDIATION (MANDATORY — NO HERO-AGENTING):** If at any point during task execution the quorum loop returns `NEEDS_FIXES`, the root orchestrator MUST NOT call `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command` to fix findings directly. This is Hero-Agenting and is a PROTOCOL VIOLATION. Instead, MUST invoke domain-split remediation as specified in `skills/swarm-execute/SKILL.md §Remediation Protocol`.
 
         v. **AUTO-ADVANCE (MANDATORY — no user prompt between tasks):**
-           - Immediately after `task_update({ id: task.id, status: 'completed' })` succeeds:
-             1. Call `task_query({ status: 'pending', track_id: <current_track_id> })` to fetch the next task.
-             2. If a next task exists: begin it immediately without pausing, without prompting the user, and without waiting for acknowledgement.
-             3. If no pending tasks remain: proceed directly to §3.0 Finalize Track.
+           - Immediately after a task completes:
+             1. **Check task outcome:** If the task execution produced a non-zero exit code, a test failure, or an unrecoverable tool error:
+                - Do NOT call task_update(completed). Call task_update(id, status: 'blocked') instead.
+                - Apply Systematic Bug Diagnosis (max 2 attempts). If unresolved after 2 attempts: ESCALATE to user (this is the ONLY permitted mid-track human interrupt besides the 3-cycle remediation cap).
+             2. **Only on task success:** Call task_update({ id: task.id, status: 'completed' }), then call task_query({ status: 'pending', track_id }) and begin the next task immediately.
            - **PROHIBITED:** Asking the user "shall I continue to the next task?", stopping to summarize between tasks, or waiting for user re-trigger. The only permitted mid-track human-in-the-loop event is an ESCALATION (test failure after 2 attempts, or 3-iteration remediation cap exceeded).
 
 5.  **Finalize Track (HARD GATE ENFORCED):**
@@ -208,21 +210,22 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
     a. **Assert Quorum Green:** Verify that the full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) has reached unanimous `RESOLVED` status.
        - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
-       - Enforcement: `QuorumValidator.gateOracle({ quorumPassed })` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`.
+       - Enforcement: Run `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
     
-    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, call `QuorumValidator.gateOracle({ quorumPassed: true })`. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
+    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
     
-    c. **Generate Authorization Trailer:** Call `SwarmAuthorizer.generateTrailer(reviewerConvIds)` (source: `packages/superconductor-core/src/track/swarm-authorizer.ts`).
+    c. **Generate and Validate Authorization Trailer:** Run `node packages/superconductor-core/dist/track/swarm-authorizer.js --generate-trailer <reviewer_ids>`.
+       1. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
+       2. **HALT if validation fails.** Do NOT proceed to step 5.d.
+       3. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
+       4. **CRITICAL:** The reviewer IDs MUST be the actual conversation IDs returned by the quorum run (e.g., the `conversationId` from each reviewer subagent invocation), not placeholder strings.
     
     d. **Update Tracks Registry:** Change the track status from `[~]` to `[x]` in `superconductor/tracks.md`.
     
-    e. **Finalization Commit:** Stage `tracks.md` and commit with message:
-       ```
-       chore(superconductor): Mark track '<track_description>' as complete
-       
-       Swarm-Authorized: true | reviewers: <id1>,<id2>,<id3>,<id4>
-       ```
+    e. **Finalization Commit:** Stage `tracks.md` and commit with the message produced by the following command:
+       `node packages/superconductor-core/dist/track/swarm-authorizer.js --format-commit-message '<track_description>' <reviewer_ids>`
+       Do NOT manually write the commit message — use the script output only.
     
     f. **Announce:** State that the track is complete and the quorum + Oracle verdicts are on record.
 
@@ -421,12 +424,14 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 ## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
 **PROTOCOL: Perform a high-fidelity audit using the selected model.**
 
-0. **Step 0 — Quorum Pre-Condition (MANDATORY):**
+0. **Step 0 — Quorum Pre-Condition (MANDATORY — POST-IMPLEMENTATION GATE ORACLE ONLY):**
+   This step applies ONLY to the Post-Quorum Gate Oracle (the final merge gate). It does NOT apply to Periodic Advisory Oracle cycles (which fire during implementation and are advisory-only, never blocking).
+
    Verify `quorumPassed === true`. The full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) MUST have reached unanimous RESOLVED before the Oracle is invoked.
 
    If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
 
-   Enforcement: `QuorumValidator.gateOracle({ quorumPassed })` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`. Throws `OracleGateError` if `quorumPassed` is false.
+   Enforcement: `node packages/superconductor-core/dist/orchestration/quorum-validator.js --gate` — source: `packages/superconductor-core/src/orchestration/quorum-validator.ts`. Throws `OracleGateError` if `quorumPassed` is false.
 
 1.  **Initialize Oracle:**
     - Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
