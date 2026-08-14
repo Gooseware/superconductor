@@ -86,9 +86,9 @@
 - [x] Task: Superconductor - User Manual Verification 'Phase 5: Track Lifecycle Wizard' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 6: Integration & Finalization
-- [ ] Task: Run full monorepo test suite and verify zero regressions [TIER-2:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Run `npm test` across all packages (`engine`, `superconductor-core`, `quorum-fsm`, `superconductor-kernel`, `notebook-store`) [TIER-1:TCS=3]
-    - [ ] Validate skill frontmatter and CLI command discovery [TIER-1:TCS=3]
-- [ ] Task: Integrate track 'model_chooser_quorum_remediation_20260814' into main branch [TIER-4:TCS=3] [AGENT:superconductor-oracle]
-    - [ ] Run 4-reviewer Quorum review panel (Security, Correctness, Adversarial, Regression) [TIER-1:TCS=3]
-    - [ ] Complete Oracle audit, generate authorization trailer, and finalize merge [TIER-1:TCS=3]
+- [x] Task: Run full monorepo test suite and verify zero regressions [TIER-2:TCS=3] [AGENT:superconductor-processor]
+    - [x] Run `npm test` across all packages (`engine`, `superconductor-core`, `quorum-fsm`, `superconductor-kernel`, `notebook-store`) [TIER-1:TCS=3]
+    - [x] Validate skill frontmatter and CLI command discovery [TIER-1:TCS=3]
+- [x] Task: Integrate track 'model_chooser_quorum_remediation_20260814' into main branch [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+    - [x] Run 4-reviewer Quorum review panel (Security, Correctness, Adversarial, Regression) [TIER-1:TCS=3]
+    - [x] Complete Oracle audit, generate authorization trailer, and finalize merge [TIER-1:TCS=3]
