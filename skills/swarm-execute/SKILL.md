@@ -1,3 +1,8 @@
+---
+name: swarm-execute
+description: Executes the given track using the Swarm Orchestrator with implementors and quorum reviewers.
+---
+
 # swarm-execute
 Executes the given track using the Swarm Orchestrator. 
 Accepts a track ID, loads the topography map, and orchestrates implementors and quorum reviewers to complete the track plan.

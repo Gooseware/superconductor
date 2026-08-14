@@ -1,0 +1,24 @@
+# Auto-generated permission manifest
+# Track: model_chooser_quorum_remediation_20260814
+version = "1.0"
+
+[permissions]
+read_paths = [
+    "superconductor/**",
+    "package.json",
+    "packages/**",
+    "skills/**",
+    "commands/**",
+    "~/.gemini/**"
+]
+write_paths = [
+    "superconductor/**",
+    "packages/**",
+    "skills/**",
+    "commands/**",
+    "~/.gemini/agent-config.md",
+    "~/.gemini/models-cache.json"
+]
+execute_commands = [
+    "*"
+]

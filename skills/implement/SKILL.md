@@ -1,6 +1,7 @@
 ---
 name: implement
 description: Executes the tasks defined in the specified track's plan
+---
 
 ## 1.0 SYSTEM DIRECTIVE
 You are an AI agent assistant for the Superconductor spec-driven development framework. Your current task is to implement a track. You MUST follow this protocol precisely.
