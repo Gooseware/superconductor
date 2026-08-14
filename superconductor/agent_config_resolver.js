@@ -2,17 +2,28 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+export const DEFAULT_ROLE_ASSIGNMENTS = {
+  'superconductor-processor': 'gemini-3.6-flash-high',
+  'superconductor-reviewer': 'gemini-3.6-flash-high',
+  'superconductor-reviewer (quorum)': 'gemini-3.6-flash-high',
+  'superconductor-dreamer': 'gemini-3.1-pro-high',
+  'superconductor-oracle': 'gemini-3.1-pro-high',
+  'remediation-processor': 'gemini-3.6-flash-high'
+};
+
 /**
- * Resolves global and project-level model tier configurations.
+ * Resolves global, project-level, and session model tier and role configurations.
  */
 export class AgentConfigResolver {
   /**
    * @param {Object} filesystem - Custom file system implementation (defaults to Node's fs).
    * @param {Object} env - Environment variables object (defaults to process.env).
+   * @param {Object} [sessionOverrides=null] - Optional runtime session overrides.
    */
-  constructor(filesystem = fs, env = process.env) {
+  constructor(filesystem = fs, env = process.env, sessionOverrides = null) {
     this.fs = filesystem;
     this.env = env;
+    this.sessionOverrides = sessionOverrides;
   }
 
   /**
@@ -34,29 +45,71 @@ export class AgentConfigResolver {
   }
 
   /**
-   * Reads and parses the active configuration.
-   * @returns {Object} Config object with tier2, tier3, tier4, and proxyEndpoint.
+   * Reads and parses the active configuration across hierarchy.
+   * @param {Object} [ephemeralOverrides=null] - Optional runtime session overrides.
+   * @returns {Object} Config object with tier2, tier3, tier4, proxyEndpoint, and roles.
    */
-  resolveConfig() {
+  resolveConfig(ephemeralOverrides = null) {
+    let resolvedConfig = {
+      tier2: 'gemini-2.0-flash-lite',
+      tier3: 'gemini-2.5-pro',
+      tier4: 'gemini-2.5-pro (thinking)',
+      proxyEndpoint: null,
+      roles: { ...DEFAULT_ROLE_ASSIGNMENTS }
+    };
+
     const paths = this.resolvePaths();
-    for (const p of paths) {
+    // Resolve in reverse order (global then project) so project overrides global
+    for (const p of [...paths].reverse()) {
       if (this.fs.existsSync(p)) {
         try {
           const content = this.fs.readFileSync(p, 'utf8');
-          return this.parseConfig(content);
+          const parsed = this.parseConfig(content);
+          resolvedConfig = {
+            ...resolvedConfig,
+            ...parsed,
+            roles: {
+              ...resolvedConfig.roles,
+              ...(parsed.roles || {})
+            }
+          };
         } catch (e) {
           // Ignore read error and try next path
         }
       }
     }
 
-    // Default configuration fallback
-    return {
-      tier2: 'gemini-2.0-flash-lite',
-      tier3: 'gemini-2.5-pro',
-      tier4: 'gemini-2.5-pro (thinking)',
-      proxyEndpoint: null
-    };
+    // Apply session overrides if provided
+    const session = ephemeralOverrides || this.sessionOverrides;
+    if (session) {
+      resolvedConfig = {
+        ...resolvedConfig,
+        ...session,
+        roles: {
+          ...resolvedConfig.roles,
+          ...(session.roles || {})
+        }
+      };
+    }
+
+    return resolvedConfig;
+  }
+
+  /**
+   * Returns the resolved model for a specific role.
+   * @param {string} role - Role identifier (e.g., 'superconductor-processor').
+   * @param {Object} [ephemeralOverrides=null] - Optional runtime session overrides.
+   * @returns {string} Model identifier.
+   */
+  getModelForRole(role, ephemeralOverrides = null) {
+    const config = this.resolveConfig(ephemeralOverrides);
+    if (config.roles && config.roles[role]) {
+      return config.roles[role];
+    }
+    if (role === 'superconductor-reviewer' && config.roles && config.roles['superconductor-reviewer (quorum)']) {
+      return config.roles['superconductor-reviewer (quorum)'];
+    }
+    return DEFAULT_ROLE_ASSIGNMENTS[role] || config.tier3 || 'gemini-3.6-flash-high';
   }
 
   /**
@@ -69,8 +122,13 @@ export class AgentConfigResolver {
       tier2: 'gemini-2.0-flash-lite',
       tier3: 'gemini-2.5-pro',
       tier4: 'gemini-2.5-pro (thinking)',
-      proxyEndpoint: null
+      proxyEndpoint: null,
+      roles: { ...DEFAULT_ROLE_ASSIGNMENTS }
     };
+
+    if (!content || typeof content !== 'string') {
+      return config;
+    }
 
     const lines = content.split('\n');
     for (const line of lines) {
@@ -94,6 +152,33 @@ export class AgentConfigResolver {
       if (proxyMatch) {
         const val = proxyMatch[1].trim();
         config.proxyEndpoint = (val === '(none)' || val === '') ? null : val;
+      }
+    }
+
+    // Parse Swarm Agent Model Assignments table
+    const tableSectionMatch = content.match(/##\s*Swarm Agent Model Assignments[\s\S]*?(?=\n##|\n---|$)/i);
+    if (tableSectionMatch) {
+      const tableContent = tableSectionMatch[0];
+      const tableLines = tableContent.split(/\r?\n/);
+      for (const tLine of tableLines) {
+        const rowMatch = tLine.match(/^\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$/);
+        if (rowMatch) {
+          const role = rowMatch[1].trim();
+          const model = rowMatch[2].trim().replace(/^`|`$/g, '').trim();
+          if (
+            role.toLowerCase() !== 'role' &&
+            !role.startsWith('---') &&
+            !role.startsWith(':---') &&
+            !role.startsWith('-')
+          ) {
+            config.roles[role] = model;
+            if (role === 'superconductor-reviewer (quorum)') {
+              config.roles['superconductor-reviewer'] = model;
+            } else if (role === 'superconductor-reviewer' && !config.roles['superconductor-reviewer (quorum)']) {
+              config.roles['superconductor-reviewer (quorum)'] = model;
+            }
+          }
+        }
       }
     }
 

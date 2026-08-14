@@ -97,3 +97,39 @@ test('project config overrides global when both exist', () => {
   assertEquals(config.tier4, 'project-frontier', 'Project override for tier4');
   assertEquals(config.proxyEndpoint, null, 'Project override for proxyEndpoint (none)');
 });
+
+test('parses role assignments table and resolves role models', () => {
+  const projectPath = 'superconductor/agent-config.md';
+  const mockFs = {
+    existsSync: (path) => path === projectPath,
+    readFileSync: (path) => {
+      if (path === projectPath) {
+        return `
+# Agent Configuration
+## Swarm Agent Model Assignments
+
+| Role | Model |
+|------|-------|
+| superconductor-processor | \`gemini-3.7-flash-high\` |
+| superconductor-reviewer (quorum) | \`claude-sonnet-4-6\` |
+| superconductor-dreamer | \`claude-opus-4-6-thinking\` |
+| superconductor-oracle | \`gemini-3.1-pro-high\` |
+| remediation-processor | \`gpt-oss-120b-medium\` |
+`;
+      }
+      return '';
+    }
+  };
+  const mockEnv = { HOME: '/home/user' };
+  const resolver = new AgentConfigResolver(mockFs, mockEnv);
+  const config = resolver.resolveConfig();
+
+  assertEquals(config.roles['superconductor-processor'], 'gemini-3.7-flash-high', 'Role processor');
+  assertEquals(config.roles['superconductor-reviewer'], 'claude-sonnet-4-6', 'Role reviewer');
+  assertEquals(config.roles['superconductor-dreamer'], 'claude-opus-4-6-thinking', 'Role dreamer');
+  assertEquals(config.roles['superconductor-oracle'], 'gemini-3.1-pro-high', 'Role oracle');
+  assertEquals(config.roles['remediation-processor'], 'gpt-oss-120b-medium', 'Role remediation-processor');
+
+  assertEquals(resolver.getModelForRole('superconductor-processor'), 'gemini-3.7-flash-high', 'getModelForRole processor');
+  assertEquals(resolver.getModelForRole('remediation-processor'), 'gpt-oss-120b-medium', 'getModelForRole remediation-processor');
+});

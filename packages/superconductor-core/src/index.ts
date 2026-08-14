@@ -15,4 +15,15 @@ export * from './models/index.js';
 
 export type { ModelTier } from './intelligence/index.js';
 export type { Finding } from './remediation/index.js';
-export type { DiscoveredModel, ModelCacheData, ModelCatalogOptions } from './models/index.js';
+export type {
+  DiscoveredModel,
+  ModelCacheData,
+  ModelCatalogOptions,
+  AgentConfigData,
+  AgentRoleAssignments,
+  ConfigScope,
+  AgentConfigWriterOptions,
+  ModelChooserOptions,
+  ModelChooserResult,
+  RoleMeta,
+} from './models/index.js';

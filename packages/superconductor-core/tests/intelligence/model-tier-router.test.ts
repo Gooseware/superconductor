@@ -105,4 +105,42 @@ describe('ModelTierRouter', () => {
       expect(intelRoute.annotation).toBe('[TIER-2:TCS=8]');
     });
   });
+
+  describe('Granular Role-to-Model Mappings', () => {
+    it('should return correct default tier for roles', () => {
+      expect(ModelTierRouter.getTierForRole('superconductor-processor')).toBe('flash');
+      expect(ModelTierRouter.getTierForRole('superconductor-reviewer')).toBe('flash');
+      expect(ModelTierRouter.getTierForRole('superconductor-dreamer')).toBe('pro');
+      expect(ModelTierRouter.getTierForRole('superconductor-oracle')).toBe('pro-thinking');
+      expect(ModelTierRouter.getTierForRole('remediation-processor')).toBe('flash');
+    });
+
+    it('should return default model identifiers when no custom config is provided', () => {
+      expect(ModelTierRouter.resolveRoleModel('superconductor-processor')).toBe('gemini-3.6-flash-high');
+      expect(ModelTierRouter.resolveRoleModel('superconductor-reviewer')).toBe('gemini-3.6-flash-high');
+      expect(ModelTierRouter.resolveRoleModel('superconductor-dreamer')).toBe('gemini-3.1-pro-high');
+      expect(ModelTierRouter.resolveRoleModel('superconductor-oracle')).toBe('gemini-3.1-pro-high');
+      expect(ModelTierRouter.resolveRoleModel('remediation-processor')).toBe('gemini-3.6-flash-high');
+    });
+
+    it('should respect custom config overrides for role resolution', () => {
+      const customConfig = {
+        roles: {
+          'superconductor-processor': 'gemini-3.7-flash-high',
+          'superconductor-oracle': 'claude-opus-4-6-thinking',
+        },
+      };
+
+      expect(ModelTierRouter.resolveRoleModel('superconductor-processor', customConfig)).toBe(
+        'gemini-3.7-flash-high'
+      );
+      expect(ModelTierRouter.resolveRoleModel('superconductor-oracle', customConfig)).toBe(
+        'claude-opus-4-6-thinking'
+      );
+      // Fallback for unconfigured role
+      expect(ModelTierRouter.resolveRoleModel('superconductor-dreamer', customConfig)).toBe(
+        'gemini-3.1-pro-high'
+      );
+    });
+  });
 });

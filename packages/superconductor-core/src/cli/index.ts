@@ -238,6 +238,12 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'models': {
+      const { ModelChooserDialog } = await import('../models/model-chooser-dialog.js');
+      await ModelChooserDialog.prompt(args.slice(1));
+      break;
+    }
+
     default:
       console.log(`Superconductor Universal CLI
 
@@ -249,6 +255,7 @@ Usage:
   npx superconductor setup [--reset-registry]
   npx superconductor intelligence [--brownfield] [--target <path>]
   npx superconductor infer-permissions <spec.md path> <out manifest.toml path>
+  npx superconductor models [--refresh-models|--scope <global|project|session>|--list]
 `);
       process.exit(1);
   }
