@@ -25,21 +25,21 @@
 | 12 | Task: Run full monorepo test suite and verify z... | flash_lite | 56K | ~18 min |
 
 ## Phase 0: Swarm Preflight
-- [ ] Task: Verify swarm-orchestrate / swarm-execute skills, runtime environment, and MCP tool availability [TIER-1:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Check node version, typescript compilation, and git branch status [TIER-1:TCS=3]
-    - [ ] Verify `packages/superconductor-core` and `packages/engine` build cleanliness [TIER-1:TCS=3]
+- [x] Task: Verify swarm-orchestrate / swarm-execute skills, runtime environment, and MCP tool availability [TIER-1:TCS=3] [AGENT:superconductor-processor]
+    - [x] Check node version, typescript compilation, and git branch status [TIER-1:TCS=3]
+    - [x] Verify `packages/superconductor-core` and `packages/engine` build cleanliness [TIER-1:TCS=3]
 
 ## Phase 1: Model Catalog & Discovery Service
-- [ ] Task: Create unit tests for ModelCatalogService [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Write unit tests verifying `agy models` stdout parser [TIER-1:TCS=3]
-    - [ ] Write tests for 24-hour TTL file cache creation and invalidation in `~/.gemini/models-cache.json` [TIER-1:TCS=3]
-    - [ ] Write tests for fallback behavior when CLI fails or times out [TIER-1:TCS=3]
-- [ ] Task: Implement ModelCatalogService [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    - [ ] Implement `ModelCatalogService` in `packages/superconductor-core/src/models/model-catalog-service.ts` [TIER-1:TCS=3]
-    - [ ] Add CLI execution with 5000ms timeout and sanitized regex extraction [TIER-1:TCS=3]
-    - [ ] Add read/write cache logic for `~/.gemini/models-cache.json` [TIER-1:TCS=3]
-    - [ ] Add `refresh()` method and `--refresh-models` CLI flag support [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Model Catalog & Discovery Service' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Create unit tests for ModelCatalogService [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Write unit tests verifying `agy models` stdout parser [TIER-1:TCS=3]
+    - [x] Write tests for 24-hour TTL file cache creation and invalidation in `~/.gemini/models-cache.json` [TIER-1:TCS=3]
+    - [x] Write tests for fallback behavior when CLI fails or times out [TIER-1:TCS=3]
+- [x] Task: Implement ModelCatalogService [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [x] Implement `ModelCatalogService` in `packages/superconductor-core/src/models/model-catalog-service.ts` [TIER-1:TCS=3]
+    - [x] Add CLI execution with 5000ms timeout and sanitized regex extraction [TIER-1:TCS=3]
+    - [x] Add read/write cache logic for `~/.gemini/models-cache.json` [TIER-1:TCS=3]
+    - [x] Add `refresh()` method and `--refresh-models` CLI flag support [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Model Catalog & Discovery Service' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ## Phase 2: Hierarchical Config Persistence & Writer
 - [ ] Task: Create unit tests for AgentConfigWriter and AgentConfigResolver [TIER-3:TCS=3] [AGENT:superconductor-processor]
