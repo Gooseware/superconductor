@@ -319,36 +319,41 @@ The review pipeline is fully operational with FSM state machine persistence (`pa
 
 ## 9.0 SWARM REMEDIATION PROTOCOL
 
-### 9.1 Post-Review Hand-Off Trigger
-- When the review pipeline emits its findings report, the orchestrator presents an offer to launch the Swarm Remediation Engine
-- In `--fast` mode: skipped unless `--remediate` flag is explicit
-- In `--headless` mode: auto-launches for CRITICAL or HIGH findings
-- `--remediate` flag always forces launch regardless of mode
+### 9.1 Autonomous Remediation Loop & Post-Review Hand-Off
+- When the review pipeline emits its findings report, or when `--remediate` / `--branch` is invoked:
+  1. **Stop immediately if green (`RESOLVED`):** If zero unresolved findings exist, Quorum passes immediately and gates Oracle merge.
+  2. **Remediate if red (`NEEDS_FIXES`):** If any non-advisory findings are present, the Autonomous Remediation Engine automatically groups findings by domain and dispatches parallel domain remediators in isolated worktrees.
+  3. **Re-Review Quorum:** Upon applying fixes, a fresh zero-bias Quorum panel re-reviews the entire updated diff.
+  4. **Continuous Loop Until 100% Green:** The cycle repeats (Quorum → Remediation → Quorum) until 100% green or the circuit breaker trips.
+- In `--fast` mode: remediation offer skipped unless `--remediate` flag is explicit.
+- In `--headless` mode: auto-launches remediation for CRITICAL or HIGH findings.
+- `--remediate` flag always forces launch regardless of mode.
 
-### 9.2 Domain Map
+### 9.2 Domain Grouping & Parallel Dispatch
 
-| Pattern | Domain Agent |
-|---------|-------------|
-| `auth/`, `middleware/`, `session/`, `jwt/` | `security-remediator` |
-| `ui/`, `components/`, `pages/`, `styles/` | `frontend-remediator` |
-| `db/`, `models/`, `migrations/`, `repository/` | `schema-remediator` |
-| `test/`, `__tests__/`, `*.spec.*`, `*.test.*` | `test-writer` |
-| `api/`, `routes/`, `controllers/` | `api-remediator` |
-| *(unclassified)* | `general-remediator` |
+| Domain | Scope Patterns | Domain Agent |
+|--------|----------------|--------------|
+| `security` | `auth/`, `security/`, `middleware/`, `session/`, `jwt/`, `credentials/` | `security-remediator` |
+| `logic` | `src/logic/`, `services/`, `controllers/`, `handlers/`, `core/` | `logic-remediator` |
+| `tests` | `test/`, `tests/`, `__tests__/`, `*.spec.*`, `*.test.*` | `test-writer` |
+| `types` | `types/`, `*.d.ts`, `interfaces/` | `types-remediator` |
+| `config` | `config/`, `*.json`, `*.yaml`, `*.yml`, `*.toml` | `config-remediator` |
+| `frontend` | `ui/`, `components/`, `pages/`, `styles/` | `frontend-remediator` |
+| `schema` | `db/`, `models/`, `migrations/`, `repository/` | `schema-remediator` |
+| *(unclassified)* | Any uncategorized files | `general-remediator` |
 
-Note: Findings sharing the same domain are BATCHED to a single live agent (not spawned N times) and dispatched via the `DomainSplitRemediationDispatcher`.
-Custom overrides via project-level `domain-map.json`.
+Note: Findings sharing the same domain are BATCHED to a single live agent and dispatched in parallel via the `DomainSplitRemediationDispatcher`. Worktree isolation is enforced for all concurrent remediators. Custom overrides via project-level `domain-map.json`.
 
 ### 9.3 Remediation FSM Lifecycle
 
 ```text
-IDLE → ANALYZING → DISPATCHING → REMEDIATING → RE-REVIEWING → RESOLVED
-                                                           ↘ REMEDIATING (retry ≤2)
-                                                           ↘ ESCALATED → deep_research → final attempt → RESOLVED
-                                                           ↘ HUMAN_REQUIRED (CRITICAL + unresolved)
+INIT → REVIEWING → NEEDS_FIXES → REMEDIATING → VERIFYING → PASSED (all green)
+                         ↖─────────────────────────↙ (re-review finds issues)
+                         ↘ MAX_CYCLES_EXCEEDED (3-5 cycles) → Deep Research Escalation → HALTED
+                         ↘ STAGNANT_DIFF → HALTED
 ```
 - Orchestrator spawns once and stays alive for entire cycle (context-preserving)
-- Domain agents are subagents under the orchestrator
+- Domain agents are subagents under the orchestrator running in isolated git worktrees
 - SenderID verified on all agent-to-agent messages
 
 ### 9.4 Fresh Review Gate Protocol
@@ -356,12 +361,13 @@ IDLE → ANALYZING → DISPATCHING → REMEDIATING → RE-REVIEWING → RESOLVED
 - Fresh swarm receives ONLY: `{ fingerprint: { severity, ruleId, file }, diff, preflightOutput }`
 - Prior reviewer reasoning is NEVER passed (zero-bias enforcement)
 - Fresh reviewers must emit `json:review-findings` block
-- Status `RESOLVED` → finding is cleared; any other status → retry or escalate
+- Status `RESOLVED` (empty findings) → finding is cleared; any remaining findings → next remediation cycle
 
-### 9.5 Deep Research Escalation Protocol
-- Trigger: domain agent fails 2 retry attempts
-- Request payload: finding + code context + error messages + prior fix diffs
-- Research result is wrapped in `<DEEP_RESEARCH_RESULT>...</DEEP_RESEARCH_RESULT>` delimiter tags (prompt injection defense)
+### 9.5 Circuit Breaker & Deep Research Escalation Protocol
+- **Circuit breaker:** Hard cap of 3–5 cycles or instant trip on `STAGNANT_DIFF`.
+- **Deep Research Escalation:** When circuit breaker is reached, unresolved findings and error traces are automatically escalated to Deep Research.
+- Request payload: finding + code context + error messages + prior fix diffs.
+- Research result is wrapped in `<DEEP_RESEARCH_RESULT>...</DEEP_RESEARCH_RESULT>` delimiter tags (prompt injection defense).
 - Classification:
   - `auto-applicable`: concrete code fix suggested → final remediation attempt
   - `policy-decision-required`: architectural/compliance/security policy → HUMAN_REQUIRED path

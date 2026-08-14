@@ -22,23 +22,30 @@ triggers:
 - Parse severity, ruleId, file, description per finding
 - Emit: `✓ Found <N> findings in <report-file> (<CRITICAL: X, HIGH: Y, MEDIUM: Z>)`
 
-## 2.0 Findings Parser
+## 2.0 Findings Parser & Domain Grouping
 
 - Parse the `json:review-findings` block from the review report
-- Map each finding to `FindingFingerprint: { id, severity, ruleId, file }`
+- Map each finding to `FindingFingerprint: { id, severity, ruleId, file, domain }`
 - Filter by severity if `--severity=<level>` flag provided (e.g. `--severity=CRITICAL,HIGH`)
-- Group by domain using `DomainClassifier`
+- Group by domain using `DomainClassifier` across standard domains:
+  - `security`: `auth/`, `security/`, `middleware/`, `session/`, `jwt/`, `credentials/`
+  - `logic`: `src/logic/`, `services/`, `controllers/`, `handlers/`, `core/`
+  - `tests`: `test/`, `tests/`, `__tests__/`, `*.spec.*`, `*.test.*`
+  - `types`: `types/`, `*.d.ts`, `interfaces/`
+  - `config`: `config/`, `*.json`, `*.yaml`, `*.yml`, `*.toml`
 - Emit domain assignment summary table
 
-## 3.0 Swarm Launch Protocol
+## 3.0 Autonomous Remediation Loop Execution
 
-- Instantiate `RemediationOrchestrator` with parsed findings
-- Pass `DeepResearchEscalationHandler` as option
-- Pass `BiasIsolatedReviewGate` as option
-- Call `orchestrator.start()`
-- Monitor FSM state and emit progress updates
-- In `--headless` mode: suppress interactive prompts, auto-choose defaults
-- Hard-block: if any CRITICAL finding reaches HUMAN_REQUIRED, halt and present `Acknowledge & Abort` | `Acknowledge & Revert`
+- The Swarm Remediation Engine operates in a continuous automated loop:
+  1. **Check findings:** If zero findings or status is `RESOLVED`, stop immediately (all green).
+  2. **Domain-split dispatch:** If findings exist (`NEEDS_FIXES`), dispatch parallel remediator subagents in isolated git worktrees using `DomainSplitRemediationDispatcher`.
+  3. **Zero-bias re-review:** Re-run fresh Quorum review on updated diff.
+  4. **Loop:** Repeat until 100% green or circuit breaker trips.
+- **Circuit breaker:** Hard cap of 3–5 cycles or instant halt on `STAGNANT_DIFF`.
+- **Deep Research Escalation:** Triggered when circuit breaker is reached.
+- In `--headless` mode: suppress interactive prompts, auto-choose defaults.
+- Hard-block: if any CRITICAL finding reaches HUMAN_REQUIRED, halt and present `Acknowledge & Abort` | `Acknowledge & Revert`.
 
 ## 4.0 Output Protocol
 
@@ -49,8 +56,8 @@ triggers:
   |------------|--------|---------|----------|---------------|
   ```
 - Exit codes:
-  - `0`: All findings RESOLVED
-  - `1`: Some findings ESCALATED (not CRITICAL)
+  - `0`: All findings RESOLVED (100% green)
+  - `1`: Some findings ESCALATED / HALTED (not CRITICAL)
   - `2`: HUMAN_REQUIRED (CRITICAL unresolved — pipeline blocked)
 
 ## 5.0 Flag Reference

@@ -1,12 +1,23 @@
 {
   "test/": "test-writer",
+  "tests/": "test-writer",
   "__tests__/": "test-writer",
   "*.spec.*": "test-writer",
   "*.test.*": "test-writer",
   "auth/": "security-remediator",
+  "security/": "security-remediator",
   "middleware/": "security-remediator",
   "session/": "security-remediator",
   "jwt/": "security-remediator",
+  "credentials/": "security-remediator",
+  "types/": "types-remediator",
+  "*.d.ts": "types-remediator",
+  "interfaces/": "types-remediator",
+  "config/": "config-remediator",
+  "*.json": "config-remediator",
+  "*.yaml": "config-remediator",
+  "*.yml": "config-remediator",
+  "*.toml": "config-remediator",
   "ui/": "frontend-remediator",
   "components/": "frontend-remediator",
   "pages/": "frontend-remediator",
@@ -17,5 +28,7 @@
   "repository/": "schema-remediator",
   "api/": "api-remediator",
   "routes/": "api-remediator",
-  "controllers/": "api-remediator"
+  "controllers/": "api-remediator",
+  "services/": "logic-remediator",
+  "logic/": "logic-remediator"
 }

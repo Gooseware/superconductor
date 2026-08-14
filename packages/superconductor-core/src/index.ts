@@ -16,6 +16,13 @@ export * from './models/index.js';
 export type { ModelTier } from './intelligence/index.js';
 export type { Finding } from './remediation/index.js';
 export type {
+  ExecutionMode,
+  FinalizationAction,
+  FinalizationOptions,
+  FinalizationResult,
+  TrackLifecycleWizardOptions,
+} from './orchestration/index.js';
+export type {
   DiscoveredModel,
   ModelCacheData,
   ModelCatalogOptions,
@@ -27,3 +34,4 @@ export type {
   ModelChooserResult,
   RoleMeta,
 } from './models/index.js';
+

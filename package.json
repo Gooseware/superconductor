@@ -11,6 +11,9 @@
       "esbuild"
     ]
   },
+  "scripts": {
+    "test": "npm --workspaces --if-present run test"
+  },
   "devDependencies": {
     "typescript": "^7.0.2"
   }

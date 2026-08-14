@@ -329,25 +329,21 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - If any files were changed (**Product Definition**, **Tech Stack**, **Product Guidelines**, **README.md**, or **AGENTS.md**), you MUST stage them and commit them.
         - **Commit Message:** `docs(superconductor): Synchronize docs for track '<track_description>'`
 
-## 5.0 TRACK CLEANUP
-**PROTOCOL: Offer to archive or delete the completed track.**
+## 5.0 TRACK CLEANUP (TrackLifecycleWizard)
+**PROTOCOL: Offer to merge, archive, or delete the completed track via `TrackLifecycleWizard`.**
  **Execution Trigger:** This protocol MUST only be executed after the current track has been successfully implemented and the `SYNCHRONIZE PROJECT DOCUMENTATION` step is complete.
  **Approval Gate:** Finalization is strictly blocked until a two-stage approval is achieved.
     - **Stage 1: Oracle Approval:** The Oracle must provide a "Ready" verdict based on automated checks and spec alignment.
     - **Stage 2: User Approval:** The User must manually confirm the final state after Oracle approval.
- **Ask for User Choice:** Immediately call the `ask_user` tool to prompt the user (do not repeat the question in the chat):
-    - **questions:**
-        - **header:** "Track Cleanup"
-        - **question:** "Track '<track_description>' implementation is complete. How would you like to proceed with the approval and cleanup?"
-        - **type:** "choice"
-        - **multiSelect:** false
-        - **options:**
-            - Label: "Oracle Review", Description: "Initiate Stage 1 approval (Automated audit & spec alignment)."
-            - Label: "User Approval", Description: "Initiate Stage 2 approval (Manual sign-off after Oracle success)."
-            - Label: "Merge", Description: "Merge completed track into a target branch (Requires Stage 1 & 2 approval)."
-            - Label: "Archive", Description: "Move to archive (Requires Stage 1 & 2 approval)."
-            - Label: "Delete", Description: "Permanently delete (Requires Stage 1 & 2 approval)."
-            - Label: "Skip", Description: "Do nothing and leave it in the tracks file."
+ **TrackLifecycleWizard Execution:**
+    - Use `TrackLifecycleWizard` (`packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts`) to manage lifecycle actions:
+      1. **Interactive Mode:** Prompt the user using `wizard.buildFinalizationPrompt(track_id)`:
+         - `merge`: Merge track branch into target branch (default `main`, requires Oracle sign-off).
+         - `archive`: Move completed track to `superconductor/archive/<track_id>`, update `archive.md` and `tracks.md`.
+         - `delete`: Request confirmation and perform clean deletion of track directory and registry entry.
+         - `skip`: Keep track in registry without cleanup.
+      2. **Headless Mode:** If `--headless` is active, automatically verify Oracle sign-off, execute merge to target branch (default `main`), and archive the completed track.
+
  **Handle User Response:**
     *   **If user chooses "Oracle Review":**
         - **header:** "Oracle Model"
@@ -361,25 +357,21 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **Result:** If 'yes', mark the track as fully approved.
     *   **If user chooses "Merge":**
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
-        - **Target Selection:** Use `ask_user` to select target: `dev`, `main`, `release/v*`.
-        - **Action:** `GitWorkflowManager.mergeToTarget(selected_target, track_branch)`.
+        - **Target Selection:** Use `wizard.buildTargetBranchPrompt('main')` or `ask_user` to select target (`main`, `dev`, `release`).
+        - **Action:** `wizard.finalizeTrack({ trackId: track_id, action: 'merge', targetBranch: selected_target, oracleSignOff: true })`.
         - **Post-Merge:** Transition to **Deployment Suggestion**.
     *   **If user chooses "Archive" or "Delete":**
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.
-        b.  If the user chooses "Archive":
-            i.   **Run ArchiveManager:** Run the archival process via the Node script.
-            ```bash
-            cd packages/superconductor-core && npx tsx archive-track.ts <track_id>
+        - **Action (Archive):**
+            ```typescript
+            await wizard.finalizeTrack({ trackId: track_id, action: 'archive', oracleSignOff: true });
             ```
-            ii.  **Commit the Archive:** Stage the changes from `archive.md`, `tracks.md`, and the `archive/` folder.
-            ```bash
-            git add superconductor/tracks.md superconductor/archive.md superconductor/tracks/archive/<track_id> superconductor/tracks/<track_id>
-            git commit -m "chore(superconductor): Archive completed track '<track_id>'"
-            ```
-            iii. **Announce Success:** Announce: "Track '<track_description>' has been successfully archived via ArchiveManager."
+            - Announce: "Track '<track_description>' has been successfully archived via TrackLifecycleWizard."
         - **Action (Delete):**
-            i. **CRITICAL WARNING:** Ask for final confirmation via `ask_user` (yesno).
-            ii. **If 'yes'**: Delete track folder, remove from registry, commit with `chore(superconductor): Delete track '<track_description>'`, and announce success.
+            ```typescript
+            await wizard.finalizeTrack({ trackId: track_id, action: 'delete', oracleSignOff: true, executionMode: 'interactive' });
+            ```
+            - Announce: "Track '<track_description>' has been permanently deleted."
     *   **If user chooses "Skip":**
         - Announce: "Okay, the completed track will remain in your tracks file for now."
   **Deployment Suggestion:**

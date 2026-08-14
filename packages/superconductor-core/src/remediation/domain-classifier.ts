@@ -2,7 +2,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export interface Finding {
+  id?: string;
   file?: string;
+  domain?: string;
+  ruleId?: string;
+  severity?: string;
+  description?: string;
+  line_range?: [number, number];
+  status?: string;
   [key: string]: any;
 }
 
@@ -40,7 +47,15 @@ export class DomainClassifier {
     this.domainMap = { ...defaultMap, ...customMap };
   }
 
-  classify(filePath: string): string {
+  classify(findingOrPath: Finding | string): string {
+    if (typeof findingOrPath === 'object' && findingOrPath !== null) {
+      if (findingOrPath.domain) {
+        return findingOrPath.domain;
+      }
+      return this.classify(findingOrPath.file || '');
+    }
+
+    const filePath = findingOrPath;
     if (!filePath) return 'general-remediator';
 
     // Check custom and default map
@@ -49,6 +64,11 @@ export class DomainClassifier {
         // e.g. *.spec.* -> check if it includes .spec.
         const core = pattern.slice(1, -1);
         if (filePath.includes(core)) {
+          return domain;
+        }
+      } else if (pattern.startsWith('*.')) {
+        const ext = pattern.slice(1);
+        if (filePath.endsWith(ext) || filePath.includes(ext)) {
           return domain;
         }
       } else if (filePath.includes(pattern)) {
@@ -63,7 +83,7 @@ export class DomainClassifier {
     const grouped: Record<string, Finding[]> = {};
 
     for (const finding of findings) {
-      const domain = this.classify(finding.file || '');
+      const domain = finding.domain || this.classify(finding.file || '');
       if (!grouped[domain]) {
         grouped[domain] = [];
       }
