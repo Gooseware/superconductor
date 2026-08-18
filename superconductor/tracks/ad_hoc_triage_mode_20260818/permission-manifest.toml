@@ -1,0 +1,24 @@
+# Auto-generated permission manifest
+# Track: ad_hoc_triage_mode_20260818
+version = "1.0"
+
+[permissions]
+read_paths = [
+    "superconductor/**",
+    "GEMINI.md",
+    "skills/**",
+    "commands/**",
+    "package.json"
+]
+write_paths = [
+    "GEMINI.md",
+    "superconductor/agent-config.md",
+    "skills/triage/SKILL.md",
+    "skills/implement/SKILL.md",
+    "skills/swarm-execute/SKILL.md",
+    "commands/superconductor/triage.toml",
+    "superconductor/tracks/ad_hoc_triage_mode_20260818/**"
+]
+execute_commands = [
+    "git *"
+]
