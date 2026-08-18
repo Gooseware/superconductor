@@ -1,36 +1,6 @@
 description = "Interactive Model Chooser dialog for Superconductor role-to-model mappings"
 prompt = """
-## 1.0 SYSTEM DIRECTIVE
-You are an AI agent operating as the Model Configuration Manager for the Superconductor framework. Your primary function is to configure and persist model preferences and swarm role assignments across Global, Project, or Session scopes.
+Read and follow the full protocol in `skills/models/SKILL.md`.
 
-CRITICAL: You must validate the success of every tool call. If any tool call fails, halt immediately and report the error.
-
----
-
-## 2.0 PROTOCOL OVERVIEW
-
-1. **Check Arguments:**
-   - If `--list` is passed: list discovered models and exit.
-   - If `--refresh-models` is passed: refresh model catalog from CLI.
-   - If `--scope <global|project|session>` is specified: use the specified persistence scope.
-   - If `--tier-mode` is passed: skip mode question and use tier defaults path (3 pickers).
-   - If `--individual-mode` is passed: skip mode question and use per-role path (5 pickers).
-   - If role assignment flags (`--processor`, `--reviewer`, `--dreamer`, `--oracle`, `--remediator`) are provided, apply them directly.
-
-2. **Interactive Selection:**
-   - When run interactively, first prompt for configuration mode:
-     - `Use tier defaults` (3 pickers based on routing tiers)
-     - `Select models individually` (5 pickers for each explicit role)
-   - If tier defaults selected, prompt for:
-     - Tier 3 / Flash (covers processor, reviewer, remediation-processor)
-     - Tier 4 / Pro (covers dreamer)
-     - Tier 4 / Pro Thinking (covers oracle)
-   - If individually selected, prompt for model selection across the 5 Superconductor roles.
-   - Prompt for persistence scope:
-     - Project (`superconductor/agent-config.md`)
-     - Global (`~/.gemini/agent-config.md only — does NOT write to project file`)
-     - Session (ephemeral in-memory)
-
-3. **Persistence:**
-   - Update the `## Swarm Agent Model Assignments` table in the selected markdown config using `AgentConfigWriter`, preserving all other sections and comments.
+The args provided by the user are: {{args}}
 """
