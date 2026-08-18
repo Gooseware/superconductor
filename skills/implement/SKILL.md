@@ -158,6 +158,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
          - **Interactive Mode:** HALT. Announce: "swarm-execute skill not found. Cannot proceed. Please ensure the Superconductor skills are installed correctly." and await user instructions.
          - **Headless Mode:** Exit with non-zero status code. Write error to swarm_log.md: `ERROR: swarm-execute skill not found. Aborting headless run.` This constitutes a CI failure and MUST be surfaced to the CI pipeline.
        - **NOTE:** `swarm-orchestrate` is DEPRECATED. If it is the only execute command found, treat it as missing and HALT per the above rule.
+       - **AD-HOC TRIAGE NOTE:** Large ad-hoc issues detected by the triage protocol (`skills/triage/SKILL.md`) may trigger track auto-execution without a user-initiated `/superconductor:implement` call. In this case, the `swarm-execute` skill receives `--headless --triage-source` flags. Treat `--triage-source` exactly as `--headless`: skip all interactive confirmations, auto-approve preflight, and proceed directly to quorum. The track was authored by the Dreamer subagent and is structurally identical to any other track.
     b. **Announce:** State that you will now execute the tasks from the track's **Implementation Plan** by following the procedures in the **Workflow**.
     c. **Monitor for Review Triggers:** Before starting each task, you MUST check if a re-review has been triggered.
        - **Review Triggers:**

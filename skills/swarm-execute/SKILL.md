@@ -8,11 +8,13 @@ Executes the given track using the Swarm Orchestrator.
 Accepts a track ID, loads the topography map, and orchestrates implementors and quorum reviewers to complete the track plan.
 
 ## Usage
-`superconductor swarm-execute <track-id> [--no-preflight] [--preflight-timeout <ms>]`
+`superconductor swarm-execute <track-id> [--no-preflight] [--preflight-timeout <ms>] [--headless] [--triage-source]`
 
 **Options:**
 - `--no-preflight`: Skips the preflight test execution phase (Preflight Test Runner) before quorum review.
 - `--preflight-timeout <ms>`: Configures the maximum timeout for preflight execution (default: 120000ms).
+- `--headless`: Suppresses all interactive prompts; auto-approves preflight and proceeds directly to quorum.
+- `--triage-source`: Indicates this execution was triggered by the Ad-Hoc Triage Protocol (`skills/triage/SKILL.md`). **Implies `--headless`** — skip all interactive confirmations, auto-approve preflight, and proceed directly to quorum. The track being executed was authored by the Dreamer subagent as part of a LARGE triage escalation. Preflight and the full 4-reviewer quorum run normally.
 
 This command replaces the older monolithic loop and allows targeted execution of individual tracks.
 
