@@ -71,6 +71,30 @@ export const SUPERCONDUCTOR_ROLES: RoleMeta[] = [
   },
 ];
 
+export interface TierDefinition {
+  id: string;
+  label: string;
+  roles: string[];
+}
+
+export const SUPERCONDUCTOR_TIERS: TierDefinition[] = [
+  {
+    id: 'flash',
+    label: 'Tier 3 / Flash',
+    roles: ['superconductor-processor', 'superconductor-reviewer', 'remediation-processor'],
+  },
+  {
+    id: 'pro',
+    label: 'Tier 4 / Pro',
+    roles: ['superconductor-dreamer'],
+  },
+  {
+    id: 'pro-thinking',
+    label: 'Tier 4 / Pro Thinking',
+    roles: ['superconductor-oracle'],
+  },
+];
+
 export class ModelChooserDialog {
   private projectRoot: string;
   private projectConfigPath?: string;
@@ -131,6 +155,46 @@ export class ModelChooserDialog {
         type: 'select',
         name: role.id,
         message: `${role.label} — ${role.description}:`,
+        choices,
+        initial: initialIndex >= 0 ? initialIndex : 0,
+      };
+    });
+  }
+
+  /**
+   * Builds prompt for selecting the model configuration mode (tier vs individual).
+   */
+  public buildModePrompt(): any {
+    return {
+      type: 'select',
+      name: 'mode',
+      message: 'How would you like to configure models?',
+      choices: [
+        { title: 'Use tier defaults', value: 'tier', description: 'Set one model per tier group (3 pickers)' },
+        { title: 'Select models individually', value: 'individual', description: 'Configure each role separately (5 pickers)' },
+      ],
+      initial: 0,
+    };
+  }
+
+  /**
+   * Builds prompt question definitions for tiers.
+   */
+  public buildTierPrompts(
+    discoveredModels: DiscoveredModel[],
+    currentAssignments: Record<string, string>
+  ): any[] {
+    return SUPERCONDUCTOR_TIERS.map((tier) => {
+      // Find the first role in this tier that has an assignment, or use default
+      const firstRole = tier.roles[0];
+      const currentModel = currentAssignments[firstRole] || DEFAULT_AGENT_ROLES[firstRole];
+      const choices = this.getRoleChoices(discoveredModels, currentModel);
+      const initialIndex = choices.findIndex((c) => c.value === currentModel);
+
+      return {
+        type: 'select',
+        name: tier.id,
+        message: `${tier.label} model — covers: ${tier.roles.join(', ')}:`,
         choices,
         initial: initialIndex >= 0 ? initialIndex : 0,
       };
