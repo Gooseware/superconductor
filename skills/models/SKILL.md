@@ -27,7 +27,13 @@ Parse `{{args}}` for configuration parameters and operation modes:
    - **`global`**: Writes model assignments to the user global configuration `~/.gemini/agent-config.md`.
    - **`session`**: Applies model assignments only to the current execution session in-memory without touching disk files.
 
-4. **Granular Role Flags** (for headless assignment):
+4. **`--tier-mode`**:
+   - Skips the initial mode question and forces the tier-defaults path (3 pickers).
+
+5. **`--individual-mode`**:
+   - Skips the initial mode question and forces the per-role path (5 pickers).
+
+6. **Granular Role Flags** (for headless assignment):
    - `--processor <model_id>` → `superconductor-processor`
    - `--reviewer <model_id>` → `superconductor-reviewer`
    - `--dreamer <model_id>` → `superconductor-dreamer`
@@ -68,12 +74,14 @@ When invoked interactively (no headless role flags):
    - Present available models grouped with current role assignments highlighted.
 
 2. **Prompt for Roles**:
-   - Use `ask_user` or the native interactive prompter (`ModelChooserDialog`) to present selection options for each role in sequence.
+   - Use `ask_user` or the native interactive prompter (`ModelChooserDialog`) to present the mode selection: `Use tier defaults` OR `Select models individually`.
+   - If tier defaults: present 3 tier pickers (Tier 3/Flash, Tier 4/Pro, Tier 4/Pro Thinking) and expand to all roles.
+   - If individually: present selection options for each of the 5 roles in sequence.
 
 3. **Prompt for Persistence Scope**:
    - Offer the 3 standard scopes:
      1. `Project Override` (`superconductor/agent-config.md`)
-     2. `Global Default` (`~/.gemini/agent-config.md`)
+     2. `Global Default` (`~/.gemini/agent-config.md only — does NOT write to project file`)
      3. `Session / Once-off` (In-memory ephemeral)
 
 4. **Execute Persistence via AgentConfigWriter**:
