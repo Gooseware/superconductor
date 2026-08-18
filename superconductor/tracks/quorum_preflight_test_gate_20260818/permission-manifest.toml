@@ -1,0 +1,26 @@
+# Auto-generated permission manifest
+# Track: quorum_preflight_test_gate_20260818
+version = "1.0"
+
+[permissions]
+read_paths = [
+    "superconductor/**",
+    "package.json",
+    "packages/**",
+    "skills/**",
+    "commands/**",
+    "~/.gemini/**"
+]
+write_paths = [
+    "superconductor/**",
+    "packages/engine/src/verification/**",
+    "skills/review/**",
+    "skills/standalone-review/**",
+    "skills/swarm-execute/**"
+]
+execute_commands = [
+    "npm test",
+    "npm run build",
+    "git *",
+    "npx *"
+]

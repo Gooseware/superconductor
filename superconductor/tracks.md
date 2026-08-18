@@ -17,6 +17,8 @@
 | `[~]` | `task_graph_20260812` | Superconductor v0.5: Task Graph + Invariant Ledger | `track/task_graph_20260812` |
 | `[x]` | `clean_test_tracks_20260813` | Protocol Drift Remediation | `track/clean_test_tracks_20260813` |
 | `[x]` | `model_chooser_quorum_remediation_20260814` | [Dynamic Model Chooser & Autonomous Quorum Remediation](./tracks/model_chooser_quorum_remediation_20260814/index.md) | `track/model_chooser_quorum_remediation_20260814` |
+| `[ ]` | `quorum_preflight_test_gate_20260818` | [Quorum Preflight Test Gate](./tracks/quorum_preflight_test_gate_20260818/index.md) | `track/quorum_preflight_test_gate_20260818` |
+| `[ ]` | `model_chooser_tier_ux_20260818` | [Model Chooser — Tier-Based UX](./tracks/model_chooser_tier_ux_20260818/index.md) | `track/model_chooser_tier_ux_20260818` |
 
 ## Absorbed / Closed Tracks
 

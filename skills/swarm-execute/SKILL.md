@@ -8,7 +8,11 @@ Executes the given track using the Swarm Orchestrator.
 Accepts a track ID, loads the topography map, and orchestrates implementors and quorum reviewers to complete the track plan.
 
 ## Usage
-`superconductor swarm-execute <track-id>`
+`superconductor swarm-execute <track-id> [--no-preflight] [--preflight-timeout <ms>]`
+
+**Options:**
+- `--no-preflight`: Skips the preflight test execution phase (Preflight Test Runner) before quorum review.
+- `--preflight-timeout <ms>`: Configures the maximum timeout for preflight execution (default: 120000ms).
 
 This command replaces the older monolithic loop and allows targeted execution of individual tracks.
 

@@ -1,3 +1,4 @@
+import { TestReport } from './test-report.js';
 import * as crypto from 'node:crypto';
 import { KeyholeFeedbackExtractor, isValidFinding } from '@superconductor/core/src/review/aggregate-findings.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
@@ -24,6 +25,7 @@ export interface QuorumReviewLoopOptions {
     timeoutMs?: number;
     workUnitSpec?: string;
     researchBrief?: { recommendedPatterns?: string[], antiPatterns?: string[] };
+    preflightFn?: () => Promise<TestReport>;
 }
 
 export class QuorumReviewLoop {
@@ -33,6 +35,9 @@ export class QuorumReviewLoop {
     private timeoutMs: number;
     private workUnitSpec: string;
     private researchBrief?: { recommendedPatterns?: string[], antiPatterns?: string[] };
+    private preflightFn?: () => Promise<TestReport>;
+    private testReport?: TestReport;
+
 
     constructor(options: QuorumReviewLoopOptions) {
         const providedIterations = Number(options.maxIterations);
@@ -42,6 +47,7 @@ export class QuorumReviewLoop {
         this.timeoutMs = options.timeoutMs || 30000;
         this.workUnitSpec = options.workUnitSpec || 'Unknown WorkUnit';
         this.researchBrief = options.researchBrief;
+        this.preflightFn = options.preflightFn;
     }
 
     private async withTimeout<T>(promise: Promise<T>): Promise<T> {
@@ -62,6 +68,19 @@ export class QuorumReviewLoop {
     }
 
     async run(code: string): Promise<{ status: string, findings?: unknown[], allGreen: boolean }> {
+        if (this.preflightFn && !this.testReport) {
+            this.testReport = await this.preflightFn();
+            if (!this.testReport.passed) {
+                const finding = {
+                    file: '',
+                    line: 0,
+                    description: `Preflight test gate failed. Tests or build failed before reviewer loop.\nBuild Exit Code: ${this.testReport.buildExitCode}\nTest Exit Code: ${this.testReport.testExitCode}\nBuild Output:\n${this.testReport.buildOutput}\nTest Output:\n${this.testReport.testOutput}`,
+                    severity: 'critical'
+                };
+                return { status: 'NEEDS_FIXES', findings: [finding], allGreen: false };
+            }
+        }
+
         let iterations = 0;
         let lastResult: { status: string, findings?: unknown[], allGreen: boolean } = { status: 'PENDING', findings: [], allGreen: false };
         let currentCode = code;
@@ -82,6 +101,14 @@ export class QuorumReviewLoop {
                 const antiStr = (this.researchBrief?.antiPatterns || []).map(p => sanitizeUntrustedText(p)).join(', ');
                 const patternsContext = `\n\n<untrusted_research_context>\nResearch mandated these patterns: [${recStr}]. Flag any deviation as CRITICAL.\nAvoid these anti-patterns: [${antiStr}].\n</untrusted_research_context>\n`;
                 codeWithContext += patternsContext;
+            }
+
+            if (this.testReport) {
+                const tr = this.testReport;
+                const safeBuildOut = sanitizeUntrustedText(tr.buildOutput);
+                const safeTestOut = sanitizeUntrustedText(tr.testOutput);
+                const trBlock = `\n\n<test_report timestamp="${new Date(tr.timestamp).toISOString()}" passed="${tr.passed}" durationMs="${tr.durationMs}" testCommand="${sanitizeUntrustedText(tr.testCommand)}" buildCommand="${sanitizeUntrustedText(tr.buildCommand)}" testExitCode="${tr.testExitCode}" buildExitCode="${tr.buildExitCode}">\n<build_output>\n${safeBuildOut}\n</build_output>\n<test_output>\n${safeTestOut}\n</test_output>\n</test_report>\n`;
+                codeWithContext += trBlock;
             }
 
             const result = await this.withTimeout(this.reviewerFn(codeWithContext));

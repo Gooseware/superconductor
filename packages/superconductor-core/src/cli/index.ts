@@ -162,9 +162,22 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
         console.error('Missing track-id. Usage: superconductor swarm-execute <track-id>');
         process.exit(1);
       }
+      
+      const noPreflight = args.includes('--no-preflight');
+      let preflightTimeoutMs: number | undefined;
+      const timeoutIndex = args.indexOf('--preflight-timeout');
+      if (timeoutIndex !== -1 && timeoutIndex + 1 < args.length) {
+        const val = parseInt(args[timeoutIndex + 1], 10);
+        if (isNaN(val) || val <= 0) {
+          console.error('--preflight-timeout must be a positive integer');
+          process.exit(1);
+        }
+        preflightTimeoutMs = val;
+      }
+
       const cli = new SwarmOrchestratorCLI();
       try {
-        const res = await cli.executeTrack(process.cwd(), trackId);
+        const res = await cli.executeTrack(process.cwd(), trackId, { noPreflight, preflightTimeoutMs });
         const succeeded = res.workUnits.filter((wu: any) => wu.state === 'DONE').length;
         console.log(`🚀 Swarm execute complete. ${succeeded}/${res.workUnits.length} tasks succeeded`);
       } catch (err) {

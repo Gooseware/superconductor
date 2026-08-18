@@ -36,6 +36,8 @@ Resolve the review target by checking the following in priority order:
    - `--no-signoff` → Skips SignOffGate user approval. Activity logged to `superconductor/logs/yolo-audit.log`.
    - `--stats` → append Token Efficiency Report to output
    - `--no-track` → explicitly disable track detection, force zero-context mode
+   - `--no-preflight` → skip the preflight test execution phase (Preflight Test Runner) before quorum review
+   - `--preflight-timeout <ms>` → configure max timeout for preflight execution (default 120000ms)
    - No target flags → proceed to step 2
 
 2. **Check stdin** — if stdin is non-empty, treat it as the review target (raw diff or code)

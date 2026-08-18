@@ -3,8 +3,8 @@ import { ModelChooserDialog, SUPERCONDUCTOR_TIERS } from '../model-chooser-dialo
 import { ConfigScope } from '../agent-config-writer.js';
 
 describe('ModelChooserDialog - run() method routing', () => {
-  let promptMock: ReturnType<typeof vi.fn>;
-  let loggerMock: { log: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
+  let promptMock: any;
+  let loggerMock: any;
   
   beforeEach(() => {
     promptMock = vi.fn();

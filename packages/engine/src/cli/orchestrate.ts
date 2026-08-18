@@ -89,7 +89,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         return this.llmUsed;
     }
 
-    public async executeTrack(workspaceDir: string, trackId: string, options?: { agentConfigPath?: string }): Promise<{ workUnits: WorkUnit[] }> {
+    public async executeTrack(workspaceDir: string, trackId: string, options?: { agentConfigPath?: string, noPreflight?: boolean, preflightTimeoutMs?: number }): Promise<{ workUnits: WorkUnit[] }> {
         const defaultAgentConfigPath = path.join(workspaceDir, '.superconductor', 'agent-config.md');
         const configPath = options?.agentConfigPath || defaultAgentConfigPath;
         const evaluator = new SwarmPermissionEvaluator(configPath);
@@ -259,6 +259,14 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         maxIterations: 3,
                         workUnitSpec: wu.spec,
                         researchBrief: researchBrief ? { recommendedPatterns: researchBrief.recommendedPatterns, antiPatterns: researchBrief.antiPatterns } : undefined,
+                        preflightFn: options?.noPreflight ? undefined : async () => {
+                            const { PreflightTestRunner } = await import('../verification/preflight-test-runner.js');
+                            const runner = new PreflightTestRunner({
+                                projectRoot: workspaceDir,
+                                timeoutMs: options?.preflightTimeoutMs ?? 120000
+                            });
+                            return runner.run();
+                        },
                         reviewerFn: async () => {
                             const spawnResults: Array<{ agentType: string; success: boolean }> = [];
                             // Collect conversationIds from spawner for broker aggregation

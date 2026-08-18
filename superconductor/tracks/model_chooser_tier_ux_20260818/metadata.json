@@ -1,0 +1,16 @@
+{
+  "track_id": "model_chooser_tier_ux_20260818",
+  "title": "Model Chooser — Tier-Based UX",
+  "type": "feature",
+  "status": "planned",
+  "branch": "track/model_chooser_tier_ux_20260818",
+  "created_at": "2026-08-18T07:57:00+04:00",
+  "updated_at": "2026-08-18T07:57:00+04:00",
+  "author": "superconductor-dreamer",
+  "target_branch": "main",
+  "files_affected": [
+    "packages/superconductor-core/src/models/model-chooser-dialog.ts",
+    "commands/superconductor/models.toml",
+    "skills/models/SKILL.md"
+  ]
+}

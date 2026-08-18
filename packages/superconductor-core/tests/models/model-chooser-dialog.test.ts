@@ -108,7 +108,7 @@ describe('ModelChooserDialog', () => {
         {
           title: 'Global Default',
           value: 'global',
-          description: '~/.gemini/agent-config.md (user-wide default)',
+          description: '~/.gemini/agent-config.md only — does NOT write to project file',
         },
         {
           title: 'Session / Once-off',
@@ -123,6 +123,7 @@ describe('ModelChooserDialog', () => {
     it('should prompt user, collect selections, and persist to project config when scope is project', async () => {
       const mockPromptFn = vi
         .fn()
+        .mockResolvedValueOnce({ mode: 'individual' })
         .mockResolvedValueOnce({
           'superconductor-processor': 'gemini-3.7-flash-high',
           'superconductor-reviewer': 'gemini-3.7-flash-high',
@@ -165,6 +166,7 @@ describe('ModelChooserDialog', () => {
     it('should persist to global config when scope is global', async () => {
       const mockPromptFn = vi
         .fn()
+        .mockResolvedValueOnce({ mode: 'individual' })
         .mockResolvedValueOnce({
           'superconductor-processor': 'claude-sonnet-4-6',
           'superconductor-reviewer': 'claude-sonnet-4-6',
@@ -202,6 +204,7 @@ describe('ModelChooserDialog', () => {
     it('should not write to disk when scope is session / once-off', async () => {
       const mockPromptFn = vi
         .fn()
+        .mockResolvedValueOnce({ mode: 'individual' })
         .mockResolvedValueOnce({
           'superconductor-processor': 'gemini-3.7-flash-high',
           'superconductor-reviewer': 'gemini-3.7-flash-high',
