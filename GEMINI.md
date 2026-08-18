@@ -59,3 +59,55 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - **No Polling Loops (PROHIBITED)**: After spawning subagents or background tasks, the root agent MUST stop calling tools and yield. Maximum 1 status check per turn. Polling `manage_subagents list` in a loop BLOCKS incoming messages and is PROHIBITED. Violation causes stalls — subagent completions cannot be delivered while the agent is actively calling tools.
 - **No Hero-Agenting in Remediation (PROHIBITED)**: When quorum returns `NEEDS_FIXES`, the root agent MUST NOT self-fix using `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command`. MUST dispatch `DomainSplitRemediationDispatcher` with domain-split parallel agents. If the root agent catches itself self-fixing during remediation, it must emit: `"[Superconductor] Hero-agenting detected in remediation. Aborting. I must dispatch domain-split remediators instead."`
 
+## AD-HOC TRIAGE PROTOCOL
+
+**This rule is always active** unless `triage-mode: off` is set in `superconductor/agent-config.md`.
+
+### Detection Signals (MUST trigger triage routing)
+
+The following signals in a user message MUST activate triage routing:
+- Stack traces (any multi-line error output with file paths and line numbers)
+- `TypeError`, `Exception`, `Error:` (any variant)
+- The phrases: `"not working"`, `"broken"`, `"failing"`, `"unexpected"`, `"unexpected behaviour"`, `"assertion failed"`, `"test failure"`
+
+### False-Positive Guard (explicit — do NOT trigger triage for these)
+
+The following inputs MUST NOT trigger triage routing — treat them as normal agent interactions:
+- General questions about how code works (e.g., "How does X work?", "What does Y do?")
+- `/superconductor:review` invocations — these follow the standalone review protocol, not triage
+- Planning discussions, architecture questions, or feature brainstorming
+- General refactoring requests that do not describe an error or failure
+- Code questions without error language (e.g., "Can you explain this function?", "What's the best way to do X?")
+
+### Scope Heuristics
+
+Once triage is triggered, assess scope and classify as exactly one of:
+
+| Signal | Small | Medium | Large |
+|--------|-------|--------|-------|
+| Files affected | 1 | 2–4 | 5+ or cross-package |
+| Root cause clarity | Obvious, isolated | Probable, contained | Unknown, systemic |
+| New API needed? | No | Maybe | Yes |
+| Stack trace present? | Points to single fn | Spans ≤2 modules | Spans many modules |
+| User language | "typo", "off-by-one" | "inconsistent", "regression" | "broken everywhere", "TypeError in X cascades into Y" |
+| Estimated fix size | < 20 lines, 1 file | < 50 lines, 2–4 files | > 50 lines across files |
+
+### Routing Outcomes
+
+- **SMALL** → invoke `correctness-reviewer` standalone → standalone remediation loop (no track created)
+- **MEDIUM** → invoke 2-reviewer quorum (`correctness-reviewer` + `adversarial-reviewer`) → standalone remediation loop (no track created)
+- **LARGE** → announce shift to Track Planning Mode → invoke Dreamer subagent to write `spec.md` + `plan.md` → auto-execute via `swarm-execute --headless --triage-source` → full 4-reviewer quorum → Oracle gate → merge
+
+### Anti-Hero-Agenting Rule
+
+The agent MUST NOT write any inline fix before completing the triage assessment. Doing so is a protocol violation equivalent to hero-agenting in remediation.
+
+### `triage-mode` Setting
+
+Read `triage-mode` from `superconductor/agent-config.md` before routing:
+- `auto` (default) — detect and route silently; announce the routing decision before dispatching
+- `ask` — detect, then call `ask_question` (NOT `ask_user`) to confirm routing before dispatching
+- `off` — disable the entire protocol; behave as if this section does not exist
+
+See `skills/triage/SKILL.md` for full orchestration protocol, decision tree, and forced-invocation handling.
+

@@ -97,3 +97,21 @@ The `superconductor-kernel` MCP server exposes several sets of tools:
 
 - **Original Design OS Tools (14 tools):** Provides 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.).
 - **Kernel Tools:** `kernel_graph_get_node`, `kernel_policy_get_mode`, and other low-level orchestration and state management APIs.
+
+---
+
+## Triage
+
+Controls the Ad-Hoc Triage Protocol defined in `GEMINI.md § AD-HOC TRIAGE PROTOCOL` and implemented in `skills/triage/SKILL.md`.
+
+- **triage-mode:** `auto`
+
+**Valid values:**
+
+| Value | Behaviour |
+|-------|-----------|
+| `auto` | (Default) Detect triage signals and route silently. Announce the routing decision (Small / Medium / Large) to the user before dispatching reviewers or the Dreamer. |
+| `ask` | Detect triage signals, then call `ask_question` (NOT `ask_user`) with the proposed scope assessment and routing plan. Proceed only after the user confirms. |
+| `off` | Disable the entire triage protocol. The agent behaves as if the AD-HOC TRIAGE PROTOCOL section in `GEMINI.md` does not exist. Use for projects where ad-hoc triage is managed externally. |
+
+> This setting is read by `skills/triage/SKILL.md` at the start of every triage invocation. The `--mode` flag of `/superconductor:triage` updates this field. The `--mode` patch is idempotent: running it multiple times with the same value is safe.
