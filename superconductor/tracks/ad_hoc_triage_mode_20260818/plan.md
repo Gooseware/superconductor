@@ -114,9 +114,9 @@
 
 ---
 
-## Phase 6: Integration & Finalization [TIER-2]
+## Phase 6: Integration & Finalization [TIER-2] [ORACLE-VERIFIED] [checkpoint: MERGE-PENDING]
 
-- [ ] Task: Run acceptance criteria validation checklist against all created/modified files [TIER-2] [AGENT:superconductor-reviewer]
+- [x] Task: Run acceptance criteria validation checklist against all created/modified files [TIER-2] [AGENT:superconductor-reviewer]
     - [ ] AC1: `GEMINI.md` — `## AD-HOC TRIAGE PROTOCOL` section present with signal list and heuristics
     - [ ] AC2: `agent-config.md` — `triage-mode: auto` present; `off` documented; `ask` documented
     - [ ] AC3: `skills/triage/SKILL.md` — exists, contains Small/Medium/Large escalation ladder
@@ -125,9 +125,9 @@
     - [ ] AC6: LARGE path documents Dreamer → swarm-execute flow with user-facing announcement
     - [ ] AC7: `--mode` flag updates `agent-config.md` (documented in command prompt)
     - [ ] AC8: Description argument forces triage regardless of `triage-mode`
-- [ ] Task: Stage all changed/created files and commit: `feat(superconductor): Add Ad-Hoc Triage Mode — triage skill, command, GEMINI.md rule, agent-config field` [TIER-1] [AGENT:superconductor-processor]
-- [ ] Task: Integrate track `ad_hoc_triage_mode_20260818` into `main` branch [TIER-2] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Integration & Finalization' (Protocol in workflow.md)
+- [x] Task: Stage all changed/created files and commit: `feat(superconductor): Add Ad-Hoc Triage Mode — triage skill, command, GEMINI.md rule, agent-config field` [TIER-1] [AGENT:superconductor-processor]
+- [x] Task: Integrate track `ad_hoc_triage_mode_20260818` into `main` branch [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Integration & Finalization' (Protocol in workflow.md)
 
 ---
 
