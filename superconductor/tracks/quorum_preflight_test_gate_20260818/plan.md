@@ -82,25 +82,25 @@
 
 > Processor modifies `packages/engine/src/verification/quorum-review-loop.ts`
 
-- [ ] Task: Write new test cases for `QuorumReviewLoop` preflight branch in existing test file [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Write new test cases for `QuorumReviewLoop` preflight branch in existing test file [TIER-3] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Test: `preflightFn` is called once before first `reviewerFn` invocation
     - [ ] Test: when `testReport.passed === false` → return `NEEDS_FIXES` without calling `reviewerFn`
     - [ ] Test: when `testReport.passed === true` → `reviewerFn` receives `<test_report>` block in context
     - [ ] Test: `<test_report>` block contains `timestamp`, `passed`, `durationMs`, sanitized `testOutput`
     - [ ] Test: without `preflightFn` → existing behaviour unchanged (no `<test_report>` block)
     - [ ] Test: `preflightFn` called only once even across multiple `reviewerFn` iterations
-- [ ] Task: Modify `QuorumReviewLoopOptions` to add `preflightFn?: () => Promise<TestReport>` [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Add `private testReport?: TestReport` field to `QuorumReviewLoop` class [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Implement preflight gate at top of `run()` method [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Modify `QuorumReviewLoopOptions` to add `preflightFn?: () => Promise<TestReport>` [TIER-3] [AGENT:superconductor-processor] a5f1f5f2
+- [x] Task: Add `private testReport?: TestReport` field to `QuorumReviewLoop` class [TIER-3] [AGENT:superconductor-processor] a5f1f5f2
+- [x] Task: Implement preflight gate at top of `run()` method [TIER-3] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Await `preflightFn()` if present and `testReport` not yet set
     - [ ] On `passed === false`: return `{ status: 'NEEDS_FIXES', findings: [critical finding with output], allGreen: false }`
     - [ ] On `passed === true`: continue to reviewer loop
-- [ ] Task: Inject `<test_report>` XML block into `codeWithContext` when `testReport` is set [TIER-3] [AGENT:superconductor-processor]
+- [x] Task: Inject `<test_report>` XML block into `codeWithContext` when `testReport` is set [TIER-3] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Apply `sanitizeUntrustedText` to `testOutput` and `buildOutput` before injection
     - [ ] Format: timestamp as ISO string, commands, exit codes, pass/fail, duration, outputs
-- [ ] Task: Import `TestReport` from `./test-report.js` in `quorum-review-loop.ts` [TIER-2] [AGENT:superconductor-processor]
-- [ ] Task: Run all quorum-review-loop tests to confirm green [TIER-2] [AGENT:superconductor-processor]
-- [ ] Task: Run `npm run build` in `packages/engine` — confirm zero TypeScript errors [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Import `TestReport` from `./test-report.js` in `quorum-review-loop.ts` [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
+- [x] Task: Run all quorum-review-loop tests to confirm green [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
+- [x] Task: Run `npm run build` in `packages/engine` — confirm zero TypeScript errors [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: QuorumReviewLoop Integration' (Protocol in workflow.md)
 
 ---
@@ -109,18 +109,18 @@
 
 > Processor modifies the CLI entrypoint for the quorum loop
 
-- [ ] Task: Identify CLI entrypoint that constructs `QuorumReviewLoop` [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Identify CLI entrypoint that constructs `QuorumReviewLoop` [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Search for instantiation of `QuorumReviewLoop` in `packages/engine/src/`
     - [ ] Identify how existing options (e.g., `timeoutMs`, `maxIterations`) are wired from CLI flags
-- [ ] Task: Add `--no-preflight` flag [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Add `--no-preflight` flag [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] When present: do NOT set `preflightFn` in `QuorumReviewLoopOptions`
     - [ ] When absent (default): wire `PreflightTestRunner.run.bind(runner)` as `preflightFn`
-- [ ] Task: Add `--preflight-timeout <ms>` flag [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Add `--preflight-timeout <ms>` flag [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Parse as integer; validate > 0
     - [ ] Pass to `PreflightTestRunner` constructor as `timeoutMs`
     - [ ] Default: 120 000 ms
-- [ ] Task: Write CLI integration test (mocked) for both flags [TIER-3] [AGENT:superconductor-processor]
-- [ ] Task: Run `npm run build` in `packages/engine` — confirm zero TypeScript errors [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Write CLI integration test (mocked) for both flags [TIER-3] [AGENT:superconductor-processor] a5f1f5f2
+- [x] Task: Run `npm run build` in `packages/engine` — confirm zero TypeScript errors [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
 - [ ] Task: Superconductor - User Manual Verification 'Phase 5: CLI Flags' (Protocol in workflow.md)
 
 ---
@@ -129,16 +129,16 @@
 
 > Processor modifies skill markdown files (not `packages/*/src/**` — permitted for Dreamer/Processor)
 
-- [ ] Task: Update `skills/review/SKILL.md` §2.3 step 4 — "Testing & Compilation" [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Update `skills/review/SKILL.md` §2.3 step 4 — "Testing - [ ] Task: Update `skills/review/SKILL.md` §2.3 step 4 — "Testing & Compilation" [TIER-2] [AGENT:superconductor-processor] Compilation" [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Add conditional: IF `<test_report>` block present in context → reference it, skip test re-run
     - [ ] Specify: quote `timestamp`, `passed`, `durationMs` in `## Verification Checks` output
     - [ ] Specify: if `passed: false` in `<test_report>` → escalate as Critical
     - [ ] Preserve: IF no `<test_report>` block → run tests manually (backward compat fallback)
     - [ ] Do NOT alter any other sections of `SKILL.md`
-- [ ] Task: Update `skills/standalone-review/SKILL.md` — equivalent test-execution section [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Update `skills/standalone-review/SKILL.md` — equivalent test-execution section [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Same conditional logic as above
     - [ ] Match the section structure of that file (do NOT reformat unrelated content)
-- [ ] Task: Update `skills/swarm-execute/SKILL.md` — equivalent test-execution section [TIER-2] [AGENT:superconductor-processor]
+- [x] Task: Update `skills/swarm-execute/SKILL.md` — equivalent test-execution section [TIER-2] [AGENT:superconductor-processor] a5f1f5f2
     - [ ] Same conditional logic
 - [ ] Task: Adversarial check — verify no other existing behaviour in the skills was silently removed [TIER-4] [AGENT:superconductor-reviewer]
     - [ ] Diff each SKILL.md before/after; confirm only the targeted step 4 block changed
