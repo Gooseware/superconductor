@@ -304,62 +304,12 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 7.  **Continue:** Immediately proceed to the next section.
 
 ### 2.3.1 Agent Model Configuration (Interactive)
-1.  **Introduce the Section:** Announce that you will now help configure the agent models.
-2.  **Determine Mode:** Use the `ask_user` tool to let the user choose whether to configure custom model mappings or use defaults.
-    - **questions:**
-        - **header:** "Model Config"
-        - **question:** "Would you like to configure custom model mappings for the routing tiers (Standard and Frontier)?"
-        - **type:** "choice"
-        - **multiSelect:** false
-        - **options:**
-            - Label: "Configure", Description: "Define custom models and optional proxy settings."
-            - Label: "Default", Description: "Use default Gemini models (gemini-2.0-flash-lite, gemini-2.5-pro)."
-3.  **Gather Information (Conditional):**
-    -   **If user chose "Default":** Write defaults to `~/.gemini/agent-config.md` if not already present.
-    -   **If user chose "Configure":** Use a single `ask_user` tool call to gather detailed preferences:
-        - **questions:**
-            - **header:** "Tier 3 Model"
-            - **question:** "Select your preferred Tier 3 model (Standard Inference for code generation):"
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "gemini-2.5-pro", Description: "Recommended standard model."
-                - Label: "claude-3-5-sonnet", Description: "Highly capable programming assistant."
-                - Label: "gemini-2.0-flash", Description: "Low latency, cost-effective standard model."
-            - **header:** "Tier 4 Model"
-            - **question:** "Select your preferred Tier 4 model (Frontier Reasoning for complex refactoring):"
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "gemini-2.5-pro (thinking)", Description: "Recommended thinking model."
-                - Label: "claude-3-5-opus", Description: "Flagship reasoning model."
-                - Label: "deepseek-r1", Description: "High-intelligence open reasoning model."
-            - **header:** "Proxy Endpoint"
-            - **question:** "If you route API calls through a proxy, enter the endpoint URL (optional):"
-            - **type:** "text"
-            - **placeholder:** "e.g., https://openrouter.ai/api/v1"
-            - **header:** "Scope"
-            - **question:** "Save configuration scope:"
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "Global", Description: "Save globally to ~/.gemini/agent-config.md."
-                - Label: "Project", Description: "Save as project override in superconductor/agent-config.md."
-4.  **Confirming and Writing Config:**
-    -   Draft the configuration content based on the answers:
-        ```markdown
-        # Agent Configuration
-
-        - **Tier 2 (Triage & Extraction):** gemini-2.0-flash-lite
-        - **Tier 3 (Standard Inference):** <Selected Tier 3 Model>
-        - **Tier 4 (Frontier Reasoning):** <Selected Tier 4 Model>
-        - **Proxy Endpoint:** <Selected Proxy Endpoint or '(none)'>
-        ```
-    -   If scope is "Project":
-        -   Write to `superconductor/agent-config.md`.
-    -   If scope is "Global" or "Default":
-        -   Check if `~/.gemini/agent-config.md` exists. If yes, check before overwriting. Otherwise, write it.
-5.  **Continue:** Immediately proceed to the next section.
+1.  **Introduce the Section:** Announce: "I will now help you configure the AI models for each Superconductor swarm role. I'll fetch the available models live from your installation."
+2.  **Delegate to Model Chooser:** Invoke the `/superconductor:models` command as a sub-step:
+    - This command runs `ModelChooserDialog` which: discovers available models live via `agy models` (with 24-hour cache and `DEFAULT_BUILTIN_MODELS` fallback if `agy` is unavailable), presents a two-mode selection UI (tier defaults: Flash / Pro / Pro Thinking, or individual per-role), prompts for persistence scope (Global / Project / Session), and writes `agent-config.md` via `AgentConfigWriter` using the correct schema.
+    - Wait for the command to complete before proceeding.
+    - **CRITICAL: Do NOT execute any manual config-writing step after this.** `ModelChooserDialog` owns all persistence. Writing config manually here would corrupt the schema written by `AgentConfigWriter`.
+3.  **Continue:** Immediately proceed to the next section.
 
 ### 2.4 Select Guides (Interactive)
 1.  **Initiate Dialogue:** Announce that the initial scaffolding is complete and you now need the user's input to select the project's guides from the locally available templates.
