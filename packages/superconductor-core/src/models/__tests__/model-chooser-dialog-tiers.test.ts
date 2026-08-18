@@ -58,4 +58,13 @@ describe('ModelChooserDialog - Tiers', () => {
     expect(prompts[0].message).toContain('superconductor-processor');
     expect(prompts[0].message).toContain('superconductor-reviewer');
   });
+
+  it('AC-10: buildScopePrompt global choice description contains "does NOT write to project file"', () => {
+    const dialog = new ModelChooserDialog();
+    const prompt = dialog.buildScopePrompt();
+    
+    const globalChoice = prompt.choices.find((c: any) => c.value === 'global');
+    expect(globalChoice).toBeDefined();
+    expect(globalChoice.description).toContain('does NOT write to project file');
+  });
 });

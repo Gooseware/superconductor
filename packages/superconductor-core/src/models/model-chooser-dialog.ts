@@ -218,7 +218,7 @@ export class ModelChooserDialog {
         {
           title: 'Global Default',
           value: 'global',
-          description: '~/.gemini/agent-config.md (user-wide default)',
+          description: '~/.gemini/agent-config.md only — does NOT write to project file',
         },
         {
           title: 'Session / Once-off',
