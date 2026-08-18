@@ -236,6 +236,7 @@ export class ModelChooserDialog {
   public async run(args: string[] = []): Promise<ModelChooserResult> {
     let forceRefresh = this.options.forceRefresh || false;
     let listOnly = false;
+    let forceMode: 'tier' | 'individual' | undefined;
     let presetScope: ConfigScope | undefined = this.options.initialScope;
     const flagAssignments: Record<string, string> = {};
     if (this.options.initialAssignments) {
@@ -251,6 +252,19 @@ export class ModelChooserDialog {
       const arg = args[i];
       if (arg === '--refresh-models') {
         forceRefresh = true;
+      } else if (arg === '--tier-mode') {
+        if (forceMode === 'individual') {
+          forceMode = 'tier';
+          this.logger.log('Warning: Both --tier-mode and --individual-mode provided; using --tier-mode.');
+        } else {
+          forceMode = 'tier';
+        }
+      } else if (arg === '--individual-mode') {
+        if (forceMode === 'tier') {
+          this.logger.log('Warning: Both --tier-mode and --individual-mode provided; using --tier-mode.');
+        } else {
+          forceMode = 'individual';
+        }
       } else if (arg === '--list') {
         listOnly = true;
       } else if (arg.startsWith('--scope=')) {
@@ -329,23 +343,53 @@ export class ModelChooserDialog {
     this.logger.log('\n🎛️  Superconductor Dynamic Model Chooser');
     this.logger.log('Configure active model identifiers for each Superconductor swarm role:\n');
 
-    const rolePrompts = this.buildRolePrompts(models, currentAssignments);
-    const roleAnswers = await this.promptFn(rolePrompts);
-
-    if (!roleAnswers || Object.keys(roleAnswers).length === 0) {
-      this.logger.log('🛑 Model selection cancelled.');
-      return {
-        scope: 'session',
-        assignments: {},
-        cancelled: true,
-        writtenPath: null,
-      };
+    let mode = forceMode;
+    if (!mode && !hasRoleFlags) {
+      const modePrompt = this.buildModePrompt();
+      const modeAnswer = await this.promptFn(modePrompt);
+      if (!modeAnswer || !modeAnswer.mode) {
+        this.logger.log('🛑 Mode selection cancelled.');
+        return {
+          scope: 'session',
+          assignments: {},
+          cancelled: true,
+          writtenPath: null,
+        };
+      }
+      mode = modeAnswer.mode as 'tier' | 'individual';
     }
 
-    const finalAssignments: Record<string, string> = {
-      ...currentAssignments,
-      ...roleAnswers,
-    };
+    let finalAssignments: Record<string, string> = { ...currentAssignments };
+
+    if (mode === 'tier') {
+      const tierPrompts = this.buildTierPrompts(models, currentAssignments);
+      const tierAnswers = await this.promptFn(tierPrompts);
+      if (!tierAnswers || Object.keys(tierAnswers).length === 0) {
+        this.logger.log('🛑 Tier model selection cancelled.');
+        return {
+          scope: 'session',
+          assignments: {},
+          cancelled: true,
+          writtenPath: null,
+        };
+      }
+      const expandedAssignments = this.expandTierAnswers(tierAnswers);
+      finalAssignments = { ...finalAssignments, ...expandedAssignments };
+    } else {
+      const rolePrompts = this.buildRolePrompts(models, currentAssignments);
+      const roleAnswers = await this.promptFn(rolePrompts);
+
+      if (!roleAnswers || Object.keys(roleAnswers).length === 0) {
+        this.logger.log('🛑 Model selection cancelled.');
+        return {
+          scope: 'session',
+          assignments: {},
+          cancelled: true,
+          writtenPath: null,
+        };
+      }
+      finalAssignments = { ...finalAssignments, ...roleAnswers };
+    }
 
     // Scope selection prompt if not preset
     let selectedScope = presetScope;
@@ -365,6 +409,19 @@ export class ModelChooserDialog {
     }
 
     return this.persistAssignments(selectedScope, finalAssignments);
+  }
+
+  private expandTierAnswers(tierAnswers: Record<string, string>): Record<string, string> {
+    const assignments: Record<string, string> = {};
+    for (const tier of SUPERCONDUCTOR_TIERS) {
+      const modelId = tierAnswers[tier.id];
+      if (modelId) {
+        for (const role of tier.roles) {
+          assignments[role] = modelId;
+        }
+      }
+    }
+    return assignments;
   }
 
   private persistAssignments(
