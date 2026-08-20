@@ -108,12 +108,6 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-core/src/track/archive-manager.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 9,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/superconductor-core/src/track/work-unit.ts",
     "exportedSymbols": [],
     "gitChurnScore": 9,
@@ -144,12 +138,6 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 8,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/superconductor-core/src/orchestration/workspace-guard.ts",
     "exportedSymbols": [],
     "gitChurnScore": 8,
@@ -175,12 +163,6 @@
   },
   {
     "file": "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 7,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 7,
     "riskLevel": "critical"
@@ -397,12 +379,6 @@
   },
   {
     "file": "packages/superconductor-core/src/cli/interactive.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 3,
-    "riskLevel": "high"
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/merge-track.ts",
     "exportedSymbols": [],
     "gitChurnScore": 3,
     "riskLevel": "high"
@@ -1081,12 +1057,6 @@
   },
   {
     "file": "packages/superconductor-core/src/orchestration/model-routing-enforcer.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
@@ -4284,18 +4254,6 @@
     "riskLevel": "critical"
   },
   {
-    "file": "skills/implement/SKILL.md",
-    "exportedSymbols": [],
-    "gitChurnScore": 47,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/index.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 26,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/superconductor-kernel/src/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 17,
@@ -4314,19 +4272,7 @@
     "riskLevel": "critical"
   },
   {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "exportedSymbols": [],
-    "gitChurnScore": 8,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 7,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
     "exportedSymbols": [],
     "gitChurnScore": 7,
     "riskLevel": "critical"
@@ -4338,19 +4284,7 @@
     "riskLevel": "critical"
   },
   {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "exportedSymbols": [],
-    "gitChurnScore": 7,
-    "riskLevel": "critical"
-  },
-  {
     "file": "skills/review/SKILL.md",
-    "exportedSymbols": [],
-    "gitChurnScore": 6,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
     "exportedSymbols": [],
     "gitChurnScore": 6,
     "riskLevel": "critical"
@@ -4363,12 +4297,6 @@
   },
   {
     "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 4,
-    "riskLevel": "high"
-  },
-  {
-    "file": "superconductor/intelligence/05_sast.json",
     "exportedSymbols": [],
     "gitChurnScore": 4,
     "riskLevel": "high"
@@ -4387,12 +4315,6 @@
   },
   {
     "file": "superconductor/intelligence/08_dependency_surface.json",
-    "exportedSymbols": [],
-    "gitChurnScore": 3,
-    "riskLevel": "high"
-  },
-  {
-    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
     "exportedSymbols": [],
     "gitChurnScore": 3,
     "riskLevel": "high"
@@ -4423,6 +4345,684 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/workflow.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 25,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/track/archive-manager.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 9,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/swarm-execute/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 9,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 7,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/archive.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 6,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/merge-track.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-orchestrator.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/intelligence/05_sast.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/audit_table.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/batch_run_20260723/retrospective-batch_run_20260723-2026-07-23.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/swarm_log.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/swarm_log.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/swarm_log.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_log_analysis.sh",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_token_opt.sh",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_validation.sh",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/verify_metrics.sh",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/swarm_log.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
     "exportedSymbols": [],
     "gitChurnScore": 0,
     "riskLevel": "low"

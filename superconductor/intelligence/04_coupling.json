@@ -1,9 +1,5 @@
 [
   {
-    "file": "packages/superconductor-core/tests/intelligence/tmp-test/intelligence/00_manifest.json",
-    "churnCount": 90
-  },
-  {
     "file": "packages/superconductor-core/node_modules/.vite/vitest/results.json",
     "churnCount": 74
   },
@@ -18,10 +14,6 @@
   {
     "file": "packages/engine/node_modules/.vite/vitest/results.json",
     "churnCount": 27
-  },
-  {
-    "file": "superconductor/workflow.md",
-    "churnCount": 25
   },
   {
     "file": "pnpm-lock.yaml",
@@ -328,15 +320,7 @@
     "churnCount": 9
   },
   {
-    "file": "skills/swarm-execute/SKILL.md",
-    "churnCount": 9
-  },
-  {
     "file": "packages/superconductor-core/src/track/work-unit.ts",
-    "churnCount": 9
-  },
-  {
-    "file": "packages/superconductor-core/src/track/archive-manager.ts",
     "churnCount": 9
   },
   {
@@ -409,10 +393,6 @@
   },
   {
     "file": "packages/superconductor-core/src/orchestration/workspace-guard.ts",
-    "churnCount": 8
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
     "churnCount": 8
   },
   {
@@ -497,10 +477,6 @@
   },
   {
     "file": "packages/superconductor-core/src/permissions/engine.ts",
-    "churnCount": 7
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/index.ts",
     "churnCount": 7
   },
   {
@@ -673,10 +649,6 @@
   },
   {
     "file": "superconductor/tracks/gemini_api_deep_research_20260728/plan.md",
-    "churnCount": 6
-  },
-  {
-    "file": "superconductor/archive.md",
     "churnCount": 6
   },
   {
@@ -10276,10 +10248,6 @@
     "churnCount": 3
   },
   {
-    "file": "packages/superconductor-core/src/cli/merge-track.ts",
-    "churnCount": 3
-  },
-  {
     "file": "packages/superconductor-core/src/cli/merge-track.test.ts",
     "churnCount": 3
   },
@@ -15928,14 +15896,6 @@
     "churnCount": 2
   },
   {
-    "file": "superconductor/git_workflow_manager.test.js",
-    "churnCount": 2
-  },
-  {
-    "file": "superconductor/git_workflow_manager.js",
-    "churnCount": 2
-  },
-  {
     "file": "superconductor/analyze_logs.sh",
     "churnCount": 2
   },
@@ -16125,10 +16085,6 @@
   },
   {
     "file": "packages/superconductor-core/tests/track/execution-planner.test.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/superconductor-core/tests/track/archive-manager.test.ts",
     "churnCount": 2
   },
   {
@@ -39668,19 +39624,7 @@
     "churnCount": 1
   },
   {
-    "file": "superconductor/archive/self-improvement_20260402/test_token_opt.js",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/archive/self-improvement_20260402/test_suggestions.js",
-    "churnCount": 1
-  },
-  {
     "file": "superconductor/archive/self-improvement_20260402/test_log_analysis.sh",
-    "churnCount": 1
-  },
-  {
-    "file": "superconductor/archive/self-improvement_20260402/test_initiate.js",
     "churnCount": 1
   },
   {
@@ -43280,10 +43224,6 @@
     "churnCount": 1
   },
   {
-    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
-    "churnCount": 1
-  },
-  {
     "file": "packages/superconductor-core/tests/orchestration/preflight-gate.test.ts",
     "churnCount": 1
   },
@@ -43469,10 +43409,6 @@
   },
   {
     "file": "packages/superconductor-core/src/permissions/schemas.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
     "churnCount": 1
   },
   {
@@ -49808,15 +49744,7 @@
     "churnCount": 1
   },
   {
-    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
-    "churn": 1
-  },
-  {
     "file": "RECOMMENDED_FIXES.md",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/index.ts",
     "churn": 1
   },
   {
@@ -49872,10 +49800,6 @@
     "churn": 1
   },
   {
-    "file": "skills/implement/SKILL.md",
-    "churn": 1
-  },
-  {
     "file": "skills/review/SKILL.md",
     "churn": 1
   },
@@ -49884,15 +49808,507 @@
     "churn": 1
   },
   {
-    "file": "superconductor/intelligence/00_manifest.json",
-    "churn": 1
-  },
-  {
     "file": "superconductor/intelligence/01_fingerprint.json",
     "churn": 1
   },
   {
     "file": "superconductor/intelligence/02_dependency_graph.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/08_dependency_surface.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/08_package_surface.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/merge-track.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-orchestrator.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/track/archive-manager.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/cli/merge-target-branch.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/intelligence/tmp-test/intelligence/00_manifest.json",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-orchestrator.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/track/archive-manager.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/track/canonical-archive-manager.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/swarm-execute/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/archive.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/archive/self-improvement_20260402/test_initiate.js",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/archive/self-improvement_20260402/test_suggestions.js",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/archive/self-improvement_20260402/test_token_opt.js",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/git_workflow_manager.js",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/git_workflow_manager.test.js",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/audit_table.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/batch_run_20260723/retrospective-batch_run_20260723-2026-07-23.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/swarm_log.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/swarm_log.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/swarm_log.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_log_analysis.sh",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_token_opt.sh",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_validation.sh",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/verify_metrics.sh",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/swarm_log.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/workflow.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
     "churn": 1
   },
   {
@@ -49908,23 +50324,7 @@
     "churn": 1
   },
   {
-    "file": "superconductor/intelligence/06_api_surface.toon",
-    "churn": 1
-  },
-  {
     "file": "superconductor/intelligence/07_test_gaps.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_dependency_surface.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_package_surface.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks.md",
     "churn": 1
   }
 ]
