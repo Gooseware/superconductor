@@ -20,6 +20,7 @@
 | `[x]` | `quorum_preflight_test_gate_20260818` | [Quorum Preflight Test Gate](./tracks/quorum_preflight_test_gate_20260818/index.md) | `track/quorum_preflight_test_gate_20260818` |
 | `[x]` | `model_chooser_tier_ux_20260818` | [Model Chooser — Tier-Based UX](./tracks/model_chooser_tier_ux_20260818/index.md) | `track/model_chooser_tier_ux_20260818` |
 | `[x]` | `ad_hoc_triage_mode_20260818` | [Ad-Hoc Triage Mode](./tracks/ad_hoc_triage_mode_20260818/index.md) | `track/ad_hoc_triage_mode_20260818` |
+| `[ ]` | `multi_language_persona_architecture_20260820` | [Multi-Language Persona Skills Architecture, Setup Dogma & Swarm Guardrails](./tracks/multi_language_persona_architecture_20260820/index.md) | `track/multi_language_persona_architecture_20260820` |
 
 ## Absorbed / Closed Tracks
 
