@@ -71,43 +71,43 @@
 ---
 
 ## Phase 4: Dynamic Target Branch Integration & Git Reconciliation
-- [ ] Task: Write unit tests for multi-target branch resolution and merge operations [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test target branch resolution from `tech-stack.md`
-    - [ ] Test merge trailers and working copy cleanliness checks
-- [ ] Task: Enhance `GitWorkflowManager` and `mergeTrack` CLI to resolve target branch from `tech-stack.md` with CLI/prompt overrides [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Implement `resolveTargetBranch(projectRoot, overrideBranch)`
-    - [ ] Support custom branches (`main`, `dev`, `release`, etc.)
-- [ ] Task: Implement pre-merge working tree verification and `--no-ff` merge execution with cryptographic Swarm Authorizer trailers [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Verify clean git state before merge
-    - [ ] Embed Swarm-Authorized trailers and Oracle verdicts in merge commits
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Dynamic Target Branch Integration & Git Reconciliation' (Protocol in workflow.md)
+- [x] Task: Write unit tests for multi-target branch resolution and merge operations [TIER-2] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Test target branch resolution from `tech-stack.md`
+    - [x] Test merge trailers and working copy cleanliness checks
+- [x] Task: Enhance `GitWorkflowManager` and `mergeTrack` CLI to resolve target branch from `tech-stack.md` with CLI/prompt overrides [TIER-3] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Implement `resolveTargetBranch(projectRoot, overrideBranch)`
+    - [x] Support custom branches (`main`, `dev`, `release`, etc.)
+- [x] Task: Implement pre-merge working tree verification and `--no-ff` merge execution with cryptographic Swarm Authorizer trailers [TIER-3] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Verify clean git state before merge
+    - [x] Embed Swarm-Authorized trailers and Oracle verdicts in merge commits
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Dynamic Target Branch Integration & Git Reconciliation' (Protocol in workflow.md)
 
 ---
 
 ## Phase 5: Canonical Track Archival & Registry Synchronization
-- [ ] Task: Write unit tests for transactional track archival and migration [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test moving track directory with rollback on failure
-    - [ ] Test markdown table updates in `tracks.md` and `archive.md`
-- [ ] Task: Update `ArchiveManager` in `packages/superconductor-core/src/track/archive-manager.ts` to target `superconductor/tracks/archive/<track_id>` canonically with file locking and rollback safety [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Update canonical directory path
-    - [ ] Ensure atomic file locks on `tracks.md` and `archive.md`
-- [ ] Task: Implement legacy archive migration utility to relocate tracks from `superconductor/archive/` to `superconductor/tracks/archive/` and sync `archive.md` [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Move existing legacy archived tracks
-    - [ ] Update links and indices in `archive.md`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Canonical Track Archival & Registry Synchronization' (Protocol in workflow.md)
+- [x] Task: Write unit tests for transactional track archival and migration [TIER-2] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Test moving track directory with rollback on failure
+    - [x] Test markdown table updates in `tracks.md` and `archive.md`
+- [x] Task: Update `ArchiveManager` in `packages/superconductor-core/src/track/archive-manager.ts` to target `superconductor/tracks/archive/<track_id>` canonically with file locking and rollback safety [TIER-3] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Update canonical directory path
+    - [x] Ensure atomic file locks on `tracks.md` and `archive.md`
+- [x] Task: Implement legacy archive migration utility to relocate tracks from `superconductor/archive/` to `superconductor/tracks/archive/` and sync `archive.md` [TIER-2] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Move existing legacy archived tracks
+    - [x] Update links and indices in `archive.md`
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: Canonical Track Archival & Registry Synchronization' (Protocol in workflow.md)
 
 ---
 
 ## Phase 6: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate
-- [ ] Task: Write integration tests for end-to-end headless lifecycle execution [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test headless auto-advance and HMAC sign-off generation
-- [ ] Task: Update `SignOffGate` with `recordAutonomousSignOff()` for unblocked headless execution upon unanimous Quorum + Oracle `READY` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Implement automated sign-off generation in headless mode
-- [ ] Task: Implement `TrackLifecycleOrchestrator` to orchestrate: Preflight -> Tasks (TDD) -> Checkpoints + Auto-Sync -> Quorum -> Oracle -> Dynamic Merge -> Canonical Archival [TIER-4] [AGENT:superconductor-oracle]
-    - [ ] Unify interactive and headless execution state machines
-- [ ] Task: Update `superconductor/workflow.md`, `skills/implement/SKILL.md`, and `skills/swarm-execute/SKILL.md` to document the unified lifecycle [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Document zero-touch headless execution and auto-archiving
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate' (Protocol in workflow.md)
+- [x] Task: Write integration tests for end-to-end headless lifecycle execution [TIER-2] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Test headless auto-advance and HMAC sign-off generation
+- [x] Task: Update `SignOffGate` with `recordAutonomousSignOff()` for unblocked headless execution upon unanimous Quorum + Oracle `READY` [TIER-3] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Implement automated sign-off generation in headless mode
+- [x] Task: Implement `TrackLifecycleOrchestrator` to orchestrate: Preflight -> Tasks (TDD) -> Checkpoints + Auto-Sync -> Quorum -> Oracle -> Dynamic Merge -> Canonical Archival [TIER-4] [AGENT:superconductor-oracle] (SHA: 158823c0)
+    - [x] Unify interactive and headless execution state machines
+- [x] Task: Update `superconductor/workflow.md`, `skills/implement/SKILL.md`, and `skills/swarm-execute/SKILL.md` to document the unified lifecycle [TIER-2] [AGENT:superconductor-processor] (SHA: 158823c0)
+    - [x] Document zero-touch headless execution and auto-archiving
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate' (Protocol in workflow.md)
 
 ---
 
