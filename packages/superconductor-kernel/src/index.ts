@@ -608,6 +608,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             session_id: { type: "string", description: "Session ID" }
           }
         }
+      },
+      {
+        name: "kernel_intelligence_refresh",
+        description: "Refreshes superconductor intelligence snapshot incrementally or via full re-scan",
+        inputSchema: {
+          type: "object",
+          properties: {
+            outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" },
+            force: { type: "boolean", description: "Force full pipeline re-scan regardless of commit drift" },
+            track_id: { type: "string", description: "Optional track ID filter" },
+            session_id: { type: "string", description: "Optional session ID" }
+          }
+        }
       }
     ],
   };
@@ -638,6 +651,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { outputDir, track_id, session_id } = z.object({ outputDir: z.string().optional(), track_id: z.string().optional(), session_id: z.string().optional() }).parse(args || {});
     const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
     const result = await intelligenceStatusService.getStatus(targetDir);
+    if (track_id && session_id) {
+      await updateQuorumState('intelligenceStatusChecked', true, track_id, session_id);
+    }
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+
+  if (name === "kernel_intelligence_refresh") {
+    const { outputDir, force, track_id, session_id } = z.object({
+      outputDir: z.string().optional(),
+      force: z.boolean().optional(),
+      track_id: z.string().optional(),
+      session_id: z.string().optional(),
+    }).parse(args || {});
+    const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
+    const result = await intelligenceStatusService.refresh(targetDir, force);
     if (track_id && session_id) {
       await updateQuorumState('intelligenceStatusChecked', true, track_id, session_id);
     }

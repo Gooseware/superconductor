@@ -81,4 +81,11 @@ describe('IntelligenceStatusService', () => {
     expect(result.phases['01_fingerprint']).toBe('ok');
     expect(result.phases['02_dependency_graph']).toBe('degraded');
   });
+
+  it('refresh invokes synchronization and returns updated status', async () => {
+    const refreshRes = await service.refresh(tempDir);
+    expect(refreshRes.success).toBe(true);
+    expect(refreshRes.result).toBeDefined();
+    expect(typeof refreshRes.result.status).toBe('string');
+  });
 });

@@ -2,7 +2,11 @@
 set -euo pipefail
 
 GIT_HOOKS_DIR="$(git rev-parse --git-dir)/hooks"
-SOURCE_HOOK="$(git rev-parse --show-toplevel)/scripts/hooks/commit-msg"
+SUPERCONDUCTOR_ROOT="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+SOURCE_HOOK="$SUPERCONDUCTOR_ROOT/scripts/hooks/commit-msg"
+if [ ! -f "$SOURCE_HOOK" ]; then
+    SOURCE_HOOK="${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/hooks/commit-msg"
+fi
 TARGET_HOOK="$GIT_HOOKS_DIR/commit-msg"
 
 if [ ! -d "$GIT_HOOKS_DIR" ]; then

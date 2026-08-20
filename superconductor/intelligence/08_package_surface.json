@@ -1,106 +1,50 @@
 {
-  "path": {
-    "version": "node-builtin",
-    "usedApis": [
-      "path"
-    ],
-    "importedBy": [
-      "packages/superconductor-kernel/src/index.ts",
-      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
-      "packages/superconductor-kernel/src/services/AtomicGitService.ts",
-      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
-      "packages/superconductor-kernel/src/services/ConfigService.ts",
-      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
-      "packages/superconductor-kernel/src/services/GitService.ts",
-      "packages/superconductor-kernel/src/services/InstallerService.ts",
-      "packages/superconductor-kernel/src/services/PublishService.ts",
-      "packages/superconductor-kernel/src/services/RegistryService.ts",
-      "packages/engine/src/cache/CacheManager.test.ts",
-      "packages/engine/src/cache/CacheManager.ts",
-      "packages/engine/src/concurrency/lock-manager.ts",
-      "packages/engine/src/concurrency/worker-pool.ts",
-      "packages/engine/src/curator/ComponentStagingWriter.ts",
-      "packages/engine/src/curator/skill-synthesizer.ts",
-      "packages/engine/src/dispatcher/job-dispatcher.ts",
-      "packages/engine/src/routing/SmartModelResolver.ts",
-      "packages/engine/src/safety/gcc.ts",
-      "packages/engine/src/skills/skill-trigger-engine.ts",
-      "packages/engine/tests/CacheManager.test.ts",
-      "packages/engine/tests/Phase4Bridge.test.ts",
-      "packages/engine/tests/Phase8E2E.test.ts",
-      "packages/engine/tests/SmartModelResolver.test.ts",
-      "packages/engine/tests/curator-integration.test.ts",
-      "packages/engine/tests/dag.test.ts",
-      "packages/engine/tests/engine-skill-trigger-integration.test.ts",
-      "packages/engine/tests/event-store.test.ts",
-      "packages/engine/tests/gcc.test.ts",
-      "packages/engine/tests/lock-manager.test.ts",
-      "packages/engine/tests/safety-integration.test.ts",
-      "packages/engine/tests/skill-frontmatter.test.ts",
-      "packages/engine/tests/skill-line-count.test.ts",
-      "packages/engine/tests/skill-rules-schema.test.ts",
-      "packages/engine/tests/skill-trigger-engine.test.ts",
-      "packages/engine/tests/worker-pool.test.ts",
-      "packages/superconductor-core/src/cli/index.ts",
-      "packages/superconductor-core/src/intelligence/pipeline.ts",
-      "packages/superconductor-core/src/intelligence/report.ts",
-      "packages/superconductor-core/src/intelligence/runners/complexity.ts",
-      "packages/superconductor-core/src/intelligence/runners/coupling.ts",
-      "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
-      "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
-      "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
-      "packages/superconductor-core/src/intelligence/runners/sast.ts",
-      "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
-      "packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
-      "packages/superconductor-core/src/intelligence/tool-registry.ts",
-      "packages/superconductor-core/src/protocol/agent-context.ts",
-      "packages/superconductor-core/src/review/aggregate-coverage.ts",
-      "packages/superconductor-core/src/review/aggregate-findings.ts",
-      "packages/superconductor-core/src/review/deterministic-preflight.ts",
-      "packages/superconductor-core/src/review/generate-token-report.ts",
-      "packages/superconductor-core/src/track/track-reader.ts",
-      "packages/superconductor-core/src/track/track-state.ts",
-      "packages/superconductor-core/tests/aggregate-coverage.test.ts",
-      "packages/superconductor-core/tests/aggregate-findings.test.ts",
-      "packages/superconductor-core/tests/deterministic-preflight.test.ts",
-      "packages/superconductor-core/tests/generate-token-report.test.ts",
-      "packages/superconductor-core/tests/input-resolution.test.ts",
-      "packages/superconductor-core/tests/plan-gap-checker.test.ts",
-      "packages/superconductor-core/tests/sast.test.ts",
-      "packages/superconductor-mcp-server/src/index.ts",
-      "scripts/aggregate-coverage-manifest.ts",
-      "scripts/aggregate-findings.ts",
-      "scripts/deterministic-preflight.ts",
-      "scripts/generate-token-report.ts",
-      "scripts/input-resolution.ts"
-    ],
-    "isNodeBuiltin": true
-  },
   "vitest": {
-    "version": "^1.6.0",
+    "version": "^4.0.18",
     "usedApis": [
       "describe",
       "it",
       "expect",
+      "vi",
       "beforeEach",
       "afterEach",
-      "vi"
+      "afterAll",
+      "beforeAll",
+      "test"
     ],
     "importedBy": [
-      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
-      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/ModelFetcher.test.ts",
       "packages/engine/src/cache/ModelPrompt.test.ts",
+      "packages/engine/src/research/research-executor.test.ts",
+      "packages/engine/src/verification/__tests__/preflight-test-runner.test.ts",
+      "packages/engine/test/dispatcher/implementor-registry.test.ts",
       "packages/engine/tests/CacheManager.test.ts",
       "packages/engine/tests/Phase4Bridge.test.ts",
       "packages/engine/tests/Phase8E2E.test.ts",
+      "packages/engine/tests/SkillPortingEngine.test.ts",
       "packages/engine/tests/SmartModelResolver.test.ts",
       "packages/engine/tests/SuperconductorEventEmitter.test.ts",
+      "packages/engine/tests/agents/reviewer-system-prompt.test.ts",
+      "packages/engine/tests/ast-merger.test.ts",
       "packages/engine/tests/backlog-parser.test.ts",
+      "packages/engine/tests/brief-synthesizer.test.ts",
       "packages/engine/tests/cache-manager.test.ts",
+      "packages/engine/tests/cli/agy-agent-spawner.test.ts",
+      "packages/engine/tests/cli/attention-notifier.test.ts",
+      "packages/engine/tests/cli/cleanup-command.test.ts",
+      "packages/engine/tests/cli/lifecycle-manager.test.ts",
+      "packages/engine/tests/cli/mock-agent-spawner.test.ts",
+      "packages/engine/tests/cli/orchestrate-integration.test.ts",
+      "packages/engine/tests/cli/orchestrate-parse.test.ts",
+      "packages/engine/tests/cli/orchestrate-quorum.test.ts",
+      "packages/engine/tests/cli/orchestrate-remediation-fixes.test.ts",
+      "packages/engine/tests/cli/orchestrate-spawner.test.ts",
+      "packages/engine/tests/cli/orchestrate-verify.test.ts",
+      "packages/engine/tests/cli/orchestrate.test.ts",
+      "packages/engine/tests/cli/quorum-store-sanitize.test.ts",
+      "packages/engine/tests/cli/quorum-store.test.ts",
+      "packages/engine/tests/cli/swarm-permission-evaluator.test.ts",
       "packages/engine/tests/context.test.ts",
       "packages/engine/tests/curator-integration.test.ts",
       "packages/engine/tests/daemon-heartbeat.test.ts",
@@ -115,12 +59,28 @@
       "packages/engine/tests/event-store.test.ts",
       "packages/engine/tests/gcc.test.ts",
       "packages/engine/tests/generator.test.ts",
+      "packages/engine/tests/grill-phase.test.ts",
+      "packages/engine/tests/guard/execution-mode.test.ts",
+      "packages/engine/tests/guard/headless-mode-guard.test.ts",
+      "packages/engine/tests/guard/rogue-write-guard.test.ts",
       "packages/engine/tests/headless-verification.test.ts",
       "packages/engine/tests/integration.test.ts",
       "packages/engine/tests/job-dispatcher.test.ts",
       "packages/engine/tests/lock-manager.test.ts",
       "packages/engine/tests/mutation-analyzer.test.ts",
+      "packages/engine/tests/orchestrate.test.ts",
+      "packages/engine/tests/parallel-dispatcher.test.ts",
       "packages/engine/tests/pbt-validator.test.ts",
+      "packages/engine/tests/quorum-review-loop.test.ts",
+      "packages/engine/tests/research/provider-registry.test.ts",
+      "packages/engine/tests/research/providers/async-long-poller.test.ts",
+      "packages/engine/tests/research/providers/gemini-api-deep-research-provider.test.ts",
+      "packages/engine/tests/research/providers/gemini-interactions-client.test.ts",
+      "packages/engine/tests/research/providers/google-deep-research-provider.test.ts",
+      "packages/engine/tests/research/providers/vertex-ai-deep-research-provider.test.ts",
+      "packages/engine/tests/research/query-formulator.test.ts",
+      "packages/engine/tests/research/source-quality-gate.test.ts",
+      "packages/engine/tests/research/types.test.ts",
       "packages/engine/tests/risk-middleware.test.ts",
       "packages/engine/tests/safety-integration.test.ts",
       "packages/engine/tests/scheduler.test.ts",
@@ -132,88 +92,565 @@
       "packages/engine/tests/skill-trigger-engine.test.ts",
       "packages/engine/tests/stateful-engine.test.ts",
       "packages/engine/tests/storm.test.ts",
+      "packages/engine/tests/swarm-execute.test.ts",
       "packages/engine/tests/symbol-context.test.ts",
+      "packages/engine/tests/telemetry/retrospective-generator.test.ts",
+      "packages/engine/tests/telemetry/secret-redactor.test.ts",
       "packages/engine/tests/telemetry-ingester.test.ts",
       "packages/engine/tests/tool-analyzer.test.ts",
+      "packages/engine/tests/verification/quorum-enforcer.test.ts",
+      "packages/engine/tests/verification/reviewer-response-broker.test.ts",
       "packages/engine/tests/verification-pipeline.test.ts",
       "packages/engine/tests/vlm-auditor.test.ts",
       "packages/engine/tests/worker-pool.test.ts",
+      "packages/notebook-store/tests/providers/lancedb-notebook-provider.test.ts",
+      "packages/notebook-store/tests/providers/libsql-notebook-provider.test.ts",
+      "packages/notebook-store/tests/providers/notebook-provider-factory.test.ts",
+      "packages/notebook-store/tests/search/rrf-search.test.ts",
+      "packages/notebook-store/tests/types.test.ts",
+      "packages/notebook-store/tests/validation/notebook-validator.test.ts",
+      "packages/quorum-fsm/tests/circuit-breaker.test.ts",
+      "packages/quorum-fsm/tests/domain-scorer.test.ts",
+      "packages/quorum-fsm/tests/quorum-fsm.test.ts",
+      "packages/quorum-fsm/tests/quorum-remediation-loop.test.ts",
+      "packages/quorum-fsm/tests/quorum-review-script.test.ts",
+      "packages/quorum-fsm/tests/quorum-state-store.test.ts",
+      "packages/quorum-fsm/tests/zero-bias.test.ts",
+      "packages/superconductor-core/src/cli/merge-track.test.ts",
+      "packages/superconductor-core/src/models/__tests__/model-chooser-dialog-run.test.ts",
+      "packages/superconductor-core/src/models/__tests__/model-chooser-dialog-tiers.test.ts",
+      "packages/superconductor-core/src/orchestration/background-task-monitor.test.ts",
+      "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
+      "packages/superconductor-core/src/orchestration/model-routing-enforcer.test.ts",
+      "packages/superconductor-core/src/orchestration/quorum-validator.test.ts",
+      "packages/superconductor-core/src/orchestration/workspace-guard.test.ts",
+      "packages/superconductor-core/src/orchestration/worktree-isolation-manager.test.ts",
+      "packages/superconductor-core/src/remediation/bias-isolated-review-gate.test.ts",
+      "packages/superconductor-core/src/remediation/deep-research-escalation-handler.test.ts",
+      "packages/superconductor-core/src/remediation/domain-classifier.test.ts",
+      "packages/superconductor-core/src/remediation/domain-split-remediation-dispatcher.test.ts",
+      "packages/superconductor-core/src/remediation/remediation-log-writer.test.ts",
+      "packages/superconductor-core/src/remediation/remediation-orchestrator.test.ts",
+      "packages/superconductor-core/src/remediation/remediation-state.test.ts",
+      "packages/superconductor-core/src/remediation/standalone-remediation.test.ts",
+      "packages/superconductor-core/src/review/test-theatre-detector.test.ts",
+      "packages/superconductor-core/test/permissions/adv.test.ts",
+      "packages/superconductor-core/test/permissions/audit.test.ts",
+      "packages/superconductor-core/test/permissions/e2e.test.ts",
+      "packages/superconductor-core/test/permissions/engine.test.ts",
+      "packages/superconductor-core/test/permissions/interceptor.test.ts",
+      "packages/superconductor-core/test/permissions/prompter.test.ts",
+      "packages/superconductor-core/test/permissions/providers.test.ts",
+      "packages/superconductor-core/test/permissions/schemas.test.ts",
+      "packages/superconductor-core/test/permissions/track-state.test.ts",
+      "packages/superconductor-core/test/permissions/yolo-persistence.test.ts",
+      "packages/superconductor-core/test/track/work-unit.test.ts",
+      "packages/superconductor-core/test-mock.test.ts",
+      "packages/superconductor-core/tests/abi.test.ts",
+      "packages/superconductor-core/tests/agents/agent-manifest-audit.test.ts",
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/cache/semantic-cache.test.ts",
       "packages/superconductor-core/tests/cascade-deferral-gate.test.ts",
+      "packages/superconductor-core/tests/cli/command-delegation.test.ts",
+      "packages/superconductor-core/tests/cli/dispatcher.test.ts",
+      "packages/superconductor-core/tests/cli/headless.test.ts",
+      "packages/superconductor-core/tests/cli/index.test.ts",
+      "packages/superconductor-core/tests/cli/interactive.test.ts",
+      "packages/superconductor-core/tests/context/splicer.test.ts",
+      "packages/superconductor-core/tests/correctness-boundary-edge.test.ts",
       "packages/superconductor-core/tests/deterministic-preflight.test.ts",
+      "packages/superconductor-core/tests/e2e/quorum-loop.e2e.test.ts",
       "packages/superconductor-core/tests/extract-fenced-block.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
+      "packages/superconductor-core/tests/hooks/verify-signoff.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
+      "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+      "packages/superconductor-core/tests/intelligence/codebase-chunker.test.ts",
+      "packages/superconductor-core/tests/intelligence/dag-resolver.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-analyzer.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-context.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-surface-tool.test.ts",
+      "packages/superconductor-core/tests/intelligence/domain-partitioner.test.ts",
+      "packages/superconductor-core/tests/intelligence/drift-monitor.test.ts",
+      "packages/superconductor-core/tests/intelligence/git-hook-integration.test.ts",
+      "packages/superconductor-core/tests/intelligence/incremental-updater.test.ts",
+      "packages/superconductor-core/tests/intelligence/model-tier-router.test.ts",
+      "packages/superconductor-core/tests/intelligence/oracle-cadence-optimiser.test.ts",
+      "packages/superconductor-core/tests/intelligence/parallelism-optimiser.test.ts",
+      "packages/superconductor-core/tests/intelligence/prompt-generator.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/dependency-surface.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/scoped-runners.test.ts",
+      "packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts",
+      "packages/superconductor-core/tests/intelligence/swarm-blueprint-generator.test.ts",
+      "packages/superconductor-core/tests/intelligence/task-complexity-scorer.test.ts",
+      "packages/superconductor-core/tests/intelligence/topography-map.test.ts",
+      "packages/superconductor-core/tests/keyhole-context-manager.test.ts",
+      "packages/superconductor-core/tests/keyhole-extractor.test.ts",
+      "packages/superconductor-core/tests/models/agent-config-writer.test.ts",
+      "packages/superconductor-core/tests/models/model-catalog-service.test.ts",
+      "packages/superconductor-core/tests/models/model-chooser-dialog.test.ts",
+      "packages/superconductor-core/tests/orchestration/abstract-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/preflight-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/sign-off-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
+      "packages/superconductor-core/tests/pair-programming.test.ts",
+      "packages/superconductor-core/tests/permissions/keyword-inferrer.test.ts",
       "packages/superconductor-core/tests/plan-gap-checker.test.ts",
-      "packages/superconductor-core/tests/sast.test.ts"
+      "packages/superconductor-core/tests/playwright-harness.test.ts",
+      "packages/superconductor-core/tests/remediation/quorum-remediation-loop.test.ts",
+      "packages/superconductor-core/tests/review/review-quorum-protocol.test.ts",
+      "packages/superconductor-core/tests/reviewers/correctness-reviewer-template.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts",
+      "packages/superconductor-core/tests/scripts/audit-swarm-compliance.test.ts",
+      "packages/superconductor-core/tests/scripts/migrate-tracks.test.ts",
+      "packages/superconductor-core/tests/shared/libsql-database-manager.test.ts",
+      "packages/superconductor-core/tests/streaming-client.test.ts",
+      "packages/superconductor-core/tests/swarm/LanguageAdapter.test.ts",
+      "packages/superconductor-core/tests/swarm/QuorumFSM.test.ts",
+      "packages/superconductor-core/tests/swarm/RemediatorPromptBuilder.test.ts",
+      "packages/superconductor-core/tests/swarm-phase-gate.test.ts",
+      "packages/superconductor-core/tests/telemetry/quality-notes.test.ts",
+      "packages/superconductor-core/tests/telemetry/token-budget-estimator.test.ts",
+      "packages/superconductor-core/tests/telemetry.test.ts",
+      "packages/superconductor-core/tests/track/archive-manager.test.ts",
+      "packages/superconductor-core/tests/track/execution-planner.test.ts",
+      "packages/superconductor-core/tests/track/swarm-authorizer.test.ts",
+      "packages/superconductor-core/tests/utils/input-sanitizer.test.ts",
+      "packages/superconductor-core/tests/vision-oracle.test.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/TrackStateManager.test.ts",
+      "packages/superconductor-kernel/tests/GraphCache.test.ts",
+      "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
+      "packages/superconductor-kernel/tests/NotebookService.test.ts",
+      "packages/superconductor-kernel/tests/graph-tools.test.ts",
+      "packages/superconductor-kernel/tests/mcp.test.ts",
+      "scripts/quorum-review.test.ts"
     ],
     "isNodeBuiltin": false
+  },
+  "path": {
+    "version": "node-builtin",
+    "usedApis": [
+      "join",
+      "dirname",
+      "path",
+      "resolve",
+      "relative",
+      "isAbsolute"
+    ],
+    "importedBy": [
+      "packages/engine/src/agents/skill-loader.ts",
+      "packages/engine/src/cache/CacheManager.test.ts",
+      "packages/engine/src/cache/CacheManager.ts",
+      "packages/engine/src/cli/lifecycle-manager.ts",
+      "packages/engine/src/cli/orchestrate.ts",
+      "packages/engine/src/cli/quorum-store.ts",
+      "packages/engine/src/cli/spawner-config.ts",
+      "packages/engine/src/concurrency/daemon-heartbeat.ts",
+      "packages/engine/src/concurrency/lock-manager.ts",
+      "packages/engine/src/concurrency/worker-pool.ts",
+      "packages/engine/src/curator/ComponentStagingWriter.ts",
+      "packages/engine/src/curator/skill-synthesizer.ts",
+      "packages/engine/src/dispatcher/job-dispatcher.ts",
+      "packages/engine/src/guard/rogue-write-guard.ts",
+      "packages/engine/src/research/agent-config-reader.ts",
+      "packages/engine/src/research/brief-synthesizer.ts",
+      "packages/engine/src/research/research-executor.test.ts",
+      "packages/engine/src/research/research-executor.ts",
+      "packages/engine/src/routing/SmartModelResolver.ts",
+      "packages/engine/src/safety/gcc.ts",
+      "packages/engine/src/skills/SkillPortingEngine.ts",
+      "packages/engine/src/skills/skill-trigger-engine.ts",
+      "packages/engine/src/telemetry/retrospective-generator.ts",
+      "packages/engine/src/verification/preflight-test-runner.ts",
+      "packages/engine/src/verification/reviewer-response-broker.ts",
+      "packages/engine/tests/CacheManager.test.ts",
+      "packages/engine/tests/Phase4Bridge.test.ts",
+      "packages/engine/tests/Phase8E2E.test.ts",
+      "packages/engine/tests/SkillPortingEngine.test.ts",
+      "packages/engine/tests/SmartModelResolver.test.ts",
+      "packages/engine/tests/brief-synthesizer.test.ts",
+      "packages/engine/tests/cli/agy-agent-spawner.test.ts",
+      "packages/engine/tests/cli/cleanup-command.test.ts",
+      "packages/engine/tests/cli/lifecycle-manager.test.ts",
+      "packages/engine/tests/cli/orchestrate-integration.test.ts",
+      "packages/engine/tests/cli/orchestrate-parse.test.ts",
+      "packages/engine/tests/cli/orchestrate-quorum.test.ts",
+      "packages/engine/tests/cli/orchestrate-remediation-fixes.test.ts",
+      "packages/engine/tests/cli/orchestrate-spawner.test.ts",
+      "packages/engine/tests/cli/orchestrate-verify.test.ts",
+      "packages/engine/tests/cli/orchestrate.test.ts",
+      "packages/engine/tests/cli/quorum-store-sanitize.test.ts",
+      "packages/engine/tests/cli/quorum-store.test.ts",
+      "packages/engine/tests/cli/swarm-permission-evaluator.test.ts",
+      "packages/engine/tests/curator-integration.test.ts",
+      "packages/engine/tests/daemon-heartbeat.test.ts",
+      "packages/engine/tests/dag.test.ts",
+      "packages/engine/tests/engine-skill-trigger-integration.test.ts",
+      "packages/engine/tests/event-store.test.ts",
+      "packages/engine/tests/gcc.test.ts",
+      "packages/engine/tests/grill-phase.test.ts",
+      "packages/engine/tests/lock-manager.test.ts",
+      "packages/engine/tests/orchestrate.test.ts",
+      "packages/engine/tests/safety-integration.test.ts",
+      "packages/engine/tests/skill-frontmatter.test.ts",
+      "packages/engine/tests/skill-line-count.test.ts",
+      "packages/engine/tests/skill-rules-schema.test.ts",
+      "packages/engine/tests/skill-trigger-engine.test.ts",
+      "packages/engine/tests/swarm-execute.test.ts",
+      "packages/engine/tests/telemetry/retrospective-generator.test.ts",
+      "packages/engine/tests/verification/reviewer-response-broker.test.ts",
+      "packages/engine/tests/worker-pool.test.ts",
+      "packages/notebook-store/src/providers/lancedb-notebook-provider.ts",
+      "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
+      "packages/notebook-store/src/validation/notebook-validator.ts",
+      "packages/notebook-store/tests/providers/lancedb-notebook-provider.test.ts",
+      "packages/notebook-store/tests/providers/libsql-notebook-provider.test.ts",
+      "packages/notebook-store/tests/providers/notebook-provider-factory.test.ts",
+      "packages/notebook-store/vitest.config.ts",
+      "packages/quorum-fsm/src/persistence/quorum-state-store.ts",
+      "packages/quorum-fsm/tests/domain-scorer.test.ts",
+      "packages/quorum-fsm/tests/quorum-review-script.test.ts",
+      "packages/quorum-fsm/tests/quorum-state-store.test.ts",
+      "packages/superconductor-core/archive-track.ts",
+      "packages/superconductor-core/scripts/audit-swarm-compliance.ts",
+      "packages/superconductor-core/scripts/migrate-tracks.ts",
+      "packages/superconductor-core/src/cache/semantic-cache.ts",
+      "packages/superconductor-core/src/cli/headless.ts",
+      "packages/superconductor-core/src/cli/index.ts",
+      "packages/superconductor-core/src/cli/interactive.ts",
+      "packages/superconductor-core/src/context/splicer.ts",
+      "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
+      "packages/superconductor-core/src/intelligence/cli-update.ts",
+      "packages/superconductor-core/src/intelligence/dependency-analyzer.ts",
+      "packages/superconductor-core/src/intelligence/dependency-context.ts",
+      "packages/superconductor-core/src/intelligence/dependency-surface-tool.ts",
+      "packages/superconductor-core/src/intelligence/domain-partitioner.ts",
+      "packages/superconductor-core/src/intelligence/incremental-updater.ts",
+      "packages/superconductor-core/src/intelligence/pipeline.ts",
+      "packages/superconductor-core/src/intelligence/report.ts",
+      "packages/superconductor-core/src/intelligence/runners/complexity.ts",
+      "packages/superconductor-core/src/intelligence/runners/coupling.ts",
+      "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "packages/superconductor-core/src/intelligence/runners/dependency-surface.ts",
+      "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
+      "packages/superconductor-core/src/intelligence/runners/graphify.ts",
+      "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+      "packages/superconductor-core/src/intelligence/runners/sast.ts",
+      "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+      "packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+      "packages/superconductor-core/src/intelligence/snapshot-reader.ts",
+      "packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "packages/superconductor-core/src/models/agent-config-writer.ts",
+      "packages/superconductor-core/src/models/model-catalog-service.ts",
+      "packages/superconductor-core/src/models/model-chooser-dialog.ts",
+      "packages/superconductor-core/src/orchestration/abstract-gate.ts",
+      "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
+      "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
+      "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
+      "packages/superconductor-core/src/permissions/audit.ts",
+      "packages/superconductor-core/src/permissions/engine.ts",
+      "packages/superconductor-core/src/permissions/interceptor.ts",
+      "packages/superconductor-core/src/permissions/prompter.ts",
+      "packages/superconductor-core/src/permissions/track-state.ts",
+      "packages/superconductor-core/src/protocol/agent-context.ts",
+      "packages/superconductor-core/src/remediation/domain-classifier.ts",
+      "packages/superconductor-core/src/remediation/remediation-orchestrator.ts",
+      "packages/superconductor-core/src/review/abi.ts",
+      "packages/superconductor-core/src/review/aggregate-coverage.ts",
+      "packages/superconductor-core/src/review/aggregate-findings.ts",
+      "packages/superconductor-core/src/review/deterministic-preflight.ts",
+      "packages/superconductor-core/src/review/generate-token-report.ts",
+      "packages/superconductor-core/src/review/serialize-topography.ts",
+      "packages/superconductor-core/src/review/test-theatre-detector.test.ts",
+      "packages/superconductor-core/src/review/test-theatre-detector.ts",
+      "packages/superconductor-core/src/swarm/LanguageAdapter.ts",
+      "packages/superconductor-core/src/telemetry/index.ts",
+      "packages/superconductor-core/src/track/archive-manager.ts",
+      "packages/superconductor-core/src/track/execution-planner.ts",
+      "packages/superconductor-core/src/track/track-reader.ts",
+      "packages/superconductor-core/src/track/track-state.ts",
+      "packages/superconductor-core/src/utils/input-sanitizer.ts",
+      "packages/superconductor-core/test/permissions/audit.test.ts",
+      "packages/superconductor-core/test/permissions/prompter.test.ts",
+      "packages/superconductor-core/test/permissions/yolo-persistence.test.ts",
+      "packages/superconductor-core/tests/abi.test.ts",
+      "packages/superconductor-core/tests/agents/agent-manifest-audit.test.ts",
+      "packages/superconductor-core/tests/aggregate-coverage.test.ts",
+      "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/cache/semantic-cache.test.ts",
+      "packages/superconductor-core/tests/cli/command-delegation.test.ts",
+      "packages/superconductor-core/tests/cli/headless.test.ts",
+      "packages/superconductor-core/tests/context/splicer.test.ts",
+      "packages/superconductor-core/tests/correctness-boundary-edge.test.ts",
+      "packages/superconductor-core/tests/deterministic-preflight.test.ts",
+      "packages/superconductor-core/tests/e2e/quorum-loop.e2e.test.ts",
+      "packages/superconductor-core/tests/generate-token-report.test.ts",
+      "packages/superconductor-core/tests/hooks/verify-signoff.test.ts",
+      "packages/superconductor-core/tests/input-resolution.test.ts",
+      "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-context.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-surface-tool.test.ts",
+      "packages/superconductor-core/tests/intelligence/git-hook-integration.test.ts",
+      "packages/superconductor-core/tests/intelligence/incremental-updater.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/dependency-surface.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/scoped-runners.test.ts",
+      "packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts",
+      "packages/superconductor-core/tests/models/agent-config-writer.test.ts",
+      "packages/superconductor-core/tests/models/model-catalog-service.test.ts",
+      "packages/superconductor-core/tests/models/model-chooser-dialog.test.ts",
+      "packages/superconductor-core/tests/orchestration/abstract-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/sign-off-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
+      "packages/superconductor-core/tests/plan-gap-checker.test.ts",
+      "packages/superconductor-core/tests/review/review-quorum-protocol.test.ts",
+      "packages/superconductor-core/tests/reviewers/correctness-reviewer-template.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts",
+      "packages/superconductor-core/tests/scripts/migrate-tracks.test.ts",
+      "packages/superconductor-core/tests/swarm/LanguageAdapter.test.ts",
+      "packages/superconductor-core/tests/telemetry.test.ts",
+      "packages/superconductor-core/tests/track/archive-manager.test.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/GraphCache.ts",
+      "packages/superconductor-kernel/src/services/InstallerService.ts",
+      "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
+      "packages/superconductor-kernel/src/services/PublishService.ts",
+      "packages/superconductor-kernel/src/services/RegistryService.ts",
+      "packages/superconductor-kernel/src/services/TrackStateManager.test.ts",
+      "packages/superconductor-kernel/src/services/TrackStateManager.ts",
+      "packages/superconductor-kernel/tests/GraphCache.test.ts",
+      "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
+      "packages/superconductor-kernel/tests/NotebookService.test.ts",
+      "packages/superconductor-kernel/tests/graph-tools.test.ts",
+      "packages/superconductor-kernel/tests/mcp.test.ts",
+      "packages/superconductor-mcp-server/src/index.ts",
+      "packages/task-store/test-json-guard.ts",
+      "scripts/abi-retrospective.ts",
+      "scripts/aggregate-coverage-manifest.ts",
+      "scripts/aggregate-findings.ts",
+      "scripts/deterministic-preflight.ts",
+      "scripts/domain-scorer.ts",
+      "scripts/generate-token-report.ts",
+      "scripts/hooks/verify-signoff.mjs",
+      "scripts/input-resolution.ts",
+      "scripts/port-skills.ts",
+      "scripts/quorum-gate.mjs",
+      "scripts/quorum-review.test.ts",
+      "scripts/rename-kernel.ts",
+      "scripts/validate-trailer.mjs"
+    ],
+    "isNodeBuiltin": true
   },
   "fs": {
     "version": "node-builtin",
     "usedApis": [
-      "fs"
+      "readFileSync",
+      "accessSync",
+      "fs",
+      "promises",
+      "existsSync"
     ],
     "importedBy": [
-      "packages/superconductor-kernel/src/index.ts",
-      "packages/superconductor-kernel/src/services/ConfigService.ts",
+      "packages/engine/src/agents/skill-loader.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/CacheManager.ts",
+      "packages/engine/src/cli/orchestrate.ts",
+      "packages/engine/src/cli/quorum-store.ts",
+      "packages/engine/src/cli/spawner-config.ts",
+      "packages/engine/src/cli/swarm-permission-evaluator.ts",
       "packages/engine/src/cli.ts",
+      "packages/engine/src/concurrency/daemon-heartbeat.ts",
       "packages/engine/src/concurrency/lock-manager.ts",
       "packages/engine/src/concurrency/worker-pool.ts",
       "packages/engine/src/context/builder.ts",
       "packages/engine/src/curator/ComponentStagingWriter.ts",
       "packages/engine/src/dispatcher/job-dispatcher.ts",
+      "packages/engine/src/research/agent-config-reader.ts",
+      "packages/engine/src/research/brief-synthesizer.ts",
+      "packages/engine/src/research/research-executor.test.ts",
+      "packages/engine/src/research/research-executor.ts",
       "packages/engine/src/routing/SmartModelResolver.ts",
+      "packages/engine/src/skills/SkillPortingEngine.ts",
       "packages/engine/src/skills/skill-trigger-engine.ts",
+      "packages/engine/src/telemetry/retrospective-generator.ts",
+      "packages/engine/src/verification/__tests__/preflight-test-runner.test.ts",
       "packages/engine/src/verification/mutation-analyzer.ts",
+      "packages/engine/src/verification/preflight-test-runner.ts",
+      "packages/engine/src/verification/reviewer-response-broker.ts",
       "packages/engine/tests/CacheManager.test.ts",
       "packages/engine/tests/Phase4Bridge.test.ts",
       "packages/engine/tests/Phase8E2E.test.ts",
+      "packages/engine/tests/SkillPortingEngine.test.ts",
       "packages/engine/tests/SmartModelResolver.test.ts",
+      "packages/engine/tests/brief-synthesizer.test.ts",
+      "packages/engine/tests/cli/agy-agent-spawner.test.ts",
+      "packages/engine/tests/cli/cleanup-command.test.ts",
+      "packages/engine/tests/cli/lifecycle-manager.test.ts",
+      "packages/engine/tests/cli/orchestrate-integration.test.ts",
+      "packages/engine/tests/cli/orchestrate-parse.test.ts",
+      "packages/engine/tests/cli/orchestrate-quorum.test.ts",
+      "packages/engine/tests/cli/orchestrate-remediation-fixes.test.ts",
+      "packages/engine/tests/cli/orchestrate-spawner.test.ts",
+      "packages/engine/tests/cli/orchestrate-verify.test.ts",
+      "packages/engine/tests/cli/orchestrate.test.ts",
+      "packages/engine/tests/cli/quorum-store-sanitize.test.ts",
+      "packages/engine/tests/cli/quorum-store.test.ts",
+      "packages/engine/tests/cli/swarm-permission-evaluator.test.ts",
+      "packages/engine/tests/daemon-heartbeat.test.ts",
       "packages/engine/tests/dag.test.ts",
       "packages/engine/tests/engine-skill-trigger-integration.test.ts",
       "packages/engine/tests/event-store.test.ts",
       "packages/engine/tests/gcc.test.ts",
       "packages/engine/tests/job-dispatcher.test.ts",
       "packages/engine/tests/lock-manager.test.ts",
+      "packages/engine/tests/orchestrate.test.ts",
       "packages/engine/tests/safety-integration.test.ts",
       "packages/engine/tests/skill-frontmatter.test.ts",
       "packages/engine/tests/skill-line-count.test.ts",
       "packages/engine/tests/skill-rules-schema.test.ts",
       "packages/engine/tests/skill-trigger-engine.test.ts",
+      "packages/engine/tests/swarm-execute.test.ts",
+      "packages/engine/tests/telemetry/retrospective-generator.test.ts",
+      "packages/engine/tests/verification/reviewer-response-broker.test.ts",
       "packages/engine/tests/worker-pool.test.ts",
+      "packages/notebook-store/src/providers/lancedb-notebook-provider.ts",
+      "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
+      "packages/notebook-store/src/validation/notebook-validator.ts",
+      "packages/notebook-store/tests/providers/lancedb-notebook-provider.test.ts",
+      "packages/notebook-store/tests/providers/libsql-notebook-provider.test.ts",
+      "packages/quorum-fsm/src/persistence/quorum-state-store.ts",
+      "packages/quorum-fsm/tests/domain-scorer.test.ts",
+      "packages/quorum-fsm/tests/quorum-review-script.test.ts",
+      "packages/quorum-fsm/tests/quorum-state-store.test.ts",
+      "packages/superconductor-core/scripts/audit-swarm-compliance.ts",
+      "packages/superconductor-core/scripts/migrate-tracks.ts",
       "packages/superconductor-core/src/cli/index.ts",
+      "packages/superconductor-core/src/context/splicer.ts",
+      "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
+      "packages/superconductor-core/src/intelligence/dependency-analyzer.ts",
+      "packages/superconductor-core/src/intelligence/dependency-context.ts",
+      "packages/superconductor-core/src/intelligence/dependency-surface-tool.ts",
+      "packages/superconductor-core/src/intelligence/domain-partitioner.ts",
+      "packages/superconductor-core/src/intelligence/incremental-updater.ts",
       "packages/superconductor-core/src/intelligence/pipeline.ts",
       "packages/superconductor-core/src/intelligence/report.ts",
       "packages/superconductor-core/src/intelligence/runners/complexity.ts",
       "packages/superconductor-core/src/intelligence/runners/coupling.ts",
       "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+      "packages/superconductor-core/src/intelligence/runners/dependency-surface.ts",
       "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
+      "packages/superconductor-core/src/intelligence/runners/graphify.ts",
       "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
       "packages/superconductor-core/src/intelligence/runners/sast.ts",
       "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
       "packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+      "packages/superconductor-core/src/intelligence/snapshot-reader.ts",
       "packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "packages/superconductor-core/src/models/agent-config-writer.ts",
+      "packages/superconductor-core/src/models/model-catalog-service.ts",
+      "packages/superconductor-core/src/orchestration/abstract-gate.ts",
+      "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
+      "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
+      "packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts",
+      "packages/superconductor-core/src/permissions/audit.ts",
+      "packages/superconductor-core/src/permissions/engine.ts",
+      "packages/superconductor-core/src/permissions/interceptor.ts",
+      "packages/superconductor-core/src/permissions/prompter.ts",
+      "packages/superconductor-core/src/permissions/providers/session-provider.ts",
+      "packages/superconductor-core/src/permissions/providers/toml-provider.ts",
+      "packages/superconductor-core/src/permissions/track-state.ts",
       "packages/superconductor-core/src/protocol/agent-context.ts",
+      "packages/superconductor-core/src/remediation/domain-classifier.ts",
+      "packages/superconductor-core/src/review/abi.ts",
       "packages/superconductor-core/src/review/aggregate-coverage.ts",
       "packages/superconductor-core/src/review/aggregate-findings.ts",
       "packages/superconductor-core/src/review/deterministic-preflight.ts",
       "packages/superconductor-core/src/review/generate-token-report.ts",
       "packages/superconductor-core/src/review/input-resolution.ts",
+      "packages/superconductor-core/src/review/serialize-topography.ts",
+      "packages/superconductor-core/src/review/test-theatre-detector.test.ts",
+      "packages/superconductor-core/src/review/test-theatre-detector.ts",
+      "packages/superconductor-core/src/swarm/LanguageAdapter.ts",
+      "packages/superconductor-core/src/telemetry/index.ts",
+      "packages/superconductor-core/src/track/archive-manager.ts",
+      "packages/superconductor-core/src/track/execution-planner.ts",
       "packages/superconductor-core/src/track/track-reader.ts",
       "packages/superconductor-core/src/track/track-state.ts",
+      "packages/superconductor-core/test/permissions/adv.test.ts",
+      "packages/superconductor-core/test/permissions/audit.test.ts",
+      "packages/superconductor-core/test/permissions/prompter.test.ts",
+      "packages/superconductor-core/test/permissions/providers.test.ts",
+      "packages/superconductor-core/test/permissions/track-state.test.ts",
+      "packages/superconductor-core/test/permissions/yolo-persistence.test.ts",
+      "packages/superconductor-core/test-mock.test.ts",
+      "packages/superconductor-core/tests/abi.test.ts",
+      "packages/superconductor-core/tests/agents/agent-manifest-audit.test.ts",
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/cli/command-delegation.test.ts",
+      "packages/superconductor-core/tests/cli/headless.test.ts",
+      "packages/superconductor-core/tests/context/splicer.test.ts",
+      "packages/superconductor-core/tests/correctness-boundary-edge.test.ts",
       "packages/superconductor-core/tests/deterministic-preflight.test.ts",
+      "packages/superconductor-core/tests/e2e/quorum-loop.e2e.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
+      "packages/superconductor-core/tests/hooks/verify-signoff.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
+      "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-context.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-surface-tool.test.ts",
+      "packages/superconductor-core/tests/intelligence/git-hook-integration.test.ts",
+      "packages/superconductor-core/tests/intelligence/incremental-updater.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/dependency-surface.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/scoped-runners.test.ts",
+      "packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts",
+      "packages/superconductor-core/tests/models/agent-config-writer.test.ts",
+      "packages/superconductor-core/tests/models/model-catalog-service.test.ts",
+      "packages/superconductor-core/tests/models/model-chooser-dialog.test.ts",
+      "packages/superconductor-core/tests/orchestration/abstract-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/sign-off-gate.test.ts",
+      "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
       "packages/superconductor-core/tests/plan-gap-checker.test.ts",
+      "packages/superconductor-core/tests/review/review-quorum-protocol.test.ts",
+      "packages/superconductor-core/tests/reviewers/correctness-reviewer-template.test.ts",
       "packages/superconductor-core/tests/sast.test.ts",
+      "packages/superconductor-core/tests/scripts/audit-swarm-compliance.test.ts",
+      "packages/superconductor-core/tests/scripts/migrate-tracks.test.ts",
+      "packages/superconductor-core/tests/swarm/LanguageAdapter.test.ts",
+      "packages/superconductor-core/tests/telemetry.test.ts",
+      "packages/superconductor-core/tests/track/archive-manager.test.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts",
+      "packages/superconductor-kernel/src/services/GraphCache.ts",
+      "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
+      "packages/superconductor-kernel/src/services/TrackStateManager.test.ts",
+      "packages/superconductor-kernel/src/services/TrackStateManager.ts",
+      "packages/superconductor-kernel/tests/GraphCache.test.ts",
+      "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
+      "packages/superconductor-kernel/tests/NotebookService.test.ts",
+      "packages/superconductor-kernel/tests/graph-tools.test.ts",
+      "packages/superconductor-kernel/tests/mcp.test.ts",
       "packages/superconductor-mcp-server/src/index.ts",
-      "scripts/input-resolution.ts"
+      "scripts/abi-retrospective.ts",
+      "scripts/domain-scorer.ts",
+      "scripts/hooks/verify-signoff.mjs",
+      "scripts/input-resolution.ts",
+      "scripts/port-skills.ts",
+      "scripts/quorum-gate.mjs",
+      "scripts/quorum-review.test.ts",
+      "scripts/rename-kernel.ts",
+      "scripts/review-self-check.ts",
+      "scripts/validate-trailer.mjs"
     ],
     "isNodeBuiltin": true
   },
@@ -223,13 +660,6 @@
       "os"
     ],
     "importedBy": [
-      "packages/superconductor-kernel/src/index.ts",
-      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
-      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/superconductor-kernel/src/services/ConfigService.ts",
-      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
-      "packages/superconductor-kernel/src/services/InstallerService.ts",
-      "packages/superconductor-kernel/src/services/RegistryService.ts",
       "packages/engine/src/cache/CacheManager.test.ts",
       "packages/engine/src/cache/CacheManager.ts",
       "packages/engine/src/concurrency/worker-pool.ts",
@@ -238,21 +668,79 @@
       "packages/engine/tests/CacheManager.test.ts",
       "packages/engine/tests/Phase4Bridge.test.ts",
       "packages/engine/tests/Phase8E2E.test.ts",
+      "packages/engine/tests/SkillPortingEngine.test.ts",
       "packages/engine/tests/SmartModelResolver.test.ts",
+      "packages/engine/tests/cli/agy-agent-spawner.test.ts",
+      "packages/engine/tests/cli/cleanup-command.test.ts",
+      "packages/engine/tests/cli/lifecycle-manager.test.ts",
+      "packages/engine/tests/cli/orchestrate-integration.test.ts",
+      "packages/engine/tests/cli/orchestrate-parse.test.ts",
+      "packages/engine/tests/cli/orchestrate-quorum.test.ts",
+      "packages/engine/tests/cli/orchestrate-remediation-fixes.test.ts",
+      "packages/engine/tests/cli/orchestrate-spawner.test.ts",
+      "packages/engine/tests/cli/orchestrate-verify.test.ts",
+      "packages/engine/tests/cli/orchestrate.test.ts",
+      "packages/engine/tests/cli/quorum-store-sanitize.test.ts",
+      "packages/engine/tests/cli/quorum-store.test.ts",
       "packages/engine/tests/engine-skill-trigger-integration.test.ts",
       "packages/engine/tests/skill-trigger-engine.test.ts",
+      "packages/engine/tests/telemetry/retrospective-generator.test.ts",
+      "packages/engine/tests/verification/reviewer-response-broker.test.ts",
       "packages/engine/tests/worker-pool.test.ts",
+      "packages/notebook-store/src/providers/lancedb-notebook-provider.ts",
+      "packages/notebook-store/src/validation/notebook-validator.ts",
+      "packages/notebook-store/tests/providers/lancedb-notebook-provider.test.ts",
+      "packages/notebook-store/tests/providers/libsql-notebook-provider.test.ts",
+      "packages/quorum-fsm/tests/domain-scorer.test.ts",
+      "packages/quorum-fsm/tests/quorum-review-script.test.ts",
+      "packages/quorum-fsm/tests/quorum-state-store.test.ts",
+      "packages/superconductor-core/src/cache/semantic-cache.ts",
       "packages/superconductor-core/src/cli/index.ts",
       "packages/superconductor-core/src/intelligence/runners/coupling.ts",
+      "packages/superconductor-core/src/intelligence/runners/graphify.ts",
       "packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "packages/superconductor-core/src/models/agent-config-writer.ts",
+      "packages/superconductor-core/src/models/model-catalog-service.ts",
       "packages/superconductor-core/src/protocol/agent-context.ts",
+      "packages/superconductor-core/src/review/test-theatre-detector.test.ts",
+      "packages/superconductor-core/test/permissions/audit.test.ts",
+      "packages/superconductor-core/tests/agents/agent-manifest-audit.test.ts",
       "packages/superconductor-core/tests/aggregate-coverage.test.ts",
       "packages/superconductor-core/tests/aggregate-findings.test.ts",
+      "packages/superconductor-core/tests/cache/semantic-cache.test.ts",
+      "packages/superconductor-core/tests/cli/headless.test.ts",
+      "packages/superconductor-core/tests/correctness-boundary-edge.test.ts",
       "packages/superconductor-core/tests/deterministic-preflight.test.ts",
+      "packages/superconductor-core/tests/e2e/quorum-loop.e2e.test.ts",
       "packages/superconductor-core/tests/generate-token-report.test.ts",
       "packages/superconductor-core/tests/input-resolution.test.ts",
+      "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-context.test.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-surface-tool.test.ts",
+      "packages/superconductor-core/tests/intelligence/git-hook-integration.test.ts",
+      "packages/superconductor-core/tests/intelligence/runners/scoped-runners.test.ts",
+      "packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts",
+      "packages/superconductor-core/tests/models/agent-config-writer.test.ts",
+      "packages/superconductor-core/tests/models/model-catalog-service.test.ts",
+      "packages/superconductor-core/tests/models/model-chooser-dialog.test.ts",
+      "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
       "packages/superconductor-core/tests/plan-gap-checker.test.ts",
-      "packages/superconductor-core/tests/sast.test.ts"
+      "packages/superconductor-core/tests/sast.test.ts",
+      "packages/superconductor-core/tests/scripts/migrate-tracks.test.ts",
+      "packages/superconductor-core/tests/swarm/LanguageAdapter.test.ts",
+      "packages/superconductor-core/tests/track/archive-manager.test.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/InstallerService.ts",
+      "packages/superconductor-kernel/src/services/RegistryService.ts",
+      "packages/superconductor-kernel/tests/GraphCache.test.ts",
+      "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
+      "packages/superconductor-kernel/tests/NotebookService.test.ts",
+      "scripts/abi-retrospective.ts",
+      "scripts/hooks/verify-signoff.mjs"
     ],
     "isNodeBuiltin": true
   },
@@ -260,37 +748,159 @@
     "version": "node-builtin",
     "usedApis": [
       "child_process",
+      "execFileSync",
+      "execFile",
       "execSync",
       "cp",
-      "exec"
+      "exec",
+      "spawnSync",
+      "spawn",
+      "ChildProcess",
+      "childProcess"
     ],
     "importedBy": [
       "packages/engine/src/cache/ModelFetcher.test.ts",
       "packages/engine/src/cache/ModelFetcher.ts",
+      "packages/engine/src/cli/attention-notifier.ts",
+      "packages/engine/src/cli/lifecycle-manager.ts",
       "packages/engine/src/concurrency/worker-pool.ts",
       "packages/engine/src/context/builder.ts",
       "packages/engine/src/dispatcher/dispatcher.ts",
       "packages/engine/src/dispatcher/job-dispatcher.ts",
       "packages/engine/src/safety/gcc.ts",
       "packages/engine/src/safety/git-checkpoint-manager.ts",
+      "packages/engine/src/telemetry/retrospective-generator.ts",
+      "packages/engine/src/verification/__tests__/preflight-test-runner.test.ts",
       "packages/engine/src/verification/dod-classifier.ts",
       "packages/engine/src/verification/mutation-analyzer.ts",
+      "packages/engine/src/verification/preflight-test-runner.ts",
+      "packages/engine/tests/cli/attention-notifier.test.ts",
       "packages/engine/tests/dispatcher.test.ts",
       "packages/engine/tests/gcc.test.ts",
       "packages/engine/tests/job-dispatcher.test.ts",
       "packages/engine/tests/safety-integration.test.ts",
       "packages/engine/tests/worker-pool.test.ts",
+      "packages/superconductor-core/scripts/audit-swarm-compliance.ts",
+      "packages/superconductor-core/scripts/get-regression-context.ts",
+      "packages/superconductor-core/src/cli/merge-track.ts",
+      "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
+      "packages/superconductor-core/src/intelligence/cli-update.ts",
+      "packages/superconductor-core/src/intelligence/drift-monitor.ts",
+      "packages/superconductor-core/src/intelligence/incremental-updater.ts",
+      "packages/superconductor-core/src/intelligence/pipeline.ts",
       "packages/superconductor-core/src/intelligence/runners/complexity.ts",
       "packages/superconductor-core/src/intelligence/runners/coupling.ts",
       "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
       "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
+      "packages/superconductor-core/src/intelligence/runners/graphify.ts",
       "packages/superconductor-core/src/intelligence/runners/sast.ts",
       "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
       "packages/superconductor-core/src/intelligence/tool-registry.ts",
+      "packages/superconductor-core/src/models/model-catalog-service.ts",
+      "packages/superconductor-core/src/orchestration/background-task-monitor.ts",
+      "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
+      "packages/superconductor-core/src/orchestration/workspace-guard.test.ts",
+      "packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts",
+      "packages/superconductor-core/src/review/abi.ts",
       "packages/superconductor-core/src/review/deterministic-preflight.ts",
-      "packages/superconductor-core/tests/sast.test.ts"
+      "packages/superconductor-core/src/telemetry/quality-notes.ts",
+      "packages/superconductor-core/tests/abi.test.ts",
+      "packages/superconductor-core/tests/hooks/verify-signoff.test.ts",
+      "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+      "packages/superconductor-core/tests/intelligence/drift-monitor.test.ts",
+      "packages/superconductor-core/tests/intelligence/git-hook-integration.test.ts",
+      "packages/superconductor-core/tests/intelligence/incremental-updater.test.ts",
+      "packages/superconductor-core/tests/intelligence/snapshot-reader.test.ts",
+      "packages/superconductor-core/tests/sast.test.ts",
+      "packages/superconductor-core/tests/scripts/audit-swarm-compliance.test.ts",
+      "packages/superconductor-core/tests/telemetry/quality-notes.test.ts",
+      "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
+      "packages/superconductor-kernel/tests/mcp.test.ts",
+      "scripts/codebase-review-orchestrator.ts",
+      "scripts/quorum-review.test.ts",
+      "scripts/quorum-review.ts"
     ],
     "isNodeBuiltin": true
+  },
+  "crypto": {
+    "version": "node-builtin",
+    "usedApis": [
+      "crypto"
+    ],
+    "importedBy": [
+      "packages/engine/src/research/brief-synthesizer.ts",
+      "packages/engine/src/verification/quorum-review-loop.ts",
+      "packages/notebook-store/src/providers/lancedb-notebook-provider.ts",
+      "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
+      "packages/quorum-fsm/src/circuit-breaker/stagnant-diff-detector.ts",
+      "packages/quorum-fsm/src/persistence/quorum-state-store.ts",
+      "packages/quorum-fsm/src/zero-bias/zero-bias-context-builder.ts",
+      "packages/quorum-fsm/tests/zero-bias.test.ts",
+      "packages/superconductor-core/src/cache/semantic-cache.ts",
+      "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
+      "packages/superconductor-core/src/permissions/audit.ts",
+      "packages/superconductor-core/src/remediation/quorum-remediation-loop.ts",
+      "packages/superconductor-core/src/test-utils/test-token-signer.ts",
+      "packages/superconductor-core/test/permissions/e2e.test.ts",
+      "packages/superconductor-core/tests/hooks/verify-signoff.test.ts",
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/SyncManager.ts",
+      "scripts/hooks/verify-signoff.mjs"
+    ],
+    "isNodeBuiltin": true
+  },
+  "fs/promises": {
+    "version": "node-builtin",
+    "usedApis": [
+      "fs"
+    ],
+    "importedBy": [
+      "packages/engine/src/curator/skill-synthesizer.ts",
+      "packages/engine/tests/curator-integration.test.ts",
+      "packages/superconductor-core/src/cache/semantic-cache.ts",
+      "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
+      "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
+      "packages/superconductor-core/src/remediation/remediation-log-writer.ts",
+      "packages/superconductor-core/src/remediation/remediation-orchestrator.test.ts",
+      "packages/superconductor-core/src/remediation/remediation-orchestrator.ts",
+      "packages/superconductor-core/tests/cache/semantic-cache.test.ts",
+      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
+      "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
+      "packages/superconductor-kernel/src/services/GitService.ts",
+      "packages/superconductor-kernel/src/services/InstallerService.ts",
+      "packages/superconductor-kernel/src/services/PublishService.ts",
+      "packages/superconductor-kernel/src/services/RegistryService.ts"
+    ],
+    "isNodeBuiltin": true
+  },
+  "@superconductor/core/src/track/work-unit.js": {
+    "version": "unknown",
+    "usedApis": [
+      "WorkUnit",
+      "WorkUnitState",
+      "WorkUnitStateMachine",
+      "ConsensusArtifact"
+    ],
+    "importedBy": [
+      "packages/engine/src/cli/orchestrate.ts",
+      "packages/engine/src/cli/quorum-store.ts",
+      "packages/engine/src/dispatcher/implementor-registry.ts",
+      "packages/engine/src/dispatcher/parallel-dispatcher.ts",
+      "packages/engine/src/research/research-executor.test.ts",
+      "packages/engine/src/research/research-executor.ts",
+      "packages/engine/test/dispatcher/implementor-registry.test.ts",
+      "packages/engine/tests/cli/orchestrate-integration.test.ts",
+      "packages/engine/tests/cli/orchestrate-quorum.test.ts",
+      "packages/engine/tests/cli/orchestrate-verify.test.ts",
+      "packages/engine/tests/cli/orchestrate.test.ts",
+      "packages/engine/tests/cli/quorum-store.test.ts",
+      "packages/engine/tests/orchestrate.test.ts",
+      "packages/engine/tests/parallel-dispatcher.test.ts",
+      "packages/engine/tests/swarm-execute.test.ts"
+    ],
+    "isNodeBuiltin": false
   },
   "events": {
     "version": "node-builtin",
@@ -298,11 +908,13 @@
       "EventEmitter"
     ],
     "importedBy": [
+      "packages/engine/src/cli/orchestrate.ts",
       "packages/engine/src/curator/telemetry-ingester.ts",
       "packages/engine/src/dispatcher/dispatcher.ts",
       "packages/engine/src/engine.ts",
       "packages/engine/src/routing/escalation-router.ts",
       "packages/engine/src/routing/tool-analyzer.ts",
+      "packages/engine/src/verification/__tests__/preflight-test-runner.test.ts",
       "packages/engine/src/verification/verification-pipeline.ts",
       "packages/engine/tests/dispatcher.test.ts",
       "packages/engine/tests/escalation-router.test.ts",
@@ -313,24 +925,139 @@
     ],
     "isNodeBuiltin": true
   },
-  "fs/promises": {
-    "version": "node-builtin",
+  "zod": {
+    "version": "^3.25.76",
     "usedApis": [
-      "fs"
+      "z"
     ],
     "importedBy": [
-      "packages/superconductor-kernel/src/services/AtomicGitService.test.ts",
-      "packages/superconductor-kernel/src/services/CentralizedPublishService.test.ts",
-      "packages/superconductor-kernel/src/services/CentralizedPublishService.ts",
-      "packages/superconductor-kernel/src/services/DogmaService.test.ts",
-      "packages/superconductor-kernel/src/services/GitService.ts",
-      "packages/superconductor-kernel/src/services/InstallerService.ts",
-      "packages/superconductor-kernel/src/services/PublishService.ts",
-      "packages/superconductor-kernel/src/services/RegistryService.ts",
-      "packages/engine/src/curator/skill-synthesizer.ts",
-      "packages/engine/tests/curator-integration.test.ts"
+      "packages/engine/src/research/brief-synthesizer.ts",
+      "packages/engine/src/research/providers/gemini-interactions-client.ts",
+      "packages/engine/src/research/types.ts",
+      "packages/engine/src/verification/reviewer-findings-schema.ts",
+      "packages/engine/test-zod.ts",
+      "packages/superconductor-core/src/intelligence/prompt-generator.ts",
+      "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
+      "packages/superconductor-core/src/permissions/schemas.ts",
+      "packages/superconductor-core/src/remediation/remediation-state.ts",
+      "packages/superconductor-core/src/schema/track-manifest.ts",
+      "packages/superconductor-core/src/telemetry/quality-notes.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/src/services/ConfigService.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "url": {
+    "version": "node-builtin",
+    "usedApis": [
+      "fileURLToPath"
+    ],
+    "importedBy": [
+      "packages/engine/src/agents/skill-loader.ts",
+      "packages/superconductor-core/tests/agents/agent-manifest-audit.test.ts",
+      "packages/superconductor-kernel/src/index.ts",
+      "packages/superconductor-kernel/tests/graph-tools.test.ts",
+      "packages/superconductor-kernel/tests/mcp.test.ts",
+      "scripts/quorum-gate.mjs",
+      "scripts/validate-trailer.mjs"
     ],
     "isNodeBuiltin": true
+  },
+  "util": {
+    "version": "node-builtin",
+    "usedApis": [
+      "promisify",
+      "parseArgs"
+    ],
+    "importedBy": [
+      "packages/engine/src/cli/lifecycle-manager.ts",
+      "packages/engine/src/cli.ts",
+      "packages/engine/src/verification/mutation-analyzer.ts",
+      "packages/superconductor-core/tests/telemetry/quality-notes.test.ts",
+      "scripts/codebase-review-orchestrator.ts",
+      "scripts/quorum-gate.mjs",
+      "scripts/quorum-review.ts"
+    ],
+    "isNodeBuiltin": true
+  },
+  "js-yaml": {
+    "version": "^4.3.0",
+    "usedApis": [
+      "yaml"
+    ],
+    "importedBy": [
+      "packages/engine/src/dag/parser.ts",
+      "packages/superconductor-core/scripts/migrate-tracks.ts",
+      "packages/superconductor-core/src/intelligence/snapshot-reader.ts",
+      "packages/superconductor-core/src/track/execution-planner.ts",
+      "packages/superconductor-core/tests/agents/agent-manifest-audit.test.ts",
+      "packages/superconductor-core/tests/scripts/migrate-tracks.test.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@libsql/client": {
+    "version": "^0.17.0",
+    "usedApis": [
+      "Client",
+      "createClient",
+      "ResultSet",
+      "InStatement",
+      "Transaction",
+      "IntMode",
+      "libsql"
+    ],
+    "importedBy": [
+      "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
+      "packages/quorum-fsm/src/persistence/quorum-state-store.ts",
+      "packages/superconductor-core/src/shared/libsql-database-manager.ts",
+      "packages/superconductor-core/src/test-utils/in-memory-libsql-client.ts",
+      "packages/superconductor-core/tests/shared/libsql-database-manager.test.ts",
+      "packages/superconductor-kernel/src/index.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@superconductor/core": {
+    "version": "file:../superconductor-core",
+    "usedApis": [
+      "sanitizeUntrustedText",
+      "LibSQLDatabaseManager",
+      "getAgentContext",
+      "SUPERCONDUCTOR_MCP_TOOLS",
+      "readTrackRegistry",
+      "getCompletionStats",
+      "runDeterministicPreflight",
+      "aggregateCoverageManifests",
+      "aggregateFindings",
+      "runCascadeDeferralGate",
+      "generateTokenReport",
+      "checkPlanGap",
+      "resolveReviewInput",
+      "runPipeline",
+      "FileTelemetryStore",
+      "TokenUsageReport",
+      "getDependencySurface",
+      "IntelligenceSnapshotReader"
+    ],
+    "importedBy": [
+      "packages/engine/src/research/providers/google-deep-research-provider.ts",
+      "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
+      "packages/quorum-fsm/src/persistence/quorum-state-store.ts",
+      "packages/superconductor-mcp-server/src/index.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "vitest/config": {
+    "version": "unknown",
+    "usedApis": [
+      "defineConfig"
+    ],
+    "importedBy": [
+      "packages/engine/vitest.config.ts",
+      "packages/notebook-store/vitest.config.ts",
+      "packages/quorum-fsm/vitest.config.ts",
+      "packages/superconductor-kernel/vitest.config.ts"
+    ],
+    "isNodeBuiltin": false
   },
   "simple-git": {
     "version": "^3.30.0",
@@ -343,6 +1070,136 @@
       "packages/superconductor-kernel/src/services/AtomicGitService.ts",
       "packages/superconductor-kernel/src/services/GitService.ts",
       "packages/superconductor-kernel/src/services/PublishService.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "playwright": {
+    "version": "^1.40.0",
+    "usedApis": [
+      "chromium",
+      "Browser",
+      "Page"
+    ],
+    "importedBy": [
+      "packages/engine/src/verification/vlm-auditor.ts",
+      "packages/superconductor-core/src/review/playwright-harness.ts",
+      "packages/superconductor-core/tests/playwright-harness.test.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "prompts": {
+    "version": "^2.4.2",
+    "usedApis": [
+      "prompts"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/cli/interactive.ts",
+      "packages/superconductor-core/src/models/model-chooser-dialog.ts",
+      "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@superconductor/core/src/review/aggregate-findings.js": {
+    "version": "unknown",
+    "usedApis": [
+      "KeyholeFeedbackExtractor",
+      "isValidFinding"
+    ],
+    "importedBy": [
+      "packages/engine/src/cli/orchestrate.ts",
+      "packages/engine/src/verification/quorum-review-loop.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "better-sqlite3": {
+    "version": "^12.11.1",
+    "usedApis": [
+      "Database"
+    ],
+    "importedBy": [
+      "packages/engine/src/curator/telemetry-ingester.ts",
+      "packages/engine/src/state/event-store.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@superconductor/core/src/cache/semantic-cache.js": {
+    "version": "unknown",
+    "usedApis": [
+      "SemanticCache"
+    ],
+    "importedBy": [
+      "packages/engine/src/research/research-executor.test.ts",
+      "packages/engine/src/research/research-executor.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@superconductor/core/src/utils/input-sanitizer.js": {
+    "version": "unknown",
+    "usedApis": [
+      "sanitizeUntrustedText"
+    ],
+    "importedBy": [
+      "packages/engine/src/research/research-executor.ts",
+      "packages/engine/src/verification/quorum-review-loop.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "readline": {
+    "version": "node-builtin",
+    "usedApis": [
+      "readline"
+    ],
+    "importedBy": [
+      "packages/engine/src/telemetry/retrospective-generator.ts",
+      "packages/superconductor-core/src/orchestration/sign-off-gate.ts"
+    ],
+    "isNodeBuiltin": true
+  },
+  "@swc/core": {
+    "version": "^1.15.46",
+    "usedApis": [
+      "swc"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/intelligence/dependency-analyzer.ts",
+      "packages/superconductor-core/tests/intelligence/dependency-analyzer.test.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "smol-toml": {
+    "version": "^1.7.1",
+    "usedApis": [
+      "parse",
+      "stringify"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/permissions/providers/toml-provider.ts",
+      "packages/superconductor-core/tests/cli/command-delegation.test.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "ts-morph": {
+    "version": "^27.0.2",
+    "usedApis": [
+      "Project",
+      "SyntaxKind",
+      "Node"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/review/test-theatre-detector.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "react": {
+    "version": "unknown",
+    "usedApis": [
+      "React",
+      "useEffect"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/tests/intelligence/dependency-analyzer.test.ts",
+      "packages/superconductor-kernel/src/services/DogmaService.test.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -380,90 +1237,29 @@
     ],
     "isNodeBuiltin": false
   },
-  "zod": {
-    "version": "^3.25.76",
+  "@superconductor/notebook-store": {
+    "version": "workspace:*",
     "usedApis": [
-      "z"
+      "createNotebookProvider",
+      "ValidationError",
+      "UnauthorizedNoteError",
+      "AuthorityError",
+      "RateLimitError"
     ],
     "importedBy": [
-      "packages/superconductor-kernel/src/index.ts",
-      "packages/superconductor-kernel/src/services/ConfigService.ts"
+      "packages/superconductor-kernel/src/services/NotebookService.ts",
+      "packages/superconductor-kernel/tests/NotebookService.test.ts"
     ],
     "isNodeBuiltin": false
   },
-  "crypto": {
-    "version": "node-builtin",
-    "usedApis": [
-      "crypto"
-    ],
-    "importedBy": [
-      "packages/superconductor-kernel/src/services/GitService.ts",
-      "packages/superconductor-kernel/src/services/SyncManager.ts"
-    ],
-    "isNodeBuiltin": true
-  },
-  "util": {
-    "version": "node-builtin",
-    "usedApis": [
-      "parseArgs",
-      "promisify"
-    ],
-    "importedBy": [
-      "packages/engine/src/cli.ts",
-      "packages/engine/src/verification/mutation-analyzer.ts"
-    ],
-    "isNodeBuiltin": true
-  },
-  "better-sqlite3": {
-    "version": "^12.11.1",
-    "usedApis": [
-      "Database"
-    ],
-    "importedBy": [
-      "packages/engine/src/curator/telemetry-ingester.ts",
-      "packages/engine/src/state/event-store.ts"
-    ],
-    "isNodeBuiltin": false
-  },
-  "@libsql/client": {
-    "version": "^0.17.0",
-    "usedApis": [
-      "createClient"
-    ],
-    "importedBy": [
-      "packages/superconductor-kernel/src/index.ts"
-    ],
-    "isNodeBuiltin": false
-  },
-  "url": {
-    "version": "node-builtin",
-    "usedApis": [
-      "fileURLToPath"
-    ],
-    "importedBy": [
-      "packages/superconductor-kernel/src/index.ts"
-    ],
-    "isNodeBuiltin": true
-  },
-  "react": {
+  "module": {
     "version": "unknown",
     "usedApis": [
-      "useEffect"
+      "createRequire"
     ],
     "importedBy": [
-      "packages/superconductor-kernel/src/services/DogmaService.test.ts"
-    ],
-    "isNodeBuiltin": false
-  },
-  "ts-morph": {
-    "version": "^27.0.2",
-    "usedApis": [
-      "Project",
-      "SyntaxKind",
-      "Node"
-    ],
-    "importedBy": [
-      "packages/superconductor-kernel/src/services/DogmaService.ts"
+      "scripts/quorum-gate.mjs",
+      "scripts/validate-trailer.mjs"
     ],
     "isNodeBuiltin": false
   },
@@ -477,35 +1273,63 @@
     ],
     "isNodeBuiltin": false
   },
-  "js-yaml": {
-    "version": "^4.1.0",
+  "@superconductor/core/src/intelligence/topography-map.js": {
+    "version": "unknown",
+    "usedApis": [
+      "DomainPartition"
+    ],
+    "importedBy": [
+      "packages/engine/src/cli/orchestrate.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "typescript": {
+    "version": "^5.0.0",
+    "usedApis": [
+      "ts"
+    ],
+    "importedBy": [
+      "packages/engine/src/concurrency/ast-merger.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@google/genai": {
+    "version": "^2.13.0",
+    "usedApis": [
+      "GoogleGenAI"
+    ],
+    "importedBy": [
+      "packages/engine/src/research/providers/gemini-interactions-client.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "google-auth-library": {
+    "version": "^11.0.0",
+    "usedApis": [
+      "GoogleAuth"
+    ],
+    "importedBy": [
+      "packages/engine/src/research/providers/gemini-interactions-client.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "yaml": {
+    "version": "^2.4.1",
     "usedApis": [
       "yaml"
     ],
     "importedBy": [
-      "packages/engine/src/dag/parser.ts"
+      "packages/engine/src/skills/SkillPortingEngine.ts"
     ],
     "isNodeBuiltin": false
   },
   "minimatch": {
-    "version": "unknown",
+    "version": "^10.2.6",
     "usedApis": [
-      "minimatchPkg"
+      "minimatch"
     ],
     "importedBy": [
       "packages/engine/src/skills/skill-trigger-engine.ts"
-    ],
-    "isNodeBuiltin": false
-  },
-  "playwright": {
-    "version": "^1.61.1",
-    "usedApis": [
-      "chromium",
-      "Browser",
-      "Page"
-    ],
-    "importedBy": [
-      "packages/engine/src/verification/vlm-auditor.ts"
     ],
     "isNodeBuiltin": false
   },
@@ -519,24 +1343,53 @@
     ],
     "isNodeBuiltin": false
   },
-  "@superconductor/core": {
-    "version": "file:../superconductor-core",
+  "process": {
+    "version": "node-builtin",
     "usedApis": [
-      "getAgentContext",
-      "SUPERCONDUCTOR_MCP_TOOLS",
-      "readTrackRegistry",
-      "getCompletionStats",
-      "runDeterministicPreflight",
-      "aggregateCoverageManifests",
-      "aggregateFindings",
-      "runCascadeDeferralGate",
-      "generateTokenReport",
-      "checkPlanGap",
-      "resolveReviewInput",
-      "runPipeline"
+      "process"
     ],
     "importedBy": [
-      "packages/superconductor-mcp-server/src/index.ts"
+      "packages/superconductor-core/archive-track.ts"
+    ],
+    "isNodeBuiltin": true
+  },
+  "@testing-library/react": {
+    "version": "unknown",
+    "usedApis": [
+      "fireEvent"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/review/test-theatre-detector.test.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "@testing-library/user-event": {
+    "version": "unknown",
+    "usedApis": [
+      "userEvent"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/review/test-theatre-detector.test.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "proper-lockfile": {
+    "version": "^4.1.2",
+    "usedApis": [
+      "lockfile"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/src/track/archive-manager.ts"
+    ],
+    "isNodeBuiltin": false
+  },
+  "baz-pkg": {
+    "version": "unknown",
+    "usedApis": [
+      "baz"
+    ],
+    "importedBy": [
+      "packages/superconductor-core/tests/intelligence/dependency-analyzer.test.ts"
     ],
     "isNodeBuiltin": false
   }

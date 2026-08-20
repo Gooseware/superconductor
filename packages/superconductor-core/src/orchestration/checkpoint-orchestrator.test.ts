@@ -9,6 +9,7 @@ import {
   validatePlanPath
 } from './checkpoint-orchestrator.js';
 import * as fs from 'fs/promises';
+import { IntelligenceAutoSyncEngine } from '../intelligence/auto-sync-engine.js';
 
 vi.mock('fs/promises', () => ({
   readFile: vi.fn(),
@@ -19,6 +20,7 @@ describe('CheckpointOrchestrator', () => {
   let mockShell: any;
 
   beforeEach(() => {
+    vi.spyOn(IntelligenceAutoSyncEngine, 'syncPhaseFiles').mockResolvedValue(null);
     mockShell = {
       exec: vi.fn().mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 })
     };
@@ -103,6 +105,22 @@ describe('CheckpointOrchestrator', () => {
     expect(QualityNoteSchema.safeParse(parsedNote).success).toBe(true);
     expect(parsedNote.phase).toBe('Phase 5');
     expect(parsedNote.checkpointSha).toBe('newsha123');
+  });
+
+  it('triggers IntelligenceAutoSyncEngine.syncPhaseFiles with changedFiles', async () => {
+    const { IntelligenceAutoSyncEngine } = await import('../intelligence/auto-sync-engine.js');
+    const syncSpy = vi.spyOn(IntelligenceAutoSyncEngine, 'syncPhaseFiles').mockResolvedValue(null);
+
+    mockShell.exec.mockImplementation(async (cmd: string) => {
+      if (cmd.startsWith('git diff --name-only')) return { stdout: 'src/a.ts\nsrc/b.ts', stderr: '', exitCode: 0 };
+      if (cmd.includes('git log -1 --format="%H"')) return { stdout: 'newsha123', stderr: '', exitCode: 0 };
+      return { stdout: '', stderr: '', exitCode: 0 };
+    });
+
+    const orchestrator = new CheckpointOrchestrator('plan.md', mockShell);
+    await orchestrator.run('Phase 5', 'abcdef1');
+
+    expect(syncSpy).toHaveBeenCalledWith(['src/a.ts', 'src/b.ts'], expect.any(Object));
   });
 
   it('throws InvalidShaError when prevSha is invalid', async () => {

@@ -20,7 +20,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 
 If STALE: also trigger incremental update before proceeding:
 ```
-node packages/superconductor-core/dist/intelligence/cli-update.js <changed_files>
+node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/intelligence/cli-update.js" <changed_files>
 ```
 Record in quorum state: `intelligenceStatusChecked: true`
 
@@ -193,13 +193,13 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
     a. **Assert Quorum Green:** Verify that the full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) has reached unanimous `RESOLVED` status.
        - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
-       - Enforcement: Run `node scripts/quorum-gate.mjs --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
+       - Enforcement: Run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
     
-    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node scripts/quorum-gate.mjs --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
+    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
     
     c. **Generate and Validate Authorization Trailer:**
-       1. Call `node packages/superconductor-core/dist/track/swarm-authorizer.js --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
+       1. Call `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/track/swarm-authorizer.js" --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
        2. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
        3. **HALT if validation fails.** Do NOT proceed to step 5.d.
        4. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
@@ -391,7 +391,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
    If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
 
-   Enforcement: `node scripts/quorum-gate.mjs --gate` — CLI gate runner for `QuorumValidator` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Exits code 0 if quorum is green; exits code 1 if quorum is incomplete/not green; exits code 2 if quorum state cannot be read. If exit code is non-zero: HALT. Do not proceed to Oracle or tracks.md update.
+   Enforcement: `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate` — CLI gate runner for `QuorumValidator` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Exits code 0 if quorum is green; exits code 1 if quorum is incomplete/not green; exits code 2 if quorum state cannot be read. If exit code is non-zero: HALT. Do not proceed to Oracle or tracks.md update.
  **Initialize Oracle:**
     - Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
     - Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."

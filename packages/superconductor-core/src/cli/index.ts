@@ -201,7 +201,17 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
 
     case 'intelligence': {
       const m = await import('../intelligence/index.js');
-      await m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
+      const isRefresh = args.includes('--refresh');
+      const isForce = args.includes('--force');
+      if (isRefresh || isForce) {
+        const res = await m.IntelligenceAutoSyncEngine.ensureFresh({
+          projectRoot: process.cwd(),
+          force: isForce,
+        });
+        console.log(`✅ Intelligence sync complete: action=${res.action}, status=${res.status}, commitsBehind=${res.commitsBehind}`);
+      } else {
+        await m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
+      }
       break;
     }
 

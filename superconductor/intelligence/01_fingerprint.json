@@ -1,19 +1,19 @@
 {
   "languages": {
-    "BASH": 34,
+    "BASH": 25,
     "HTML": 624,
-    "JSON": 26330,
-    "JavaScript": 1991,
+    "JSON": 154497,
+    "JavaScript": 1883,
     "Markdown": 0,
     "Plain Text": 0,
-    "Python": 637,
-    "Shell": 339,
-    "TOML": 12,
+    "Python": 617,
+    "Shell": 349,
+    "TOML": 192,
     "TSX": 11,
-    "TypeScript": 28239,
-    "YAML": 6059
+    "TypeScript": 43432,
+    "YAML": 7299
   },
-  "totalLines": 64276,
-  "totalFiles": 896,
-  "primaryLanguage": "TypeScript"
+  "totalLines": 208929,
+  "totalFiles": 1170,
+  "primaryLanguage": "JSON"
 }

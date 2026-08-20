@@ -74,4 +74,36 @@ export class IntelligenceStatusService {
 
     return { status, age_days, commits_behind, snapshot_path: outputDir, phases };
   }
+
+  async refresh(outputDir?: string, force?: boolean): Promise<{ success: boolean; result: IntelligenceStatusResult; message?: string }> {
+    const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
+    const resolvedDir = outputDir ? path.resolve(outputDir) : PROJECT_ROOT;
+    let effectiveDir = resolvedDir;
+    if (fs.existsSync(path.join(effectiveDir, 'superconductor'))) {
+      effectiveDir = path.join(effectiveDir, 'superconductor');
+    }
+
+    try {
+      const cliPath = path.join(PROJECT_ROOT, 'packages', 'superconductor-core', 'dist', 'cli', 'index.js');
+      const tsCliPath = path.join(PROJECT_ROOT, 'packages', 'superconductor-core', 'src', 'cli', 'index.ts');
+      
+      if (fs.existsSync(cliPath)) {
+        const cliArgs = force ? ['intelligence', '--force'] : ['intelligence', '--refresh'];
+        execFileSync('node', [cliPath, ...cliArgs], {
+          cwd: PROJECT_ROOT,
+          encoding: 'utf8',
+        });
+      } else if (fs.existsSync(tsCliPath)) {
+        execFileSync('npx', ['tsx', tsCliPath, 'intelligence', force ? '--force' : '--refresh'], {
+          cwd: PROJECT_ROOT,
+          encoding: 'utf8',
+        });
+      }
+    } catch (err: any) {
+      console.error(`[IntelligenceStatusService] Refresh execution error:`, err);
+    }
+
+    const updated = await this.getStatus(resolvedDir);
+    return { success: true, result: updated };
+  }
 }
