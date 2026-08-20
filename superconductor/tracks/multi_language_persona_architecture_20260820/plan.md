@@ -45,41 +45,41 @@
 
 ## Phase 2: Modular Language Persona Skills Architecture [TIER-4]
 
-- [ ] Task: Create persona directories under `skills/personas/` [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Create `skills/personas/rust-reviewer/`
-    - [ ] Create `skills/personas/go-reviewer/`
-    - [ ] Create `skills/personas/python-reviewer/`
-    - [ ] Create `skills/personas/swift-reviewer/`
-    - [ ] Create `skills/personas/typescript-reviewer/`
-    - [ ] Create `skills/personas/cpp-reviewer/`
-    - [ ] Create `skills/personas/csharp-reviewer/`
-    - [ ] Create `skills/personas/kotlin-reviewer/`
-    - [ ] Create `skills/personas/zig-reviewer/`
-    - [ ] Create `skills/personas/ui-layout-reviewer/`
-- [ ] Task: Author `skills/personas/rust-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define memory safety invariants, borrow checker patterns, unsafe block audit, zero-cost abstractions, Cargo clippy/audit rules
-- [ ] Task: Author `skills/personas/go-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define goroutine lifecycle/leak prevention, `context.Context` propagation, error wrapping (`%w`), race detector invariants, table-driven tests
-- [ ] Task: Author `skills/personas/python-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define GIL/async event loop starvation, strict mypy typing, pytest fixtures/mock hygiene, mutable default arguments, packaging isolation
-- [ ] Task: Author `skills/personas/swift-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define ARC retain cycles (`[weak self]`), Swift Concurrency (`Sendable`, Actor isolation), SwiftUI view body purity, String catalogs (`.xcstrings`)
-- [ ] Task: Author `skills/personas/typescript-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define strict type soundness, nullability safety, async promise error handling, DOM/SSR hydration safety, bundle tree-shaking
-- [ ] Task: Author `skills/personas/cpp-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define RAII resource management, pointer arithmetic safety, ASan/UBSan sanitizers, smart pointers (`unique_ptr`/`shared_ptr`), move semantics
-- [ ] Task: Author `skills/personas/csharp-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define `IDisposable` pattern, async/await deadlock prevention, LINQ allocation overhead, nullable reference types, thread safety
-- [ ] Task: Author `skills/personas/kotlin-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define coroutine scope hierarchy, structured concurrency cancellation, platform types & nullability, Android/JVM performance, inline value classes
-- [ ] Task: Author `skills/personas/zig-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define explicit allocator parameterization, comptime metaprogramming type verification, error set handling, undefined memory safety
-- [ ] Task: Author `skills/personas/ui-layout-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer]
-    - [ ] Define layer hit-testing/pointer events, viewport responsiveness, WCAG 2.1 AA accessibility & contrast, token contract adherence, touch target sizes
-- [ ] Task: Update Skills Catalog & Extension Manifests (AC-10) [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Register all 10 persona skills in `skills/catalog.md`
-    - [ ] Update `plugin.json` and `gemini-extension.json` with multi-language reviewer keywords and capabilities
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Modular Language Persona Skills Architecture' (Protocol in workflow.md)
+- [x] Task: Create persona directories under `skills/personas/` [TIER-1] [AGENT:superconductor-processor] (commit: `7e74e41c`)
+    - [x] Create `skills/personas/rust-reviewer/`
+    - [x] Create `skills/personas/go-reviewer/`
+    - [x] Create `skills/personas/python-reviewer/`
+    - [x] Create `skills/personas/swift-reviewer/`
+    - [x] Create `skills/personas/typescript-reviewer/`
+    - [x] Create `skills/personas/cpp-reviewer/`
+    - [x] Create `skills/personas/csharp-reviewer/`
+    - [x] Create `skills/personas/kotlin-reviewer/`
+    - [x] Create `skills/personas/zig-reviewer/`
+    - [x] Create `skills/personas/ui-layout-reviewer/`
+- [x] Task: Author `skills/personas/rust-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define memory safety invariants, borrow checker patterns, unsafe block audit, zero-cost abstractions, Cargo clippy/audit rules
+- [x] Task: Author `skills/personas/go-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define goroutine lifecycle/leak prevention, `context.Context` propagation, error wrapping (`%w`), race detector invariants, table-driven tests
+- [x] Task: Author `skills/personas/python-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define GIL/async event loop starvation, strict mypy typing, pytest fixtures/mock hygiene, mutable default arguments, packaging isolation
+- [x] Task: Author `skills/personas/swift-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define ARC retain cycles (`[weak self]`), Swift Concurrency (`Sendable`, Actor isolation), SwiftUI view body purity, String catalogs (`.xcstrings`)
+- [x] Task: Author `skills/personas/typescript-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define strict type soundness, nullability safety, async promise error handling, DOM/SSR hydration safety, bundle tree-shaking
+- [x] Task: Author `skills/personas/cpp-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define RAII resource management, pointer arithmetic safety, ASan/UBSan sanitizers, smart pointers (`unique_ptr`/`shared_ptr`), move semantics
+- [x] Task: Author `skills/personas/csharp-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define `IDisposable` pattern, async/await deadlock prevention, LINQ allocation overhead, nullable reference types, thread safety
+- [x] Task: Author `skills/personas/kotlin-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define coroutine scope hierarchy, structured concurrency cancellation, platform types & nullability, Android/JVM performance, inline value classes
+- [x] Task: Author `skills/personas/zig-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define explicit allocator parameterization, comptime metaprogramming type verification, error set handling, undefined memory safety
+- [x] Task: Author `skills/personas/ui-layout-reviewer/SKILL.md` (FR-4, AC-4) [TIER-4] [AGENT:superconductor-dreamer] (commit: `7e74e41c`)
+    - [x] Define layer hit-testing/pointer events, viewport responsiveness, WCAG 2.1 AA accessibility & contrast, token contract adherence, touch target sizes
+- [x] Task: Update Skills Catalog & Extension Manifests (AC-10) [TIER-2] [AGENT:superconductor-processor] (commit: `7e74e41c`)
+    - [x] Register all 10 persona skills in `skills/catalog.md`
+    - [x] Update `plugin.json` and `gemini-extension.json` with multi-language reviewer keywords and capabilities
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Modular Language Persona Skills Architecture' (Protocol in workflow.md)
 
 ---
 
