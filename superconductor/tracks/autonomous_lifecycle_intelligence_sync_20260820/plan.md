@@ -37,36 +37,36 @@
 ---
 
 ## Phase 2: Quorum Review Hardening & Script Path Resolution (Recommended Fixes)
-- [ ] Task: Write failing tests for review skill parsing and quorum subagent dispatch invariants [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test assertion that in-process simulation language is rejected
-    - [ ] Test assertion that all 4 review roles are strictly required
-- [ ] Task: Refactor review skills to eliminate in-process simulation and mandate `invoke_subagent` [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Unify `skills/review/` and `skills/standalone-review/` into canonical dual-mode `skills/review/SKILL.md`
-    - [ ] Require `invoke_subagent` for all 4 roles (`security`, `correctness`, `adversarial`, `regression`)
-    - [ ] Standardize structured `json:review-findings` output schema
-- [ ] Task: Update script path resolution across skills and hooks to use dynamic `$SUPERCONDUCTOR_DIR` [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Update script invocations in `skills/review/SKILL.md` and `skills/implement/SKILL.md`
-    - [ ] Update hook paths in `scripts/hooks/install-hooks.sh` and `scripts/install-git-hook.sh`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Review Hardening & Script Path Resolution' (Protocol in workflow.md)
+- [x] Task: Write failing tests for review skill parsing and quorum subagent dispatch invariants [TIER-2] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Test assertion that in-process simulation language is rejected
+    - [x] Test assertion that all 4 review roles are strictly required
+- [x] Task: Refactor review skills to eliminate in-process simulation and mandate `invoke_subagent` [TIER-2] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Unify `skills/review/` and `skills/standalone-review/` into canonical dual-mode `skills/review/SKILL.md`
+    - [x] Require `invoke_subagent` for all 4 roles (`security`, `correctness`, `adversarial`, `regression`)
+    - [x] Standardize structured `json:review-findings` output schema
+- [x] Task: Update script path resolution across skills and hooks to use dynamic `$SUPERCONDUCTOR_DIR` [TIER-2] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Update script invocations in `skills/review/SKILL.md` and `skills/implement/SKILL.md`
+    - [x] Update hook paths in `scripts/hooks/install-hooks.sh` and `scripts/install-git-hook.sh`
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Review Hardening & Script Path Resolution' (Protocol in workflow.md)
 
 ---
 
 ## Phase 3: Continuous 5-Tier Code Intelligence Auto-Sync Engine
-- [ ] Task: Write unit tests for `IntelligenceAutoSyncEngine` (delta calculation, incremental update, manifest refresh) [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test incremental file detection from `git diff`
-    - [ ] Test manifest timestamp and commit hash updates
-- [ ] Task: Implement `IntelligenceAutoSyncEngine` in `packages/superconductor-core/src/intelligence/` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Create `auto-sync-engine.ts` with sub-second incremental updater
-    - [ ] Export synchronization methods
-- [ ] Task: Hook `IntelligenceAutoSyncEngine` into `CheckpointOrchestrator.run()` for phase checkpoint commits [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Trigger incremental sync immediately after git commit & git notes attachment
-- [ ] Task: Implement `kernel_intelligence_refresh` tool in `packages/superconductor-kernel/` MCP server and CLI [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Register MCP tool schema and handler
-    - [ ] Expose CLI command `npx superconductor intelligence --refresh`
-- [ ] Task: Execute immediate repository re-indexing to clear the 310-commit drift and verify `kernel_intelligence_status` returns `LIVE` [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run full pipeline scan
-    - [ ] Verify `kernel_intelligence_status` reports `LIVE`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Continuous 5-Tier Code Intelligence Auto-Sync Engine' (Protocol in workflow.md)
+- [x] Task: Write unit tests for `IntelligenceAutoSyncEngine` (delta calculation, incremental update, manifest refresh) [TIER-2] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Test incremental file detection from `git diff`
+    - [x] Test manifest timestamp and commit hash updates
+- [x] Task: Implement `IntelligenceAutoSyncEngine` in `packages/superconductor-core/src/intelligence/` [TIER-3] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Create `auto-sync-engine.ts` with sub-second incremental updater
+    - [x] Export synchronization methods
+- [x] Task: Hook `IntelligenceAutoSyncEngine` into `CheckpointOrchestrator.run()` for phase checkpoint commits [TIER-3] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Trigger incremental sync immediately after git commit & git notes attachment
+- [x] Task: Implement `kernel_intelligence_refresh` tool in `packages/superconductor-kernel/` MCP server and CLI [TIER-3] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Register MCP tool schema and handler
+    - [x] Expose CLI command `npx superconductor intelligence --refresh`
+- [x] Task: Execute immediate repository re-indexing to clear the 310-commit drift and verify `kernel_intelligence_status` returns `LIVE` [TIER-2] [AGENT:superconductor-processor] (SHA: 279d85d0)
+    - [x] Run full pipeline scan
+    - [x] Verify `kernel_intelligence_status` reports `LIVE`
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Continuous 5-Tier Code Intelligence Auto-Sync Engine' (Protocol in workflow.md)
 
 ---
 
