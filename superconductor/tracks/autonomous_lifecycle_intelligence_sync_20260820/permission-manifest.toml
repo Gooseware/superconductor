@@ -1,0 +1,28 @@
+# Permission Manifest for track autonomous_lifecycle_intelligence_sync_20260820
+[permissions]
+read = [
+  "skills/**",
+  "commands/**",
+  "scripts/**",
+  "packages/**",
+  "superconductor/**"
+]
+write = [
+  "skills/**",
+  "commands/**",
+  "scripts/**",
+  "packages/**",
+  "superconductor/**"
+]
+commands = [
+  "npm test",
+  "npm run build",
+  "npx -y tsx",
+  "git diff",
+  "git status",
+  "git log",
+  "git checkout",
+  "git branch",
+  "git merge",
+  "git notes"
+]
