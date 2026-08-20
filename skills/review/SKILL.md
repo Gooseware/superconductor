@@ -95,6 +95,10 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 
 You MUST ALWAYS dispatch the 4 heterogeneous review roles as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
 
+#### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+Before dispatching the 4 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 subagents (unless `--no-preflight` is explicitly set).
+This single execution provides authoritative test evidence upfront and strictly prevents 4 parallel subagents from running `npm test` redundantly and saturating CPU/memory resources.
+
 Dispatch Call Pattern:
 ```javascript
 invoke_subagent({

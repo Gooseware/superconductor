@@ -121,6 +121,10 @@ Include this directly in the adversarial reviewer prompt when `skills/code-revie
 
 You MUST ALWAYS dispatch the 4 heterogeneous review roles as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
 
+#### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+Before dispatching the 4 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 subagents (unless `--no-preflight` is explicitly set).
+This single pre-execution prevents 4 parallel subagents from executing `npm test` redundantly and saturating CPU/memory resources.
+
 Dispatch Call Pattern:
 ```javascript
 invoke_subagent({
@@ -226,6 +230,7 @@ As default, plus after step 8:
 
 Each reviewer receives:
 - The resolved diff/code target
+- Preflight Test Execution Evidence (`## Preflight Test Execution Evidence` block from `QuorumPreflightTestRunner`)
 - Deterministic preflight output (or `"preflight: skipped - no tool detected"`)
 - Their specialization prompt from `templates/reviewers/<role>-reviewer.md`
 - **No** `spec.md`, **no** `plan.md` context (unless `--pr` mode, where PR description is used)

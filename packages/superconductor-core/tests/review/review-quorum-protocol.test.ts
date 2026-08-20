@@ -113,4 +113,40 @@ describe('Review Quorum Protocol & Subagent Dispatch Hardening', () => {
       expect(content).toContain('SUPERCONDUCTOR_DIR');
     });
   });
+
+  describe('Quorum Preflight Test Execution & Context Injection Protocol', () => {
+    const swarmExecuteSkill = path.join(repoRoot, 'skills/swarm-execute/SKILL.md');
+    const workflowDoc = path.join(repoRoot, 'superconductor/workflow.md');
+
+    it('skills/standalone-review/SKILL.md documents Quorum Preflight Test Execution & Context Injection Protocol', () => {
+      const content = fs.readFileSync(standaloneReviewSkill, 'utf-8');
+      expect(content).toContain('Quorum Preflight Test Execution & Context Injection Protocol');
+      expect(content).toContain('QuorumPreflightTestRunner');
+      expect(content).toContain('## Preflight Test Execution Evidence');
+    });
+
+    it('skills/review/SKILL.md documents Quorum Preflight Test Execution & Context Injection Protocol', () => {
+      const content = fs.readFileSync(reviewSkill, 'utf-8');
+      expect(content).toContain('Quorum Preflight Test Execution & Context Injection Protocol');
+      expect(content).toContain('QuorumPreflightTestRunner');
+      expect(content).toContain('## Preflight Test Execution Evidence');
+    });
+
+    it('skills/swarm-execute/SKILL.md documents Quorum Preflight Test Execution & Context Injection Protocol', () => {
+      expect(fs.existsSync(swarmExecuteSkill)).toBe(true);
+      const content = fs.readFileSync(swarmExecuteSkill, 'utf-8');
+      expect(content).toContain('Quorum Preflight Test Execution & Context Injection Protocol');
+      expect(content).toContain('QuorumPreflightTestRunner');
+      expect(content).toContain('## Preflight Test Execution Evidence');
+    });
+
+    it('superconductor/workflow.md documents Quorum Preflight Test Execution & Context Injection Protocol', () => {
+      expect(fs.existsSync(workflowDoc)).toBe(true);
+      const content = fs.readFileSync(workflowDoc, 'utf-8');
+      expect(content).toContain('Quorum Preflight Test Execution & Context Injection Protocol');
+      expect(content).toContain('QuorumPreflightTestRunner');
+      expect(content).toContain('## Preflight Test Execution Evidence');
+    });
+  });
 });
+

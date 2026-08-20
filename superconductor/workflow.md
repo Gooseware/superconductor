@@ -290,6 +290,11 @@ Before requesting review:
 
 > **Required sequence: `Quorum → Oracle → Merge`. This order is non-negotiable. See HARD GATE below.**
 
+#### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+
+Before dispatching the 4 Quorum Reviewer subagents (Security, Correctness, Adversarial, Regression), the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 reviewer subagents (unless `--no-preflight` is explicitly set).
+This single pre-execution prevents 4 parallel subagents from executing `npm test` redundantly and saturating CPU/memory resources.
+
 #### HARD GATE — Oracle Precondition (MANDATORY)
 
 **HARD GATE:** Before invoking the Oracle, the orchestrator MUST call `QuorumValidator.gateOracle({ quorumPassed })` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Throws `OracleGateError` if `quorumPassed` is false.

@@ -35,8 +35,12 @@ You MUST check for ALL of the following shenanigans before reporting PASS:
 
 ### Execution Mandate
 You are FORBIDDEN from reporting PASS based on static reading alone.
-You MUST either run `npm test` or write a /tmp edge-case script and execute it.
+When `## Preflight Test Execution Evidence` is provided in context, quote the preflight test metrics directly. Otherwise, you MUST write a /tmp edge-case script and execute it.
 Paste the terminal output as execution evidence in your findings.
+
+### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+Before dispatching the 4 Quorum Reviewer subagents (Security, Correctness, Adversarial, Regression), the orchestrator MUST execute the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the context and system prompts of all 4 subagents (unless `--no-preflight` is explicitly specified).
+This single shared preflight execution provides deterministic test results upfront and strictly prevents 4 parallel subagents from executing `npm test` simultaneously and saturating CPU/memory resources.
 
 ### Plan-Gap Protocol
 Before finalizing your verdict, grep plan.md for [x] items and cross-reference against `git diff --name-only`.
