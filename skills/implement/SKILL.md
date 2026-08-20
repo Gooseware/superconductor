@@ -38,13 +38,18 @@ Record in quorum state: `notebookQueried: true`
 
 Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebook lines are absent.
 
-## 1.1 HEADLESS MODE HANDLING
-**PROTOCOL: Detect and adapt to headless execution.**
+## 1.1 HEADLESS MODE HANDLING & ZERO-TOUCH LIFECYCLE
+**PROTOCOL: Detect and adapt to headless execution via TrackLifecycleOrchestrator.**
 **Detection:** Check if the user's input arguments contain `--headless`.
 2. **Behavior Modification:** If `--headless` is detected:
    - You MUST NOT use the `ask_user` tool for any manual verification, review, or confirmation prompts.
-   - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, skip cleanup/Oracle review) UNLESS specifically instructed otherwise.
+   - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, auto-advance Oracle review).
    - For Phase Completion Checkpoints, follow the Headless bypass rule in `workflow.md`: automatically pass the checkpoint if automated tests and coverage assertions succeed.
+   - **Zero-Touch Headless Finalization (`TrackLifecycleOrchestrator`):** When the 4-agent Quorum is unanimous `RESOLVED` and Oracle verdict is `READY`, the orchestrator automatically:
+     1. Issues an autonomous HMAC sign-off record via `SignOffGate.recordAutonomousSignOff()`.
+     2. Resolves the target integration branch dynamically from `superconductor/tech-stack.md` (or `--target=<branch>`).
+     3. Executes `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
+     4. Canonically archives the track to `superconductor/tracks/archive/<track_id>` and atomically synchronizes `tracks.md` and `archive.md`.
 
 ## 1.2 SETUP CHECK
 **PROTOCOL: Verify that the Superconductor environment is properly set up.**
@@ -340,7 +345,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - Use `TrackLifecycleWizard` (`packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts`) to manage lifecycle actions:
       1. **Interactive Mode:** Prompt the user using `wizard.buildFinalizationPrompt(track_id)`:
          - `merge`: Merge track branch into target branch (default `main`, requires Oracle sign-off).
-         - `archive`: Move completed track to `superconductor/archive/<track_id>`, update `archive.md` and `tracks.md`.
+         - `archive`: Move completed track to `superconductor/tracks/archive/<track_id>`, update `archive.md` and `tracks.md`.
          - `delete`: Request confirmation and perform clean deletion of track directory and registry entry.
          - `skip`: Keep track in registry without cleanup.
       2. **Headless Mode:** If `--headless` is active, automatically verify Oracle sign-off, execute merge to target branch (default `main`), and archive the completed track.

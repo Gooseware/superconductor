@@ -107,3 +107,13 @@ All reviewers MUST use the rigid `json:review-findings` schema:
 }
 ```
 **Schema state-machine mutual exclusivity:** A payload with `"status": "RESOLVED"` MUST have an empty `findings` array. A payload with any finding entry MUST NOT contain `"status": "RESOLVED"`.
+
+---
+
+## Step 5 — Zero-Touch Autonomous Headless Pipeline (`TrackLifecycleOrchestrator`)
+
+When executing in Headless Mode (`--headless`):
+1. **Autonomous Sign-Off:** Upon unanimous Quorum (`RESOLVED`, 0 findings) and Oracle `READY`, `TrackLifecycleOrchestrator` automatically records an autonomous HMAC sign-off (`SignOffGate.recordAutonomousSignOff()`) with zero human blocking prompts.
+2. **Dynamic Target Branch Merge:** Resolves the integration branch from `superconductor/tech-stack.md` (`Target Branch`), falling back to CLI `--target` or `main`. Executes `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
+3. **Canonical Archival:** Moves the completed track transactionally to `superconductor/tracks/archive/<track_id>` and atomically updates `tracks.md` and `archive.md`.
+

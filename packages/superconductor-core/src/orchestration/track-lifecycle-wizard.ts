@@ -62,7 +62,7 @@ export class TrackLifecycleWizard {
     this.archiveRegistryPath =
       options.archiveRegistryPath || path.join(this.projectRoot, 'superconductor', 'archive.md');
     this.tracksDir = options.tracksDir || path.join(this.projectRoot, 'superconductor', 'tracks');
-    this.archiveDir = options.archiveDir || path.join(this.projectRoot, 'superconductor', 'archive');
+    this.archiveDir = options.archiveDir || path.join(this.projectRoot, 'superconductor', 'tracks', 'archive');
     this.promptFn = options.promptFn || prompts;
     this.gitExecFn =
       options.gitExecFn ||
