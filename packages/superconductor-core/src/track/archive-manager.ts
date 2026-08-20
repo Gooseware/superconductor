@@ -92,19 +92,41 @@ export class ArchiveManager {
 
       const registryContent = fs.readFileSync(this.tracksRegistryPath, 'utf8');
     
-      // Split the registry into blocks that start with a track heading
-      const blockRegex = /^(?:\s*-\s*|##\s*)\[[xX \-~]\].*$/m;
-      const blocks = registryContent.split(new RegExp(`(?=^(?:\\s*-\\s*|##\\s*)\\[[xX \\-~]\\])`, 'm'));
-      
+      const trackIdEscaped = trackId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const boundaryRegex = new RegExp(`(?<![\\w-])${trackIdEscaped}(?![\\w-])`);
+
       let targetBlock = '';
       let status = '';
-      for (const block of blocks) {
-        // SEC-1: Precise boundary match
-        if (block.includes(trackId) && new RegExp(`(?<![\\w-])${trackId}(?![\\w-])`).test(block) && blockRegex.test(block)) {
-          targetBlock = block;
-          const match = block.match(/^(?:\s*-\s*|##\s*)\[([xX \-~])\]/);
-          if (match) status = match[1].toLowerCase();
-          break;
+
+      // 1. Check if track is represented as a markdown table row
+      const tableRowRegex = new RegExp(`^[ \\t]*\\|.*?(?:\\r?\\n|$)`, 'gm');
+      let tableMatch: RegExpExecArray | null;
+      while ((tableMatch = tableRowRegex.exec(registryContent)) !== null) {
+        const row = tableMatch[0];
+        if (boundaryRegex.test(row)) {
+          const statusMatch = row.match(/\|\s*`?\[([xX \-~])\]`?\s*\|/) || row.match(/`?\[([xX \-~])\]`?/);
+          if (statusMatch) {
+            targetBlock = row;
+            status = statusMatch[1].toLowerCase();
+            break;
+          }
+        }
+      }
+
+      // 2. Fall back to list item or heading blocks
+      if (!targetBlock) {
+        const blockRegex = /^(?:[ \t]*[-*+][ \t]+|#{1,6}[ \t]+)`?\[[xX \-~]\]`?.*$/m;
+        const blocks = registryContent.split(
+          new RegExp(`(?=^(?:[ \\t]*[-*+][ \\t]+|#{1,6}[ \\t]+)\`?\\[[xX \\-~]\\]\`?)`, 'm')
+        );
+
+        for (const block of blocks) {
+          if (block.includes(trackId) && boundaryRegex.test(block) && blockRegex.test(block)) {
+            targetBlock = block;
+            const match = block.match(/^(?:[ \t]*[-*+][ \t]+|#{1,6}[ \t]+)`?\[([xX \-~])\]`?/);
+            if (match) status = match[1].toLowerCase();
+            break;
+          }
         }
       }
 
@@ -148,11 +170,27 @@ export class ArchiveManager {
 
         // Step B: Append entry to archive.md
         state = 'WRITING_ARCHIVE';
-        fs.writeFileSync(
-          this.archiveRegistryPath,
-          originalArchiveContent + (originalArchiveContent.endsWith('\n') ? '' : '\n') + fullEntryLine + '\n',
-          'utf8'
+        let entryToAppend = fullEntryLine.trimEnd();
+        entryToAppend = entryToAppend.replace(
+          new RegExp(`\\(\\./tracks/${trackIdEscaped}/`, 'g'),
+          `\(./tracks/archive/${trackId}/`
         );
+        entryToAppend = entryToAppend.replace(
+          new RegExp(`\\(tracks/${trackIdEscaped}/`, 'g'),
+          `\(tracks/archive/${trackId}/`
+        );
+
+        let updatedArchive: string;
+        const cleanArchive = originalArchiveContent.trimEnd();
+        if (cleanArchive.length === 0) {
+          updatedArchive = entryToAppend + '\n';
+        } else if (cleanArchive.endsWith('|') && entryToAppend.startsWith('|')) {
+          updatedArchive = cleanArchive + '\n' + entryToAppend + '\n';
+        } else {
+          updatedArchive = cleanArchive + '\n\n' + entryToAppend + '\n';
+        }
+
+        fs.writeFileSync(this.archiveRegistryPath, updatedArchive, 'utf8');
         state = 'APPENDED';
 
         // Step C: Remove entry from tracks.md
