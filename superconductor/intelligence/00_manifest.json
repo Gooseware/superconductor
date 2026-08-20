@@ -1,6 +1,8 @@
 {
   "superconductorVersion": "1.0.0",
-  "timestamp": 1785328512794,
+  "timestamp": 1787193153519,
+  "lastCommitSha": "62c5f69619a309ba5e6137c9e303855f029a9135",
+  "incrementalRuns": 2,
   "trackId": "unknown",
   "projectRoot": "/home/gooseware/repos/gemini/extensions/superconductor",
   "tools": {
@@ -43,39 +45,57 @@
       "tool": "static-test-gap-analyzer",
       "version": "builtin",
       "status": "available"
+    },
+    "domain_partition": {
+      "tool": "graphify",
+      "version": "graphify 0.9.31",
+      "status": "available"
     }
   },
-  "degraded": [],
+  "degraded": [
+    "p2_dependency_graph",
+    "p9_graphify"
+  ],
   "phases": {
     "p1_fingerprint": {
-      "elapsed": 64,
+      "elapsed": 66,
       "output": "ok"
     },
     "p2_dependency_graph": {
-      "elapsed": 636,
-      "output": "ok"
+      "elapsed": 0,
+      "output": "degraded"
     },
     "p3_complexity": {
-      "elapsed": 1678,
+      "elapsed": 3404,
       "output": "ok"
     },
     "p4_coupling": {
-      "elapsed": 3376,
+      "elapsed": 4151,
+      "output": "ok"
+    },
+    "p5_sast": {
+      "elapsed": 19288,
       "output": "ok"
     },
     "p6_symbol_extraction": {
-      "elapsed": 123,
+      "elapsed": 522,
       "output": "ok"
     },
     "p7_test_gaps": {
-      "elapsed": 20,
+      "elapsed": 356,
       "output": "ok"
     },
     "p8_package_surface": {
-      "elapsed": 8,
+      "elapsed": 286,
       "output": "ok"
+    },
+    "p8_dependency_surface": {
+      "elapsed": 1554,
+      "output": "ok"
+    },
+    "p9_graphify": {
+      "elapsed": 1,
+      "output": "degraded"
     }
-  },
-  "lastCommitSha": "7519c88f340b09725fb22733bc3238d6c1828a54",
-  "incrementalRuns": 1
+  }
 }

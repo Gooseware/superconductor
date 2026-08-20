@@ -91,9 +91,43 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 1.  Run `git diff <revision_range> -- <file_path>`.
                 2.  Perform the "Analyze and Verify" checks on this specific chunk.
                 3.  Store findings in your temporary memory.
-            -   **Aggregate:** Synthesize all file-level findings into the final report.
+### 2.3 Quorum Review Dispatch Protocol (MANDATORY)
 
-### 2.3 Analyze and Verify
+You MUST ALWAYS dispatch the 4 heterogeneous review roles as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
+
+#### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+Before dispatching the 4 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 subagents (unless `--no-preflight` is explicitly set).
+This single execution provides authoritative test evidence upfront and strictly prevents 4 parallel subagents from running `npm test` redundantly and saturating CPU/memory resources.
+
+Dispatch Call Pattern:
+```javascript
+invoke_subagent({
+  Subagents: [
+    { TypeName: "superconductor-reviewer", Role: "security-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "correctness-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "adversarial-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "regression-reviewer", Prompt: "..." }
+  ]
+})
+```
+
+Rule: NEVER conclude a quorum review until all 4 subagents have returned their independent verdicts.
+
+### 2.4 Structured JSON Output Extraction Block Schema
+All subagent reviewers MUST return their structured findings enclosed in the standard markdown block:
+```json:review-findings
+[
+  {
+    "severity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
+    "domain": "security" | "logic" | "tests" | "types" | "frontend" | "config" | "schema",
+    "file": "path/to/file.tsx",
+    "line": 42,
+    "description": "..."
+  }
+]
+```
+
+### 2.5 Analyze and Verify
 **Perform the following checks on the retrieved diff:**
 
 1.  **Intent Verification:** Does the code actually implement what the `plan.md` (and `spec.md` if available) asked for?
@@ -141,6 +175,12 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 ```diff
 - old_code
 + new_code
+```
+
+### 2.6 Self-Check Verification
+Immediately after generating the review report, you MUST verify it with:
+```bash
+npx -y tsx "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/review-self-check.ts" <report-path>
 ```
 
 ---
@@ -234,7 +274,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
         a.  If the user chooses "Archive":
             i.   **Run ArchiveManager:** Run the archival process via the Node script.
             ```bash
-            cd packages/superconductor-core && npx tsx archive-track.ts <track_id>
+            npx -y tsx "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/archive-track.ts" <track_id>
             ```
             ii.  **Commit the Archive:** Stage the changes from `archive.md`, `tracks.md`, and the `archive/` folder.
             ```bash

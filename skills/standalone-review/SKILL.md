@@ -25,10 +25,10 @@ Resolve the review target by checking the following in priority order:
 
 1. **Parse `{{args}}`** for flags:
    - `--staged` → run `git diff --staged`
-   - `--branch <b>` → Runs automatic quorum loop via `scripts/quorum-review.ts`. FSM state persisted to LibSQL. Max 5 cycles. Zero-bias re-run on each cycle.
+   - `--branch <b>` → Runs automatic quorum loop via `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-review.ts`. FSM state persisted to LibSQL. Max 5 cycles. Zero-bias re-run on each cycle.
    - `--pr <url>` → fetch PR diff (see §7.0)
    - `--file <path>` → read file content directly; verify path exists, abort with clear error if not
-   - `--codebase` / `--dir <path>` → Runs `scripts/codebase-review-orchestrator.ts`. Domains scored by 0.4×Hotspot + 0.35×FanIn + 0.25×GitChurn. Sequential processing, most critical first.
+   - `--codebase` / `--dir <path>` → Runs `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/codebase-review-orchestrator.ts`. Domains scored by 0.4×Hotspot + 0.35×FanIn + 0.25×GitChurn. Sequential processing, most critical first.
    - `--fast` → set depth mode to `fast`
    - `--deep` → set depth mode to `deep`
    - `--remediate` → forces launch of the Swarm Remediation Engine regardless of mode
@@ -117,13 +117,41 @@ Include this directly in the adversarial reviewer prompt when `skills/code-revie
 - Coverage map gaming (manifest claims coverage of unreviewed areas)
 - Silent degradation (error paths that swallow failures without surfacing them)
 
-### 4.2 Manual Orchestration Protocol (Fallback)
+### 4.2 Subagent Quorum Dispatch Protocol (MANDATORY)
 
-If the automated orchestration scripts (`scripts/quorum-review.ts`, `scripts/codebase-review-orchestrator.ts`, etc.) are unavailable, you MUST manually execute the review pipeline:
-1. Fetch the diff or target files directly via `git` or file reads.
-2. Manually dispatch the four reviewer roles (Security, Correctness, Adversarial, Regression) as subagents via `send_message` or execute their roles directly in parallel.
-3. Wait for all reviewers to return their findings.
-4. Manually aggregate the findings into the final structured report and self-check it.
+You MUST ALWAYS dispatch the 4 heterogeneous review roles as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
+
+#### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+Before dispatching the 4 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 subagents (unless `--no-preflight` is explicitly set).
+This single pre-execution prevents 4 parallel subagents from executing `npm test` redundantly and saturating CPU/memory resources.
+
+Dispatch Call Pattern:
+```javascript
+invoke_subagent({
+  Subagents: [
+    { TypeName: "superconductor-reviewer", Role: "security-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "correctness-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "adversarial-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "regression-reviewer", Prompt: "..." }
+  ]
+})
+```
+
+Rule: NEVER conclude a quorum review until all 4 subagents have returned their independent verdicts.
+
+### 4.3 Structured JSON Output Extraction Block Schema
+All subagent reviewers MUST return their structured findings enclosed in the standard markdown block:
+```json:review-findings
+[
+  {
+    "severity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
+    "domain": "security" | "logic" | "tests" | "types" | "frontend" | "config" | "schema",
+    "file": "path/to/file.tsx",
+    "line": 42,
+    "description": "..."
+  }
+]
+```
 
 ### Adversarial Edge Case Execution Protocol
 
@@ -170,16 +198,16 @@ Correct intent:    empty = clean pass, should always skip
 
 **`--fast` mode:**
 1. Dispatch Flash[Security], Flash[Correctness], Flash[Adversarial], Flash[Regression] in parallel (isolated)
-2. Aggregate findings via `scripts/aggregate-findings.ts`
+2. Aggregate findings via `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/aggregate-findings.ts`
 3. Emit findings report immediately — no residual pass, no arbiter
 
 **Default mode (full pipeline):**
-1. Run `scripts/deterministic-preflight.ts` (language-detected or extension-heuristic)
-2. Run `scripts/quorum-review.ts` to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression
-3. Run `scripts/aggregate-coverage-manifest.ts` → ResidualCoverageMap
+1. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/deterministic-preflight.ts` (language-detected or extension-heuristic)
+2. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-review.ts` to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression
+3. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/aggregate-coverage-manifest.ts` → ResidualCoverageMap
 4. If ResidualCoverageMap non-empty → dispatch residual Flash pass
-5. Run `scripts/aggregate-findings.ts` → unified findings
-6. Run `scripts/cascade-deferral-gate.ts` → classify + brief arbiter
+5. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/aggregate-findings.ts` → unified findings
+6. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/cascade-deferral-gate.ts` → classify + brief arbiter
 7. If `CanSkipArbiter: true` → present findings, offer skip option
 8. Arbiter (Pro/Sonnet Thinking) → synthesise → Oracle Audit Report
 
@@ -202,6 +230,7 @@ As default, plus after step 8:
 
 Each reviewer receives:
 - The resolved diff/code target
+- Preflight Test Execution Evidence (`## Preflight Test Execution Evidence` block from `QuorumPreflightTestRunner`)
 - Deterministic preflight output (or `"preflight: skipped - no tool detected"`)
 - Their specialization prompt from `templates/reviewers/<role>-reviewer.md`
 - **No** `spec.md`, **no** `plan.md` context (unless `--pr` mode, where PR description is used)
@@ -286,7 +315,7 @@ A report without this block is a reading-only review. Its verdict is voided unde
    ```
 3. **Self-Check Verification:** Immediately after writing the report, you MUST run:
    ```bash
-   npx -y tsx scripts/review-self-check.ts <report-path>
+   npx -y tsx "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/review-self-check.ts" <report-path>
    ```
    - If the script fails (exit code > 0): Announce the failure reason to the user, instruct them to resolve it (e.g., by actually executing edge cases and pasting evidence), and request a re-run. Do not output final success message.
    - **Bypass Path:** If you are intentionally skipping the self-check (e.g., for automated runs), pass `--skip-self-check` to input resolution, which skips this verification.
@@ -317,7 +346,7 @@ A report without this block is a reading-only review. Its verdict is voided unde
 
 ## 8.0 IMPLEMENTATION STATUS
 
-The review pipeline is fully operational with FSM state machine persistence (`packages/quorum-fsm`), `scripts/quorum-review.ts` quorum loop, zero-bias re-run context builder, `scripts/domain-scorer.ts`, and `scripts/codebase-review-orchestrator.ts`.
+The review pipeline is fully operational with FSM state machine persistence (`packages/quorum-fsm`), `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-review.ts` quorum loop, zero-bias re-run context builder, `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/domain-scorer.ts`, and `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/codebase-review-orchestrator.ts`.
 
 ## 9.0 SWARM REMEDIATION PROTOCOL
 

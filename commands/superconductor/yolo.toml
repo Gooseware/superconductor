@@ -1,10 +1,6 @@
-[command]
-name = "yolo"
-description = "Activate YOLO mode to bypass permission boundaries with full audit logging."
-usage = "/superconductor:yolo [--persist]"
+description = "Activate YOLO mode to bypass permission boundaries with full audit logging"
+prompt = """
+Read and follow the full protocol in `skills/yolo/SKILL.md`.
 
-[[arguments]]
-name = "persist"
-type = "boolean"
-description = "Persist YOLO mode across sessions (requires double confirmation)"
-default = false
+The args provided by the user are: {{args}}
+"""

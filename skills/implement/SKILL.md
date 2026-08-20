@@ -20,7 +20,7 @@ If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip 
 
 If STALE: also trigger incremental update before proceeding:
 ```
-node packages/superconductor-core/dist/intelligence/cli-update.js <changed_files>
+node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/intelligence/cli-update.js" <changed_files>
 ```
 Record in quorum state: `intelligenceStatusChecked: true`
 
@@ -38,13 +38,18 @@ Record in quorum state: `notebookQueried: true`
 
 Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebook lines are absent.
 
-## 1.1 HEADLESS MODE HANDLING
-**PROTOCOL: Detect and adapt to headless execution.**
+## 1.1 HEADLESS MODE HANDLING & ZERO-TOUCH LIFECYCLE
+**PROTOCOL: Detect and adapt to headless execution via TrackLifecycleOrchestrator.**
 **Detection:** Check if the user's input arguments contain `--headless`.
 2. **Behavior Modification:** If `--headless` is detected:
    - You MUST NOT use the `ask_user` tool for any manual verification, review, or confirmation prompts.
-   - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, skip cleanup/Oracle review) UNLESS specifically instructed otherwise.
+   - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, auto-advance Oracle review).
    - For Phase Completion Checkpoints, follow the Headless bypass rule in `workflow.md`: automatically pass the checkpoint if automated tests and coverage assertions succeed.
+   - **Zero-Touch Headless Finalization (`TrackLifecycleOrchestrator`):** When the 4-agent Quorum is unanimous `RESOLVED` and Oracle verdict is `READY`, the orchestrator automatically:
+     1. Issues an autonomous HMAC sign-off record via `SignOffGate.recordAutonomousSignOff()`.
+     2. Resolves the target integration branch dynamically from `superconductor/tech-stack.md` (or `--target=<branch>`).
+     3. Executes `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
+     4. Canonically archives the track to `superconductor/tracks/archive/<track_id>` and atomically synchronizes `tracks.md` and `archive.md`.
 
 ## 1.2 SETUP CHECK
 **PROTOCOL: Verify that the Superconductor environment is properly set up.**
@@ -193,13 +198,13 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
     a. **Assert Quorum Green:** Verify that the full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) has reached unanimous `RESOLVED` status.
        - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
-       - Enforcement: Run `node scripts/quorum-gate.mjs --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
+       - Enforcement: Run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
     
-    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node scripts/quorum-gate.mjs --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
+    b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
     
     c. **Generate and Validate Authorization Trailer:**
-       1. Call `node packages/superconductor-core/dist/track/swarm-authorizer.js --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
+       1. Call `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/track/swarm-authorizer.js" --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
        2. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
        3. **HALT if validation fails.** Do NOT proceed to step 5.d.
        4. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
@@ -340,7 +345,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - Use `TrackLifecycleWizard` (`packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts`) to manage lifecycle actions:
       1. **Interactive Mode:** Prompt the user using `wizard.buildFinalizationPrompt(track_id)`:
          - `merge`: Merge track branch into target branch (default `main`, requires Oracle sign-off).
-         - `archive`: Move completed track to `superconductor/archive/<track_id>`, update `archive.md` and `tracks.md`.
+         - `archive`: Move completed track to `superconductor/tracks/archive/<track_id>`, update `archive.md` and `tracks.md`.
          - `delete`: Request confirmation and perform clean deletion of track directory and registry entry.
          - `skip`: Keep track in registry without cleanup.
       2. **Headless Mode:** If `--headless` is active, automatically verify Oracle sign-off, execute merge to target branch (default `main`), and archive the completed track.
@@ -391,7 +396,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
    If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
 
-   Enforcement: `node scripts/quorum-gate.mjs --gate` — CLI gate runner for `QuorumValidator` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Exits code 0 if quorum is green; exits code 1 if quorum is incomplete/not green; exits code 2 if quorum state cannot be read. If exit code is non-zero: HALT. Do not proceed to Oracle or tracks.md update.
+   Enforcement: `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate` — CLI gate runner for `QuorumValidator` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Exits code 0 if quorum is green; exits code 1 if quorum is incomplete/not green; exits code 2 if quorum state cannot be read. If exit code is non-zero: HALT. Do not proceed to Oracle or tracks.md update.
  **Initialize Oracle:**
     - Read the `templates/oracle_review_prompt.md` to load the system role and objectives.
     - Announce: "Initiating Oracle Code Review. Analyzing implementation against Specification, Plan, and Project Standards..."

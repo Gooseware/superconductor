@@ -23,7 +23,13 @@ if CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || git diff --name-onl
     [[ -n "$line" ]] && CHANGED_ARRAY+=("$line")
   done <<< "$CHANGED"
   if [ ${#CHANGED_ARRAY[@]} -gt 0 ]; then
-    node "$(git rev-parse --show-toplevel)/packages/superconductor-core/dist/intelligence/cli-update.js" "${CHANGED_ARRAY[@]}" &
+    CLI_SCRIPT="${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/intelligence/cli-update.js"
+    if [ ! -f "$CLI_SCRIPT" ]; then
+      CLI_SCRIPT="$(git rev-parse --show-toplevel 2>/dev/null)/packages/superconductor-core/dist/intelligence/cli-update.js"
+    fi
+    if [ -f "$CLI_SCRIPT" ]; then
+      node "$CLI_SCRIPT" "${CHANGED_ARRAY[@]}" &
+    fi
   fi
 fi
 HOOK

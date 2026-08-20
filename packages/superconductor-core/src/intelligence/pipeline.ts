@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 import { getSuperconductorHome, resolveRegistry } from './tool-registry.js';
 import { preflight } from './preflight.js';
 import { runFingerprint } from './runners/fingerprint.js';
@@ -28,9 +29,17 @@ export async function runPipeline(args: string[], projectRoot: string, baseOutpu
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
+  let headSha = 'unknown';
+  try {
+    const headResult = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: projectRoot, encoding: 'utf-8' });
+    headSha = (headResult.stdout || '').trim() || 'unknown';
+  } catch {}
+
   const manifest = {
     superconductorVersion: '1.0.0',
     timestamp: Date.now(),
+    lastCommitSha: headSha,
+    incrementalRuns: 0,
     trackId: 'unknown',
     projectRoot,
     tools: registry.capabilities,

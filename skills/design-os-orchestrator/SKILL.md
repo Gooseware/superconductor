@@ -18,13 +18,13 @@ Acts as the central nervous system of Design OS, ensuring the user follows the s
 2. **Vision** (`design-os-vision`) -> `product/product-overview.md`
 3. **Inspiration Study** (`design-os-inspiration`) -> `product/design-study.md`
 4. **Registry Selection** -> Ensure `design-os.config.json` specifies the component registries, running `registry_recommend` using the Vibe Synthesis from the Design Study.
-5. **Plugin Injection** -> Use `block-injector` to add cross-cutting concerns like `auth-sso` or `db-drizzle` from the local registry.
-6. **Component Adaptation** -> If required components are found in remote (Tier 1) registries, use the `component-adapter` skill to fetch them to staging, enforce Dogma rules, and publish them to your local Golden Source (Tier 2).
+5. **Plugin Injection** -> Use `block-injector` to add cross-cutting concerns like `auth-sso` or `db-drizzle` from the local registry via `registry_install`.
+6. **Component Adaptation** -> If required components are found in remote (Tier 1) registries, use the `component-adapter` skill to fetch them to staging, enforce Dogma rules with `registry_fix_dogma`, and publish them to your local Golden Source (Tier 2).
 7. **Roadmap** (`design-os-roadmap`) -> `product/product-roadmap.md`
 8. **Data Model** (`design-os-data-model`) -> `product/data-model/data-model.md`
 9. **i18n** (`design-os-i18n`) -> `product/i18n/spec.md`
-10. **Design System** (`design-os-design-system`) -> Use `npx astryx theme` to generate brand themes.
-11. **App Shell** (`design-os-app-shell`) -> Scaffold using `npx astryx template`.
+10. **Design System** (`design-os-design-system`) -> Use `set_theme` MCP tool to generate and configure brand themes.
+11. **App Shell** (`design-os-app-shell`) -> Scaffold using `registry_list_blocks` and `registry_install`.
 12. **Sections** -> One folder per roadmap item.
 13. **Enhancement & Refinement** (`design-os-enhance`, `theme-manager-flow`)
 14. **Export** -> `/export-product` (Command reference).

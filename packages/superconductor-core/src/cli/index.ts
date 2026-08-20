@@ -201,7 +201,17 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
 
     case 'intelligence': {
       const m = await import('../intelligence/index.js');
-      await m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
+      const isRefresh = args.includes('--refresh');
+      const isForce = args.includes('--force');
+      if (isRefresh || isForce) {
+        const res = await m.IntelligenceAutoSyncEngine.ensureFresh({
+          projectRoot: process.cwd(),
+          force: isForce,
+        });
+        console.log(`✅ Intelligence sync complete: action=${res.action}, status=${res.status}, commitsBehind=${res.commitsBehind}`);
+      } else {
+        await m.runPipeline(args.slice(1), process.cwd(), path.join(process.cwd(), 'superconductor'));
+      }
       break;
     }
 
@@ -240,13 +250,28 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
 
     case 'merge-track':
     case 'merge': {
-      const [trackBranch, ...reviewerIds] = args.slice(1);
+      const rawArgs = args.slice(1);
+      let targetBranch: string | undefined;
+      const positionalArgs: string[] = [];
+
+      for (let i = 0; i < rawArgs.length; i++) {
+        const arg = rawArgs[i];
+        if (arg.startsWith('--target=')) {
+          targetBranch = arg.slice('--target='.length);
+        } else if (arg === '--target' && i + 1 < rawArgs.length) {
+          targetBranch = rawArgs[++i];
+        } else {
+          positionalArgs.push(arg);
+        }
+      }
+
+      const [trackBranch, ...reviewerIds] = positionalArgs;
       if (!trackBranch || reviewerIds.length === 0) {
-        console.error('Usage: merge-track <branch> <reviewerId1> [reviewerId2...]');
+        console.error('Usage: merge-track <branch> <reviewerId1> [reviewerId2...] [--target=<branch>]');
         process.exit(1);
       }
-      const result = await mergeTrack(trackBranch, reviewerIds);
-      console.log(`Merged: ${result.mergeCommitSha}`);
+      const result = await mergeTrack(trackBranch, reviewerIds, { targetBranch });
+      console.log(`Merged into ${result.targetBranch}: ${result.mergeCommitSha}`);
       console.log(result.trailer);
       break;
     }

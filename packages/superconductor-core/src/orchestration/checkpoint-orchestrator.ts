@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { IntelligenceAutoSyncEngine } from '../intelligence/auto-sync-engine.js';
 
 export class InvalidShaError extends Error {}
 export class InvalidPhaseError extends Error {}
@@ -96,6 +97,15 @@ export class CheckpointOrchestrator {
       };
       const noteJson = JSON.stringify(note).replace(/'/g, "'\\''");
       await this.shell.exec(`git notes add -m '${noteJson}' HEAD`);
+
+      // Step 9.5: Continuous Code Intelligence Auto-Sync
+      try {
+        await IntelligenceAutoSyncEngine.syncPhaseFiles(changedFiles, {
+          projectRoot: this.workspaceRoot,
+        });
+      } catch (err) {
+        process.stderr.write(`[superconductor:checkpoint] Intelligence auto-sync error: ${err}\n`);
+      }
     }
 
     // Step 10: update plan.md

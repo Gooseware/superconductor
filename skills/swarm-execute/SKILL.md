@@ -35,8 +35,12 @@ You MUST check for ALL of the following shenanigans before reporting PASS:
 
 ### Execution Mandate
 You are FORBIDDEN from reporting PASS based on static reading alone.
-You MUST either run `npm test` or write a /tmp edge-case script and execute it.
+When `## Preflight Test Execution Evidence` is provided in context, quote the preflight test metrics directly. Otherwise, you MUST write a /tmp edge-case script and execute it.
 Paste the terminal output as execution evidence in your findings.
+
+### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+Before dispatching the 4 Quorum Reviewer subagents (Security, Correctness, Adversarial, Regression), the orchestrator MUST execute the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the context and system prompts of all 4 subagents (unless `--no-preflight` is explicitly specified).
+This single shared preflight execution provides deterministic test results upfront and strictly prevents 4 parallel subagents from executing `npm test` simultaneously and saturating CPU/memory resources.
 
 ### Plan-Gap Protocol
 Before finalizing your verdict, grep plan.md for [x] items and cross-reference against `git diff --name-only`.
@@ -107,3 +111,13 @@ All reviewers MUST use the rigid `json:review-findings` schema:
 }
 ```
 **Schema state-machine mutual exclusivity:** A payload with `"status": "RESOLVED"` MUST have an empty `findings` array. A payload with any finding entry MUST NOT contain `"status": "RESOLVED"`.
+
+---
+
+## Step 5 — Zero-Touch Autonomous Headless Pipeline (`TrackLifecycleOrchestrator`)
+
+When executing in Headless Mode (`--headless`):
+1. **Autonomous Sign-Off:** Upon unanimous Quorum (`RESOLVED`, 0 findings) and Oracle `READY`, `TrackLifecycleOrchestrator` automatically records an autonomous HMAC sign-off (`SignOffGate.recordAutonomousSignOff()`) with zero human blocking prompts.
+2. **Dynamic Target Branch Merge:** Resolves the integration branch from `superconductor/tech-stack.md` (`Target Branch`), falling back to CLI `--target` or `main`. Executes `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
+3. **Canonical Archival:** Moves the completed track transactionally to `superconductor/tracks/archive/<track_id>` and atomically updates `tracks.md` and `archive.md`.
+

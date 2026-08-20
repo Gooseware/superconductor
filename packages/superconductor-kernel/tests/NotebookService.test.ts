@@ -34,7 +34,7 @@ describe('NotebookService MCP Tools', () => {
         files: ['src/service.ts'],
         domain: 'kernel',
         severity: 'warning',
-        invocation_id: 'inv-serv-1',
+        invocation_id: `inv-serv-${Date.now()}-${Math.random()}`,
       },
       tmpDir
     );

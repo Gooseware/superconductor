@@ -108,12 +108,27 @@ export class PreflightTestRunner {
         }
 
         const pkgPath = path.join(this.projectRoot, 'package.json');
-        let pkgJson = {};
-        if (fs.existsSync(pkgPath)) {
-            try {
-                pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-            } catch (e) {}
+        if (!fs.existsSync(pkgPath)) {
+            const startTime = Date.now();
+            const report: TestReport = {
+                timestamp: startTime,
+                testCommand: 'none',
+                buildCommand: 'none',
+                testExitCode: 0,
+                buildExitCode: 0,
+                testOutput: 'No package.json found; preflight skipped',
+                buildOutput: '',
+                passed: true,
+                durationMs: 0
+            };
+            PreflightTestRunner.cache.set(hash, report);
+            return report;
         }
+
+        let pkgJson = {};
+        try {
+            pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        } catch (e) {}
 
         const testCommand = this.detectTestCommand(pkgJson);
         const buildCommand = this.detectBuildCommand(pkgJson);

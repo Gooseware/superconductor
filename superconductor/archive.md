@@ -173,37 +173,37 @@ This file contains a registry of all completed and archived tracks.
 
 
 - [x] **Track: Swarm Protocol Strict Guardrails & Anti-Rogue Agent Enforcement**
-*Link: [./tracks/swarm_enforcement_20260725/](./tracks/swarm_enforcement_20260725/)*
+*Link: [./tracks/swarm_enforcement_20260725/](./tracks/archive/swarm_enforcement_20260725/)*
 
 
 - [x] **Track: Dependency Functional Surface Intelligence**
-*Link: [./tracks/func_surface_intel_20260724/](./tracks/func_surface_intel_20260724/)*
+*Link: [./tracks/func_surface_intel_20260724/](./tracks/archive/func_surface_intel_20260724/)*
 
 ---
 
 - [x] **Track: Implement Redesign & Dense YAML DAG**
-*Link: [./tracks/implement_redesign_20260725/](./tracks/implement_redesign_20260725/)*
+*Link: [./tracks/implement_redesign_20260725/](./tracks/archive/implement_redesign_20260725/)*
 
 ---
 
 - [x] **Track: Parallel Multi-Agent Track Execution Model**
-*Link: [./tracks/parallel_execution_model_20260725/](./tracks/parallel_execution_model_20260725/)*
+*Link: [./tracks/parallel_execution_model_20260725/](./tracks/archive/parallel_execution_model_20260725/)*
 
 ---
 
 - [x] **Track: Swarm-Aware Planner — Throughput & Token Economics Optimizer**
-*Link: [./tracks/swarm_planner_20260724/](./tracks/swarm_planner_20260724/)*
+*Link: [./tracks/swarm_planner_20260724/](./tracks/archive/swarm_planner_20260724/)*
 
 ---
 
 - [x] **Track: Streaming & Multi-Modal Oracle Review Panel**
-*Link: [./tracks/multimodal_oracle_review_20260725/](./tracks/multimodal_oracle_review_20260725/)*
+*Link: [./tracks/multimodal_oracle_review_20260725/](./tracks/archive/multimodal_oracle_review_20260725/)*
 
 ---
 
 
 - [x] **Track: Agent Write Tools Audit & Repair**
-*Link: [./tracks/agent_write_tools_20260726/](./tracks/agent_write_tools_20260726/)*
+*Link: [./tracks/agent_write_tools_20260726/](./tracks/archive/agent_write_tools_20260726/)*
 
 ---
 

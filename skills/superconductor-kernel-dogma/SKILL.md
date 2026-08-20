@@ -12,18 +12,19 @@ This skill ensures all code meets the rigorous standards required for inclusion 
 
 ### 1. Component Extraction & Analysis
 - Scan for components using `grep` or `ts-morph`.
-- Verify the component uses Astryx Design System components (`@astryxdesign/core`) and Astryx tokens.
-- Ensure the component adheres to the Astryx frame-first layout (no raw `<div>` or Tailwind utility classes).
+- Verify the component uses standard Design OS components and semantic tokens.
+- Ensure the component adheres to the frame-first layout (no raw `<div>` or unconstrained utility classes).
 - Ensure named exports are used.
 
-### 2. Dogma Validation
+### 2. Dogma Validation & Remediation
 - Read the detailed rules in [dogma.md](./references/dogma.md).
-- Use `mcp_superconductor-kernel_registry_validate_file` to confirm compliance.
+- Use the `registry_validate_file` MCP tool to check compliance against dogma rules.
+- Use the `registry_fix_dogma` MCP tool to automatically apply recommended fixes.
 
 ### 3. Publication Workflow
-- Propose publication using `mcp_superconductor-kernel_registry_propose_publish`.
+- Propose publication using the `registry_propose_publish` MCP tool.
 - Address any validation errors by refactoring the code.
-- Finalize with metadata using `mcp_superconductor-kernel_registry_finalize_publish`.
+- Finalize with metadata using the `registry_finalize_publish` MCP tool.
 
 ## Bundled Resources
 - **Dogma Rules:** [dogma.md](./references/dogma.md)

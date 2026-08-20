@@ -19,7 +19,7 @@ describe('TrackLifecycleWizard', () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'track-lifecycle-test-'));
     const superconductorDir = path.join(tmpDir, 'superconductor');
     tracksDir = path.join(superconductorDir, 'tracks');
-    archiveDir = path.join(superconductorDir, 'archive');
+    archiveDir = path.join(superconductorDir, 'tracks', 'archive');
     fs.mkdirSync(tracksDir, { recursive: true });
     fs.mkdirSync(archiveDir, { recursive: true });
 
@@ -143,7 +143,7 @@ describe('TrackLifecycleWizard', () => {
       );
     });
 
-    it('archives completed track to superconductor/archive/<track_id> and updates registry', async () => {
+    it('archives completed track to superconductor/tracks/archive/<track_id> and updates registry', async () => {
       const trackFolderPath = path.join(tracksDir, 'test_track_1');
       fs.mkdirSync(trackFolderPath, { recursive: true });
       fs.writeFileSync(path.join(trackFolderPath, 'plan.md'), '# Plan', 'utf8');

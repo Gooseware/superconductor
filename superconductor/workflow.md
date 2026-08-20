@@ -290,6 +290,11 @@ Before requesting review:
 
 > **Required sequence: `Quorum → Oracle → Merge`. This order is non-negotiable. See HARD GATE below.**
 
+#### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
+
+Before dispatching the 4 Quorum Reviewer subagents (Security, Correctness, Adversarial, Regression), the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 reviewer subagents (unless `--no-preflight` is explicitly set).
+This single pre-execution prevents 4 parallel subagents from executing `npm test` redundantly and saturating CPU/memory resources.
+
 #### HARD GATE — Oracle Precondition (MANDATORY)
 
 **HARD GATE:** Before invoking the Oracle, the orchestrator MUST call `QuorumValidator.gateOracle({ quorumPassed })` (`packages/superconductor-core/src/orchestration/quorum-validator.ts`). Throws `OracleGateError` if `quorumPassed` is false.
@@ -399,12 +404,15 @@ A task is complete when:
 
 ### Track Integration & Finalization (Mandatory)
 
-**Every track MUST conclude with a final phase dedicated to merging the validated work into the project's preferred target branch (`dev` or `main`).**
+**Every track MUST conclude with a final phase dedicated to merging the validated work into the project's preferred target branch (`dev`, `main`, `release`, etc.) and archiving the completed track canonically.**
 
-1.  **Selection of Target:** Refer to `tech-stack.md` for the project's `Target Branch` preference.
-2.  **Merge Command:** Use `GitWorkflowManager.mergeToTarget(target_branch, track_branch)`.
-3.  **Final Task:** Every `plan.md` MUST include this as its absolute last task:
-    - `- [ ] Task: Integrate track '<track_id>' into <target_branch> branch.`
+1. **Target Branch Resolution:** Dynamically resolved from `superconductor/tech-stack.md` (`Development Preferences -> Target Branch`), with support for CLI overrides (`--target=<branch>`) and defaulting to `main`.
+2. **Pre-Merge Cleanliness & Verification:** Verify clean working copy via `git status --porcelain` and ensure test suite passes with >80% coverage.
+3. **Merge Command & Cryptographic Authorization:** Use `mergeTrack` or `GitWorkflowManager.mergeToTarget(target_branch, track_branch)` to execute a `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
+4. **Canonical Archival:** Archive completed track transactionally to `superconductor/tracks/archive/<track_id>` via `ArchiveManager.archiveTrack()` with atomic file-locked updates to `tracks.md` and `archive.md`.
+5. **Autonomous Headless Factory Pipeline:** In headless mode (`--headless`), `TrackLifecycleOrchestrator` automatically orchestrates Preflight -> TDD Task Execution -> Checkpoints + Auto-Sync -> Quorum -> Oracle -> Dynamic Merge -> Canonical Archival without human blocking prompts.
+6. **Final Task:** Every `plan.md` MUST include this as its absolute last task:
+   - `- [ ] Task: Integrate track '<track_id>' into <target_branch> branch.`
 
 ## Deployment Workflow
 

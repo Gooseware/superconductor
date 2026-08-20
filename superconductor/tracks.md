@@ -20,7 +20,7 @@
 | `[x]` | `quorum_preflight_test_gate_20260818` | [Quorum Preflight Test Gate](./tracks/quorum_preflight_test_gate_20260818/index.md) | `track/quorum_preflight_test_gate_20260818` |
 | `[x]` | `model_chooser_tier_ux_20260818` | [Model Chooser — Tier-Based UX](./tracks/model_chooser_tier_ux_20260818/index.md) | `track/model_chooser_tier_ux_20260818` |
 | `[x]` | `ad_hoc_triage_mode_20260818` | [Ad-Hoc Triage Mode](./tracks/ad_hoc_triage_mode_20260818/index.md) | `track/ad_hoc_triage_mode_20260818` |
-| `[ ]` | `autonomous_lifecycle_intelligence_sync_20260820` | [Autonomous Track Lifecycle, Dynamic Target Integration & Continuous Intelligence Auto-Sync](./tracks/autonomous_lifecycle_intelligence_sync_20260820/index.md) | `track/autonomous_lifecycle_intelligence_sync_20260820` |
+| `[x]` | `autonomous_lifecycle_intelligence_sync_20260820` | [Autonomous Track Lifecycle, Dynamic Target Integration & Continuous Intelligence Auto-Sync](./tracks/autonomous_lifecycle_intelligence_sync_20260820/index.md) | `track/autonomous_lifecycle_intelligence_sync_20260820` |
 
 ## Absorbed / Closed Tracks
 
