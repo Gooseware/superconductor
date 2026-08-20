@@ -1,19 +1,11 @@
 [
   {
-    "file": "superconductor/tracks.md",
-    "churnCount": 164
-  },
-  {
     "file": "packages/superconductor-core/tests/intelligence/tmp-test/intelligence/00_manifest.json",
     "churnCount": 90
   },
   {
     "file": "packages/superconductor-core/node_modules/.vite/vitest/results.json",
     "churnCount": 74
-  },
-  {
-    "file": "skills/implement/SKILL.md",
-    "churnCount": 47
   },
   {
     "file": "packages/engine/src/cli/orchestrate.ts",
@@ -26,10 +18,6 @@
   {
     "file": "packages/engine/node_modules/.vite/vitest/results.json",
     "churnCount": 27
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/index.ts",
-    "churnCount": 26
   },
   {
     "file": "superconductor/workflow.md",
@@ -110,14 +98,6 @@
   {
     "file": "packages/superconductor-core/node_modules/.bin/js-yaml",
     "churnCount": 18
-  },
-  {
-    "file": "skills/standalone-review/SKILL.md",
-    "churnCount": 17
-  },
-  {
-    "file": "packages/superconductor-kernel/src/index.ts",
-    "churnCount": 17
   },
   {
     "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
@@ -205,10 +185,6 @@
   },
   {
     "file": "packages/superconductor-core/src/permissions/audit.ts",
-    "churnCount": 13
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/index.ts",
     "churnCount": 13
   },
   {
@@ -420,10 +396,6 @@
     "churnCount": 8
   },
   {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "churnCount": 8
-  },
-  {
     "file": "packages/task-store/src/providers/lancedb-task-provider.ts",
     "churnCount": 8
   },
@@ -492,18 +464,6 @@
     "churnCount": 7
   },
   {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "churnCount": 7
-  },
-  {
-    "file": "superconductor/intelligence/06_api_surface.toon",
-    "churnCount": 7
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
-    "churnCount": 7
-  },
-  {
     "file": "scripts/hooks/verify-signoff.mjs",
     "churnCount": 7
   },
@@ -545,10 +505,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/runners/dependency-surface.ts",
-    "churnCount": 7
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
     "churnCount": 7
   },
   {
@@ -720,19 +676,7 @@
     "churnCount": 6
   },
   {
-    "file": "superconductor/intelligence/01_fingerprint.json",
-    "churnCount": 6
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
-    "churnCount": 6
-  },
-  {
     "file": "superconductor/archive.md",
-    "churnCount": 6
-  },
-  {
-    "file": "skills/review/SKILL.md",
     "churnCount": 6
   },
   {
@@ -1268,14 +1212,6 @@
     "churnCount": 4
   },
   {
-    "file": "superconductor/intelligence/08_package_surface.json",
-    "churnCount": 4
-  },
-  {
-    "file": "superconductor/intelligence/05_sast.json",
-    "churnCount": 4
-  },
-  {
     "file": "superconductor/batch_run_20260723_042100.md",
     "churnCount": 4
   },
@@ -1333,10 +1269,6 @@
   },
   {
     "file": "packages/superconductor-kernel/src/services/TrackStateManager.ts",
-    "churnCount": 4
-  },
-  {
-    "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
     "churnCount": 4
   },
   {
@@ -4312,10 +4244,6 @@
     "churnCount": 3
   },
   {
-    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
-    "churnCount": 3
-  },
-  {
     "file": "superconductor/tracks/archive/symbiosis_caduceus_20260722/spec.md",
     "churnCount": 3
   },
@@ -4353,10 +4281,6 @@
   },
   {
     "file": "superconductor/logs/quorum-state.json",
-    "churnCount": 3
-  },
-  {
-    "file": "superconductor/intelligence/08_dependency_surface.json",
     "churnCount": 3
   },
   {
@@ -4453,10 +4377,6 @@
   },
   {
     "file": "scripts/quorum-review.test.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "scripts/install-git-hook.sh",
     "churnCount": 3
   },
   {
@@ -10212,10 +10132,6 @@
     "churnCount": 3
   },
   {
-    "file": "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
-    "churnCount": 3
-  },
-  {
     "file": "packages/superconductor-kernel/tests/graph-tools.test.ts",
     "churnCount": 3
   },
@@ -10325,10 +10241,6 @@
   },
   {
     "file": "packages/superconductor-core/src/orchestration/quorum-validator.test.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
     "churnCount": 3
   },
   {
@@ -16108,10 +16020,6 @@
     "churnCount": 2
   },
   {
-    "file": "scripts/hooks/install-hooks.sh",
-    "churnCount": 2
-  },
-  {
     "file": "scratch/read_context.js",
     "churnCount": 2
   },
@@ -16401,10 +16309,6 @@
   },
   {
     "file": "packages/superconductor-core/src/orchestration/preflight-gate.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
     "churnCount": 2
   },
   {
@@ -39652,10 +39556,6 @@
     "churnCount": 1
   },
   {
-    "file": "superconductor/intelligence/02_dependency_graph.json",
-    "churnCount": 1
-  },
-  {
     "file": "superconductor/initiate_track.js",
     "churnCount": 1
   },
@@ -43221,10 +43121,6 @@
   },
   {
     "file": "packages/superconductor-kernel/tests/TrackStateManager.test.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-kernel/tests/NotebookService.test.ts",
     "churnCount": 1
   },
   {
@@ -49910,5 +49806,125 @@
   {
     "file": "0333d1e9759e7c10d10c8d5fd0f834c87a812cc2",
     "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "RECOMMENDED_FIXES.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/review/review-quorum-protocol.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-kernel/src/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-kernel/tests/NotebookService.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "scripts/hooks/install-hooks.sh",
+    "churn": 1
+  },
+  {
+    "file": "scripts/install-git-hook.sh",
+    "churn": 1
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/review/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/standalone-review/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/02_dependency_graph.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/05_sast.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/08_dependency_surface.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/08_package_surface.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks.md",
+    "churn": 1
   }
 ]

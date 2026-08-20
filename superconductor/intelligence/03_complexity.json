@@ -1309,13 +1309,6 @@
     "hotspot_score": 4.1588830833596715
   },
   {
-    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
-    "cyclomatic_complexity": 3,
-    "nloc": 5,
-    "churnCount": 3,
-    "hotspot_score": 4.1588830833596715
-  },
-  {
     "file": "packages/superconductor-core/src/track/swarm-authorizer.ts",
     "cyclomatic_complexity": 3,
     "nloc": 7,
@@ -1362,6 +1355,13 @@
     "cyclomatic_complexity": 2,
     "nloc": 7,
     "churnCount": 7,
+    "hotspot_score": 4.1588830833596715
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
+    "cyclomatic_complexity": 3,
+    "nloc": 5,
+    "churnCount": 3,
     "hotspot_score": 4.1588830833596715
   },
   {
@@ -1575,13 +1575,6 @@
     "hotspot_score": 2.772588722239781
   },
   {
-    "file": "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
-    "cyclomatic_complexity": 2,
-    "nloc": 6,
-    "churnCount": 3,
-    "hotspot_score": 2.772588722239781
-  },
-  {
     "file": "packages/superconductor-kernel/tests/GraphCache.test.ts",
     "cyclomatic_complexity": 2,
     "nloc": 5,
@@ -1691,6 +1684,13 @@
     "cyclomatic_complexity": 4,
     "nloc": 33,
     "churnCount": 1,
+    "hotspot_score": 2.772588722239781
+  },
+  {
+    "file": "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
+    "cyclomatic_complexity": 2,
+    "nloc": 6,
+    "churnCount": 3,
     "hotspot_score": 2.772588722239781
   },
   {
@@ -2646,13 +2646,6 @@
     "hotspot_score": 1.0986122886681096
   },
   {
-    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
-    "cyclomatic_complexity": 1,
-    "nloc": 3,
-    "churnCount": 2,
-    "hotspot_score": 1.0986122886681096
-  },
-  {
     "file": "packages/superconductor-core/src/remediation/bias-isolated-review-gate.test.ts",
     "cyclomatic_complexity": 1,
     "nloc": 6,
@@ -2842,6 +2835,13 @@
     "hotspot_score": 1.0986122886681096
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
+    "cyclomatic_complexity": 1,
+    "nloc": 3,
+    "churnCount": 2,
+    "hotspot_score": 1.0986122886681096
+  },
+  {
     "file": "tests/init-user-skills.test.ts",
     "cyclomatic_complexity": 1,
     "nloc": 4,
@@ -2873,13 +2873,6 @@
     "file": "superconductor/review_trigger_detector.js",
     "cyclomatic_complexity": 1,
     "nloc": 3,
-    "churnCount": 1,
-    "hotspot_score": 0.6931471805599453
-  },
-  {
-    "file": "packages/superconductor-kernel/tests/NotebookService.test.ts",
-    "cyclomatic_complexity": 1,
-    "nloc": 4,
     "churnCount": 1,
     "hotspot_score": 0.6931471805599453
   },
@@ -3304,6 +3297,32 @@
     "hotspot_score": 0.6931471805599453
   },
   {
+    "file": "packages/superconductor-kernel/tests/NotebookService.test.ts",
+    "cyclomatic_complexity": 1,
+    "nloc": 4,
+    "churnCount": 1,
+    "hotspot_score": 0.6931471805599453
+  },
+  {
+    "file": "RECOMMENDED_FIXES.md",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
+    "cyclomatic_complexity": 1,
+    "nloc": 1,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/index.ts",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
     "file": "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
     "cyclomatic_complexity": 2,
     "nloc": 6,
@@ -3318,9 +3337,104 @@
     "hotspot_score": 0
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
-    "cyclomatic_complexity": 1,
-    "nloc": 1,
+    "file": "scripts/hooks/install-hooks.sh",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "scripts/install-git-hook.sh",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "skills/review/SKILL.md",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "skills/standalone-review/SKILL.md",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/02_dependency_graph.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/05_sast.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/08_dependency_surface.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/intelligence/08_package_surface.json",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/tracks.md",
+    "cyclomatic_complexity": null,
+    "churnCount": 0,
+    "hotspot_score": 0
+  },
+  {
+    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
+    "cyclomatic_complexity": null,
     "churnCount": 0,
     "hotspot_score": 0
   }
