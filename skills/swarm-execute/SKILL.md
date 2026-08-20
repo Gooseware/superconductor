@@ -18,6 +18,25 @@ Accepts a track ID, loads the topography map, and orchestrates implementors and 
 
 This command replaces the older monolithic loop and allows targeted execution of individual tracks.
 
+---
+
+## Root Orchestration Dogma (Anti-Hero-Agent Protocol)
+
+1. **The Root Agent is an Orchestrator and Conductor, not an individual contributor.** The root session coordinates, dispatches, and aggregates; it never directly authors or modifies product code.
+2. **Direct edits on product code files by the Root Agent are strictly PROHIBITED during Swarm Execution.** Any attempt by the root orchestrator to directly call `write_to_file`, `replace_file_content`, or execute direct code mutations is a protocol violation.
+3. **Every plan phase MUST be delegated to one or more specialized `superconductor-processor` subagents.** Implementations run in isolated child subagent contexts.
+4. **Quorum reviews MUST be conducted by parallel `superconductor-reviewer` subagents.** Security, Correctness, Adversarial, and Regression reviews must execute independently.
+5. **Remediation loops triggered by `NEEDS_FIXES` MUST dispatch isolated remediator subagents.** Never attempt root-level hero fixing.
+
+---
+
+## Terminal Focus Notification Protocol
+Before pausing for user input, awaiting subagent swarms, or concluding track execution turns:
+- Check terminal window focus via `~/.local/bin/check_focus_notify.sh` (or platform focus detection).
+- If the terminal is unfocused/backgrounded, dispatch a desktop alert (`notify-send` / system sound / OS notification) to inform the developer that the swarm requires attention or has completed execution.
+
+---
+
 ## Phase Gate Reviewer Prompt Template
 
 When dispatching Phase Gate reviewers, you MUST include the following in their prompt:

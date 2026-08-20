@@ -230,6 +230,27 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 6.  **Write File:** Once approved, write the generated content to the `superconductor/product-guidelines.md` file.
 7.  **Continue:** Immediately proceed to the next section.
 
+### 2.2.1 Mandatory Visual & Design Token Discovery Gate
+1.  **Introduce the Gate:** Announce: "I will now guide you through establishing the styling and visual design token architecture for your application."
+2.  **Prompt for Styling Token Architecture:** Use the `ask_user` tool to lock in the stack-appropriate token system:
+    - **CSS/Web**: CSS Custom Properties, Tailwind design tokens, CSS Modules, or Design Tokens JSON.
+    - **Rust**: Palette structs, theme resources, or design token constants (Slint/Iced/Tauri).
+    - **Go**: Theme interfaces, canvas resource constants, or CSS token variables (Fyne/Templ).
+    - **Python**: QSS stylesheets, theme palettes, or design token dictionaries (PyQt/Flet/NiceGUI).
+    - **Swift (iOS/macOS)**: Asset Catalogs, `ShapeStyle`, Color tokens in SwiftUI.
+    - **Kotlin (Android/Compose)**: `ColorScheme`, MaterialTheme tokens, or Compose Theme resources.
+    - **Flutter**: `ThemeData`, `ColorScheme`, or custom theme extension tokens.
+    - **C++/Qt**: Style sheets (QSS), palette definitions, or theme configuration files (Qt/ImGui).
+3.  **Enforce 4-Tier Semantic Token Contract:** The design token contract MUST define the following 4 tiers:
+    1. *Surfaces & Backgrounds*: Base background, elevated surface, subtle container.
+    2. *Content & Typography*: Primary text/icons, secondary/muted text, inverted text.
+    3. *Brand & State*: Primary/accent, borders/dividers, success, warning, error.
+    4. *Geometry & Spacing*: Container radius, element radius, standardized spacing scale (8px base grid).
+4.  **Scaffold Static Token Compliance Linting:**
+    - Mandate 0 un-tokenized style literals, raw hex codes, or magic numbers in user-facing view components.
+    - Record token definitions in `superconductor/product-guidelines.md` or a dedicated token registry file.
+5.  **Continue:** Immediately proceed to the next section.
+
 ### 2.3 Generate Tech Stack (Interactive)
 1.  **Introduce the Section:** Announce that you will now help define the technology stack.
 2.  **Determine Mode:**
@@ -310,6 +331,26 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
     - Wait for the command to complete before proceeding.
     - **CRITICAL: Do NOT execute any manual config-writing step after this.** `ModelChooserDialog` owns all persistence. Writing config manually here would corrupt the schema written by `AgentConfigWriter`.
 3.  **Continue:** Immediately proceed to the next section.
+
+### 2.3.2 Upfront Multilingual / Localization (i18n / l10n) Discovery Gate
+1.  **Introduce the Gate:** Announce: "I will now check whether this application requires multilingual and internationalization (i18n / l10n) support."
+2.  **Prompt for Localization Needs:** Use the `ask_user` tool:
+    - **header:** "i18n / Locales"
+    - **question:** "Will this application need to support multiple languages, international locales, right-to-left (RTL) scripts, or localized formatting now or in the future?"
+    - **type:** "yesno"
+3.  **Stack-Appropriate Localization Scaffolding Catalog:**
+    - **If Yes:** Immediately scaffold the stack-appropriate localization framework into dependencies and project architecture:
+      - **Rust**: `fluent-rs` / `unic-langid`
+      - **Go**: `go-i18n` / `golang.org/x/text`
+      - **Python**: `Babel` / `gettext`
+      - **C# / .NET**: `IStringLocalizer` / `.resx`
+      - **Swift (iOS/macOS)**: `String(localized:)` / `.xcstrings` String Catalogs
+      - **Kotlin / Android**: `stringResource()` / `strings.xml`
+      - **Flutter**: `flutter gen-l10n` / `flutter_localizations`
+      - **TypeScript / Web**: `@lingui/core` / `next-intl` / `i18next`
+      - **Mandate**: All user-facing strings must use localization macros and lookup wrappers from Day 1 to prevent costly retrofitting.
+    - **If No:** Formally document the single-language invariant in `superconductor/product.md` and track specifications to eliminate localization overhead.
+4.  **Continue:** Immediately proceed to the next section.
 
 ### 2.4 Select Guides (Interactive)
 1.  **Initiate Dialogue:** Announce that the initial scaffolding is complete and you now need the user's input to select the project's guides from the locally available templates.
