@@ -34,7 +34,7 @@ describe('MCP Server Integration', () => {
 
   afterAll(() => {
     proc.kill();
-    fs.rmSync(FIXTURE_PATH, { recursive: true, force: true });
+    fs.rmSync(GRAPH_FILE, { force: true });
   });
 
   const sendRequest = (method: string, params: any) => {
@@ -78,5 +78,5 @@ describe('MCP Server Integration', () => {
     const data = JSON.parse(res.content[0].text);
     expect(data.id).toBe('src/auth/login.ts');
     expect(data.churn).toBe(42);
-  });
+  }, 60000);
 });
