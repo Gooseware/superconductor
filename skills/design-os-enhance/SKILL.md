@@ -6,7 +6,7 @@ description: Use when the user wants to use Design OS to enhance, update, or ref
 # Design OS Flow Enhancement
 
 ## Overview
-Guides the process of integrating Design OS logic into an existing application to improve UX flows, refactor components, or align styling with the Theme Manager.
+Guides the process of integrating Design OS logic into an existing application to improve UX flows, refactor components, or align styling with the Theme Manager using `superconductor-kernel` MCP tools.
 
 ## When to Use
 - User says "Enhance my existing app" or "Refactor this flow".
@@ -18,22 +18,24 @@ Guides the process of integrating Design OS logic into an existing application t
 ### 1. Context Analysis
 - Use `ls` and `grep` to understand the existing project structure.
 - Identify core "Flows" (e.g., Auth, Checkout, Dashboard).
-- Map existing components to the **Registry**.
+- Map existing components to the **Registry** using `registry_list_blocks`.
 
 ### 2. Introspection
 Ask the user:
 - "What is the primary goal of this enhancement? (Performance, Visual Polish, Feature Addition?)"
-- "Should we strictly follow the existing code patterns or migrate to our component-driven Astryx stack (`@astryxdesign/core`)?"
+- "Should we strictly follow the existing code patterns or migrate to our component-driven Design OS stack via `registry_install`?"
 
 ### 3. Flow Mapping
 - Draft an "Enhancement Plan" in `docs/plans/YYYY-MM-DD-enhance-[flow].md`.
 - Identify "Touch Points" where the **Theme Manager** or **Registry Components** can be injected.
 
-### 4. Implementation
-- Use the **`registry_recommend`** tool to find better variants for existing components.
-- Run **`registry_validate_file`** on existing files to find "Dogma" violations (hardcoded colors, etc.).
+### 4. Implementation & Dogma Enforcement
+- Use the **`registry_recommend`** tool to find better variants for existing components based on aesthetic analysis.
+- Use **`registry_install`** to install recommended blocks.
+- Run **`registry_validate_file`** on existing files to find "Dogma" violations (hardcoded colors, raw divs, etc.).
+- Run **`registry_fix_dogma`** to automatically remediate identified dogma issues.
 
 ## Common Mistakes
 - Refactoring everything at once (prefer incremental flow updates).
 - Ignoring existing business logic while updating the UI.
-- Not verifying if the existing app is compatible with the Astryx design system and tokens.
+- Not verifying if the existing app is compatible with the design system and tokens.
