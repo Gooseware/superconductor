@@ -7,32 +7,32 @@
 ---
 
 ## Phase 0: Swarm Preflight & Protocol Verification
-- [ ] Task: Verify `swarm-orchestrate` / `swarm-execute` and `superconductor-agents` skills and environment preflight [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Check skill files and dependencies
-    - [ ] Validate Node.js, Git, and MCP tool availability
-- [ ] Task: Run preflight intelligence drift check and initial sync [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Query `kernel_intelligence_status`
-    - [ ] Log initial drift status
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Verify `swarm-orchestrate` / `swarm-execute` and `superconductor-agents` skills and environment preflight [TIER-1] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Check skill files and dependencies
+    - [x] Validate Node.js, Git, and MCP tool availability
+- [x] Task: Run preflight intelligence drift check and initial sync [TIER-2] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Query `kernel_intelligence_status`
+    - [x] Log initial drift status
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
 
 ## Phase 1: Command Streamlining ("Thin Command" Architecture) & Skill Cleanup
-- [ ] Task: Write unit tests for command TOML validation and delegation schemas [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test assertion that all TOML commands have valid prompt delegation blocks
-    - [ ] Test assertion that legacy `ask_user` and Plan Mode tool calls are absent from TOMLs
-- [ ] Task: Refactor all 9 `commands/superconductor/*.toml` files to lightweight prompt delegates [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Refactor `setup.toml`, `newTrack.toml`, `implement.toml`, `review.toml`, `revert.toml`, `status.toml`, `triage.toml`, `models.toml`, `yolo.toml`
-    - [ ] Forward user arguments `{{args}}` cleanly to backing `SKILL.md` files
-- [ ] Task: Clean up deprecated artifacts and prune duplicate archives [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Remove `skills/superconductor-kernel-dogma.skill` binary zip duplicate
-    - [ ] Deprecate/redirect `skills/swarm-orchestrate/` to `skills/swarm-execute/`
-- [ ] Task: Modernize Design OS skills to use `superconductor-kernel` MCP server tools [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Replace legacy `npx astryx` commands in `design-os-*` skills with MCP tools (`registry_list_blocks`, `registry_install`, `registry_fix_dogma`)
-- [ ] Task: Synchronize and regenerate `skills/catalog.md` with standardized YAML frontmatter [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Update `catalog.md` to index all active local skills and ecosystem extensions
-    - [ ] Standardize frontmatter across all `SKILL.md` files
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Command Streamlining & Skill Cleanup' (Protocol in workflow.md)
+- [x] Task: Write unit tests for command TOML validation and delegation schemas [TIER-2] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Test assertion that all TOML commands have valid prompt delegation blocks
+    - [x] Test assertion that legacy `ask_user` and Plan Mode tool calls are absent from TOMLs
+- [x] Task: Refactor all 9 `commands/superconductor/*.toml` files to lightweight prompt delegates [TIER-1] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Refactor `setup.toml`, `newTrack.toml`, `implement.toml`, `review.toml`, `revert.toml`, `status.toml`, `triage.toml`, `models.toml`, `yolo.toml`
+    - [x] Forward user arguments `{{args}}` cleanly to backing `SKILL.md` files
+- [x] Task: Clean up deprecated artifacts and prune duplicate archives [TIER-1] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Remove `skills/superconductor-kernel-dogma.skill` binary zip duplicate
+    - [x] Deprecate/redirect `skills/swarm-orchestrate/` to `skills/swarm-execute/`
+- [x] Task: Modernize Design OS skills to use `superconductor-kernel` MCP server tools [TIER-2] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Replace legacy `npx astryx` commands in `design-os-*` skills with MCP tools (`registry_list_blocks`, `registry_install`, `registry_fix_dogma`)
+- [x] Task: Synchronize and regenerate `skills/catalog.md` with standardized YAML frontmatter [TIER-2] [AGENT:superconductor-processor] (SHA: 044c1495)
+    - [x] Update `catalog.md` to index all active local skills and ecosystem extensions
+    - [x] Standardize frontmatter across all `SKILL.md` files
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Command Streamlining & Skill Cleanup' (Protocol in workflow.md)
 
 ---
 
