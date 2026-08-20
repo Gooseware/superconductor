@@ -10,36 +10,36 @@
 
 ## Phase 0: Swarm Preflight & Scaffolding [TIER-1]
 
-- [ ] Task: Preflight verification of repository branch and permission manifest [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Confirm active branch is `track/multi_language_persona_architecture_20260820`
-    - [ ] Verify `permission-manifest.toml`, `metadata.json`, `index.md`, and `spec.md` are correctly located in `superconductor/tracks/multi_language_persona_architecture_20260820/`
-    - [ ] Verify workspace build tooling (`pnpm test`, `npm test` in `packages/superconductor-core`)
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
+- [x] Task: Preflight verification of repository branch and permission manifest [TIER-1] [AGENT:superconductor-processor]
+    - [x] Confirm active branch is `track/multi_language_persona_architecture_20260820`
+    - [x] Verify `permission-manifest.toml`, `metadata.json`, `index.md`, and `spec.md` are correctly located in `superconductor/tracks/multi_language_persona_architecture_20260820/`
+    - [x] Verify workspace build tooling (`pnpm test`, `npm test` in `packages/superconductor-core`)
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md)
 
 ---
 
 ## Phase 1: Setup Dogma, i18n Discovery Gate & Swarm Guardrails [TIER-3]
 
-- [ ] Task: Integrate Visual Language & Token Contract Gate into `skills/setup/SKILL.md` and `skills/grill/SKILL.md` (FR-1, AC-1) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add mandatory styling token discovery step during project initialization
-    - [ ] Add 4-tier semantic token taxonomy (Surfaces, Typography, State/Brand, Geometry/Spacing)
-    - [ ] Add static token compliance linting requirement (0 untokenized style literals)
-- [ ] Task: Integrate Upfront Multilingual / i18n Discovery Gate into `skills/setup/SKILL.md`, `skills/to-spec/SKILL.md`, and `skills/grill/SKILL.md` (FR-2, AC-2) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add mandatory prompt: *"Will this application need to support multiple languages, international locales, right-to-left (RTL) scripts, or localized formatting now or in the future?"*
-    - [ ] Add stack-specific localization scaffolding catalog for Rust, Go, Python, C#, Swift, Kotlin, Flutter, and Web/TS
-    - [ ] Enforce localization macro wrapping for all user-facing strings from Day 1 when i18n is enabled
-    - [ ] Document single-language invariant in `superconductor/project.md` when disabled
-- [ ] Task: Codify Anti-Hero-Agent Protocol in `skills/implement/SKILL.md` and `skills/swarm-execute/SKILL.md` (FR-3, AC-3) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add `### Root Orchestration Dogma` section
-    - [ ] Strictly forbid direct product code file edits by the Root Agent in Swarm Execution
-    - [ ] Mandate delegation of all implementation and remediation phases to `superconductor-processor` subagents
-- [ ] Task: Codify UI Layer Hit-Testing Dogma in `skills/design-heuristics/SKILL.md` and `skills/superconductor-kernel-dogma/SKILL.md` (FR-7, AC-7) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Add explicit pointer event / hit testing rules for overlay/floating interactive components across Web, Flutter, SwiftUI, Compose, Qt, and Game Engines
-    - [ ] Add requirement for automated E2E pointer/tap testing on interactive overlay elements
-- [ ] Task: Integrate Terminal Focus Notification Protocol in `skills/swarm-execute/SKILL.md` and `skills/implement/SKILL.md` (FR-8, AC-8) [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Add focus detection check (`check_focus_notify.sh`) before waiting states or concluding a track
-    - [ ] Document desktop notification fallback behaviors (`notify-send` / system alert)
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Setup Dogma & Swarm Guardrails' (Protocol in workflow.md)
+- [x] Task: Integrate Visual Language & Token Contract Gate into `skills/setup/SKILL.md` and `skills/grill/SKILL.md` (FR-1, AC-1) [TIER-3] [AGENT:superconductor-processor] (commit: `4a9ac079`)
+    - [x] Add mandatory styling token discovery step during project initialization
+    - [x] Add 4-tier semantic token taxonomy (Surfaces, Typography, State/Brand, Geometry/Spacing)
+    - [x] Add static token compliance linting requirement (0 untokenized style literals)
+- [x] Task: Integrate Upfront Multilingual / i18n Discovery Gate into `skills/setup/SKILL.md`, `skills/to-spec/SKILL.md`, and `skills/grill/SKILL.md` (FR-2, AC-2) [TIER-3] [AGENT:superconductor-processor] (commit: `4a9ac079`)
+    - [x] Add mandatory prompt: *"Will this application need to support multiple languages, international locales, right-to-left (RTL) scripts, or localized formatting now or in the future?"*
+    - [x] Add stack-specific localization scaffolding catalog for Rust, Go, Python, C#, Swift, Kotlin, Flutter, and Web/TS
+    - [x] Enforce localization macro wrapping for all user-facing strings from Day 1 when i18n is enabled
+    - [x] Document single-language invariant in `superconductor/project.md` when disabled
+- [x] Task: Codify Anti-Hero-Agent Protocol in `skills/implement/SKILL.md` and `skills/swarm-execute/SKILL.md` (FR-3, AC-3) [TIER-3] [AGENT:superconductor-processor] (commit: `4a9ac079`)
+    - [x] Add `### Root Orchestration Dogma` section
+    - [x] Strictly forbid direct product code file edits by the Root Agent in Swarm Execution
+    - [x] Mandate delegation of all implementation and remediation phases to `superconductor-processor` subagents
+- [x] Task: Codify UI Layer Hit-Testing Dogma in `skills/design-heuristics/SKILL.md` and `skills/superconductor-kernel-dogma/SKILL.md` (FR-7, AC-7) [TIER-3] [AGENT:superconductor-processor] (commit: `4a9ac079`)
+    - [x] Add explicit pointer event / hit testing rules for overlay/floating interactive components across Web, Flutter, SwiftUI, Compose, Qt, and Game Engines
+    - [x] Add requirement for automated E2E pointer/tap testing on interactive overlay elements
+- [x] Task: Integrate Terminal Focus Notification Protocol in `skills/swarm-execute/SKILL.md` and `skills/implement/SKILL.md` (FR-8, AC-8) [TIER-2] [AGENT:superconductor-processor] (commit: `4a9ac079`)
+    - [x] Add focus detection check (`check_focus_notify.sh`) before waiting states or concluding a track
+    - [x] Document desktop notification fallback behaviors (`notify-send` / system alert)
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Setup Dogma & Swarm Guardrails' (Protocol in workflow.md)
 
 ---
 
