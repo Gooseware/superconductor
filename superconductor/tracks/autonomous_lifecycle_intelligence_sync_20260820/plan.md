@@ -1,4 +1,4 @@
-# Implementation Plan: Autonomous Track Lifecycle, Dynamic Target Integration & Continuous Intelligence Auto-Sync
+# Implementation Plan: Autonomous Track Lifecycle, Dynamic Target Integration, Intelligence Auto-Sync & Command/Skill Streamlining
 
 **Track ID:** `autonomous_lifecycle_intelligence_sync_20260820`  
 **Priority:** P0  
@@ -7,7 +7,7 @@
 ---
 
 ## Phase 0: Swarm Preflight & Protocol Verification
-- [ ] Task: Verify `swarm-orchestrate` and `superconductor-agents` skills and environment preflight [TIER-1] [AGENT:superconductor-processor]
+- [ ] Task: Verify `swarm-orchestrate` / `swarm-execute` and `superconductor-agents` skills and environment preflight [TIER-1] [AGENT:superconductor-processor]
     - [ ] Check skill files and dependencies
     - [ ] Validate Node.js, Git, and MCP tool availability
 - [ ] Task: Run preflight intelligence drift check and initial sync [TIER-2] [AGENT:superconductor-processor]
@@ -17,23 +17,41 @@
 
 ---
 
-## Phase 1: Quorum Review Hardening & Script Path Resolution (Recommended Fixes)
-- [ ] Task: Write failing tests for review skill parsing and quorum subagent dispatch invariants [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Test assertion that in-process simulation language is rejected
-    - [ ] Test assertion that all 4 review roles are required
-- [ ] Task: Refactor `skills/standalone-review/SKILL.md` to remove in-process fallback and mandate `invoke_subagent` [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Replace §4.2 with strict `invoke_subagent` dispatch requirement
-    - [ ] Update reviewer prompt templates to output structured `json:review-findings`
-- [ ] Task: Modernize `commands/superconductor/review.toml` and `skills/review/SKILL.md` to use multi-agent quorum pipeline [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Replace legacy monolithic prompts with 4-agent quorum dispatch
-- [ ] Task: Update script path resolution across skills and hooks to use dynamic `$SUPERCONDUCTOR_DIR` [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Update script invocations in `skills/standalone-review/SKILL.md` and `skills/implement/SKILL.md`
-    - [ ] Update hook paths in `scripts/hooks/install-hooks.sh` and `scripts/install-git-hook.sh`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Quorum Review Hardening & Script Path Resolution' (Protocol in workflow.md)
+## Phase 1: Command Streamlining ("Thin Command" Architecture) & Skill Cleanup
+- [ ] Task: Write unit tests for command TOML validation and delegation schemas [TIER-2] [AGENT:superconductor-processor]
+    - [ ] Test assertion that all TOML commands have valid prompt delegation blocks
+    - [ ] Test assertion that legacy `ask_user` and Plan Mode tool calls are absent from TOMLs
+- [ ] Task: Refactor all 9 `commands/superconductor/*.toml` files to lightweight prompt delegates [TIER-1] [AGENT:superconductor-processor]
+    - [ ] Refactor `setup.toml`, `newTrack.toml`, `implement.toml`, `review.toml`, `revert.toml`, `status.toml`, `triage.toml`, `models.toml`, `yolo.toml`
+    - [ ] Forward user arguments `{{args}}` cleanly to backing `SKILL.md` files
+- [ ] Task: Clean up deprecated artifacts and prune duplicate archives [TIER-1] [AGENT:superconductor-processor]
+    - [ ] Remove `skills/superconductor-kernel-dogma.skill` binary zip duplicate
+    - [ ] Deprecate/redirect `skills/swarm-orchestrate/` to `skills/swarm-execute/`
+- [ ] Task: Modernize Design OS skills to use `superconductor-kernel` MCP server tools [TIER-2] [AGENT:superconductor-processor]
+    - [ ] Replace legacy `npx astryx` commands in `design-os-*` skills with MCP tools (`registry_list_blocks`, `registry_install`, `registry_fix_dogma`)
+- [ ] Task: Synchronize and regenerate `skills/catalog.md` with standardized YAML frontmatter [TIER-2] [AGENT:superconductor-processor]
+    - [ ] Update `catalog.md` to index all active local skills and ecosystem extensions
+    - [ ] Standardize frontmatter across all `SKILL.md` files
+- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Command Streamlining & Skill Cleanup' (Protocol in workflow.md)
 
 ---
 
-## Phase 2: Continuous 5-Tier Code Intelligence Auto-Sync Engine
+## Phase 2: Quorum Review Hardening & Script Path Resolution (Recommended Fixes)
+- [ ] Task: Write failing tests for review skill parsing and quorum subagent dispatch invariants [TIER-2] [AGENT:superconductor-processor]
+    - [ ] Test assertion that in-process simulation language is rejected
+    - [ ] Test assertion that all 4 review roles are strictly required
+- [ ] Task: Refactor review skills to eliminate in-process simulation and mandate `invoke_subagent` [TIER-2] [AGENT:superconductor-processor]
+    - [ ] Unify `skills/review/` and `skills/standalone-review/` into canonical dual-mode `skills/review/SKILL.md`
+    - [ ] Require `invoke_subagent` for all 4 roles (`security`, `correctness`, `adversarial`, `regression`)
+    - [ ] Standardize structured `json:review-findings` output schema
+- [ ] Task: Update script path resolution across skills and hooks to use dynamic `$SUPERCONDUCTOR_DIR` [TIER-2] [AGENT:superconductor-processor]
+    - [ ] Update script invocations in `skills/review/SKILL.md` and `skills/implement/SKILL.md`
+    - [ ] Update hook paths in `scripts/hooks/install-hooks.sh` and `scripts/install-git-hook.sh`
+- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Quorum Review Hardening & Script Path Resolution' (Protocol in workflow.md)
+
+---
+
+## Phase 3: Continuous 5-Tier Code Intelligence Auto-Sync Engine
 - [ ] Task: Write unit tests for `IntelligenceAutoSyncEngine` (delta calculation, incremental update, manifest refresh) [TIER-2] [AGENT:superconductor-processor]
     - [ ] Test incremental file detection from `git diff`
     - [ ] Test manifest timestamp and commit hash updates
@@ -48,11 +66,11 @@
 - [ ] Task: Execute immediate repository re-indexing to clear the 310-commit drift and verify `kernel_intelligence_status` returns `LIVE` [TIER-2] [AGENT:superconductor-processor]
     - [ ] Run full pipeline scan
     - [ ] Verify `kernel_intelligence_status` reports `LIVE`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Continuous 5-Tier Code Intelligence Auto-Sync Engine' (Protocol in workflow.md)
+- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Continuous 5-Tier Code Intelligence Auto-Sync Engine' (Protocol in workflow.md)
 
 ---
 
-## Phase 3: Dynamic Target Branch Integration & Git Reconciliation
+## Phase 4: Dynamic Target Branch Integration & Git Reconciliation
 - [ ] Task: Write unit tests for multi-target branch resolution and merge operations [TIER-2] [AGENT:superconductor-processor]
     - [ ] Test target branch resolution from `tech-stack.md`
     - [ ] Test merge trailers and working copy cleanliness checks
@@ -62,11 +80,11 @@
 - [ ] Task: Implement pre-merge working tree verification and `--no-ff` merge execution with cryptographic Swarm Authorizer trailers [TIER-3] [AGENT:superconductor-processor]
     - [ ] Verify clean git state before merge
     - [ ] Embed Swarm-Authorized trailers and Oracle verdicts in merge commits
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Target Branch Integration & Git Reconciliation' (Protocol in workflow.md)
+- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Dynamic Target Branch Integration & Git Reconciliation' (Protocol in workflow.md)
 
 ---
 
-## Phase 4: Canonical Track Archival & Registry Synchronization
+## Phase 5: Canonical Track Archival & Registry Synchronization
 - [ ] Task: Write unit tests for transactional track archival and migration [TIER-2] [AGENT:superconductor-processor]
     - [ ] Test moving track directory with rollback on failure
     - [ ] Test markdown table updates in `tracks.md` and `archive.md`
@@ -76,11 +94,11 @@
 - [ ] Task: Implement legacy archive migration utility to relocate tracks from `superconductor/archive/` to `superconductor/tracks/archive/` and sync `archive.md` [TIER-2] [AGENT:superconductor-processor]
     - [ ] Move existing legacy archived tracks
     - [ ] Update links and indices in `archive.md`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Canonical Track Archival & Registry Synchronization' (Protocol in workflow.md)
+- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Canonical Track Archival & Registry Synchronization' (Protocol in workflow.md)
 
 ---
 
-## Phase 5: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate
+## Phase 6: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate
 - [ ] Task: Write integration tests for end-to-end headless lifecycle execution [TIER-2] [AGENT:superconductor-processor]
     - [ ] Test headless auto-advance and HMAC sign-off generation
 - [ ] Task: Update `SignOffGate` with `recordAutonomousSignOff()` for unblocked headless execution upon unanimous Quorum + Oracle `READY` [TIER-3] [AGENT:superconductor-processor]
@@ -89,11 +107,11 @@
     - [ ] Unify interactive and headless execution state machines
 - [ ] Task: Update `superconductor/workflow.md`, `skills/implement/SKILL.md`, and `skills/swarm-execute/SKILL.md` to document the unified lifecycle [TIER-2] [AGENT:superconductor-processor]
     - [ ] Document zero-touch headless execution and auto-archiving
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate' (Protocol in workflow.md)
+- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Unified Autonomous Headless Factory Pipeline & Sign-Off Gate' (Protocol in workflow.md)
 
 ---
 
-## Phase 6: Integration, Full Regression & Finalization
+## Phase 7: Integration, Full Regression & Finalization
 - [ ] Task: Run full test suite across `superconductor-core`, `superconductor-kernel`, `quorum-fsm`, and `engine` (>80% coverage) [TIER-3] [AGENT:superconductor-processor]
     - [ ] Run `npm test` across all workspaces
     - [ ] Ensure zero test failures and coverage invariants
@@ -103,4 +121,4 @@
     - [ ] Dispatch 4-reviewer swarm
     - [ ] Verify Oracle readiness verdict
 - [ ] Task: Integrate track 'autonomous_lifecycle_intelligence_sync_20260820' into main branch. [TIER-2] [AGENT:superconductor-processor]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Integration, Full Regression & Finalization' (Protocol in workflow.md)
+- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration, Full Regression & Finalization' (Protocol in workflow.md)
