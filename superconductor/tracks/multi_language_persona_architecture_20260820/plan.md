@@ -120,20 +120,20 @@
 
 ## Phase 4: Integration, Verification & Quorum Review [TIER-4]
 
-- [ ] Task: Run full Acceptance Criteria verification checklist (AC-1 through AC-10) [TIER-2] [AGENT:superconductor-reviewer]
-    - [ ] [ ] AC-1: Visual Language & Token Contract Gate verified in `skills/setup/` & `skills/grill/`
-    - [ ] [ ] AC-2: Multilingual / i18n Discovery Gate verified in `skills/setup/`, `skills/to-spec/`, `skills/grill/`
-    - [ ] [ ] AC-3: Anti-Hero-Agent Protocol verified in `skills/implement/` & `skills/swarm-execute/`
-    - [ ] [ ] AC-4: All 10 persona skills exist under `skills/personas/` with comprehensive rubrics
-    - [ ] [ ] AC-5: `LanguagePersonaResolver` verified with tests for all 9 languages + UI frameworks
-    - [ ] [ ] AC-6: `DynamicQuorumContextSplicer` verified with prompt injection tests
-    - [ ] [ ] AC-7: UI Layer Hit-Testing Dogma verified in `skills/design-heuristics/` & kernel dogma
-    - [ ] [ ] AC-8: Terminal Focus Notification Protocol verified in `skills/swarm-execute/` & `skills/implement/`
-    - [ ] [ ] AC-9: Core test suite passes 100% in `packages/superconductor-core`
-    - [ ] [ ] AC-10: Skills catalog & extension manifests updated
-- [ ] Task: Execute 4-Reviewer Quorum Review (Security, Correctness, Adversarial, Regression) [TIER-4] [AGENT:superconductor-reviewer]
-- [ ] Task: Oracle Tier-4 Architectural Sign-off and cryptographic verification [TIER-4] [AGENT:superconductor-oracle]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Quorum Review' (Protocol in workflow.md)
+- [x] Task: Run full Acceptance Criteria verification checklist (AC-1 through AC-10) [TIER-2] [AGENT:superconductor-reviewer]
+    - [x] AC-1: Visual Language & Token Contract Gate verified in `skills/setup/` & `skills/grill/`
+    - [x] AC-2: Multilingual / i18n Discovery Gate verified in `skills/setup/`, `skills/to-spec/`, `skills/grill/`
+    - [x] AC-3: Anti-Hero-Agent Protocol verified in `skills/implement/` & `skills/swarm-execute/`
+    - [x] AC-4: All 10 persona skills exist under `skills/personas/` with comprehensive rubrics
+    - [x] AC-5: `LanguagePersonaResolver` verified with tests for all 9 languages + UI frameworks
+    - [x] AC-6: `DynamicQuorumContextSplicer` verified with prompt injection tests
+    - [x] AC-7: UI Layer Hit-Testing Dogma verified in `skills/design-heuristics/` & kernel dogma
+    - [x] AC-8: Terminal Focus Notification Protocol verified in `skills/swarm-execute/` & `skills/implement/`
+    - [x] AC-9: Core test suite passes 100% in `packages/superconductor-core`
+    - [x] AC-10: Skills catalog & extension manifests updated
+- [x] Task: Execute 4-Reviewer Quorum Review (Security, Correctness, Adversarial, Regression) [TIER-4] [AGENT:superconductor-reviewer]
+- [x] Task: Oracle Tier-4 Architectural Sign-off and cryptographic verification [TIER-4] [AGENT:superconductor-oracle]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Quorum Review' (Protocol in workflow.md)
 
 ---
 
