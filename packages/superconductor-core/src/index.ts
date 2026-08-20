@@ -12,9 +12,16 @@ export * from './orchestration/index.js';
 export * from './remediation/index.js';
 export * from './shared/libsql-database-manager.js';
 export * from './models/index.js';
+export * from './swarm/index.js';
 
 export type { ModelTier } from './intelligence/index.js';
 export type { Finding } from './remediation/index.js';
+export type {
+  LanguagePersona,
+  ReviewerRole,
+  SpliceOptions,
+  QuorumSpliceOptions
+} from './swarm/index.js';
 export type {
   ExecutionMode,
   FinalizationAction,
@@ -34,4 +41,5 @@ export type {
   ModelChooserResult,
   RoleMeta,
 } from './models/index.js';
+
 
