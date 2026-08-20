@@ -85,36 +85,36 @@
 
 ## Phase 3: Dynamic Quorum Context Splicer Engine — TDD & Implementation [TIER-4]
 
-- [ ] Task: Write unit tests for `LanguagePersonaResolver` in `packages/superconductor-core/src/swarm/__tests__/LanguagePersonaResolver.test.ts` (FR-5, AC-5, AC-9) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: Detect Rust from `Cargo.toml` and `tech-stack.md`
-    - [ ] Test: Detect Go from `go.mod` and `tech-stack.md`
-    - [ ] Test: Detect Python from `pyproject.toml`, `requirements.txt`, and `tech-stack.md`
-    - [ ] Test: Detect Swift from `Package.swift` and `*.xcodeproj`
-    - [ ] Test: Detect TypeScript from `package.json` and `tsconfig.json`
-    - [ ] Test: Detect C++ from `CMakeLists.txt` and `Makefile`
-    - [ ] Test: Detect C# from `*.csproj` and `*.sln`
-    - [ ] Test: Detect Kotlin from `build.gradle.kts` and `build.gradle`
-    - [ ] Test: Detect Zig from `build.zig`
-    - [ ] Test: Detect UI Layout frameworks (React, SwiftUI, Compose, Flutter, Slint, Qt)
-    - [ ] Test: Fallback to generic profile on unknown stack
-    - [ ] Confirm tests fail (Red)
-- [ ] Task: Implement `LanguagePersonaResolver` in `packages/superconductor-core/src/swarm/LanguagePersonaResolver.ts` (FR-5, AC-5) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Implement multi-language detection logic and UI layout framework detector
-    - [ ] Run unit tests to confirm Green
-- [ ] Task: Write unit tests for `DynamicQuorumContextSplicer` in `packages/superconductor-core/src/swarm/__tests__/DynamicQuorumContextSplicer.test.ts` (FR-6, AC-6, AC-9) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Test: Splicing Rust persona into Security and Correctness reviewer prompts
-    - [ ] Test: Splicing Go persona into Correctness and Adversarial reviewer prompts
-    - [ ] Test: Splicing UI Layout persona when UI files are modified
-    - [ ] Test: Combining multiple personas for full-stack projects (e.g., Rust + UI Layout)
-    - [ ] Test: Fallback behavior when persona skill file is missing
-    - [ ] Confirm tests fail (Red)
-- [ ] Task: Implement `DynamicQuorumContextSplicer` in `packages/superconductor-core/src/swarm/DynamicQuorumContextSplicer.ts` (FR-6, AC-6) [TIER-3] [AGENT:superconductor-processor]
-    - [ ] Implement persona file loading, rubric extraction, and prompt injection logic
-    - [ ] Export `DynamicQuorumContextSplicer` and `LanguagePersonaResolver` from `packages/superconductor-core/src/swarm/index.ts`
-    - [ ] Run unit tests to confirm Green
-- [ ] Task: Verify TypeScript build and package test suite passes cleanly [TIER-2] [AGENT:superconductor-processor]
-    - [ ] Run `pnpm test` / `npm test` in `packages/superconductor-core`
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Quorum Context Splicer Engine' (Protocol in workflow.md)
+- [x] Task: Write unit tests for `LanguagePersonaResolver` in `packages/superconductor-core/tests/swarm/LanguagePersonaResolver.test.ts` (FR-5, AC-5, AC-9) [TIER-3] [AGENT:superconductor-processor] (commit: `71ee7659`)
+    - [x] Test: Detect Rust from `Cargo.toml` and `tech-stack.md`
+    - [x] Test: Detect Go from `go.mod` and `tech-stack.md`
+    - [x] Test: Detect Python from `pyproject.toml`, `requirements.txt`, and `tech-stack.md`
+    - [x] Test: Detect Swift from `Package.swift` and `*.xcodeproj`
+    - [x] Test: Detect TypeScript from `package.json` and `tsconfig.json`
+    - [x] Test: Detect C++ from `CMakeLists.txt` and `Makefile`
+    - [x] Test: Detect C# from `*.csproj` and `*.sln`
+    - [x] Test: Detect Kotlin from `build.gradle.kts` and `build.gradle`
+    - [x] Test: Detect Zig from `build.zig`
+    - [x] Test: Detect UI Layout frameworks (React, SwiftUI, Compose, Flutter, Slint, Qt)
+    - [x] Test: Fallback to generic profile on unknown stack
+    - [x] Confirm tests fail (Red)
+- [x] Task: Implement `LanguagePersonaResolver` in `packages/superconductor-core/src/swarm/LanguagePersonaResolver.ts` (FR-5, AC-5) [TIER-3] [AGENT:superconductor-processor] (commit: `71ee7659`)
+    - [x] Implement multi-language detection logic and UI layout framework detector
+    - [x] Run unit tests to confirm Green
+- [x] Task: Write unit tests for `DynamicQuorumContextSplicer` in `packages/superconductor-core/tests/swarm/DynamicQuorumContextSplicer.test.ts` (FR-6, AC-6, AC-9) [TIER-3] [AGENT:superconductor-processor] (commit: `71ee7659`)
+    - [x] Test: Splicing Rust persona into Security and Correctness reviewer prompts
+    - [x] Test: Splicing Go persona into Correctness and Adversarial reviewer prompts
+    - [x] Test: Splicing UI Layout persona when UI files are modified
+    - [x] Test: Combining multiple personas for full-stack projects (e.g., Rust + UI Layout)
+    - [x] Test: Fallback behavior when persona skill file is missing
+    - [x] Confirm tests fail (Red)
+- [x] Task: Implement `DynamicQuorumContextSplicer` in `packages/superconductor-core/src/swarm/DynamicQuorumContextSplicer.ts` (FR-6, AC-6) [TIER-3] [AGENT:superconductor-processor] (commit: `71ee7659`)
+    - [x] Implement persona file loading, rubric extraction, and prompt injection logic
+    - [x] Export `DynamicQuorumContextSplicer` and `LanguagePersonaResolver` from `packages/superconductor-core/src/swarm/index.ts`
+    - [x] Run unit tests to confirm Green
+- [x] Task: Verify TypeScript build and package test suite passes cleanly [TIER-2] [AGENT:superconductor-processor] (commit: `71ee7659`)
+    - [x] Run `pnpm test` / `npm test` in `packages/superconductor-core`
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Dynamic Quorum Context Splicer Engine' (Protocol in workflow.md)
 
 ---
 
