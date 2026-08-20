@@ -23,3 +23,7 @@ This document defines the core standards for components included in the `superco
 
 ## Skeleton Support
 - Complex components (using `.map()` or having many JSX elements) MUST export a `Skeleton` component alongside the main component.
+
+## UI Layer Hit-Testing Dogma
+- Floating overlays, fixed toolbars, HUDs, and modal views must explicitly configure pointer event hit-testing (`pointer-events: auto;`, `HitTestBehavior.opaque`, `.allowsHitTesting(true)`, `Modifier.pointerInput`, `mouse_filter = STOP`) so interactive subcomponents remain clickable and do not swallow background events unintentionally.
+- Automated tests must verify pointer/touch interactions against overlay subcomponents.

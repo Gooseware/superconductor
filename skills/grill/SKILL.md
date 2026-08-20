@@ -24,6 +24,38 @@ You MUST loop through the following steps until the design is completely robust 
    - "Define exactly what '{Domain Term}' means in this specific bounded context. Is it different from '{Other Term}'?"
    - "Your tests assert success, but what verifies a state change in the System Under Test? Are these phantom implementations?"
    - "This component seems to be accumulating unrelated responsibilities. How does this not violate the Single Responsibility Principle?"
+   - "How are UI styling literals tokenized across this stack? Are raw hex codes or magic spacings leaking into components?"
+   - "Will this application need to support multiple languages, international locales, right-to-left (RTL) scripts, or localized formatting now or in the future?"
+
+### 2.2.1 Mandatory Architecture Discovery Gates
+During the interview, the interviewer MUST rigorously challenge and gate on the following architectural invariants:
+
+1. **Visual & Design Token Discovery Gate (Mandatory for UI/Frontend tracks):**
+   - Probe the styling token architecture across the target platform:
+     - **Web**: CSS Custom Properties, Tailwind tokens, CSS Modules, Design Tokens JSON.
+     - **Rust**: Palette structs, theme resources, design token constants (Slint/Iced/Tauri).
+     - **Go**: Theme interfaces, canvas resource constants, CSS token variables (Fyne/Templ).
+     - **Python**: QSS stylesheets, theme palettes, design token dictionaries (PyQt/Flet/NiceGUI).
+     - **Swift (iOS/macOS)**: Asset Catalogs, `ShapeStyle`, Color tokens in SwiftUI.
+     - **Kotlin (Android/Compose)**: `ColorScheme`, MaterialTheme tokens, Compose Theme resources.
+     - **Flutter**: `ThemeData`, `ColorScheme`, theme extension tokens.
+     - **C++/Qt**: Style sheets (QSS), palette definitions, theme configuration files (Qt/ImGui).
+   - Enforce 4-tier semantic token taxonomy: *Surfaces & Backgrounds*, *Content & Typography*, *Brand & State*, and *Geometry & Spacing*.
+   - Verify static token compliance linting (0 un-tokenized style literals, raw hex codes, or magic numbers).
+
+2. **Upfront Multilingual / Localization (i18n / l10n) Discovery Gate:**
+   - Prompt: *"Will this application need to support multiple languages, international locales, right-to-left (RTL) scripts, or localized formatting now or in the future?"*
+   - Verify stack-appropriate localization framework scaffolding:
+     - **Rust**: `fluent-rs` / `unic-langid`
+     - **Go**: `go-i18n` / `golang.org/x/text`
+     - **Python**: `Babel` / `gettext`
+     - **C# / .NET**: `IStringLocalizer` / `.resx`
+     - **Swift**: `String(localized:)` / `.xcstrings` String Catalogs
+     - **Kotlin / Android**: `stringResource()` / `strings.xml`
+     - **Flutter**: `flutter gen-l10n` / `flutter_localizations`
+     - **TypeScript / Web**: `@lingui/core` / `next-intl` / `i18next`
+   - If Yes: Mandate localization macro wrapping for all user-facing strings from Day 1.
+   - If No: Formally document the single-language invariant in `superconductor/project.md` / `product.md` and track specs.
 
 2. **Evaluate Response:** Critically evaluate the user's answer.
    - If the answer is vague, dismissive, or incomplete, challenge it immediately with a follow-up. Do NOT accept hand-waving.

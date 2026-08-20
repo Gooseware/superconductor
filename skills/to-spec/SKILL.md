@@ -21,7 +21,22 @@ The issue tracker and triage label vocabulary should have been provided to you â
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. **Multilingual / Localization (i18n / l10n) Discovery Gate:**
+   Determine if the feature touches user-facing copy, formatting, or international locales:
+   - Ask/Resolve: *"Will this application need to support multiple languages, international locales, right-to-left (RTL) scripts, or localized formatting now or in the future?"*
+   - Select stack-appropriate localization framework from catalog:
+     - **Rust**: `fluent-rs` / `unic-langid`
+     - **Go**: `go-i18n` / `golang.org/x/text`
+     - **Python**: `Babel` / `gettext`
+     - **C# / .NET**: `IStringLocalizer` / `.resx`
+     - **Swift (iOS/macOS)**: `String(localized:)` / `.xcstrings` String Catalogs
+     - **Kotlin / Android**: `stringResource()` / `strings.xml`
+     - **Flutter**: `flutter gen-l10n` / `flutter_localizations`
+     - **TypeScript / Web**: `@lingui/core` / `next-intl` / `i18next`
+   - If Yes: Record the decision under `## Implementation Decisions` requiring all user-facing strings to be wrapped in localization macros/lookups from Day 1.
+   - If No: Record the single-language invariant under `## Out of Scope` or `## Implementation Decisions`.
+
+4. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
 
 ## 3.0 ANTI-PATTERNS
 
@@ -63,6 +78,7 @@ A list of implementation decisions that were made. This can include:
 - Schema changes
 - API contracts
 - Specific interactions
+- Localization / i18n decisions (localization framework, macro wrapping, or single-language invariant)
 
 Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
 

@@ -55,7 +55,19 @@ This skill enforces strict, mathematical constraints on AI-generated UIs to prev
 
 ---
 
-## 6. On-Demand Deep Reference Guides
+## 6. Universal UI Layer Hit-Testing Dogma
+26. **Explicit Hit-Testing on Overlay Controls:** Interactive subcomponents placed inside pass-through overlay containers, floating viewports, HUDs, or fixed headers/footers MUST explicitly configure event hit-testing to prevent pointer/touch event swallowing:
+    - **Web / CSS**: Child interactive elements must set `pointer-events: auto;` when the parent container uses `pointer-events: none;`.
+    - **Flutter**: Floating widgets must declare `HitTestBehavior.opaque` or configure `IgnorePointer(ignoring: false)`.
+    - **SwiftUI**: Interactive overlay views must explicitly set `.allowsHitTesting(true)` and define precise hit boundaries via `.contentShape(Rectangle())`.
+    - **Jetpack Compose (Kotlin)**: Overlay elements must declare `Modifier.pointerInput(...)` or utilize dedicated clickable/selectable surface modifiers.
+    - **Qt / QML (C++/Python)**: Floating overlays must configure `MouseArea { enabled: true }` and define explicit `acceptedMouseButtons`.
+    - **Godot / Game Engines**: Interactive UI nodes must set `mouse_filter = Control.MOUSE_FILTER_STOP`.
+27. **Automated Interaction Verification:** Automation and E2E test suites MUST test genuine pointer/tap interaction against all overlay and floating subcomponents, validating that click/tap events trigger state updates rather than being silently absorbed by underlying or overlying transparent viewports.
+
+---
+
+## 7. On-Demand Deep Reference Guides
 If a task involves advanced color theory, layout grids, or detailed motion transitions, explicitly load the relevant reference guide:
 - For color scales and contrast palettes: [Color Reference](file:///superconductor/skills/design-heuristics/references/color-rules.md)
 - For layout structures and stagger patterns: [Layout Reference](file:///superconductor/skills/design-heuristics/references/layout-rules.md)
