@@ -114,7 +114,62 @@ Specialized reviewer personas and multi-agent execution protocols for heterogene
 
 ---
 
-## 3. Design OS Suite
+## 3. Modular Language & UI Layout Reviewer Personas
+Domain-specialized reviewer personas that enforce stack-specific memory safety, concurrency, lifecycle, and design token invariants during Quorum reviews.
+
+### rust-reviewer
+- **Description**: Rust domain expert and quorum code reviewer. Audits memory safety invariants, borrow checker workarounds, unsafe block justifications (`// SAFETY:`), async cancellation safety in `tokio::select!`, cross-await lock contention, zero-cost abstractions, and cargo clippy/miri/audit compliance.
+- **Path**: `skills/personas/rust-reviewer/SKILL.md`
+- **Keywords**: `rust`, `memory safety`, `unsafe`, `borrow checker`, `tokio`, `clippy`, `miri`
+
+### go-reviewer
+- **Description**: Go domain expert and quorum code reviewer. Audits goroutine lifecycle & leak prevention, `context.Context` cancellation propagation, error wrapping (`fmt.Errorf` with `%w`), typed nil interface bugs, data race detection (`go test -race`), loop-deferred descriptors, and golangci-lint/govulncheck/gosec compliance.
+- **Path**: `skills/personas/go-reviewer/SKILL.md`
+- **Keywords**: `go`, `golang`, `goroutines`, `channels`, `context`, `race condition`, `golangci-lint`
+
+### python-reviewer
+- **Description**: Python domain expert and quorum code reviewer. Audits asyncio event loop blocking / GIL starvation, mutable default arguments, broad exception swallowing, strict mypy/pyright type soundness, SQL/command injection vulnerabilities, pytest mock hygiene, and ruff/bandit/pip-audit compliance.
+- **Path**: `skills/personas/python-reviewer/SKILL.md`
+- **Keywords**: `python`, `asyncio`, `mypy`, `pyright`, `pytest`, `ruff`, `bandit`, `gil`
+
+### swift-reviewer
+- **Description**: Swift & Apple platforms domain expert and quorum code reviewer. Audits ARC memory management & retain cycles (`[weak self]`), Swift 6 strict concurrency (`Sendable`, Actor isolation, `@MainActor`), SwiftUI view redraw optimization & state hoisting, `.xcstrings` string catalog localization, and swiftlint/xcstrings-tool/XCTest compliance.
+- **Path**: `skills/personas/swift-reviewer/SKILL.md`
+- **Keywords**: `swift`, `swiftui`, `arc`, `sendable`, `actors`, `concurrency`, `xcstrings`
+
+### typescript-reviewer
+- **Description**: TypeScript/JavaScript domain expert and quorum code reviewer. Audits strict type soundness (banning `as any` and unsafe assertions), nullability safety, async promise error handling (`no-floating-promises`), prototype pollution prevention, DOM/SSR hydration boundaries, and biome/tsc/knip/semgrep compliance.
+- **Path**: `skills/personas/typescript-reviewer/SKILL.md`
+- **Keywords**: `typescript`, `javascript`, `type safety`, `async`, `promises`, `ssr`, `react`, `biome`
+
+### cpp-reviewer
+- **Description**: Modern C++ domain expert and quorum code reviewer. Audits RAII resource management, use-after-free and string_view lifetime containment, smart pointer semantics (`std::unique_ptr`/`std::shared_ptr`), move semantics & use-after-move, memory sanitizers (ASan/UBSan/TSan), and clang-tidy/cppcheck compliance.
+- **Path**: `skills/personas/cpp-reviewer/SKILL.md`
+- **Keywords**: `cpp`, `c++`, `raii`, `smart pointers`, `sanitizers`, `asan`, `clang-tidy`, `use-after-free`
+
+### csharp-reviewer
+- **Description**: C#/.NET domain expert and quorum code reviewer. Audits `IDisposable`/`IAsyncDisposable` lifecycle, end-to-end async Task patterns (banning `async void` and `.Result` sync-over-async deadlocks), Entity Framework Core N+1 queries & `AsNoTracking` optimization, Nullable Reference Types, and dotnet format/Roslyn analyzers.
+- **Path**: `skills/personas/csharp-reviewer/SKILL.md`
+- **Keywords**: `csharp`, `c#`, `.net`, `async`, `entity framework`, `linq`, `idisposable`, `n+1`
+
+### kotlin-reviewer
+- **Description**: Kotlin & Android/JVM domain expert and quorum code reviewer. Audits coroutine scope hierarchies & `CancellationException` propagation, Jetpack Compose stability (`@Immutable`/`@Stable`), `@StringRes` localization compliance, platform nullability interop, and detekt/ktlint/Compose compiler metrics.
+- **Path**: `skills/personas/kotlin-reviewer/SKILL.md`
+- **Keywords**: `kotlin`, `android`, `compose`, `coroutines`, `flow`, `detekt`, `ktlint`
+
+### zig-reviewer
+- **Description**: Zig domain expert and quorum code reviewer. Audits explicit allocator parameterization, `errdefer` rollback chains on multi-allocations, `@ptrCast` and `@alignCast` safety guards, `comptime` type introspection, zero-hidden-allocation dogma, and zig test/ReleaseSafe compliance.
+- **Path**: `skills/personas/zig-reviewer/SKILL.md`
+- **Keywords**: `zig`, `allocator`, `errdefer`, `comptime`, `memory safety`, `ptrcast`, `release safe`
+
+### ui-layout-reviewer
+- **Description**: UI/UX layout and frontend architecture domain expert and quorum code reviewer. Audits Design OS token contract compliance (0 untokenized style literals), UI layer hit-testing & pointer event propagation across Web/Flutter/SwiftUI/Compose/Qt, WCAG 2.1 AA contrast & 48px touch targets, zero raw unlocalized text, and automated accessibility checks.
+- **Path**: `skills/personas/ui-layout-reviewer/SKILL.md`
+- **Keywords**: `ui`, `layout`, `hit testing`, `pointer events`, `design tokens`, `wcag`, `accessibility`, `touch targets`
+
+---
+
+## 4. Design OS Suite
 Skills powering automated, structured UI/UX planning, component extraction, and kernel registry management.
 
 ### design-os-orchestrator
@@ -199,7 +254,7 @@ Skills powering automated, structured UI/UX planning, component extraction, and 
 
 ---
 
-## 4. Support, Exploration & Utility Skills
+## 5. Support, Exploration & Utility Skills
 Interviews, architectural refactoring, ticket generation, and worktree isolation utilities.
 
 ### grill
@@ -229,7 +284,7 @@ Interviews, architectural refactoring, ticket generation, and worktree isolation
 
 ---
 
-## 5. Ecosystem & Cloud Extensions
+## 6. Ecosystem & Cloud Extensions
 
 ### firebase-ai-logic-basics
 - **Description**: Official skill for integrating Firebase AI Logic (Gemini API) into web applications. Covers setup, multimodal inference, structured output, and security.
