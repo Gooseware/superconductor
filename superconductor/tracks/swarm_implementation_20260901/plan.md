@@ -7,38 +7,38 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify `swarm-execute` skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
-    - [ ] Confirm `~/.gemini/config/plugins/superconductor/skills/swarm-execute/SKILL.md` exists
-    - [ ] Confirm `orchestrate.ts`, `quorum-review-loop.ts`, `parallel-dispatcher.ts` are readable
+- [x] Task: Verify `swarm-execute` skill is installed and loaded [TIER-1] [AGENT:superconductor-processor]
+    - [x] Confirm `~/.gemini/config/plugins/superconductor/skills/swarm-execute/SKILL.md` exists
+    - [x] Confirm `orchestrate.ts`, `quorum-review-loop.ts`, `parallel-dispatcher.ts` are readable
 
 ---
 
 ## Phase 1: `QuorumReviewLoop` — Accept Pre-Run `TestReport` [DOMAIN:engine-verification]
 
-- [ ] Task: Add `preflightReport` option to `QuorumReviewLoopOptions` and handle it in `run()` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In `packages/engine/src/verification/quorum-review-loop.ts`:
-        - [ ] Add `preflightReport?: TestReport` to `QuorumReviewLoopOptions` interface
-        - [ ] In constructor: store `this.preflightReport = options.preflightReport`
-        - [ ] In `run()`: before the iteration loop, check `if (this.preflightReport && !this.testReport)` → set `this.testReport = this.preflightReport`; if `!this.preflightReport.passed` return `NEEDS_FIXES` immediately (mirror existing `preflightFn` failure path)
-        - [ ] Preserve full backward compatibility: if only `preflightFn` is provided and no `preflightReport`, behaviour is unchanged
+- [x] Task: Add `preflightReport` option to `QuorumReviewLoopOptions` and handle it in `run()` [TIER-3] [AGENT:superconductor-processor]
+    - [x] In `packages/engine/src/verification/quorum-review-loop.ts`:
+        - [x] Add `preflightReport?: TestReport` to `QuorumReviewLoopOptions` interface
+        - [x] In constructor: store `this.preflightReport = options.preflightReport`
+        - [x] In `run()`: before the iteration loop, check `if (this.preflightReport && !this.testReport)` → set `this.testReport = this.preflightReport`; if `!this.preflightReport.passed` return `NEEDS_FIXES` immediately (mirror existing `preflightFn` failure path)
+        - [x] Preserve full backward compatibility: if only `preflightFn` is provided and no `preflightReport`, behaviour is unchanged
 
-- [ ] Task: Write unit tests for `preflightReport` injection in `QuorumReviewLoop` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In `packages/engine/tests/quorum-review-loop.test.ts` (or new file):
-        - [ ] Test: `preflightReport` with `passed: false` → returns `NEEDS_FIXES` immediately, `reviewerFn` never called
-        - [ ] Test: `preflightReport` with `passed: true` → injects `<test_report>` XML into reviewer context, `reviewerFn` called once
-        - [ ] Test: `preflightFn` only (no `preflightReport`) → existing behavior unchanged (run called, result injected)
-        - [ ] Test: both `preflightFn` and `preflightReport` provided → `preflightReport` takes precedence, `preflightFn` never called
-        - [ ] Run tests; confirm all pass and coverage ≥ 80% for modified file
+- [x] Task: Write unit tests for `preflightReport` injection in `QuorumReviewLoop` [TIER-3] [AGENT:superconductor-processor]
+    - [x] In `packages/engine/tests/quorum-review-loop.test.ts` (or new file):
+        - [x] Test: `preflightReport` with `passed: false` → returns `NEEDS_FIXES` immediately, `reviewerFn` never called
+        - [x] Test: `preflightReport` with `passed: true` → injects `<test_report>` XML into reviewer context, `reviewerFn` called once
+        - [x] Test: `preflightFn` only (no `preflightReport`) → existing behavior unchanged (run called, result injected)
+        - [x] Test: both `preflightFn` and `preflightReport` provided → `preflightReport` takes precedence, `preflightFn` never called
+        - [x] Run tests; confirm all pass and coverage ≥ 80% for modified file
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ---
 
 ## Phase 2: `SwarmOrchestratorCLI` — Global Preflight + Parallel Batch Dispatch [DOMAIN:engine-orchestration]
 
-- [ ] Task: Move preflight execution to global scope in `executeTrack()` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In `packages/engine/src/cli/orchestrate.ts`:
-        - [ ] After `parseAndDispatch()` call (line ~125), add global preflight block:
+- [x] Task: Move preflight execution to global scope in `executeTrack()` [TIER-3] [AGENT:superconductor-processor]
+    - [x] In `packages/engine/src/cli/orchestrate.ts`:
+        - [x] After `parseAndDispatch()` call (line ~125), add global preflight block:
           ```typescript
           let globalTestReport: TestReport | undefined;
           if (!options?.noPreflight) {
@@ -47,14 +47,14 @@
               globalTestReport = await runner.run();
           }
           ```
-        - [ ] Remove `preflightFn` from the per-WorkUnit `QuorumReviewLoop` constructor call
-        - [ ] Replace it with `preflightReport: globalTestReport` in `QuorumReviewLoop` options
-        - [ ] Ensure the per-WU `preflightFn` closure is deleted (no leftover dead code)
+        - [x] Remove `preflightFn` from the per-WorkUnit `QuorumReviewLoop` constructor call
+        - [x] Replace it with `preflightReport: globalTestReport` in `QuorumReviewLoop` options
+        - [x] Ensure the per-WU `preflightFn` closure is deleted (no leftover dead code)
 
-- [ ] Task: Replace sequential implementor loop with parallel batch dispatch [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In `packages/engine/src/cli/orchestrate.ts`:
-        - [ ] Extract spawner logic from the `for` loop into a helper: `async function spawnImplementorBatch(batch: WorkUnit[]): Promise<void>`
-        - [ ] Replace the sequential `for` loop with a batched parallel dispatch:
+- [x] Task: Replace sequential implementor loop with parallel batch dispatch [TIER-3] [AGENT:superconductor-processor]
+    - [x] In `packages/engine/src/cli/orchestrate.ts`:
+        - [x] Extract spawner logic from the `for` loop into a helper: `async function spawnImplementorBatch(batch: WorkUnit[]): Promise<void>`
+        - [x] Replace the sequential `for` loop with a batched parallel dispatch:
           ```typescript
           const batchSize = this.dispatcher.maxConcurrent; // default 5
           for (let b = 0; b < workUnits.length; b += batchSize) {
@@ -64,27 +64,27 @@
               await Promise.all(batchPromises); // wait for batch before next batch
           }
           ```
-        - [ ] Ensure `updatedWorkUnits[i]` index tracking is preserved correctly across batches
-        - [ ] The `VERIFY` unit type special-case remains within the per-WU helper
-        - [ ] Expose `maxConcurrent` as a getter on `ParallelDispatcher` if not already public
+        - [x] Ensure `updatedWorkUnits[i]` index tracking is preserved correctly across batches
+        - [x] The `VERIFY` unit type special-case remains within the per-WU helper
+        - [x] Expose `maxConcurrent` as a getter on `ParallelDispatcher` if not already public
 
-- [ ] Task: Write tests confirming parallel batch dispatch behaviour [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In `packages/engine/tests/orchestrate.test.ts`:
-        - [ ] Test: 8 WorkUnits with `maxConcurrent=5` → first batch of 5 spawn calls issued before any completes; second batch of 3 after first batch resolves (use mock spawner with controlled latency)
-        - [ ] Test: `PreflightTestRunner.prototype.run` spy confirms called exactly **once** regardless of WorkUnit count (use sinon/jest spy)
-        - [ ] Test: `noPreflight: true` → spy confirms `run` never called
-        - [ ] Test: global preflight `passed: false` → all WorkUnits return `NEEDS_FIXES`, no implementor agents spawned
-        - [ ] Run full test suite; confirm all existing tests still pass
+- [x] Task: Write tests confirming parallel batch dispatch behaviour [TIER-3] [AGENT:superconductor-processor]
+    - [x] In `packages/engine/tests/orchestrate.test.ts`:
+        - [x] Test: 8 WorkUnits with `maxConcurrent=5` → first batch of 5 spawn calls issued before any completes; second batch of 3 after first batch resolves (use mock spawner with controlled latency)
+        - [x] Test: `PreflightTestRunner.prototype.run` spy confirms called exactly **once** regardless of WorkUnit count (use sinon/jest spy)
+        - [x] Test: `noPreflight: true` → spy confirms `run` never called
+        - [x] Test: global preflight `passed: false` → all WorkUnits return `NEEDS_FIXES`, no implementor agents spawned
+        - [x] Run full test suite; confirm all existing tests still pass
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ---
 
 ## Phase 3: `swarm-execute/SKILL.md` — Implementation Swarm Dispatch Protocol [DOMAIN:skill-protocol]
 
-- [ ] Task: Add `Implementation Swarm Dispatch Protocol` section to `swarm-execute/SKILL.md` [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In `~/.gemini/config/plugins/superconductor/skills/swarm-execute/SKILL.md`:
-        - [ ] Insert new section **before** the existing `## Phase Gate Reviewer Prompt Template` section:
+- [x] Task: Add `Implementation Swarm Dispatch Protocol` section to `swarm-execute/SKILL.md` [TIER-3] [AGENT:superconductor-processor]
+    - [x] In `~/.gemini/config/plugins/superconductor/skills/swarm-execute/SKILL.md`:
+        - [x] Insert new section **before** the existing `## Phase Gate Reviewer Prompt Template` section:
           ```
           ## Implementation Swarm Dispatch Protocol
 
@@ -117,13 +117,13 @@
           injecting the pre-cached `TestReport` into all 4 reviewer subagents.
           ```
 
-- [ ] Task: Update `§Quorum Preflight Test Execution` section to reference pre-cached report [TIER-3] [AGENT:superconductor-processor]
-    - [ ] In the existing `### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)` section:
-        - [ ] Change the opening sentence from "the orchestrator MUST execute the Preflight Test Runner once" to explicitly state:
+- [x] Task: Update `§Quorum Preflight Test Execution` section to reference pre-cached report [TIER-3] [AGENT:superconductor-processor]
+    - [x] In the existing `### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)` section:
+        - [x] Change the opening sentence from "the orchestrator MUST execute the Preflight Test Runner once" to explicitly state:
           "The `TestReport` was already produced in Implementation Swarm Step 2. The orchestrator MUST inject this pre-cached `## Preflight Test Execution Evidence` block into all 4 reviewer subagents — it MUST NOT re-run `npm test` at this point."
-        - [ ] Reinforce: "Re-running tests during quorum is a PROTOCOL VIOLATION that saturates CI resources."
+        - [x] Reinforce: "Re-running tests during quorum is a PROTOCOL VIOLATION that saturates CI resources."
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Superconductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
 
 ---
 
