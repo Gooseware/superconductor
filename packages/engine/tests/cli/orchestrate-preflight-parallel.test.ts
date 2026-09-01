@@ -227,6 +227,12 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
 
         // CORE ASSERTION (AC-2): exactly BATCH_SIZE implementor spawns are in-flight
         // simultaneously, and none have resolved yet.
+        if (resolvers.length < BATCH_SIZE) {
+            throw new Error(
+                `Timed out waiting for batch-1 spawns: resolvers.length=${resolvers.length}, expected ${BATCH_SIZE}. ` +
+                `This usually means executeTrack() took >5s to reach the spawn path under load.`
+            );
+        }
         expect(resolvers.length).toBe(BATCH_SIZE);
 
         // Resolve all first-batch implementors — this unblocks them so reviewer spawns
@@ -286,7 +292,7 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
         async function waitForResolversAndSnapshot(target: number): Promise<number> {
             const deadline = Date.now() + 10_000;
             while (resolvers.length < target && Date.now() < deadline) {
-                await new Promise<void>(r => setImmediate(r));
+                await new Promise<void>(r => setTimeout(r, 5));
             }
             return resolvers.length;
         }

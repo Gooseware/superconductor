@@ -113,9 +113,9 @@ export class QuorumReviewLoop {
                 const tr = this.testReport;
                 const safeBuildOut = sanitizeUntrustedText(tr.buildOutput);
                 const safeTestOut = sanitizeUntrustedText(tr.testOutput);
-                const safeTestExitCode = String(isFinite(Number(tr.testExitCode)) ? Number(tr.testExitCode) : -1);
-                const safeBuildExitCode = String(isFinite(Number(tr.buildExitCode)) ? Number(tr.buildExitCode) : -1);
-                const safeDurationMs = String(isFinite(Number(tr.durationMs)) ? Math.max(0, Number(tr.durationMs)) : 0);
+                const safeTestExitCode = String(isFinite(Number(tr.testExitCode)) ? Math.trunc(Number(tr.testExitCode)) : -1);
+                const safeBuildExitCode = String(isFinite(Number(tr.buildExitCode)) ? Math.trunc(Number(tr.buildExitCode)) : -1);
+                const safeDurationMs = String(isFinite(Number(tr.durationMs)) ? Math.max(0, Math.trunc(Number(tr.durationMs))) : 0);
                 const safePassed = String(tr.passed === true);
                 let safeTimestamp: string;
                 try {
