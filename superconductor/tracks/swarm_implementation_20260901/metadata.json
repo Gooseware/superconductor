@@ -1,0 +1,17 @@
+{
+  "trackId": "swarm_implementation_20260901",
+  "title": "Swarm Execution Engine — Parallel Implementor Swarm + Single-Run Preflight",
+  "type": "Enhancement",
+  "status": "planned",
+  "createdAt": "2026-09-01T05:59:00+04:00",
+  "targetBranch": "main",
+  "domains": ["engine-verification", "engine-orchestration", "skill-protocol"],
+  "files": [
+    "packages/engine/src/cli/orchestrate.ts",
+    "packages/engine/src/verification/quorum-review-loop.ts",
+    "packages/engine/src/dispatcher/parallel-dispatcher.ts",
+    "packages/engine/tests/orchestrate.test.ts",
+    "packages/engine/tests/quorum-review-loop.test.ts",
+    "skills/swarm-execute/SKILL.md"
+  ]
+}
