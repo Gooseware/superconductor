@@ -279,10 +279,8 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         maxIterations: 3,
                         workUnitSpec: wu.spec,
                         researchBrief: researchBrief ? { recommendedPatterns: researchBrief.recommendedPatterns, antiPatterns: researchBrief.antiPatterns } : undefined,
-                        // TODO: use preflightReport once Phase 1 merges QuorumReviewLoopOptions.preflightReport
-                        // For now, pass the global test report via preflightFn if it exists, so the quorum
-                        // loop can attach it to review context — but the actual runner.run() only fires once globally.
-                        preflightFn: globalTestReport ? async () => globalTestReport! : undefined,
+                        // Phase 1 merged: use preflightReport directly (avoids wrapping globalTestReport in a closure)
+                        preflightReport: globalTestReport,
                         reviewerFn: async () => {
                             const spawnResults: Array<{ agentType: string; success: boolean }> = [];
                             // Collect conversationIds from spawner for broker aggregation
