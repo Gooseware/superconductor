@@ -4,7 +4,7 @@ import { ImplementorRegistry } from './implementor-registry.js';
 import { WorkUnitStateMachine, WorkUnitState } from '@superconductor/core/src/track/work-unit.js';
 
 export class ParallelDispatcher extends Dispatcher {
-  private maxConcurrent: number;
+  private _maxConcurrent: number;
   private activeCount: number = 0;
   private queue: { task: DagNode; resolve: () => void; reject: (err: any) => void }[] = [];
   
@@ -16,7 +16,7 @@ export class ParallelDispatcher extends Dispatcher {
   constructor(maxConcurrent: number = 5) {
     super();
     this.autoReleaseLock = false; // Phase 4 requirement
-    this.maxConcurrent = Math.max(1, maxConcurrent);
+    this._maxConcurrent = Math.max(1, maxConcurrent);
     this.implementorRegistry = new ImplementorRegistry();
     this.workUnitStateMachine = new WorkUnitStateMachine();
   }
@@ -29,8 +29,10 @@ export class ParallelDispatcher extends Dispatcher {
     return this.activeCount;
   }
 
+  get maxConcurrent(): number { return this._maxConcurrent; }
+
   async dispatch(task: DagNode): Promise<void> {
-    if (this.activeCount >= this.maxConcurrent) {
+    if (this.activeCount >= this._maxConcurrent) {
       return new Promise<void>((resolve, reject) => {
         this.queue.push({ task, resolve, reject });
       });
@@ -58,7 +60,7 @@ export class ParallelDispatcher extends Dispatcher {
   }
 
   private pumpQueue() {
-    while (this.activeCount < this.maxConcurrent && this.queue.length > 0) {
+    while (this.activeCount < this._maxConcurrent && this.queue.length > 0) {
       const nextTask = this.queue.shift();
       if (nextTask) {
         // We don't await this here so it runs in background similar to dispatch

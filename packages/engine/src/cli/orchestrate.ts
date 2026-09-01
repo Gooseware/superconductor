@@ -131,11 +131,35 @@ export class SwarmOrchestratorCLI extends EventEmitter {
             }
         }
 
+        // --- Global Preflight (runs once for the entire track) ---
+        let globalTestReport: import('../verification/test-report.js').TestReport | undefined;
+        if (!options?.noPreflight) {
+            const { PreflightTestRunner } = await import('../verification/preflight-test-runner.js');
+            const runner = new PreflightTestRunner({
+                projectRoot: workspaceDir,
+                timeoutMs: options?.preflightTimeoutMs ?? 120000
+            });
+            globalTestReport = await runner.run();
+            // Fail-fast: if baseline tests are broken, do not spawn implementors
+            if (!globalTestReport.passed) {
+                const failedWus = workUnits.map((wu) => {
+                    const sm = new WorkUnitStateMachine();
+                    return transitionToFailed(wu, sm);
+                });
+                const err = new Error(`Global preflight failed — track halted. Test output: ${globalTestReport.testOutput}`);
+                (err as any).workUnits = failedWus;
+                throw err;
+            }
+        }
+
         const updatedWorkUnits = [...workUnits];
         const allDispatches: Promise<void>[] = [];
 
-        for (let i = 0; i < workUnits.length; i++) {
-            const wu = workUnits[i];
+        /**
+         * buildDispatchPromise — constructs the full dispatch pipeline for a single WorkUnit.
+         * Extracted so the outer loop can invoke them in parallel batches.
+         */
+        const buildDispatchPromise = async (wu: WorkUnit, i: number): Promise<void> => {
             this.dispatcher.implementorRegistry.register(wu.implementorId, wu);
             
             const implementorPrompt = (wu as any).researchContext ? `${wu.spec}\n\n${(wu as any).researchContext}` : wu.spec;
@@ -181,15 +205,13 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                             // Mark FAILED — do NOT transition to DONE
                             const sm = new WorkUnitStateMachine();
                             updatedWorkUnits[i] = transitionToFailed(wu, sm);
-                            allDispatches.push(Promise.reject(writeErr));
-                            continue;
+                            return Promise.reject(writeErr);
                         }
                     }
                     const sm = new WorkUnitStateMachine();
                     const inProgressWu = sm.transition(wu, WorkUnitState.IN_PROGRESS);
                     updatedWorkUnits[i] = sm.transition(inProgressWu, WorkUnitState.DONE, { allGreen: true, payload: [] });
-                    allDispatches.push(Promise.resolve());
-                    continue;
+                    return Promise.resolve();
                 } else {
                     // Interactive: guard passes through (no throw in INTERACTIVE mode).
                     // REV-2: MUST NOT fall through to subagent dispatch — the caller is
@@ -200,8 +222,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     this.guard!.assertInteractiveAllowed('Manual Verification checkpoint', false);
                     this.emit('verification_required', { wuId: wu.unitId, spec: wu.spec, autoApproved: false });
                     notifyVerificationRequired(wu.unitId, wu.spec ?? wu.unitId);
-                    allDispatches.push(Promise.resolve());
-                    continue;
+                    return Promise.resolve();
                 }
             }
 
@@ -234,8 +255,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                 const sm = new WorkUnitStateMachine();
                 updatedWorkUnits[i] = transitionToFailed(wu, sm);
                 this.emit('orchestration_error', { error: spawnerImplError });
-                allDispatches.push(Promise.reject(spawnerImplError));
-                continue;
+                return Promise.reject(spawnerImplError);
             }
             
             const capturedConversationId = conversationId;
@@ -259,14 +279,10 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                         maxIterations: 3,
                         workUnitSpec: wu.spec,
                         researchBrief: researchBrief ? { recommendedPatterns: researchBrief.recommendedPatterns, antiPatterns: researchBrief.antiPatterns } : undefined,
-                        preflightFn: options?.noPreflight ? undefined : async () => {
-                            const { PreflightTestRunner } = await import('../verification/preflight-test-runner.js');
-                            const runner = new PreflightTestRunner({
-                                projectRoot: workspaceDir,
-                                timeoutMs: options?.preflightTimeoutMs ?? 120000
-                            });
-                            return runner.run();
-                        },
+                        // TODO: use preflightReport once Phase 1 merges QuorumReviewLoopOptions.preflightReport
+                        // For now, pass the global test report via preflightFn if it exists, so the quorum
+                        // loop can attach it to review context — but the actual runner.run() only fires once globally.
+                        preflightFn: globalTestReport ? async () => globalTestReport! : undefined,
                         reviewerFn: async () => {
                             const spawnResults: Array<{ agentType: string; success: boolean }> = [];
                             // Collect conversationIds from spawner for broker aggregation
@@ -452,7 +468,20 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                     throw err;
                 });
             
-            allDispatches.push(dispatchPromise);
+            return dispatchPromise;
+        };
+
+        // Batch implementors up to maxConcurrent in parallel
+        const batchSize = this.dispatcher.maxConcurrent;
+        for (let batchStart = 0; batchStart < workUnits.length; batchStart += batchSize) {
+            const batch = workUnits.slice(batchStart, Math.min(batchStart + batchSize, workUnits.length));
+            const batchPromises = batch.map((wu, batchIdx) => {
+                const globalIdx = batchStart + batchIdx;
+                return buildDispatchPromise(wu, globalIdx);
+            });
+            // Await this batch before starting the next — bounded parallelism
+            await Promise.allSettled(batchPromises);
+            allDispatches.push(...batchPromises);
         }
 
         const results = await Promise.allSettled(allDispatches);
