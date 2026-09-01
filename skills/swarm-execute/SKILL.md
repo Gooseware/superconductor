@@ -37,6 +37,54 @@ Before pausing for user input, awaiting subagent swarms, or concluding track exe
 
 ---
 
+## Implementation Swarm Dispatch Protocol
+
+Before dispatching any quorum reviewers, the orchestrator MUST complete the full
+Implementation Swarm phase in this exact order:
+
+### Step 1 — Parse Plan into WorkUnits
+Call `parseAndDispatch(topographyPath, planPath)` → produces `WorkUnit[]`.
+Each `- [ ] Task:` line in `plan.md` becomes one WorkUnit with its `[AGENT:]`, `[DOMAIN:]`,
+and `[TIER-N]` annotations preserved.
+
+### Step 2 — Run Global Preflight Once (MANDATORY)
+Unless `--no-preflight` is explicitly set, run `PreflightTestRunner.run()` **exactly once**
+before spawning ANY implementor agent.
+
+- Store the resulting `TestReport` as `globalTestReport`.
+- **If `globalTestReport.passed === false`:** HALT immediately — do NOT spawn any implementors.
+  Return all WorkUnits as `FAILED`. The track cannot proceed until the baseline test suite is green.
+- **If `globalTestReport.passed === true`:** Cache the report. It will be injected into all
+  `QuorumReviewLoop` instances via `preflightReport` (NOT re-run per reviewer).
+
+**PROHIBITED:** Running `PreflightTestRunner.run()` inside a per-WorkUnit closure or inside
+the quorum reviewer dispatch. This is a PROTOCOL VIOLATION that saturates CI.
+
+### Step 3 — Batch Implementor Swarm Dispatch
+Group WorkUnits into batches of ≤ `maxConcurrent` (default: 5, configurable).
+
+For each batch:
+1. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`.
+2. Each agent receives:
+   - Its WorkUnit `spec` (task description)
+   - Its `domainScope` (files it is responsible for)
+   - Any injected `researchContext` from the research brief
+3. `await Promise.all(batchPromises)` — ALL agents in the batch must complete before the next batch begins.
+
+**PROHIBITED during Implementation Swarm:**
+- Spawning implementors one-at-a-time (sequential loop)
+- Root orchestrator writing any product code directly (hero-agenting)
+- Skipping batching to "save orchestration overhead"
+
+### Step 4 — Transition to Quorum Swarm
+After ALL implementor batches complete:
+1. The 4-reviewer Quorum Swarm fires (Security, Correctness, Adversarial, Regression).
+2. Inject `globalTestReport` as `preflightReport` into every `QuorumReviewLoop` instance.
+3. The quorum reviewers receive the pre-cached `## Preflight Test Execution Evidence` block — they
+   MUST NOT re-run `npm test`.
+
+---
+
 ## Phase Gate Reviewer Prompt Template
 
 When dispatching Phase Gate reviewers, you MUST include the following in their prompt:
@@ -58,8 +106,18 @@ When `## Preflight Test Execution Evidence` is provided in context, quote the pr
 Paste the terminal output as execution evidence in your findings.
 
 ### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
-Before dispatching the 4 Quorum Reviewer subagents (Security, Correctness, Adversarial, Regression), the orchestrator MUST execute the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the context and system prompts of all 4 subagents (unless `--no-preflight` is explicitly specified).
-This single shared preflight execution provides deterministic test results upfront and strictly prevents 4 parallel subagents from executing `npm test` simultaneously and saturating CPU/memory resources.
+The `TestReport` produced during **Implementation Swarm Step 2** (global preflight) MUST be
+injected as `## Preflight Test Execution Evidence` into the context and system prompts of
+all 4 quorum reviewer subagents.
+
+**CRITICAL: Do NOT re-run `npm test` here.** The test suite was already executed once in Step 2.
+Re-running tests during quorum review is a PROTOCOL VIOLATION that:
+- Saturates CPU/memory (4 parallel `npm test` processes on the same repo)
+- Produces non-deterministic results (timing races, port conflicts)
+- Wastes token budget on redundant output
+
+The orchestrator injects the cached `TestReport` XML block (already formatted as
+`<test_report ... >`) directly into each reviewer's system prompt before spawning them.
 
 ### Plan-Gap Protocol
 Before finalizing your verdict, grep plan.md for [x] items and cross-reference against `git diff --name-only`.
