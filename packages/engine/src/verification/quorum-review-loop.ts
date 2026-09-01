@@ -26,6 +26,7 @@ export interface QuorumReviewLoopOptions {
     workUnitSpec?: string;
     researchBrief?: { recommendedPatterns?: string[], antiPatterns?: string[] };
     preflightFn?: () => Promise<TestReport>;
+    preflightReport?: TestReport;
 }
 
 export class QuorumReviewLoop {
@@ -36,6 +37,7 @@ export class QuorumReviewLoop {
     private workUnitSpec: string;
     private researchBrief?: { recommendedPatterns?: string[], antiPatterns?: string[] };
     private preflightFn?: () => Promise<TestReport>;
+    private preflightReport?: TestReport;
     private testReport?: TestReport;
 
 
@@ -48,6 +50,7 @@ export class QuorumReviewLoop {
         this.workUnitSpec = options.workUnitSpec || 'Unknown WorkUnit';
         this.researchBrief = options.researchBrief;
         this.preflightFn = options.preflightFn;
+        this.preflightReport = options.preflightReport;
     }
 
     private async withTimeout<T>(promise: Promise<T>): Promise<T> {
@@ -68,17 +71,20 @@ export class QuorumReviewLoop {
     }
 
     async run(code: string): Promise<{ status: string, findings?: unknown[], allGreen: boolean }> {
-        if (this.preflightFn && !this.testReport) {
+        // Use pre-run report if provided (avoids redundant test execution)
+        if (this.preflightReport && !this.testReport) {
+            this.testReport = this.preflightReport;
+        } else if (this.preflightFn && !this.testReport) {
             this.testReport = await this.preflightFn();
-            if (!this.testReport.passed) {
-                const finding = {
-                    file: '',
-                    line: 0,
-                    description: `Preflight test gate failed. Tests or build failed before reviewer loop.\nBuild Exit Code: ${this.testReport.buildExitCode}\nTest Exit Code: ${this.testReport.testExitCode}\nBuild Output:\n${this.testReport.buildOutput}\nTest Output:\n${this.testReport.testOutput}`,
-                    severity: 'critical'
-                };
-                return { status: 'NEEDS_FIXES', findings: [finding], allGreen: false };
-            }
+        }
+        if (this.testReport && !this.testReport.passed) {
+            const finding = {
+                file: '',
+                line: 0,
+                description: `Preflight test gate failed. Tests or build failed before reviewer loop.\nBuild Exit Code: ${this.testReport.buildExitCode}\nTest Exit Code: ${this.testReport.testExitCode}\nBuild Output:\n${this.testReport.buildOutput}\nTest Output:\n${this.testReport.testOutput}`,
+                severity: 'critical'
+            };
+            return { status: 'NEEDS_FIXES', findings: [finding], allGreen: false };
         }
 
         let iterations = 0;
