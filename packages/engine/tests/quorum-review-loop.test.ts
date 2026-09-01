@@ -231,4 +231,100 @@ describe('QuorumReviewLoop', () => {
             expect(reviewerFn).toHaveBeenCalledTimes(2);
         });
     });
+
+    describe('preflightReport option', () => {
+        const mockTestReportPassed = {
+            timestamp: 2000,
+            testCommand: 'npm test',
+            buildCommand: 'npm run build',
+            testExitCode: 0,
+            buildExitCode: 0,
+            testOutput: 'all tests passed',
+            buildOutput: 'build ok',
+            passed: true,
+            durationMs: 200
+        };
+
+        const mockTestReportFailed = {
+            ...mockTestReportPassed,
+            testExitCode: 1,
+            passed: false,
+            testOutput: 'FAIL: 3 tests failed'
+        };
+
+        it('preflightReport with passed:false -> returns NEEDS_FIXES immediately, reviewerFn never called', async () => {
+            const reviewerFn = vi.fn();
+
+            const loop = new QuorumReviewLoop({
+                maxIterations: 3,
+                reviewerFn,
+                preflightReport: mockTestReportFailed
+            });
+            const result = await loop.run('some code');
+
+            expect(reviewerFn).toHaveBeenCalledTimes(0);
+            expect(result.status).toBe('NEEDS_FIXES');
+            expect(result.allGreen).toBe(false);
+            expect(result.findings?.[0]).toMatchObject({ severity: 'critical' });
+        });
+
+        it('preflightReport with passed:true -> reviewerFn called, <test_report> XML injected in context', async () => {
+            let capturedCode = '';
+            const reviewerFn = vi.fn().mockImplementation(async (code: string) => {
+                capturedCode = code;
+                return { status: 'RESOLVED', findings: [] };
+            });
+
+            const loop = new QuorumReviewLoop({
+                maxIterations: 1,
+                reviewerFn,
+                preflightReport: mockTestReportPassed
+            });
+            await loop.run('some code');
+
+            expect(reviewerFn).toHaveBeenCalledTimes(1);
+            expect(capturedCode).toContain('<test_report');
+            expect(capturedCode).toContain('passed="true"');
+            expect(capturedCode).toContain('durationMs="200"');
+        });
+
+        it('preflightFn only (no preflightReport) -> existing behaviour: preflightFn called, result injected', async () => {
+            const preflightFn = vi.fn().mockResolvedValue(mockTestReportPassed);
+            let capturedCode = '';
+            const reviewerFn = vi.fn().mockImplementation(async (code: string) => {
+                capturedCode = code;
+                return { status: 'RESOLVED', findings: [] };
+            });
+
+            const loop = new QuorumReviewLoop({
+                maxIterations: 1,
+                reviewerFn,
+                preflightFn
+            });
+            await loop.run('some code');
+
+            expect(preflightFn).toHaveBeenCalledTimes(1);
+            expect(reviewerFn).toHaveBeenCalledTimes(1);
+            expect(capturedCode).toContain('<test_report');
+        });
+
+        it('both preflightFn and preflightReport provided -> preflightReport takes precedence, preflightFn never called', async () => {
+            const preflightFn = vi.fn().mockResolvedValue(mockTestReportFailed);
+            const reviewerFn = vi.fn().mockResolvedValue({ status: 'RESOLVED', findings: [] });
+
+            const loop = new QuorumReviewLoop({
+                maxIterations: 1,
+                reviewerFn,
+                preflightFn,
+                preflightReport: mockTestReportPassed  // passed:true, should win
+            });
+            const result = await loop.run('some code');
+
+            // preflightFn should never be called since preflightReport takes precedence
+            expect(preflightFn).toHaveBeenCalledTimes(0);
+            // reviewerFn should be called because preflightReport.passed is true
+            expect(reviewerFn).toHaveBeenCalledTimes(1);
+            expect(result.status).toBe('RESOLVED');
+        });
+    });
 });
