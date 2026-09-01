@@ -327,4 +327,75 @@ describe('QuorumReviewLoop', () => {
             expect(result.status).toBe('RESOLVED');
         });
     });
+
+    describe('Security: preflight report field sanitization', () => {
+        const baseReport = {
+            timestamp: 1000,
+            testCommand: 'npm test',
+            buildCommand: 'npm run build',
+            testExitCode: 0,
+            buildExitCode: 0,
+            testOutput: 'all tests passed',
+            buildOutput: 'build ok',
+            passed: true,
+            durationMs: 200
+        };
+
+        // SEC-001: XML attribute injection via numeric/boolean fields
+        it('SEC-001: should not allow XML attribute injection via testExitCode/buildExitCode/durationMs/passed', async () => {
+            let capturedCode = '';
+            const maliciousReport = {
+                ...baseReport,
+                testExitCode: '0" injected="pwned' as unknown as number,
+                buildExitCode: '0" injected2="pwned' as unknown as number,
+                durationMs: '200" injected3="pwned' as unknown as number,
+                passed: 'true" injected4="pwned' as unknown as boolean,
+            };
+            const loop = new QuorumReviewLoop({
+                maxIterations: 1,
+                reviewerFn: async (code) => { capturedCode = code; return { status: 'RESOLVED', findings: [] }; },
+                preflightReport: maliciousReport,
+            });
+            await loop.run('some code');
+            expect(capturedCode).not.toContain('injected="pwned"');
+            expect(capturedCode).not.toContain('injected2="pwned"');
+            expect(capturedCode).not.toContain('injected3="pwned"');
+            expect(capturedCode).not.toContain('injected4="pwned"');
+        });
+
+        // SEC-002: Uncaught RangeError from malicious timestamp
+        it('SEC-002: should not throw when timestamp is an invalid date value', async () => {
+            const maliciousReport = {
+                ...baseReport,
+                timestamp: 'not-a-date' as unknown as number,
+            };
+            const loop = new QuorumReviewLoop({
+                maxIterations: 1,
+                reviewerFn: async () => ({ status: 'RESOLVED', findings: [] }),
+                preflightReport: maliciousReport,
+            });
+            await expect(loop.run('some code')).resolves.toBeDefined();
+        });
+
+        // SEC-003: Unsanitized output in failed-preflight finding.description
+        it('SEC-003: should sanitize buildOutput and testOutput in NEEDS_FIXES finding.description', async () => {
+            const maliciousReport = {
+                ...baseReport,
+                passed: false,
+                testOutput: '<script>alert(1)</script>',
+                buildOutput: '<img src=x onerror=alert(1)>',
+            };
+            const loop = new QuorumReviewLoop({
+                maxIterations: 1,
+                reviewerFn: async () => ({ status: 'RESOLVED', findings: [] }),
+                preflightReport: maliciousReport,
+            });
+            const result = await loop.run('some code');
+            expect(result.status).toBe('NEEDS_FIXES');
+            const description = (result.findings?.[0] as any)?.description as string;
+            expect(description).not.toContain('<script>');
+            expect(description).not.toContain('<img');
+            expect(description).toContain('&lt;script&gt;');
+        });
+    });
 });

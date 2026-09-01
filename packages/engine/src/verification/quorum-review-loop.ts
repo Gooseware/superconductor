@@ -81,7 +81,7 @@ export class QuorumReviewLoop {
             const finding = {
                 file: '',
                 line: 0,
-                description: `Preflight test gate failed. Tests or build failed before reviewer loop.\nBuild Exit Code: ${this.testReport.buildExitCode}\nTest Exit Code: ${this.testReport.testExitCode}\nBuild Output:\n${this.testReport.buildOutput}\nTest Output:\n${this.testReport.testOutput}`,
+                description: `Preflight test gate failed. Tests or build failed before reviewer loop.\nBuild Exit Code: ${this.testReport.buildExitCode}\nTest Exit Code: ${this.testReport.testExitCode}\nBuild Output:\n${sanitizeUntrustedText(this.testReport.buildOutput)}\nTest Output:\n${sanitizeUntrustedText(this.testReport.testOutput)}`,
                 severity: 'critical'
             };
             return { status: 'NEEDS_FIXES', findings: [finding], allGreen: false };
@@ -113,7 +113,17 @@ export class QuorumReviewLoop {
                 const tr = this.testReport;
                 const safeBuildOut = sanitizeUntrustedText(tr.buildOutput);
                 const safeTestOut = sanitizeUntrustedText(tr.testOutput);
-                const trBlock = `\n\n<test_report timestamp="${new Date(tr.timestamp).toISOString()}" passed="${tr.passed}" durationMs="${tr.durationMs}" testCommand="${sanitizeUntrustedText(tr.testCommand)}" buildCommand="${sanitizeUntrustedText(tr.buildCommand)}" testExitCode="${tr.testExitCode}" buildExitCode="${tr.buildExitCode}">\n<build_output>\n${safeBuildOut}\n</build_output>\n<test_output>\n${safeTestOut}\n</test_output>\n</test_report>\n`;
+                const safeTestExitCode = String(isFinite(Number(tr.testExitCode)) ? Number(tr.testExitCode) : -1);
+                const safeBuildExitCode = String(isFinite(Number(tr.buildExitCode)) ? Number(tr.buildExitCode) : -1);
+                const safeDurationMs = String(isFinite(Number(tr.durationMs)) ? Math.max(0, Number(tr.durationMs)) : 0);
+                const safePassed = String(tr.passed === true);
+                let safeTimestamp: string;
+                try {
+                    safeTimestamp = new Date(tr.timestamp).toISOString();
+                } catch {
+                    safeTimestamp = new Date(0).toISOString(); // fallback to epoch
+                }
+                const trBlock = `\n\n<test_report timestamp="${safeTimestamp}" passed="${safePassed}" durationMs="${safeDurationMs}" testCommand="${sanitizeUntrustedText(tr.testCommand)}" buildCommand="${sanitizeUntrustedText(tr.buildCommand)}" testExitCode="${safeTestExitCode}" buildExitCode="${safeBuildExitCode}">\n<build_output>\n${safeBuildOut}\n</build_output>\n<test_output>\n${safeTestOut}\n</test_output>\n</test_report>\n`;
                 codeWithContext += trBlock;
             }
 
