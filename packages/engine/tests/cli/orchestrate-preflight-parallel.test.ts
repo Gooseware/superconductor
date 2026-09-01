@@ -218,11 +218,11 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
         // Kick off executeTrack without awaiting — we need to interleave with it.
         const execPromise = cli.executeTrack(tmpDir, 'parallelism-proof-track', { noPreflight: true });
 
-        // Poll until exactly BATCH_SIZE implementors are suspended (in-flight), with a tight deadline.
-        // 30 ticks is generous for pure microtask scheduling; the spawns happen before any I/O.
-        for (let tick = 0; tick < 30; tick++) {
-            await new Promise<void>(r => setImmediate(r));
-            if (resolvers.length >= BATCH_SIZE) break;
+        // Poll with a time-based deadline until exactly BATCH_SIZE implementors are suspended
+        // (in-flight). Uses a 5s deadline to handle async fs reads in the initialization path.
+        const pollDeadline = Date.now() + 5_000;
+        while (resolvers.length < BATCH_SIZE && Date.now() < pollDeadline) {
+            await new Promise<void>(r => setTimeout(r, 5));
         }
 
         // CORE ASSERTION (AC-2): exactly BATCH_SIZE implementor spawns are in-flight
@@ -238,7 +238,7 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
         // to complete for batch-1 before batch-2 is dispatched.
         const deadline = Date.now() + 10_000;
         while (resolvers.length < WU_COUNT && Date.now() < deadline) {
-            await new Promise<void>(r => setImmediate(r));
+            await new Promise<void>(r => setTimeout(r, 5));
         }
 
         // The remaining (WU_COUNT - BATCH_SIZE) implementors should now also be in-flight.
