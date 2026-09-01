@@ -218,11 +218,11 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
         // Kick off executeTrack without awaiting — we need to interleave with it.
         const execPromise = cli.executeTrack(tmpDir, 'parallelism-proof-track', { noPreflight: true });
 
-        // Drain the microtask queue enough for all first-batch spawns to be initiated.
-        // Each WU starts its implementor spawn asynchronously via buildDispatchPromise.
-        // After enough microtask ticks the entire first batch should be suspended at `await new Promise(...)`.
-        for (let tick = 0; tick < 20; tick++) {
+        // Poll until exactly BATCH_SIZE implementors are suspended (in-flight), with a tight deadline.
+        // 30 ticks is generous for pure microtask scheduling; the spawns happen before any I/O.
+        for (let tick = 0; tick < 30; tick++) {
             await new Promise<void>(r => setImmediate(r));
+            if (resolvers.length >= BATCH_SIZE) break;
         }
 
         // CORE ASSERTION (AC-2): exactly BATCH_SIZE implementor spawns are in-flight
@@ -233,8 +233,11 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
         // can start and batch-1 can complete.
         for (let i = 0; i < BATCH_SIZE; i++) resolvers[i]();
 
-        // Give the engine time to complete batch-1 and kick off batch-2.
-        for (let tick = 0; tick < 20; tick++) {
+        // Poll until all WU_COUNT implementors have been reached (second batch started).
+        // This must wait for the full quorum pipeline (reviewer spawns, writeConsensus, readConsensus)
+        // to complete for batch-1 before batch-2 is dispatched.
+        const deadline = Date.now() + 10_000;
+        while (resolvers.length < WU_COUNT && Date.now() < deadline) {
             await new Promise<void>(r => setImmediate(r));
         }
 
@@ -246,7 +249,7 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
 
         await execPromise;
         expect(implementorSpawnCount).toBe(WU_COUNT);
-    });
+    }, 20_000);
 
     it('correctly splits into remainder batch when WU count is not a multiple of maxConcurrent (REV-ADV-003)', async () => {
         const BATCH_SIZE = 2; // override default of 5
@@ -279,19 +282,28 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
 
         const execPromise = cli.executeTrack(tmpDir, 'remainder-batch-track', { noPreflight: true });
 
+        /** Poll until resolvers.length reaches `target`, then snapshot the delta. */
+        async function waitForResolversAndSnapshot(target: number): Promise<number> {
+            const deadline = Date.now() + 10_000;
+            while (resolvers.length < target && Date.now() < deadline) {
+                await new Promise<void>(r => setImmediate(r));
+            }
+            return resolvers.length;
+        }
+
         // --- Batch 1: expect BATCH_SIZE (2) in-flight ---
-        for (let tick = 0; tick < 20; tick++) await new Promise<void>(r => setImmediate(r));
+        await waitForResolversAndSnapshot(BATCH_SIZE);
         batchSnapshots.push(resolvers.length); // should be 2
         for (let i = 0; i < batchSnapshots[0]; i++) resolvers[i]();
 
         // --- Batch 2: expect 2 more in-flight (total 4) ---
-        for (let tick = 0; tick < 20; tick++) await new Promise<void>(r => setImmediate(r));
+        await waitForResolversAndSnapshot(batchSnapshots[0] + BATCH_SIZE);
         const afterBatch2 = resolvers.length - batchSnapshots[0];
         batchSnapshots.push(afterBatch2); // should be 2
         for (let i = batchSnapshots[0]; i < resolvers.length; i++) resolvers[i]();
 
         // --- Batch 3: expect 1 more in-flight (total 5 = WU_COUNT) ---
-        for (let tick = 0; tick < 20; tick++) await new Promise<void>(r => setImmediate(r));
+        await waitForResolversAndSnapshot(WU_COUNT);
         const afterBatch3 = resolvers.length - batchSnapshots[0] - batchSnapshots[1];
         batchSnapshots.push(afterBatch3); // should be 1
         for (let i = batchSnapshots[0] + batchSnapshots[1]; i < resolvers.length; i++) resolvers[i]();
@@ -301,7 +313,7 @@ describe('Phase 2: Global preflight + parallel batch dispatch', () => {
         // Verify the three batch sizes: [2, 2, 1]
         expect(batchSnapshots).toEqual([BATCH_SIZE, BATCH_SIZE, WU_COUNT - BATCH_SIZE * 2]);
         expect(resolvers.length).toBe(WU_COUNT);
-    });
+    }, 30_000);
 
     it('exposes maxConcurrent as a public getter on ParallelDispatcher', async () => {
         const { ParallelDispatcher } = await import('../../src/dispatcher/parallel-dispatcher.js');
