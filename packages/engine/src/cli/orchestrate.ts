@@ -153,7 +153,7 @@ export class SwarmOrchestratorCLI extends EventEmitter {
         }
 
         const updatedWorkUnits = [...workUnits];
-        const allDispatches: Promise<void>[] = [];
+        const allResults: PromiseSettledResult<void>[] = [];
 
         /**
          * buildDispatchPromise — constructs the full dispatch pipeline for a single WorkUnit.
@@ -294,7 +294,10 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                             reviewerConversationIds.push(agent.conversationId);
                                             spawnResults.push({ agentType: reviewer, success: true });
                                         })
-                                        .catch(() => spawnResults.push({ agentType: reviewer, success: false }));
+                                        .catch((err: unknown) => {
+                                            this.emit('orchestration_error', { error: err instanceof Error ? err : new Error(String(err)) });
+                                            spawnResults.push({ agentType: reviewer, success: false });
+                                        });
                                 }
                                 const reviewerTask: DagNode = {
                                     id: `${wu.unitId}-review-${reviewer}`,
@@ -308,7 +311,10 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                                 this.emit('reviewer_invoked', { reviewerId: reviewer, unitId: wu.unitId });
                                 return this.dispatcher.dispatch(reviewerTask)
                                     .then(() => spawnResults.push({ agentType: reviewer, success: true }))
-                                    .catch(() => spawnResults.push({ agentType: reviewer, success: false }));
+                                    .catch((err: unknown) => {
+                                        this.emit('orchestration_error', { error: err instanceof Error ? err : new Error(String(err)) });
+                                        spawnResults.push({ agentType: reviewer, success: false });
+                                    });
                             });
                             await Promise.all(reviewerPromises);
                             // Enforce quorum — throws QuorumViolationError if invariant is broken
@@ -478,14 +484,14 @@ export class SwarmOrchestratorCLI extends EventEmitter {
                 return buildDispatchPromise(wu, globalIdx);
             });
             // Await this batch before starting the next — bounded parallelism
-            await Promise.allSettled(batchPromises);
-            allDispatches.push(...batchPromises);
+            const batchResults = await Promise.allSettled(batchPromises);
+            allResults.push(...batchResults);
         }
 
-        const results = await Promise.allSettled(allDispatches);
-        const failures = results.filter(r => r.status === 'rejected');
+        // Use allResults directly — no second await needed
+        const failures = allResults.filter(r => r.status === 'rejected');
         if (failures.length > 0) {
-            const err = new AggregateError(failures.map(f => (f as PromiseRejectedResult).reason), `${failures.length}/${allDispatches.length} tasks failed`);
+            const err = new AggregateError(failures.map(f => (f as PromiseRejectedResult).reason), `${failures.length}/${allResults.length} tasks failed`);
             (err as any).workUnits = updatedWorkUnits;
             throw err;
         }
