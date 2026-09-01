@@ -15,12 +15,13 @@
 | `[-]` | `regression_invariant_ledger_20260812` | Regression Protocol: Capability Invariant Ledger | `track/regression_invariant_ledger_20260812` |
 | `[x]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
 | `[~]` | `task_graph_20260812` | Superconductor v0.5: Task Graph + Invariant Ledger | `track/task_graph_20260812` |
+| `[ ]` | `ryoku_agy_plugin_20260901` | [Ryoku Desktop Widget — AGY CLI Integration](./tracks/ryoku_agy_plugin_20260901/index.md) | `track/ryoku_agy_plugin_20260901` |
 | `[x]` | `clean_test_tracks_20260813` | Protocol Drift Remediation | `track/clean_test_tracks_20260813` |
 | `[x]` | `model_chooser_quorum_remediation_20260814` | [Dynamic Model Chooser & Autonomous Quorum Remediation](./tracks/model_chooser_quorum_remediation_20260814/index.md) | `track/model_chooser_quorum_remediation_20260814` |
 | `[x]` | `quorum_preflight_test_gate_20260818` | [Quorum Preflight Test Gate](./tracks/quorum_preflight_test_gate_20260818/index.md) | `track/quorum_preflight_test_gate_20260818` |
 | `[x]` | `model_chooser_tier_ux_20260818` | [Model Chooser — Tier-Based UX](./tracks/model_chooser_tier_ux_20260818/index.md) | `track/model_chooser_tier_ux_20260818` |
 | `[x]` | `ad_hoc_triage_mode_20260818` | [Ad-Hoc Triage Mode](./tracks/ad_hoc_triage_mode_20260818/index.md) | `track/ad_hoc_triage_mode_20260818` |
-| `[x]` | `multi_language_persona_architecture_20260820` | [Multi-Language Persona Skills Architecture, Setup Dogma & Swarm Guardrails](./tracks/multi_language_persona_architecture_20260820/index.md) | `track/multi_language_persona_architecture_20260820` |
+| `[~]` | `swarm_implementation_20260901` | [Swarm Execution Engine — Parallel Implementor Swarm + Single-Run Preflight](./tracks/swarm_implementation_20260901/index.md) | `track/swarm_implementation_20260901` |
 
 ## Absorbed / Closed Tracks
 
