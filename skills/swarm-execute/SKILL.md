@@ -61,7 +61,7 @@ before spawning ANY implementor agent.
 the quorum reviewer dispatch. This is a PROTOCOL VIOLATION that saturates CI.
 
 ### Step 3 — Batch Implementor Swarm Dispatch
-Group WorkUnits into batches of ≤ `maxConcurrent` (default: 5, configurable).
+Group WorkUnits into batches of exactly maxConcurrent agents (or fewer only for the final remainder batch if `workUnits.length` is not a multiple of `maxConcurrent`).
 
 For each batch:
 1. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`.
@@ -75,6 +75,7 @@ For each batch:
 - Spawning implementors one-at-a-time (sequential loop)
 - Root orchestrator writing any product code directly (hero-agenting)
 - Skipping batching to "save orchestration overhead"
+- Deliberately undersizing batches below maxConcurrent to serialize execution
 
 ### Step 4 — Transition to Quorum Swarm
 After ALL implementor batches complete:
