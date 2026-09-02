@@ -47,6 +47,32 @@ Call `parseAndDispatch(topographyPath, planPath)` → produces `WorkUnit[]`.
 Each `- [ ] Task:` line in `plan.md` becomes one WorkUnit with its `[AGENT:]`, `[DOMAIN:]`,
 and `[TIER-N]` annotations preserved.
 
+**Verification Gate (MANDATORY before any invoke_subagent call):**
+- Log the WorkUnit count to `swarm_log.md`: `[swarm-execute] parseAndDispatch produced N WorkUnits`.
+- PROHIBITED: Deriving WorkUnits by any method other than `parseAndDispatch()`. Manual in-context grouping of plan tasks is a protocol violation equivalent to skipping this step.
+- Each `- [ ] Task:` line in `plan.md` with `[AGENT:]`, `[DOMAIN:]`, and `[TIER-N]` annotations maps 1:1 to exactly one WorkUnit. Two task lines MUST NOT be merged into a single WorkUnit without an explicit blocking dependency edge declared in the plan.
+
+**WorkUnit mapping example:**
+```
+plan.md line:  - [ ] Task: Amend swarm-execute skill [TIER-2] [AGENT:coding-agent] [DOMAIN:skills-swarm-execute]
+WorkUnit:      { id: "wu-1", task: "Amend swarm-execute skill", tier: 2, agent: "coding-agent", domain: "skills-swarm-execute", phase: 1 }
+
+plan.md line:  - [ ] Task: Amend implement skill [TIER-2] [AGENT:coding-agent] [DOMAIN:skills-implement]
+WorkUnit:      { id: "wu-2", task: "Amend implement skill", tier: 2, agent: "coding-agent", domain: "skills-implement", phase: 1 }
+```
+These are TWO WorkUnits → dispatched as 2 parallel agents. NEVER merged into 1.
+
+### Step 2a — TIER-1 Pre-Filter (MANDATORY — runs before Step 2)
+
+Before running `PreflightTestRunner`, extract all TIER-1 WorkUnits and execute them inline.
+
+1. Filter: `const tier1Units = workUnits.filter(u => u.tier === 1)`
+2. For each TIER-1 WorkUnit: execute its task directly via `run_command` in-context (zero LLM inference cost). Log result to `swarm_log.md`.
+3. Remove completed TIER-1 WorkUnits: `const dispatchableUnits = workUnits.filter(u => u.tier >= 2)`
+4. Proceed to Step 2 using only `dispatchableUnits`.
+
+**PROHIBITED:** Passing TIER-1 WorkUnits into the Step 3 subagent dispatch pipeline. Scaffold tasks, `mkdir`, git operations, schema migrations, and shell scripts are TIER-1 work — they MUST NOT consume a `superconductor-processor` subagent slot.
+
 ### Step 2 — Run Global Preflight Once (MANDATORY)
 Unless `--no-preflight` is explicitly set, run `PreflightTestRunner.run()` **exactly once**
 before spawning ANY implementor agent.
@@ -62,6 +88,34 @@ the quorum reviewer dispatch. This is a PROTOCOL VIOLATION that saturates CI.
 
 ### Step 3 — Batch Implementor Swarm Dispatch
 Group WorkUnits into batches of exactly maxConcurrent agents (or fewer only for the final remainder batch if `workUnits.length` is not a multiple of `maxConcurrent`).
+
+**MINIMUM CONCURRENCY GATE (enforced before each batch dispatch):**
+```
+required = min(dispatchableUnits.length - processedCount, maxConcurrent)
+if (currentBatch.length < required) {
+  HALT. Log to swarm_log.md:
+  "CONCURRENCY VIOLATION: batch size {currentBatch.length} < required {required}.
+   Undersizing batches below maxConcurrent to serialize execution is a protocol violation.
+   Re-build this batch to contain exactly {required} WorkUnits before proceeding."
+  MUST NOT call invoke_subagent until batch is correctly sized.
+} else {
+  // Batch size is valid — proceed to invoke_subagent for this batch.
+  // Log to swarm_log.md: "[swarm-execute] Batch {batchIndex} dispatching {currentBatch.length} agents (required: {required}) ✓"
+}
+```
+
+**Worked example — 9 WorkUnits, maxConcurrent: 4:**
+| Batch | Size | Correct? |
+|-------|------|----------|
+| Batch 1 | 4 (WU-0…WU-3) | ✅ `min(9, 4) = 4` |
+| Batch 2 | 4 (WU-4…WU-7) | ✅ `min(5, 4) = 4` |
+| Batch 3 | 1 (WU-8) | ✅ `min(1, 4) = 1` (final remainder) |
+
+**VIOLATION examples:**
+| Batch | Size | Violation |
+|-------|------|-----------|
+| Batch 1 | 2 | ❌ `min(9, 4) = 4`, dispatched only 2 |
+| Batch 2 | 2 | ❌ `min(7, 4) = 4`, dispatched only 2 |
 
 For each batch:
 1. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`.
