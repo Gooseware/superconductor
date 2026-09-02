@@ -152,7 +152,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - Run `agy models` and prompt via `ask_user` (header: "Verification Model", question: "Which model should verify the plan?", type: "choice", options from `agy models`).
         - **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
         - If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
-        - **If the model suggests changes AND user approves:** Dispatch a `superconductor-dreamer` subagent to apply the changes:
+        - **If yes:** (model suggests changes AND user approves) Dispatch a `superconductor-dreamer` subagent to apply the changes:
           - Use `invoke_subagent` with `TypeName: superconductor-dreamer`, `Model: modelConfig.dreamer`
           - Pass as context: the current `plan.md` content, the proposed diff, and the grill/review findings
           - The dreamer subagent writes the updated `plan.md` on the track branch
@@ -241,7 +241,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - Draft a publication proposal.
         - Explain the rationale for why this component is a good candidate.
         - **Ask for Approval:** Use `ask_user` (header: "Registry Proposal", question: "I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Registry Candidates Identified` unless `--fast`/`--lite`).
-        - **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
+        - **If yes:** Invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
         - **If no:** Skip registry proposal and proceed to next sync item.
  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
  **Load Project Documents:**
@@ -255,33 +255,33 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
         ii. **Propose and Confirm Changes:** If an update is needed:
             -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "Product", question: "Please review the proposed updates to the Product Definition below. Do you approve?\n\n---\n\n<Insert Proposed product.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Product Definition Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
-        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **Product Definition** file. Keep a record of whether this file was changed.
-        - **If no:** Retain existing product definition without changes.
+            - **If yes:** Perform the file edits to update the **Product Definition** file. Keep a record of whether this file was changed.
+            - **If no:** Retain existing product definition without changes.
     c.  **Update Tech Stack:**
         i. **Condition for Update:** Similarly, you MUST determine if significant changes in the technology stack are detected as a result of the completed track.
         ii. **Propose and Confirm Changes:** If an update is needed:
             -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "Tech Stack", question: "Please review the proposed updates to the Tech Stack below. Do you approve?\n\n---\n\n<Insert Proposed tech-stack.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Tech Stack Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
-        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **Tech Stack** file. Keep a record of whether this file was changed.
-        - **If no:** Retain existing tech stack without changes.
+            - **If yes:** Perform the file edits to update the **Tech Stack** file. Keep a record of whether this file was changed.
+            - **If no:** Retain existing tech stack without changes.
     d. **Update Product Guidelines (Strictly Controlled):**
         i. **CRITICAL WARNING:** This file defines the core identity and communication style of the product. It should be modified with extreme caution and ONLY in cases of significant strategic shifts, such as a product rebrand or a fundamental change in user engagement philosophy. Routine feature updates or bug fixes should NOT trigger changes to this file.
         ii. **Condition for Update:** You may ONLY propose an update to this file if the track's **Specification** explicitly describes a change that directly impacts branding, voice, tone, or other core product guidelines.
         iii. **Propose and Confirm Changes:** If the conditions are met:
             -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "Product", question: "WARNING: This is a sensitive action as it impacts core product guidelines. Please review the proposed changes below. Do you approve these critical changes?\n\n---\n\n<Insert Proposed product-guidelines.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Product Guidelines Impacts Determined` unless `--fast`/`--lite`). Embed proposed changes in diff format with clear warning.
-        iv. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
-        - **If no:** Retain existing product guidelines without changes.
+            - **If yes:** Perform the file edits. Keep a record of whether this file was changed.
+            - **If no:** Retain existing product guidelines without changes.
     e. **Update README.md (Operational Changes):**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed track introduced new build steps, environment variables, or other human-facing operational requirements.
         ii. **Propose and Confirm Changes:** If an update is needed:
             -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "README.md", question: "Please review the proposed updates to the README.md below. Do you approve?\n\n---\n\n<Insert Proposed README.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Operational Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
-        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **README.md** file. Keep a record of whether this file was changed.
-        - **If no:** Retain existing README.md without changes.
+            - **If yes:** Perform the file edits to update the **README.md** file. Keep a record of whether this file was changed.
+            - **If no:** Retain existing README.md without changes.
     f. **Update superconductor/AGENTS.md (Agent Directives):**
         i. **Condition for Update:** Similarly, you MUST determine if the track introduced changes to build processes, architecture, or project invariants that future agents need to be aware of (e.g., new build commands, agent-specific setup steps).
         ii. **Propose and Confirm Changes:** If an update is needed:
             -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "AGENTS.md", question: "Please review the proposed updates to the AGENTS.md below. Do you approve?\n\n---\n\n<Insert Proposed AGENTS.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Agent Directive Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
-        iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **superconductor/AGENTS.md** file. Keep a record of whether this file was changed.
-        - **If no:** Retain existing AGENTS.md without changes.
+            - **If yes:** Perform the file edits to update the **superconductor/AGENTS.md** file. Keep a record of whether this file was changed.
+            - **If no:** Retain existing AGENTS.md without changes.
  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
     - **Commit Changes:**
@@ -310,7 +310,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
     *   **If user chooses "User Approval":**
         - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
         - **Action:** Ask the user: "The Oracle has approved the changes. Do you provide final manual approval to proceed to cleanup?" (type: "yesno")
-        - **Result:** If 'yes', mark the track as fully approved.
+        - **If yes:** Mark the track as fully approved.
         - **If no:** Halt the lifecycle wizard and yield to the user for manual action.
     *   **If user chooses "Merge":**
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
@@ -328,7 +328,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **Logic:** `ProjectConfigAnalyzer.analyze('superconductor/tech-stack.md', 'package.json')`.
         - **Suggestion:** `ProjectConfigAnalyzer.suggestDeploymentCommand(selected_target)`.
         - **User Prompt:** If a command is found, ask: "Deployment command discovered for '<selected_target>': '<command>'. Would you like to execute it now?" (type: "yesno").
-        - **Execution:** If 'yes', run the command and report status.
+        - **If yes:** Run the command and report status.
         - **If no:** Skip deployment and conclude track execution.
 
 ## 6.0 ORACLE CODE REVIEW LOOP (ADVANCED)
@@ -364,7 +364,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
  **Auto-Fix Loop & Remediation:**
      - If the report contains "Auto-Fix Candidates":
          - **Ask for Approval:** "I've identified several auto-fix candidates. Would you like me to apply them now using a TDD loop?" (type: "yesno")
-         - **Action:** If yes, for each candidate:
+         - **If yes:** For each candidate:
              - Create/Update tests to reproduce the issue or verify the improvement.
              - Apply the suggested diff.
              - Run tests.
@@ -379,7 +379,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
             iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
      - If the report suggests **Kernel Sync Candidates**:
          - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `superconductor-kernel`. Would you like me to publish them now?" (type: "yesno")
-         - **Action:** If yes, save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_superconductor-kernel_publish_vetted_component` tool.
+         - **If yes:** Save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_superconductor-kernel_publish_vetted_component` tool.
          - **If no:** Skip kernel sync and proceed.
     - If "Ready" verdict:
         - Proceed to finalization.
@@ -401,10 +401,10 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5` — append new rows to the Shenanigan Checklist table.
     - **Rationale:** Include a one-line comment above each new row: `<!-- Inducted: <track_id> — <date> —  <pattern trigger> -->`.
   **Present and Gate:** Use `ask_user` (header: "Adversarial Audit — Protocol Evolution", question: "The Oracle identified new patterns during this audit. Approve these additions to the adversarial checklist?\n\n---\n\n<Insert proposed diff here>", type: "yesno").
-  **Commit if approved:**
-     - Apply the diffs to both files.
-     - Commit: `docs(review): Evolve adversarial audit protocol — patterns inducted from track '<track_description>'`
-     - Announce: "Adversarial checklist updated. The Oracle is sharper now than it was before this run."
+  - **If yes:**
+      - Apply the diffs to both files.
+      - Commit: `docs(review): Evolve adversarial audit protocol — patterns inducted from track '<track_description>'`
+      - Announce: "Adversarial checklist updated. The Oracle is sharper now than it was before this run."
   - **If no:** Retain existing adversarial audit protocol without updates.
  **Proceed to §5.0 Track Cleanup.**
 
