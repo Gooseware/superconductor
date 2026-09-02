@@ -14,6 +14,7 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 3. **Every plan phase MUST be delegated to one or more specialized `superconductor-processor` subagents.**
 4. **Quorum reviews MUST be conducted by parallel `superconductor-reviewer` subagents.**
 5. **Remediation loops triggered by `NEEDS_FIXES` MUST dispatch isolated remediator subagents.** Hero-agenting (root fixing code directly) is a protocol violation.
+6. **Track documentation files (`plan.md`, `spec.md`) MUST NOT be written by the root orchestrator during plan verification.** If the grill or plan-audit phase produces proposed plan changes, the root orchestrator MUST dispatch a `superconductor-dreamer` subagent to apply those changes. Direct writes to `plan.md` or `spec.md` by the root agent during plan verification are Hero-Agenting on track documentation — a protocol violation.
 
 ### Terminal Focus Notification Gate
 Before pausing for user input, awaiting subagent swarms, or concluding execution turns/tracks:
@@ -164,7 +165,8 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                 - **options:** (Populate dynamically with the models returned by `agy models`)
         - **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
         - If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
-        - If approved, update `plan.md`.
+        - If plan updates are required, dispatch a `superconductor-dreamer` subagent with the grill findings and proposed changes as context. The `superconductor-dreamer` subagent writes the updated `plan.md`.
+        - **PROHIBITED:** The root orchestrator calling `write_to_file`, `replace_file_content`, or any write tool on `plan.md` or `spec.md` during plan verification. This constitutes Hero-Agenting on track documentation — a protocol violation. Delegate exclusively to `superconductor-dreamer`.
  **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Execution Skill:**
        - Search for the `swarm-execute` skill in the catalog and active skills.
@@ -189,6 +191,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
         iii. **Tier-Aware Execution Rules:**
             - **For `[TIER-1]` Tasks:** Execute any script, file existence checks, git operations, or test commands directly via `run_shell_command` (zero inference cost). Capture the exit status and stdout/stderr, and pass them back as structured input to the context. The agent will interpret the results (e.g. verifying a build or test run) deterministically.
+  **NOTE:** Before any TIER-2+ subagent dispatch, ALL TIER-1 WorkUnits must have already been extracted and executed inline by the `swarm-execute` TIER-1 Pre-Filter (§Step 2a of `swarm-execute/SKILL.md`). If you reach this point during swarm dispatch and still have TIER-1 WorkUnits in your batch, this is a protocol violation — the Pre-Filter was not applied.
             - **For `[TIER-4]` Tasks:** Read the configured Tier 4 model name. Announce to the user: "This task requires deep reasoning (Tier 4). Using model: <Model Name>." Then proceed.
             - **For `[TIER-2]` and `[TIER-3]` Tasks:** Execute standard tool calls and logic with no special announcements.
         iv. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
