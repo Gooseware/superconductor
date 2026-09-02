@@ -98,6 +98,9 @@ if (currentBatch.length < required) {
    Undersizing batches below maxConcurrent to serialize execution is a protocol violation.
    Re-build this batch to contain exactly {required} WorkUnits before proceeding."
   MUST NOT call invoke_subagent until batch is correctly sized.
+} else {
+  // Batch size is valid — proceed to invoke_subagent for this batch.
+  // Log to swarm_log.md: "[swarm-execute] Batch {batchIndex} dispatching {currentBatch.length} agents (required: {required}) ✓"
 }
 ```
 
