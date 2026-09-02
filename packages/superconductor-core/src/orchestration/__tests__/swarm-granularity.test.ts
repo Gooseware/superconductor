@@ -1,46 +1,17 @@
 import { describe, it, expect } from 'vitest';
-
-// Stub types matching the swarm-execute WorkUnit contract
-interface WorkUnit {
-  id: string;
-  task: string;
-  tier: number;
-  agent: string;
-  domain: string;
-  phase: number;
-}
+import {
+  parseWorkUnits,
+  filterForSubagentDispatch,
+  buildBatches,
+  validateBatches,
+  type SwarmWorkUnit,
+} from '../swarm-granularity.js';
 
 // ---------------------------------------------------------------------------
 // Suite 1 — parseAndDispatch 1:1 mapping
 // Each `- [ ] Task:` line with annotations must produce exactly one WorkUnit.
 // ---------------------------------------------------------------------------
 describe('parseAndDispatch — 1:1 WorkUnit mapping', () => {
-  function parseWorkUnits(planMarkdown: string): WorkUnit[] {
-    const units: WorkUnit[] = [];
-    const taskRegex = /^- \[ \] Task: (.+?) \[TIER-(\d+)\] \[AGENT:([^\]]+)\] \[DOMAIN:([^\]]+)\]/gm;
-    let match: RegExpExecArray | null;
-    let phase = 0;
-    let id = 0;
-    for (const line of planMarkdown.split('\n')) {
-      if (/^## Phase \d+/.test(line)) {
-        const m = line.match(/Phase (\d+)/);
-        if (m) phase = parseInt(m[1]);
-      }
-      const taskMatch = line.match(/^- \[ \] Task: (.+?) \[TIER-(\d+)\] \[AGENT:([^\]]+)\] \[DOMAIN:([^\]]+)\]/);
-      if (taskMatch) {
-        units.push({
-          id: `wu-${id++}`,
-          task: taskMatch[1],
-          tier: parseInt(taskMatch[2]),
-          agent: taskMatch[3],
-          domain: taskMatch[4],
-          phase,
-        });
-      }
-    }
-    return units;
-  }
-
   it('produces exactly one WorkUnit per task line', () => {
     const plan = `
 ## Phase 0
@@ -88,13 +59,8 @@ describe('parseAndDispatch — 1:1 WorkUnit mapping', () => {
 // TIER-1 WorkUnits must be excluded from the subagent dispatch pipeline.
 // ---------------------------------------------------------------------------
 describe('TIER-1 Pre-Filter — exclusion from subagent dispatch pipeline', () => {
-  function filterForSubagentDispatch(units: WorkUnit[]): WorkUnit[] {
-    // Only TIER-2+ goes to subagents; TIER-1 is executed inline
-    return units.filter(u => u.tier >= 2);
-  }
-
   it('removes all TIER-1 WorkUnits before subagent dispatch', () => {
-    const units: WorkUnit[] = [
+    const units: SwarmWorkUnit[] = [
       { id: 'wu-0', task: 'Scaffold', tier: 1, agent: 'setup', domain: 'tests', phase: 0 },
       { id: 'wu-1', task: 'Amend A', tier: 2, agent: 'coding-agent', domain: 'skills-a', phase: 1 },
       { id: 'wu-2', task: 'Amend B', tier: 2, agent: 'coding-agent', domain: 'skills-b', phase: 1 },
@@ -106,7 +72,7 @@ describe('TIER-1 Pre-Filter — exclusion from subagent dispatch pipeline', () =
   });
 
   it('returns empty array if all WorkUnits are TIER-1', () => {
-    const units: WorkUnit[] = [
+    const units: SwarmWorkUnit[] = [
       { id: 'wu-0', task: 'Shell A', tier: 1, agent: 'setup', domain: 'infra', phase: 0 },
       { id: 'wu-1', task: 'Shell B', tier: 1, agent: 'setup', domain: 'infra', phase: 0 },
     ];
@@ -120,32 +86,8 @@ describe('TIER-1 Pre-Filter — exclusion from subagent dispatch pipeline', () =
 // Dispatching fewer is a protocol violation.
 // ---------------------------------------------------------------------------
 describe('Minimum Concurrency Gate — batch sizing enforcement', () => {
-  function buildBatches(units: WorkUnit[], maxConcurrent: number): WorkUnit[][] {
-    const batches: WorkUnit[][] = [];
-    for (let i = 0; i < units.length; i += maxConcurrent) {
-      batches.push(units.slice(i, i + maxConcurrent));
-    }
-    return batches;
-  }
-
-  function validateBatches(batches: WorkUnit[][], maxConcurrent: number, totalUnits: number): string[] {
-    const violations: string[] = [];
-    let processed = 0;
-    for (let i = 0; i < batches.length; i++) {
-      const remaining = totalUnits - processed;
-      const required = Math.min(remaining, maxConcurrent);
-      if (batches[i].length < required) {
-        violations.push(
-          `CONCURRENCY VIOLATION: batch[${i}] size ${batches[i].length} < required ${required}`
-        );
-      }
-      processed += batches[i].length;
-    }
-    return violations;
-  }
-
   it('produces batches of exactly maxConcurrent for 9 WorkUnits with maxConcurrent=4', () => {
-    const units: WorkUnit[] = Array.from({ length: 9 }, (_, i) => ({
+    const units: SwarmWorkUnit[] = Array.from({ length: 9 }, (_, i) => ({
       id: `wu-${i}`, task: `Task ${i}`, tier: 2,
       agent: 'coding-agent', domain: `domain-${i}`, phase: 1,
     }));
@@ -157,7 +99,7 @@ describe('Minimum Concurrency Gate — batch sizing enforcement', () => {
 
   it('detects a concurrency violation when batches are undersized', () => {
     // Simulates the bug: agent manually grouped [2, 2, 3] instead of [4, 4, 1]
-    const undersizedBatches: WorkUnit[][] = [
+    const undersizedBatches: SwarmWorkUnit[][] = [
       Array.from({ length: 2 }, (_, i) => ({ id: `wu-${i}`, task: `T${i}`, tier: 2, agent: 'c', domain: 'd', phase: 1 })),
       Array.from({ length: 2 }, (_, i) => ({ id: `wu-${i+2}`, task: `T${i+2}`, tier: 2, agent: 'c', domain: 'd', phase: 1 })),
       Array.from({ length: 3 }, (_, i) => ({ id: `wu-${i+4}`, task: `T${i+4}`, tier: 2, agent: 'c', domain: 'd', phase: 1 })),
@@ -168,7 +110,7 @@ describe('Minimum Concurrency Gate — batch sizing enforcement', () => {
   });
 
   it('no violations when batches are correctly sized', () => {
-    const units: WorkUnit[] = Array.from({ length: 9 }, (_, i) => ({
+    const units: SwarmWorkUnit[] = Array.from({ length: 9 }, (_, i) => ({
       id: `wu-${i}`, task: `Task ${i}`, tier: 2,
       agent: 'coding-agent', domain: `domain-${i}`, phase: 1,
     }));
