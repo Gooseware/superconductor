@@ -71,12 +71,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - **Tech Stack**
     - **Workflow**
     - **Ubiquitous Language Context** (`superconductor/CONTEXT.md`)
- **Handle Failure:** 
-    - If ANY of these files are missing (or their resolved paths do not exist), you MUST interactively prompt the user using the `ask_user` tool:
-        - **questions:**
-            - **header:** "Setup Required"
-            - **question:** "Superconductor is not set up. Would you like me to initiate the `/superconductor:setup` process now?"
-            - **type:** "yesno"
+ **Handle Failure:** If ANY of these files are missing (or resolved paths do not exist), interactively prompt using `ask_user` (header: "Setup Required", question: "Superconductor is not set up. Would you like me to initiate the `/superconductor:setup` process now?", type: "yesno").
     - **If yes:** Immediately transition to executing the `/superconductor:setup` skill protocol.
     - **If no:** Announce "Setup is required to proceed. Halting." and HALT.
 
@@ -98,22 +93,11 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
             2.  If a unique match is found, proceed with this track.
             3.  If no match is found, inform the user and proceed to the interactive selection.
         - **If no track name was provided (or previous step failed):**
-            1.  Immediately call the `ask_user` tool to present the available tracks and a field for a new track (do not repeat the question in the chat):
-                - **questions:**
-                    - **header:** "Select Track"
-                    - **question:** "Please select a track to implement, choose 'All Tracks (Headless)', or provide a description to start a new track."
-                    - **type:** "choice"
-                    - **multiSelect:** false
-                    - **options:** (Populate with descriptions of the available tracks, PLUS an "Execute All Available Tracks (Headless)" option)
-                    - **placeholder:** "Enter description for a new track..."
+            1.  Immediately call `ask_user` (header: "Select Track", question: "Please select a track to implement, choose 'All Tracks (Headless)', or provide a description to start a new track.", type: "choice", multiSelect: false, options: available track descriptions + "Execute All Available Tracks (Headless)", placeholder: "Enter description for a new track...").
             2.  **Handle Response:**
                 -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
                 -   **If "Execute All Available Tracks (Headless)" is selected:**
-                    - **Action:** First, run `agy models` to fetch the list of available models. Then, ask the user to select the supervisor model using `ask_user`:
-                        - **header:** "Supervisor Model"
-                        - **question:** "Which supervisor model should check the final steps (Oracle Review) for these tracks?"
-                        - **type:** "choice"
-                        - **options:** (Populate this dynamically with the models returned by `agy models`. Example labels: "Gemini 3.1 Pro", "Claude Sonnet 4.6", "Claude Opus 4.6", etc.)
+                    - **Action:** First run `agy models` to fetch available models, then ask the user via `ask_user` (header: "Supervisor Model", question: "Which supervisor model should check the final steps (Oracle Review) for these tracks?", type: "choice", options: models from `agy models`).
                     - **Execution:** Transition into headless mode and execute all available tracks sequentially without further interaction, using the chosen supervisor model for the final Oracle review of each track.
                 -   **If a new description is entered in the "Other" field:**
                     -   **Action:** Transition to the requirements gathering phase of a new track.
@@ -150,19 +134,9 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
 3.1 **Optional Plan Verification:**
     - **Headless Automation (`--headless`):** Skip this verification step.
-    - **Ask for Verification:** Use the `ask_user` tool to ask if the user wants an AI model to audit the existing `plan.md` before starting tasks.
-        - **questions:**
-            - **header:** "Plan Verification"
-            - **question:** "Would you like an AI model to audit and verify the existing `plan.md` before execution begins?"
-            - **type:** "yesno"
+    - **Ask for Verification:** Use `ask_user` (header: "Plan Verification", question: "Would you like an AI model to audit and verify the existing `plan.md` before execution begins?", type: "yesno").
     - **If yes:**
-        - First, run `agy models` to fetch the list of available models.
-        - Use the `ask_user` tool to prompt the user to select the model for this verification.
-            - **questions:**
-                - **header:** "Verification Model"
-                - **question:** "Which model should verify the plan?"
-                - **type:** "choice"
-                - **options:** (Populate dynamically with the models returned by `agy models`)
+        - Run `agy models` and prompt via `ask_user` (header: "Verification Model", question: "Which model should verify the plan?", type: "choice", options from `agy models`).
         - **Action:** Transition into a verification loop: Prompt the selected model to review the `plan.md` against the `spec.md` and project context, looking for missing steps, logical errors, or improvements.
         - If the model suggests changes, use `ask_user` to present the proposed updates (in diff format) and ask for approval (type: "yesno").
         - **If the model suggests changes AND user approves:** Dispatch a `superconductor-dreamer` subagent to apply the changes:
@@ -264,14 +238,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - Construct a `ComponentPayload` (including all component files, metadata, and optional comments).
         - Draft a publication proposal.
         - Explain the rationale for why this component is a good candidate.
-        - **Ask for Approval:** Use the `ask_user` tool to confirm if the user wants to proceed with the registry publication proposal.
-            - **questions:**
-                - **header:** "Registry Proposal"
-                - **question:**
-                    If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Registry Candidates Identified`
-
-                    I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?
-                - **type:** "yesno"
+        - **Ask for Approval:** Use `ask_user` (header: "Registry Proposal", question: "I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Registry Candidates Identified` unless `--fast`/`--lite`).
         - **Action:** If approved, invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
  **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
  **Load Project Documents:**
@@ -284,83 +251,28 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
         ii. **Propose and Confirm Changes:** If an update is needed:
-            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
-                - **questions:**
-                    - **header:** "Product"
-                    - **question:**
-                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Product Definition Impacts Determined`
-
-                        Please review the proposed updates to the Product Definition below. Do you approve?
-
-                        ---
-
-                        <Insert Proposed product.md Updates/Diff Here>
-                    - **type:** "yesno"
+            -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "Product", question: "Please review the proposed updates to the Product Definition below. Do you approve?\n\n---\n\n<Insert Proposed product.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Product Definition Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
         iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **Product Definition** file. Keep a record of whether this file was changed.
     c.  **Update Tech Stack:**
         i. **Condition for Update:** Similarly, you MUST determine if significant changes in the technology stack are detected as a result of the completed track.
         ii. **Propose and Confirm Changes:** If an update is needed:
-            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
-                - **questions:**
-                    - **header:** "Tech Stack"
-                    - **question:**
-                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Tech Stack Impacts Determined`
-
-                        Please review the proposed updates to the Tech Stack below. Do you approve?
-
-                        ---
-
-                        <Insert Proposed tech-stack.md Updates/Diff Here>
-                    - **type:** "yesno"
+            -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "Tech Stack", question: "Please review the proposed updates to the Tech Stack below. Do you approve?\n\n---\n\n<Insert Proposed tech-stack.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Tech Stack Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
         iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **Tech Stack** file. Keep a record of whether this file was changed.
     d. **Update Product Guidelines (Strictly Controlled):**
         i. **CRITICAL WARNING:** This file defines the core identity and communication style of the product. It should be modified with extreme caution and ONLY in cases of significant strategic shifts, such as a product rebrand or a fundamental change in user engagement philosophy. Routine feature updates or bug fixes should NOT trigger changes to this file.
         ii. **Condition for Update:** You may ONLY propose an update to this file if the track's **Specification** explicitly describes a change that directly impacts branding, voice, tone, or other core product guidelines.
         iii. **Propose and Confirm Changes:** If the conditions are met:
-            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed changes (in a diff format) directly into the `question` field, including a clear warning.
-                - **questions:**
-                    - **header:** "Product"
-                    - **question:**
-                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Product Guidelines Impacts Determined`
-
-                        WARNING: This is a sensitive action as it impacts core product guidelines. Please review the proposed changes below. Do you approve these critical changes?
-
-                        ---
-
-                        <Insert Proposed product-guidelines.md Updates/Diff Here>
-                    - **type:** "yesno"
+            -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "Product", question: "WARNING: This is a sensitive action as it impacts core product guidelines. Please review the proposed changes below. Do you approve these critical changes?\n\n---\n\n<Insert Proposed product-guidelines.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Product Guidelines Impacts Determined` unless `--fast`/`--lite`). Embed proposed changes in diff format with clear warning.
         iv. **Action:** Only after receiving explicit user confirmation, perform the file edits. Keep a record of whether this file was changed.
     e. **Update README.md (Operational Changes):**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed track introduced new build steps, environment variables, or other human-facing operational requirements.
         ii. **Propose and Confirm Changes:** If an update is needed:
-            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
-                - **questions:**
-                    - **header:** "README.md"
-                    - **question:**
-                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Operational Impacts Determined`
-
-                        Please review the proposed updates to the README.md below. Do you approve?
-
-                        ---
-
-                        <Insert Proposed README.md Updates/Diff Here>
-                    - **type:** "yesno"
+            -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "README.md", question: "Please review the proposed updates to the README.md below. Do you approve?\n\n---\n\n<Insert Proposed README.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Operational Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
         iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **README.md** file. Keep a record of whether this file was changed.
     f. **Update superconductor/AGENTS.md (Agent Directives):**
         i. **Condition for Update:** Similarly, you MUST determine if the track introduced changes to build processes, architecture, or project invariants that future agents need to be aware of (e.g., new build commands, agent-specific setup steps).
         ii. **Propose and Confirm Changes:** If an update is needed:
-            -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the proposed updates (in a diff format) directly into the `question` field so the user can review them in context.
-                - **questions:**
-                    - **header:** "AGENTS.md"
-                    - **question:**
-                        If neither `--fast` nor `--lite` was used, render: `[✓] Spec Analyzed` `[✓] Agent Directive Impacts Determined`
-
-                        Please review the proposed updates to the AGENTS.md below. Do you approve?
-
-                        ---
-
-                        <Insert Proposed AGENTS.md Updates/Diff Here>
-                    - **type:** "yesno"
+            -   **Ask for Approval:** Use `ask_user` to request confirmation (header: "AGENTS.md", question: "Please review the proposed updates to the AGENTS.md below. Do you approve?\n\n---\n\n<Insert Proposed AGENTS.md Updates/Diff Here>", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Agent Directive Impacts Determined` unless `--fast`/`--lite`). Embed proposed updates in diff format.
         iii. **Action:** Only after receiving explicit user confirmation, perform the file edits to update the **superconductor/AGENTS.md** file. Keep a record of whether this file was changed.
  **Final Report:** Announce the completion of the synchronization process and provide a summary of the actions taken.
     - **Construct the Message:** Based on the records of which files were changed, construct a summary message.
@@ -385,10 +297,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
 
  **Handle User Response:**
     *   **If user chooses "Oracle Review":**
-        - **header:** "Oracle Model"
-        - **question:** "Which model should the Oracle use for this deep audit? (Reasoning models — Pro, Sonnet Thinking, Opus — are strongly recommended. Fast models like Flash may miss subtle correctness issues and are prone to grade inflation on adversarial checks.)"
-        - **type:** "choice"
-        - **options:** (Populate this dynamically with the models returned by running `agy models`. Annotate reasoning-capable models with `[Recommended for Oracle]`. Example: "Gemini 3.1 Pro [Recommended for Oracle]", "Claude Sonnet 4.6 Thinking [Recommended for Oracle]", "Claude Opus 4.6 [Recommended for Oracle]", "Gemini 3.6 Flash", etc.)
+        - Prompt via `ask_user` (header: "Oracle Model", question: "Which model should the Oracle use for this deep audit? (Reasoning models — Pro, Sonnet Thinking, Opus — are strongly recommended. Fast models like Flash may miss subtle correctness issues and are prone to grade inflation on adversarial checks.)", type: "choice", options: models from `agy models` with reasoning models annotated `[Recommended for Oracle]`).
         - **Action:** Transition to the **6.0 ORACLE CODE REVIEW LOOP** protocol.
     *   **If user chooses "User Approval":**
         - **Pre-requisite:** Check if Oracle has already given a "Ready" verdict. If not, inform the user that Oracle approval is required first.
@@ -401,16 +310,8 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **Post-Merge:** Transition to **Deployment Suggestion**.
     *   **If user chooses "Archive" or "Delete":**
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.
-        - **Action (Archive):**
-            ```typescript
-            await wizard.finalizeTrack({ trackId: track_id, action: 'archive', oracleSignOff: true });
-            ```
-            - Announce: "Track '<track_description>' has been successfully archived via TrackLifecycleWizard."
-        - **Action (Delete):**
-            ```typescript
-            await wizard.finalizeTrack({ trackId: track_id, action: 'delete', oracleSignOff: true, executionMode: 'interactive' });
-            ```
-            - Announce: "Track '<track_description>' has been permanently deleted."
+        - **Action (Archive):** `await wizard.finalizeTrack({ trackId: track_id, action: 'archive', oracleSignOff: true })`. Announce: "Track '<track_description>' has been successfully archived via TrackLifecycleWizard."
+        - **Action (Delete):** `await wizard.finalizeTrack({ trackId: track_id, action: 'delete', oracleSignOff: true, executionMode: 'interactive' })`. Announce: "Track '<track_description>' has been permanently deleted."
     *   **If user chooses "Skip":**
         - Announce: "Okay, the completed track will remain in your tracks file for now."
   **Deployment Suggestion:**
@@ -487,10 +388,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - `skills/review/SKILL.md §4.5` — append new rows to the Shenanigan Checklist table.
         - `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5` — append new rows to the Shenanigan Checklist table.
     - **Rationale:** Include a one-line comment above each new row: `<!-- Inducted: <track_id> — <date> —  <pattern trigger> -->`.
- **Present and Gate:** Use `ask_user` to show the diff and request approval:
-    - **header:** "Adversarial Audit — Protocol Evolution"
-    - **question:** "The Oracle identified new patterns during this audit. Approve these additions to the adversarial checklist?\n\n---\n\n<Insert proposed diff here>"
-    - **type:** "yesno"
+  **Present and Gate:** Use `ask_user` (header: "Adversarial Audit — Protocol Evolution", question: "The Oracle identified new patterns during this audit. Approve these additions to the adversarial checklist?\n\n---\n\n<Insert proposed diff here>", type: "yesno").
  **Commit if approved:**
     - Apply the diffs to both files.
     - Commit: `docs(review): Evolve adversarial audit protocol — patterns inducted from track '<track_description>'`
