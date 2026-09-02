@@ -107,6 +107,18 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
 ## 3.0 TRACK IMPLEMENTATION
 **PROTOCOL: Execute the selected track.**
+
+**Agent Config Resolution (MANDATORY — before dispatching any subagent):**
+Call `AgentConfigReader.resolve(projectRoot)` → `modelConfig` using the same protocol defined in `swarm-execute/SKILL.md §Step 1`. If `swarm-execute` is being used for implementation, `modelConfig` is already resolved — reuse it. If dispatching directly from `implement`, resolve it here.
+
+All `invoke_subagent` calls MUST pass the resolved model tier:
+- Quorum reviewers: `Model: modelConfig.reviewer`
+- Oracle: `Model: modelConfig.oracle`
+- Dreamer (plan verification): `Model: modelConfig.dreamer`
+- Processors (if dispatched directly): `Model: modelConfig.processor`
+
+**PROHIBITED:** Passing `Model: "inherit"` for any swarm subagent role. `"inherit"` silently runs the subagent on the root agent's model, bypassing user-configured model preferences from `agent-config.md`.
+
  **Announce Action:** Announce which track you are beginning to implement.
  **Update Status to 'In Progress':**
     - Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
@@ -148,18 +160,6 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
         - **If the model suggests no changes (plan is already correct):** Proceed directly to swarm execution without calling `ask_user`. Announce: "Plan verification complete — no changes required. Proceeding with swarm execution."
         - **PROHIBITED:** The root orchestrator calling `write_to_file`, `replace_file_content`, or any write tool on `plan.md` or `spec.md` during plan verification. This constitutes Hero-Agenting on track documentation — a protocol violation. Delegate exclusively to `superconductor-dreamer`.
   **Execute Tasks and Update Track Plan:**
-
-**Agent Config Resolution (MANDATORY — before dispatching any subagent):**
-Call `AgentConfigReader.resolve(projectRoot)` → `modelConfig` using the same protocol defined in `swarm-execute/SKILL.md §Step 1`. If `swarm-execute` is being used for implementation, `modelConfig` is already resolved — reuse it. If dispatching directly from `implement`, resolve it here.
-
-All `invoke_subagent` calls MUST pass the resolved model tier:
-- Quorum reviewers: `Model: modelConfig.reviewer`
-- Oracle: `Model: modelConfig.oracle`
-- Dreamer (plan verification): `Model: modelConfig.dreamer`
-- Processors (if dispatched directly): `Model: modelConfig.processor`
-
-**PROHIBITED:** Passing `Model: "inherit"` for any swarm subagent role. `"inherit"` silently runs the subagent on the root agent's model, bypassing user-configured model preferences from `agent-config.md`.
-
     a. **Check for Swarm Execution Skill:**
        - Search for the `swarm-execute` skill in the catalog and active skills.
        - **If `swarm-execute` is available:**
