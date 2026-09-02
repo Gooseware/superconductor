@@ -109,7 +109,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 **PROTOCOL: Execute the selected track.**
 
 **Agent Config Resolution (MANDATORY — before dispatching any subagent):**
-Call `AgentConfigReader.resolve(projectRoot)` → `modelConfig` using the same protocol defined in `swarm-execute/SKILL.md §Step 1`. If `swarm-execute` is being used for implementation, `modelConfig` is already resolved — reuse it. If dispatching directly from `implement`, resolve it here.
+Call `AgentConfigReader.resolve(projectRoot)` → `modelConfig` using the same protocol defined in `swarm-execute/SKILL.md §Step 1`. This MUST be resolved here, before §3.1 Plan Verification, as dreamer dispatch within §3.1 depends on `modelConfig.dreamer`.
 
 All `invoke_subagent` calls MUST pass the resolved model tier:
 - Quorum reviewers: `Model: modelConfig.reviewer`
@@ -141,6 +141,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **UI Auto-Activation Check:** If the track's **Specification** or **Implementation Plan** contains any of the following UI keywords (case-insensitive: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`), you MUST prompt the user using the `ask_user` tool to suggest activating the `design-heuristics` skill:
             - **Question:** "This track contains UI/UX elements. Would you like to activate the `design-heuristics` skill to enforce visual design rules?" (type: "yesno").
             - **If yes:** Explicitly activate the `design-heuristics` skill and read its `SKILL.md` and reference files.
+            - **If no:** Proceed without activating `design-heuristics`.
         - **CRITICAL:** For every relevant skill identified, ask the agent to activate it and read its `SKILL.md` and reference files.
         - You MUST explicitly apply and prioritize the guidelines, commands, and constraints from these files during the execution of the track's tasks.
 
@@ -159,6 +160,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **If user rejects the proposed changes (answers 'no'):** Proceed to swarm execution using the existing `plan.md` without modification. Announce: "Plan verification complete — existing plan retained. Proceeding with swarm execution."
         - **If the model suggests no changes (plan is already correct):** Proceed directly to swarm execution without calling `ask_user`. Announce: "Plan verification complete — no changes required. Proceeding with swarm execution."
         - **PROHIBITED:** The root orchestrator calling `write_to_file`, `replace_file_content`, or any write tool on `plan.md` or `spec.md` during plan verification. This constitutes Hero-Agenting on track documentation — a protocol violation. Delegate exclusively to `superconductor-dreamer`.
+    - **If no (user declines verification):** Proceed directly to swarm execution using the existing `plan.md` without any verification or model review.
   **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Execution Skill:**
        - Search for the `swarm-execute` skill in the catalog and active skills.
