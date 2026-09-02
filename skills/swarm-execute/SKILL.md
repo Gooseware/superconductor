@@ -62,6 +62,33 @@ WorkUnit:      { id: "wu-2", task: "Amend implement skill", tier: 2, agent: "cod
 ```
 These are TWO WorkUnits → dispatched as 2 parallel agents. NEVER merged into 1.
 
+**Agent Config Resolution (MANDATORY — runs after parseAndDispatch, before any invoke_subagent):**
+
+Call `AgentConfigReader.resolve(projectRoot)` to load the role-to-model mapping:
+1. Check `{projectRoot}/superconductor/agent-config.md` for `## Swarm Agent Model Assignments` table. If found, parse into `AgentConfig`.
+2. If not found, check `~/.gemini/agent-config.md` for the same table.
+3. If neither found, use internal defaults: `{ processor: "flash", reviewer: "flash", dreamer: "pro", oracle: "pro", remediator: "flash" }`.
+4. Call `buildModelConfig(agentConfig)` → produces `modelConfig: ModelConfig`.
+5. Log to `swarm_log.md`: `[swarm-execute] modelConfig resolved: { processor: "{tier}", reviewer: "{tier}", dreamer: "{tier}", oracle: "{tier}", remediator: "{tier}" }`.
+
+**PROHIBITED:** Calling `invoke_subagent` with `Model: "inherit"` for any processor, reviewer, dreamer, oracle, or remediator role. `"inherit"` causes the subagent to run on the root agent's model tier, silently ignoring user-configured model preferences.
+
+**Model ID → Tier Enum Resolution Table:**
+
+Use this table to map model IDs from `agent-config.md` to `invoke_subagent` `Model` parameter values:
+
+| Model ID Pattern | Tier Enum | Notes |
+|---|---|---|
+| `*-flash-lite*` | `"flash_lite"` | Lightweight flash variant |
+| `*-flash-*` / `*-flash` | `"flash"` | Standard flash (e.g. `gemini-3.7-flash-high`) |
+| `*-pro-*` / `*-pro` | `"pro"` | Pro reasoning tier |
+| `claude-*-sonnet-*` | `"pro"` | Claude Sonnet maps to pro tier |
+| `claude-*-opus-*` | `"pro"` | Claude Opus maps to pro tier |
+| `gpt-oss-*-medium` | `"flash"` | OSS medium maps to flash tier |
+| Unknown / unmapped | `"flash"` | Safe non-inherit default — NEVER `"inherit"` |
+
+**Resolution rule:** Match patterns in order (flash_lite before flash). If no pattern matches, use `"flash"` as the safe default. NEVER resolve to `"inherit"` — that bypasses user configuration.
+
 ### Step 2a — TIER-1 Pre-Filter (MANDATORY — runs before Step 2)
 
 Before running `PreflightTestRunner`, extract all TIER-1 WorkUnits and execute them inline.
@@ -118,7 +145,7 @@ if (currentBatch.length < required) {
 | Batch 2 | 2 | ❌ `min(7, 4) = 4`, dispatched only 2 |
 
 For each batch:
-1. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`.
+1. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`, passing `Model: modelConfig.processor` (resolved from `agent-config.md` in §Step 1 — NOT `"inherit"`).
 2. Each agent receives:
    - Its WorkUnit `spec` (task description)
    - Its `domainScope` (files it is responsible for)
@@ -193,7 +220,7 @@ Collect all findings from ALL 4 quorum reviewers (security-reviewer, correctness
 **MUST use `DomainSplitRemediationDispatcher`** (`packages/superconductor-core/src/remediation/domain-split-remediation-dispatcher.ts`):
 
 1. Group findings by domain (`security`, `types`, `tests`, `logic`, `config`, etc.).
-2. Spawn **one Flash remediator subagent per domain** in parallel using `invoke_subagent`.
+2. Spawn **one remediator subagent per domain** in parallel using `invoke_subagent`, passing `Model: modelConfig.remediator` (resolved from `agent-config.md` — NOT `"inherit"`).
 3. Enforce **git worktree isolation** (`WorktreeIsolationManager`) for each spawned remediator to prevent file collision and state pollution.
 4. Each remediator agent receives:
    - Only the findings for its domain
