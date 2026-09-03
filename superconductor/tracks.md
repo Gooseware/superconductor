@@ -24,6 +24,7 @@
 | `[x]` | `swarm_implementation_20260901` | [Swarm Execution Engine — Parallel Implementor Swarm + Single-Run Preflight](./tracks/swarm_implementation_20260901/index.md) | `track/swarm_implementation_20260901` (merged to main) |
 | `[x]` | `swarm_granularity_hardening_20260902` | [Swarm Granularity Hardening — parseAndDispatch enforcement, TIER-1 pre-filter, min-concurrency gate, plan.md hero-agent guard](./tracks/swarm_granularity_hardening_20260902/index.md) | `track/swarm_granularity_hardening_20260902` (merged to main) |
 | `[x]` | `agent_config_model_resolution_20260902` | [Agent Config Model Resolution — honour agent-config.md model assignments at invoke_subagent dispatch time](./tracks/agent_config_model_resolution_20260902/index.md) | `track/agent_config_model_resolution_20260902` (merged to main) |
+| `[ ]` | `note_taking_hardening_20260903` | [Note-Taking Hardening — NoteWriter utility, SKILL.md lifecycle instrumentation, notebook-store security fixes](./tracks/note_taking_hardening_20260903/index.md) | `track/note_taking_hardening_20260903` |
 
 ## Absorbed / Closed Tracks
 

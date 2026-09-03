@@ -1,0 +1,33 @@
+[permissions]
+# Auto-generated permission manifest for track: note_taking_hardening_20260903
+# Generated: 2026-09-03 (infer-permissions CLI unavailable, manual scaffold)
+
+[read]
+paths = [
+  "packages/superconductor-core/src/**",
+  "packages/notebook-store/src/**",
+  "packages/superconductor-kernel/src/**",
+  "skills/swarm-execute/SKILL.md",
+  "skills/implement/SKILL.md",
+  "skills/new-track/SKILL.md",
+  "superconductor/**"
+]
+
+[write]
+paths = [
+  "packages/superconductor-core/src/notebook/**",
+  "packages/notebook-store/src/validation/**",
+  "packages/notebook-store/src/providers/**",
+  "packages/notebook-store/tests/**",
+  "packages/superconductor-kernel/src/services/**",
+  "packages/superconductor-kernel/src/index.ts",
+  "skills/swarm-execute/SKILL.md",
+  "skills/implement/SKILL.md",
+  "skills/new-track/SKILL.md",
+  "superconductor/tracks/note_taking_hardening_20260903/**"
+]
+
+[tools]
+mcp_superconductor_kernel_notebook_write = true
+mcp_superconductor_kernel_notebook_query = true
+mcp_superconductor_kernel_notebook_summary = true
