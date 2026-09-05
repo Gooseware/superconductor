@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -10,6 +11,7 @@ describe('MCP Task Tools Integration', () => {
   let proc: ChildProcess;
   let messageId = 0;
   let stderrOutput = '';
+  let tempDir: string;
 
   const sendRequest = (method: string, params: any, timeoutMs = 5000) => {
     return new Promise((resolve, reject) => {
@@ -55,6 +57,7 @@ describe('MCP Task Tools Integration', () => {
   };
 
   beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kernel-test-tasks-'));
     const distPath = path.join(__dirname, '../dist/index.js');
     const [cmd, args] = fs.existsSync(distPath)
       ? ['node', [distPath]]
@@ -62,7 +65,7 @@ describe('MCP Task Tools Integration', () => {
 
     proc = spawn(cmd, args, {
       cwd: path.join(__dirname, '..'),
-      env: { ...process.env }
+      env: { ...process.env, PROJECT_ROOT: tempDir }
     });
 
     proc.stderr?.on('data', (data) => {
@@ -86,6 +89,9 @@ describe('MCP Task Tools Integration', () => {
 
   afterAll(() => {
     proc.kill();
+    if (tempDir && fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
   it('can create a task, query it, and get invariants', async () => {
