@@ -11,8 +11,6 @@ import { AgentConfigReader } from './agent-config-reader.js';
 import { ResearchProviderRegistry } from './provider-registry.js';
 import { sanitizeUntrustedText } from '@superconductor/core/src/utils/input-sanitizer.js';
 import { ResearchSourceQualityGate } from './source-quality-gate.js';
-import { AgentConfigReader } from './agent-config-reader.js';
-import { ResearchProviderRegistry } from './provider-registry.js';
 
 export class ResearchExecutor {
     private cache: SemanticCache<IResearchBrief>;
