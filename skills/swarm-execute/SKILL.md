@@ -164,6 +164,26 @@ After ALL implementor batches complete:
 2. Inject `globalTestReport` as `preflightReport` into every `QuorumReviewLoop` instance.
 3. The quorum reviewers receive the pre-cached `## Preflight Test Execution Evidence` block — they
    MUST NOT re-run `npm test`.
+4. **Quorum Reviewer Verdicts (MANDATORY):**
+   After each quorum reviewer (Security, Correctness, Adversarial, Regression) reports its verdict, the orchestrator MUST call `NoteWriter.writeQuorumNote`:
+   ```ts
+   NoteWriter.writeQuorumNote(
+     `[QUORUM] ${reviewer_role}: ${verdict} (${findings.length} findings)`,
+     { track_id, reviewer_token, severity: verdict === 'RESOLVED' ? 'info' : 'warning' }
+   )
+   ```
+
+### Oracle Gate
+Once the 4-reviewer quorum reaches unanimous `RESOLVED` (0 findings):
+1. Invoke the Oracle review with full track diff context.
+2. **Oracle Verdict (MANDATORY):**
+   After the Oracle review concludes, call `NoteWriter.writeDesignNote`:
+   ```ts
+   NoteWriter.writeDesignNote(
+     `[ORACLE] Verdict: ${oracle_verdict}. Decisions: ${key_decisions.slice(0, 180)}`,
+     { track_id, user_confirmed: true, severity: 'info' }
+   )
+   ```
 
 ---
 
@@ -188,7 +208,7 @@ When `## Preflight Test Execution Evidence` is provided in context, quote the pr
 Paste the terminal output as execution evidence in your findings.
 
 ### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
-The `TestReport` produced during **Implementation Swarm Step 2** (global preflight) MUST be
+The `TestReport` produced during **Implementation Swarm Step 2** (global preflight via `QuorumPreflightTestRunner` / `PreflightTestRunner`) MUST be
 injected as `## Preflight Test Execution Evidence` into the context and system prompts of
 all 4 quorum reviewer subagents.
 
@@ -227,6 +247,14 @@ Collect all findings from ALL 4 quorum reviewers (security-reviewer, correctness
    - The relevant file diffs
    - A mandate: fix one domain, one concern — no scope creep
 5. All remediators run concurrently. Orchestrator awaits all completions reactively (NO polling loops).
+6. **Remediator Completion (MANDATORY):**
+   When a domain remediator completes its fix, call `NoteWriter.writeWarningNote`:
+   ```ts
+   NoteWriter.writeWarningNote(
+     `[REMEDIATION] Domain ${domain} resolved finding ${finding_id}: ${fix_summary}`,
+     { track_id, severity: 'warning' }
+   )
+   ```
 
 **PROHIBITED:**
 - Spawning a single monolithic remediator for all findings
@@ -236,9 +264,16 @@ Collect all findings from ALL 4 quorum reviewers (security-reviewer, correctness
 ### Step 3 — Merge & Re-Run Full Quorum (Fresh Zero-Bias Review)
 
 After all domain remediators complete:
-1. Merge each remediator's isolated worktree branch back to the track branch.
-2. Re-run the **complete 4-reviewer quorum** (Security, Correctness, Adversarial, Regression) using `ZeroBiasContextBuilder`.
-3. The re-review MUST evaluate the **entire branch diff** (`git diff main...HEAD`), not just previously flagged lines.
+1. Verify `NoteWriter.writeWarningNote` calls have been recorded for each resolved finding:
+   ```ts
+   NoteWriter.writeWarningNote(
+     `[REMEDIATION] Domain ${domain} resolved finding ${finding_id}: ${fix_summary}`,
+     { track_id, severity: 'warning' }
+   )
+   ```
+2. Merge each remediator's isolated worktree branch back to the track branch.
+3. Re-run the **complete 4-reviewer quorum** (Security, Correctness, Adversarial, Regression) using `ZeroBiasContextBuilder`.
+4. The re-review MUST evaluate the **entire branch diff** (`git diff main...HEAD`), not just previously flagged lines.
 
 ### Step 4 — Continuous Remediation Loop & Circuit Breaker
 
