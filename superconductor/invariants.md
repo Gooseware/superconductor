@@ -42,7 +42,7 @@
 | `inv-c8265619-89d1-4537-8575-67233713049e` | sign-off-gate | `packages/superconductor-core/src/orchestration/sign-off-gate.ts` | - | - | Core orchestration gate for reviewer sign-off consensus. |
 | `inv-13075111-8a6b-4044-b672-b04e08d634a8` | quorum-validator | `packages/superconductor-core/src/orchestration/quorum-validator.ts` | - | - | Core orchestration validator enforcing reviewer quorum. |
 | `inv-69869fa9-0247-4552-a7a4-d666205960f0` | remediation-orchestrator | `packages/superconductor-core/src/remediation/remediation-orchestrator.ts` | - | - | Core orchestration service for remediating reviewer findings. |
-| `inv-5c3ec5d5-4260-484b-961a-47f8aea874ab` | track-lifecycle-wizard | `packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts` | - | - | Core orchestration wizard for track lifecycle management. |
+| `inv-421b93b4-bc4e-49c8-9d54-5eb8ace3426c` | checkpoint-orchestrator | `packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts` | - | - | Core orchestration service for track checkpoints and milestones. |
 
 ## Untriaged Invariants
 

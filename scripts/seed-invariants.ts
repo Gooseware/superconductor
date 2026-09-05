@@ -144,9 +144,9 @@ export const INITIAL_SEEDED_INVARIANTS = [
     status: 'active' as const
   },
   {
-    capability: 'track-lifecycle-wizard',
-    path: 'packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts',
-    rationale: 'Core orchestration wizard for track lifecycle management.',
+    capability: 'checkpoint-orchestrator',
+    path: 'packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts',
+    rationale: 'Core orchestration service for track checkpoints and milestones.',
     status: 'active' as const
   },
   {
@@ -180,6 +180,9 @@ export async function seedInvariants(workspacePath: string = path.resolve(__dirn
   try {
     const client = (provider as any).client || (provider as any).inner?.client;
     if (client) {
+      await client.execute(`
+        DELETE FROM invariants WHERE path LIKE '%track-lifecycle-wizard.ts%';
+      `);
       await client.execute(`
         DELETE FROM invariants 
         WHERE track_id IS NULL
