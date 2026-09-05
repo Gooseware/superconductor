@@ -108,9 +108,15 @@ export class NotebookValidator {
     options?: ValidationOptions
   ): void {
     // 1. Content length > 280 -> ValidationError
-    if (typeof entry.content !== 'string' || entry.content.length > 280) {
+    if (typeof entry.content !== 'string') {
       throw new ValidationError(
-        `Note content length (${entry.content?.length ?? 0}) exceeds maximum of 280 characters`
+        `Note content length (${(entry as any)?.content?.length ?? 0}) exceeds maximum of 280 characters`
+      );
+    }
+    const raw = entry.content.replace(/^<notebook_entry>/i, '').replace(/<\/notebook_entry>$/i, '');
+    if (raw.length > 280) {
+      throw new ValidationError(
+        `Note content length (${raw.length}) exceeds maximum of 280 characters`
       );
     }
 
