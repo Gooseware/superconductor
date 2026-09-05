@@ -138,7 +138,7 @@ export class SkillTriggerEngine {
     return false;
   }
 
-  public buildSkillContext(matches: SkillMatch[], headLines = 100): string {
+  public buildSkillContext(matches: SkillMatch[], headLines = 500): string {
     if (!matches || matches.length === 0) return '';
 
     const parts: string[] = [];
