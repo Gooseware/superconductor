@@ -9,6 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 describe('MCP Task Tools Integration', () => {
   let proc: ChildProcess;
   let messageId = 0;
+  let stderrOutput = '';
 
   const sendRequest = (method: string, params: any, timeoutMs = 5000) => {
     return new Promise((resolve, reject) => {
@@ -36,7 +37,8 @@ describe('MCP Task Tools Integration', () => {
       if (timeoutMs > 0) {
         timer = setTimeout(() => {
           proc.stdout!.off('data', onData);
-          reject(new Error(`Request ${method} (id=${id}) timed out after ${timeoutMs}ms`));
+          const errDetail = stderrOutput.trim() ? `\nServer stderr:\n${stderrOutput.trim()}` : '';
+          reject(new Error(`Request ${method} (id=${id}) timed out after ${timeoutMs}ms.${errDetail}`));
         }, timeoutMs);
       }
 
@@ -53,30 +55,33 @@ describe('MCP Task Tools Integration', () => {
   };
 
   beforeAll(async () => {
-    // Delete any existing test task store? No, we will just create unique tracks
-    proc = spawn('npx', ['tsx', 'src/index.ts'], {
+    const distPath = path.join(__dirname, '../dist/index.js');
+    const [cmd, args] = fs.existsSync(distPath)
+      ? ['node', [distPath]]
+      : ['npx', ['tsx', 'src/index.ts']];
+
+    proc = spawn(cmd, args, {
       cwd: path.join(__dirname, '..'),
       env: { ...process.env }
     });
 
-    // Poll until server is ready by calling tools/list repeatedly
-    const startTime = Date.now();
-    const timeout = 10000;
-    let ready = false;
+    proc.stderr?.on('data', (data) => {
+      stderrOutput += data.toString();
+    });
 
-    while (Date.now() - startTime < timeout) {
-      try {
-        await sendRequest('tools/list', {}, 500);
-        ready = true;
-        break;
-      } catch {
-        await new Promise(r => setTimeout(r, 500));
-      }
-    }
+    proc.on('error', (err) => {
+      stderrOutput += `\nSubprocess error: ${err.message}\n`;
+    });
 
-    if (!ready) {
-      throw new Error('Server failed to initialize within timeout');
-    }
+    // Send the initialize request first
+    await sendRequest('initialize', {
+      protocolVersion: '2024-11-05',
+      capabilities: {},
+      clientInfo: { name: 'test-client', version: '1.0.0' }
+    }, 5000);
+
+    // Followed by tools/list to confirm readiness
+    await sendRequest('tools/list', {}, 5000);
   });
 
   afterAll(() => {
