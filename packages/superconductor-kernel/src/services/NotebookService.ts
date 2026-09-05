@@ -8,21 +8,27 @@ import type {
   NoteType,
 } from '@superconductor/notebook-store';
 
-function wrapNotebookEntryTags(content: string): string {
+export function wrapNotebookEntryTags(content: string): string {
   if (typeof content !== 'string') return content;
-  if (content.startsWith('<notebook_entry>') && content.endsWith('</notebook_entry>')) {
-    return content;
+  let inner = content;
+  if (inner.startsWith('<notebook_entry>') && inner.endsWith('</notebook_entry>') && inner.length >= 33) {
+    inner = inner.slice('<notebook_entry>'.length, -('</notebook_entry>'.length));
   }
-  return `<notebook_entry>${content}</notebook_entry>`;
+  const escaped = inner
+    .replace(/<\/notebook_entry>/gi, '&lt;/notebook_entry&gt;')
+    .replace(/<notebook_entry>/gi, '&lt;notebook_entry&gt;');
+  return `<notebook_entry>${escaped}</notebook_entry>`;
 }
 
-function stripNotebookEntryTags(content: string): string {
+export function stripNotebookEntryTags(content: string): string {
   if (typeof content !== 'string') return content;
   let result = content;
-  while (result.startsWith('<notebook_entry>') && result.endsWith('</notebook_entry>')) {
+  if (result.startsWith('<notebook_entry>') && result.endsWith('</notebook_entry>') && result.length >= 33) {
     result = result.slice('<notebook_entry>'.length, -('</notebook_entry>'.length));
   }
-  return result.replace(/<\/?notebook_entry>/g, '');
+  return result
+    .replace(/&lt;\/notebook_entry&gt;/gi, '</notebook_entry>')
+    .replace(/&lt;notebook_entry&gt;/gi, '<notebook_entry>');
 }
 
 export class NotebookService {
@@ -98,7 +104,7 @@ export class NotebookService {
     projectRoot: string
   ): Promise<NotebookSummary> {
     const provider = await this.getProvider(projectRoot);
-    const rawSummary = await (provider as any).summary(params.track_id, params.limit);
+    const rawSummary = await provider.summary(params.track_id, params.limit);
     const by_type: Partial<Record<NoteType, NotebookEntry[]>> = {};
     if (rawSummary && rawSummary.by_type) {
       for (const [key, entries] of Object.entries(rawSummary.by_type)) {

@@ -58,15 +58,38 @@ export function isCriticalType(type: string): boolean {
 
 /**
  * Ensures note inner content is <= 280 characters and wrapped in <notebook_entry> tags.
+ * Escapes embedded <notebook_entry> and </notebook_entry> tags to prevent breakout.
  */
 export function formatNoteContent(rawContent: string): string {
   const str = typeof rawContent === 'string' ? rawContent : String(rawContent ?? '');
-  const match = str.match(/^\s*<notebook_entry>([\s\S]*)<\/notebook_entry>\s*$/);
-  let inner = match ? match[1] : str;
-  if (inner.length > 280) {
-    inner = inner.slice(0, 280);
+  let inner = str;
+  if (inner.startsWith('<notebook_entry>') && inner.endsWith('</notebook_entry>') && inner.length >= 33) {
+    inner = inner.slice('<notebook_entry>'.length, -('</notebook_entry>'.length));
+  } else {
+    const match = str.match(/^\s*<notebook_entry>([\s\S]*)<\/notebook_entry>\s*$/);
+    if (match) {
+      inner = match[1];
+    }
   }
-  return `<notebook_entry>${inner}</notebook_entry>`;
+  const escaped = inner
+    .replace(/<\/notebook_entry>/gi, '&lt;/notebook_entry&gt;')
+    .replace(/<notebook_entry>/gi, '&lt;notebook_entry&gt;');
+  const truncated = escaped.length > 280 ? escaped.slice(0, 280) : escaped;
+  return `<notebook_entry>${truncated}</notebook_entry>`;
+}
+
+/**
+ * Strips single outermost <notebook_entry> tags while unescaping escaped tags.
+ */
+export function stripNotebookEntryTags(content: string): string {
+  if (typeof content !== 'string') return '';
+  let result = content;
+  if (result.startsWith('<notebook_entry>') && result.endsWith('</notebook_entry>') && result.length >= 33) {
+    result = result.slice('<notebook_entry>'.length, -('</notebook_entry>'.length));
+  }
+  return result
+    .replace(/&lt;\/notebook_entry&gt;/gi, '</notebook_entry>')
+    .replace(/&lt;notebook_entry&gt;/gi, '<notebook_entry>');
 }
 
 /**
@@ -74,8 +97,18 @@ export function formatNoteContent(rawContent: string): string {
  */
 export function extractNoteContent(taggedContent: string): string {
   if (typeof taggedContent !== 'string') return '';
-  const match = taggedContent.match(/^\s*<notebook_entry>([\s\S]*)<\/notebook_entry>\s*$/);
-  return match ? match[1] : taggedContent;
+  let result = taggedContent;
+  if (result.startsWith('<notebook_entry>') && result.endsWith('</notebook_entry>') && result.length >= 33) {
+    result = result.slice('<notebook_entry>'.length, -('</notebook_entry>'.length));
+  } else {
+    const match = result.match(/^\s*<notebook_entry>([\s\S]*)<\/notebook_entry>\s*$/);
+    if (match) {
+      result = match[1];
+    }
+  }
+  return result
+    .replace(/&lt;\/notebook_entry&gt;/gi, '</notebook_entry>')
+    .replace(/&lt;notebook_entry&gt;/gi, '<notebook_entry>');
 }
 
 function normalizeArgs(
@@ -153,6 +186,11 @@ async function dispatchWrite(
     return { id: (res as any)?.id || entry.id };
   }
 
+  const invocationId =
+    options.invocation_id ||
+    options.session_id ||
+    `track_${options.track_id || entry.track_id}`;
+
   // 1. Try NotebookService if available
   try {
     let kernelMod: any = null;
@@ -180,7 +218,7 @@ async function dispatchWrite(
           agent_role: entry.agent_role,
           reviewer_token: options.reviewer_token,
           user_confirmed: options.user_confirmed,
-          invocation_id: options.invocation_id || `inv_${Date.now()}`,
+          invocation_id: invocationId,
         },
         projectRoot
       );
@@ -221,7 +259,7 @@ async function dispatchWrite(
         },
         {
           user_confirmed: options.user_confirmed,
-          invocation_id: options.invocation_id || `inv_${Date.now()}`,
+          invocation_id: invocationId,
         }
       );
       return { id: ack.id };
@@ -243,7 +281,7 @@ async function dispatchWrite(
       '--domain', entry.domain || 'codebase',
       '--severity', entry.severity || (entry.note_type === 'warning' ? 'warning' : 'info'),
       '--track_id', entry.track_id,
-      '--invocation_id', options.invocation_id || String(Date.now()),
+      '--invocation_id', invocationId,
     ];
     if (entry.session_id) args.push('--session_id', entry.session_id);
     if (options.reviewer_token) args.push('--reviewer_token', options.reviewer_token);
@@ -275,7 +313,7 @@ export async function _write(
   content: string,
   options: NoteWriterOptions
 ): Promise<{ id?: string; error?: string }> {
-  if (!options || !options.track_id) {
+  if (!options || !options.track_id || typeof options.track_id !== 'string' || options.track_id.trim() === '') {
     throw new Error('track_id is required');
   }
 

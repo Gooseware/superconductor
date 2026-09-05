@@ -231,6 +231,21 @@ describe('NoteWriter utility (wu-4)', () => {
       const instance = new NoteWriter();
       await expect(instance.writeQuorumNote('content', {} as any)).rejects.toThrow('track_id is required');
     });
+
+    it('throws Error("track_id is required") when track_id is whitespace (e.g. spaces, tabs, newlines) across methods', async () => {
+      const whitespaceIds = ['   ', '\t\n', ' \t \r\n '];
+      for (const track_id of whitespaceIds) {
+        await expect(writeDesignNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writeWarningNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writePreferenceNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writeQuorumNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writeProcedureNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writeStyleNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writeReusableCodeNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(NoteWriter.writeDesignNote('content', { track_id })).rejects.toThrow('track_id is required');
+        await expect(writeDesignNote({ content: 'content', track_id })).rejects.toThrow('track_id is required');
+      }
+    });
   });
 
   describe('Suite 4: Error Handling Policy', () => {

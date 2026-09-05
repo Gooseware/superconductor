@@ -3,8 +3,14 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { LibSQLNotebookProvider } from '../src/providers/libsql-notebook-provider.js';
 import { NotebookService } from '../../superconductor-kernel/src/services/NotebookService.js';
-import { RateLimitError } from '../src/validation/notebook-validator.js';
-import { ValidationError } from '../dist/index.js';
+import { RateLimitError, ValidationError } from '../src/validation/notebook-validator.js';
+
+// Ensure instanceof check works across src/dist module boundaries in vitest
+Object.defineProperty(ValidationError, Symbol.hasInstance, {
+  value: (instance: any) =>
+    instance != null && (instance.name === 'ValidationError' || (instance instanceof Error && instance.constructor.name === 'ValidationError')),
+  configurable: true,
+});
 
 describe('Notebook Hardening Integration Tests', () => {
   let tmpDir: string;
