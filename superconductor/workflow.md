@@ -2,7 +2,7 @@
 
 ## Guiding Principles
 
-1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
+1. **The Task Provider (task-store) is the Source of Truth:** All work must be tracked via the task provider.
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
 3. **Test-Driven Development:** Write unit tests before implementing functionality
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
@@ -13,6 +13,13 @@
    - **Case for Replacing/Rebuilding:** Is the existing implementation fundamentally misaligned with the new requirement — in architecture, contract, or performance characteristics? Would extending it produce worse code than a clean implementation? What is the estimated token/time budget?
    - **Decision:** State which path is chosen and why. If the rebuilding case is materially stronger, rebuilding is the correct choice. If the cases are roughly equal, prefer extension to reduce risk and regression surface.
    - This reasoning must be present before any implementation begins. An agent that silently extends OR silently rebuilds without surfacing this analysis is out of compliance with the workflow.
+
+## Invariants & The Task Store
+
+The `task-store` manages not only tasks but also **Invariants**. Invariants are critical paths, MCP tools, and orchestration logic that MUST NOT be broken. 
+1. **Pre-Check:** Before reviewing any code, the Regression Reviewer MUST query the `task-store` (via `invariant_query`) and assert that all invariant paths exist. Missing paths without an active override trigger a `REG-INV-N: CRITICAL` failure.
+2. **Discovery:** The `superconductor-invariant-discovery` agent runs in the background or during setup to discover unprotected critical paths and register them as invariants with a `HIGH` (active) or `MEDIUM/LOW` (untriaged) confidence.
+3. **Dreamer Tasks:** The Dreamer agent MUST tag all new task cards in `plan.md` with `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields to seed the task store with new invariants as features are built.
 
 ## Task Workflow
 
@@ -26,9 +33,9 @@ The Superconductor engine operates in either Interactive or Headless mode.
 
 ### Standard Task Workflow
 
-1. **Select Task:** Choose the next available task from `plan.md` in sequential order
+1. **Select Task:** Choose the next available task using the `task_query` MCP tool in sequential order
 
-2. **Mark In Progress & Load Context:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch. Using the **Universal File Resolution Protocol**, resolve and read `superconductor/CONTEXT.md` so ubiquitous language is active during implementation.
+2. **Mark In Progress & Load Context:** Before beginning work, use the `task_update` MCP tool to change the task status to in progress. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch. Using the **Universal File Resolution Protocol**, resolve and read `superconductor/CONTEXT.md` so ubiquitous language is active during implementation.
 
 3. **Write Failing Tests (Red Phase):**
    - Create a new test file for the feature or bug fix.
@@ -62,13 +69,15 @@ The Superconductor engine operates in either Interactive or Headless mode.
    - Propose a clear, concise commit message.
    - Perform the commit.
 
-9. **Get and Record Task Commit SHA:**
-    - **Step 9.1: Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`, and append the first 7 characters of the *just-completed commit's* commit hash.
-    - **Step 9.2: Write Plan:** Write the updated content back to `plan.md`.
+9. **Record Task Commit SHA:**
+    - **Step 9.1: Update Task:** Use the `task_update` MCP tool to change the task status to complete and attach the first 7 characters of the *just-completed commit's* commit hash to the task metadata.
 
-10. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message (e.g., `superconductor(plan): Mark task 'Create user model' as complete`).
+10. **Commit Task State Update:**
+    - **Action:** Stage the modified task store file(s).
+    - **Action:** Commit this change with a descriptive message (e.g., `superconductor(task): Mark task 'Create user model' as complete`).
+
+11. **Proceed to Next Task:**
+    - **Action:** Continue with the next task using `task_query`.
 
 ### Phase Completion Verification and Checkpointing Protocol
 
@@ -157,14 +166,16 @@ The Superconductor engine operates in either Interactive or Headless mode.
 
 10. **Get and Record Phase Checkpoint SHA:**
     -   **Step 10.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
-    -   **Step 10.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
-    -   **Step 10.3: Write Plan:** Write the updated content back to `plan.md`.
+    -   **Step 10.2: Update Task Metadata:** Use the `task_update` MCP tool to attach the first 7 characters of the commit hash as checkpoint metadata to the task in the task provider.
 
-11. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message following the format `superconductor(plan): Mark phase '<PHASE NAME>' as complete`.
+11. **Commit Task State Update:**
+    - **Action:** Stage the modified task store file(s).
+    - **Action:** Commit this change with a descriptive message following the format `superconductor(task): Mark phase '<PHASE NAME>' as complete`.
 
-12. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+12. **Finalize Phase:**
+    - **Action:** Ensure the phase is marked complete in the task provider.
+
+13. **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
 ### Oracle Code Review Loop (Advanced Verification)
 

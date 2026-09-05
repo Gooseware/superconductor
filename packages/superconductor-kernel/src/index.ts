@@ -19,6 +19,7 @@ import { PublishService } from "./services/PublishService.js";
 import { CentralizedPublishService } from "./services/CentralizedPublishService.js";
 import { NotebookService } from "./services/NotebookService.js";
 import { IntelligenceStatusService } from "./services/IntelligenceStatusService.js";
+import { createTaskProvider } from "@superconductor/task-store";
 import { fileURLToPath } from "url";
 import os from "os";
 import path from "path";
@@ -37,7 +38,7 @@ const OLD_REGISTRY_PATH = path.resolve(PROJECT_ROOT, "packages/ui-kit-registry")
 
 // One-time Migration
 if (fs.existsSync(OLD_REGISTRY_PATH) && !fs.existsSync(DEFAULT_REGISTRY_PATH)) {
-  console.log(`[Migration] Moving registry from ${OLD_REGISTRY_PATH} to ${DEFAULT_REGISTRY_PATH}`);
+  // console.log(`[Migration] Moving registry from ${OLD_REGISTRY_PATH} to ${DEFAULT_REGISTRY_PATH}`);
   fs.mkdirSync(path.dirname(DEFAULT_REGISTRY_PATH), { recursive: true });
   fs.renameSync(OLD_REGISTRY_PATH, DEFAULT_REGISTRY_PATH);
 } else if (!fs.existsSync(DEFAULT_REGISTRY_PATH)) {
@@ -53,6 +54,9 @@ const installerService = new InstallerService(db, PROJECT_ROOT);
 const dogmaService = new DogmaService();
 const notebookService = new NotebookService();
 const intelligenceStatusService = new IntelligenceStatusService();
+
+const taskProviderPromise = createTaskProvider(PROJECT_ROOT);
+const getTaskProvider = async () => await taskProviderPromise;
 
 let currentRegistryPath = DEFAULT_REGISTRY_PATH;
 let registryService = new RegistryService(db, currentRegistryPath);
@@ -215,9 +219,135 @@ const AnalyzeInspirationSchema = z.object({
   description: z.string().optional(),
 });
 
+const TaskCreateSchema = z.object({
+  track_id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  creates: z.array(z.string()).optional(),
+  protected: z.array(z.string()).optional(),
+  invariant_after: z.string().optional(),
+  dependencies: z.array(z.string()).optional(),
+  tier: z.string().optional(),
+  agent: z.string().optional(),
+});
+
+const TaskUpdateSchema = z.object({
+  id: z.string(),
+  status: z.enum(["pending", "in_progress", "completed", "blocked"]).optional(),
+  committed_sha: z.string().optional(),
+});
+
+const TaskQuerySchema = z.object({
+  track_id: z.string().optional(),
+  status: z.string().optional(),
+  agent: z.string().optional(),
+  semantic_query: z.string().optional(),
+  limit: z.number().optional(),
+});
+
+const InvariantQuerySchema = z.object({
+  status: z.enum(["active", "overridden", "untriaged"]).optional(),
+  path: z.string().optional(),
+  capability: z.string().optional(),
+  track_id: z.string().optional(),
+});
+
+const InvariantOverrideSchema = z.object({
+  invariant_id: z.string(),
+  track_id: z.string(),
+  reason: z.string(),
+});
+
+const TaskGetInvariantsSchema = z.object({
+  track_id: z.string(),
+});
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
+      {
+        name: "task_create",
+        description: "Creates a new task in the task graph",
+        inputSchema: {
+          type: "object",
+          properties: {
+            track_id: { type: "string" },
+            title: { type: "string" },
+            description: { type: "string" },
+            creates: { type: "array", items: { type: "string" } },
+            protected: { type: "array", items: { type: "string" } },
+            invariant_after: { type: "string" },
+            dependencies: { type: "array", items: { type: "string" } },
+            tier: { type: "string" },
+            agent: { type: "string" }
+          },
+          required: ["track_id", "title"]
+        }
+      },
+      {
+        name: "task_update",
+        description: "Updates a task in the task graph",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            status: { type: "string", enum: ["pending", "in_progress", "completed", "blocked"] },
+            committed_sha: { type: "string" }
+          },
+          required: ["id"]
+        }
+      },
+      {
+        name: "task_query",
+        description: "Queries tasks in the task graph",
+        inputSchema: {
+          type: "object",
+          properties: {
+            track_id: { type: "string" },
+            status: { type: "string" },
+            agent: { type: "string" },
+            semantic_query: { type: "string" },
+            limit: { type: "number" }
+          }
+        }
+      },
+      {
+        name: "invariant_query",
+        description: "Queries invariants in the invariant ledger",
+        inputSchema: {
+          type: "object",
+          properties: {
+            status: { type: "string", enum: ["active", "overridden", "untriaged"] },
+            path: { type: "string" },
+            capability: { type: "string" },
+            track_id: { type: "string" }
+          }
+        }
+      },
+      {
+        name: "invariant_override",
+        description: "Overrides an invariant for a track",
+        inputSchema: {
+          type: "object",
+          properties: {
+            invariant_id: { type: "string" },
+            track_id: { type: "string" },
+            reason: { type: "string" }
+          },
+          required: ["invariant_id", "track_id", "reason"]
+        }
+      },
+      {
+        name: "task_get_invariants",
+        description: "Gets invariants and overrides for a track",
+        inputSchema: {
+          type: "object",
+          properties: {
+            track_id: { type: "string" }
+          },
+          required: ["track_id"]
+        }
+      },
 
       {
         name: "kernel_graph_get_node",
@@ -629,6 +759,45 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  
+  if (name === "task_create") {
+    const parsed = TaskCreateSchema.parse(args || {});
+    const taskProvider = await getTaskProvider();
+    const result = await taskProvider.createTask(parsed);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+  if (name === "task_update") {
+    const parsed = TaskUpdateSchema.parse(args || {});
+    const taskProvider = await getTaskProvider();
+    const result = await taskProvider.updateTask(parsed);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+  if (name === "task_query") {
+    const parsed = TaskQuerySchema.parse(args || {});
+    const taskProvider = await getTaskProvider();
+    const result = await taskProvider.queryTasks(parsed);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+  if (name === "invariant_query") {
+    const parsed = InvariantQuerySchema.parse(args || {});
+    const taskProvider = await getTaskProvider();
+    const result = await taskProvider.queryInvariants(parsed);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+  if (name === "invariant_override") {
+    const parsed = InvariantOverrideSchema.parse(args || {});
+    const taskProvider = await getTaskProvider();
+    const result = await taskProvider.createOverride(parsed);
+    return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+  }
+  if (name === "task_get_invariants") {
+    const { track_id } = TaskGetInvariantsSchema.parse(args || {});
+    const taskProvider = await getTaskProvider();
+    const invariants = await taskProvider.queryInvariants({ track_id });
+    const active_overrides = await taskProvider.queryOverrides({ track_id, status: 'active' });
+    return { content: [{ type: "text", text: JSON.stringify({ invariants, active_overrides }, null, 2) }] };
+  }
 
   if (name === "notebook_query") {
     const results = await notebookService.query(args as any, PROJECT_ROOT);

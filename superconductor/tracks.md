@@ -14,7 +14,7 @@
 | `[x]` | `protocol_enforcement_20260811` | Superconductor Protocol Enforcement | `track/protocol_enforcement_20260811` |
 | `[-]` | `regression_invariant_ledger_20260812` | Regression Protocol: Capability Invariant Ledger | `track/regression_invariant_ledger_20260812` |
 | `[x]` | `standalone_review_notebook_20260812` | Standalone Review Evolution + Superconductor Notebook | `track/standalone_review_notebook_20260812` |
-| `[~]` | `task_graph_20260812` | Superconductor v0.5: Task Graph + Invariant Ledger | `track/task_graph_20260812` |
+| [x] | task_graph_20260812 | Superconductor v0.5: Task Graph + Invariant Ledger | track/task_graph_20260812 (merged to main) |
 | `[ ]` | `ryoku_agy_plugin_20260901` | [Ryoku Desktop Widget — AGY CLI Integration](./tracks/ryoku_agy_plugin_20260901/index.md) | `track/ryoku_agy_plugin_20260901` |
 | `[x]` | `clean_test_tracks_20260813` | Protocol Drift Remediation | `track/clean_test_tracks_20260813` |
 | `[x]` | `model_chooser_quorum_remediation_20260814` | [Dynamic Model Chooser & Autonomous Quorum Remediation](./tracks/model_chooser_quorum_remediation_20260814/index.md) | `track/model_chooser_quorum_remediation_20260814` |

@@ -11,14 +11,25 @@ export class AsyncLongPoller<T = any> {
     this.pollIntervalMs = options.pollIntervalMs ?? 1000;
     this.maxWaitMs = options.maxWaitMs ?? 30000;
   }
-  
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
-
-  async poll<T>(
-    operation: () => Promise<{ status: 'done' | 'pending'; result?: T; retryAfter?: number }>,
+  async poll<R = T>(
+    operation: () => Promise<{ status: 'done' | 'pending'; result?: R; retryAfter?: number }>,
+    startTime?: number,
+    errorAttempt?: number
+  ): Promise<R>;
+  async poll<R = T>(
+    fn: () => Promise<R>,
+    startTime?: number,
+    errorAttempt?: number
+  ): Promise<R>;
+  async poll<R = T>(
+    operation: any,
     startTime: number = Date.now(),
     errorAttempt: number = 0
-  ): Promise<T> {
+  ): Promise<R> {
     if (Date.now() - startTime > this.maxWaitMs) {
       throw new Error('Timeout exceeded');
     }
@@ -72,27 +83,31 @@ export class AsyncLongPoller<T = any> {
         throw new Error('Timeout exceeded', { cause: e });
       }
       
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await this.sleep(delay);
       return this.poll(operation, startTime, errorAttempt + 1);
     }
 
-    if (response && response.status === 'done') {
-      return response.result as T;
+    if (response && typeof response === 'object' && response.status === 'done') {
+      return response.result as R;
     }
 
-    let baseDelay = (response && response.retryAfter !== undefined) ? response.retryAfter * 1000 : this.pollIntervalMs;
-    if (isNaN(baseDelay)) {
-      baseDelay = this.pollIntervalMs;
-    }
-    const jitter = Math.random() * 0.2 * baseDelay; // 20% jitter
-    delay = baseDelay + jitter;
-    
-    const timeElapsed = Date.now() - startTime;
-    if (timeElapsed + delay > this.maxWaitMs) {
-      throw new Error('Timeout exceeded');
+    if (response && typeof response === 'object' && response.status === 'pending') {
+      let baseDelay = (response.retryAfter !== undefined) ? response.retryAfter * 1000 : this.pollIntervalMs;
+      if (isNaN(baseDelay)) {
+        baseDelay = this.pollIntervalMs;
+      }
+      const jitter = Math.random() * 0.2 * baseDelay; // 20% jitter
+      delay = baseDelay + jitter;
+
+      const timeElapsed = Date.now() - startTime;
+      if (timeElapsed + delay > this.maxWaitMs) {
+        throw new Error('Timeout exceeded');
+      }
+
+      await this.sleep(delay);
+      return this.poll(operation, startTime, errorAttempt); // do not increment errorAttempt for normal pending states
     }
 
-    await new Promise((resolve) => setTimeout(resolve, delay));
-    return this.poll(operation, startTime, errorAttempt); // do not increment errorAttempt for normal pending states
+    return response as R;
   }
 }

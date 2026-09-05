@@ -86,12 +86,15 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
 
 ## 2.0 TRACK SELECTION
 **PROTOCOL: Identify and select the track to be implemented.**
- **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
- **Locate and Parse Tracks Registry:**
-    - Resolve the **Tracks Registry**.
-    - Read and parse this file. Identify all tracks, extracting their status (`[ ]`, `[~]`, `[x]`), description, and directory link.
- **Identify Available Tracks:** Filter the tracks to find those with status `[ ]` (New) or `[~]` (In Progress).
- **Selection and Initiation:**
+1.  **Check for User Input:** First, check if the user provided a track name or argument (e.g., `/superconductor:implement <track_description>` or `/superconductor:implement --all`).
+
+2.  **Query Task Provider:**
+    - Call the MCP tool `task_query({ status: 'pending' })` (or equivalent) to fetch tracks/tasks that need implementation.
+    - Extract their status, description, and directory link/metadata from the query results.
+
+3.  **Identify Available Tracks:** Use the results from `task_query` to find tracks that are new or in progress.
+
+4.  **Selection and Initiation:**
     - **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
         1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro, Flash, Claude 3.5 Sonnet, Claude 3 Opus) to be used for the final Oracle Code Review. If in CI, default to Pro.
         2. If a specific track was provided, proceed with that track.
@@ -128,26 +131,27 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
 
 **PROHIBITED:** Passing `Model: "inherit"` for any swarm subagent role. `"inherit"` silently runs the subagent on the root agent's model, bypassing user-configured model preferences from `agent-config.md`.
 
- **Announce Action:** Announce which track you are beginning to implement.
- **Update Status to 'In Progress':**
-    - Before beginning any work, you MUST update the status of the selected track in the **Tracks Registry** file.
-    - This requires finding the specific heading for the track (e.g., `## [ ] Track: <Description>`) and replacing it with the updated status (e.g., `## [~] Track: <Description>`) in the **Tracks Registry** file you identified earlier.
- **Load Track Context & Manage Branch:**
-    a. **Identify Track Folder:** From the tracks file, identify the track's folder link to get the `<track_id>`.
+1.  **Announce Action:** Announce which track you are beginning to implement.
+
+2.  **Update Status to 'In Progress':**
+    - Before beginning any work, you MUST update the status of the selected track via the task provider (e.g., using `task_update` or equivalent tool) rather than manually editing a Tracks Registry file.
+
+3.  **Load Track Context & Manage Branch:**
+    a. **Identify Track Folder:** From the `task_query` metadata, identify the track's folder link to get the `<track_id>`.
     b. **Automated Branch Management:** 
         - Use the **GitWorkflowManager** utility to ensure the track branch exists and is derived from `main`.
         - Action: `GitWorkflowManager.createBranchFromMain(track_id)`.
         - Announce to the user: "Automated branching complete. Switched to branch 'track/<track_id>' (derived from 'main')."
     c. **Read Files:**
-        - **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** and **Implementation Plan** for the selected track.
+        - **Track Context:** Using the **Universal File Resolution Protocol**, resolve and read the **Specification** for the selected track. Context and tasks are loaded via `task_query`.
         - **Workflow:** Resolve **Workflow** (via the **Universal File Resolution Protocol** using the project's index file).
         - **Ubiquitous Language:** Resolve and read `superconductor/CONTEXT.md` (via the **Universal File Resolution Protocol**) so ubiquitous language is active during implementation.
     d. **Error Handling:** If you fail to read any of these files, you MUST stop and inform the user of the error.
     e. **Activate Relevant Skills:**
         - Check for the existence of installed skills in `.agents/skills/` (Workspace tier) and `~/.agents/extensions/superconductor/skills/` (Extension tier).
         - If either exists, list the subdirectories to identify available skills.
-        - Based on the track's **Specification**, **Implementation Plan**, and the **Product Definition**, determine if any installed skills are relevant to the track.
-        - **UI Auto-Activation Check:** If the track's **Specification** or **Implementation Plan** contains any of the following UI keywords (case-insensitive: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`), you MUST prompt the user using the `ask_user` tool to suggest activating the `design-heuristics` skill:
+        - Based on the track's **Specification**, task metadata, and the **Product Definition**, determine if any installed skills are relevant to the track.
+        - **UI Auto-Activation Check:** If the track's **Specification** or task descriptions contain any of the following UI keywords (case-insensitive: `UI`, `dashboard`, `component`, `frontend`, `page`, `interface`, `layout`, `design`), you MUST prompt the user using the `ask_user` tool to suggest activating the `design-heuristics` skill:
             - **Question:** "This track contains UI/UX elements. Would you like to activate the `design-heuristics` skill to enforce visual design rules?" (type: "yesno").
             - **If yes:** Explicitly activate the `design-heuristics` skill and read its `SKILL.md` and reference files.
             - **If no:** Proceed without activating `design-heuristics`.
@@ -177,7 +181,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         { track_id, user_confirmed: true }
       )
       ```
-  **Execute Tasks and Update Track Plan:**
+4.  **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Execution Skill:**
        - Search for the `swarm-execute` skill in the catalog and active skills.
        - **If `swarm-execute` is available:**
@@ -193,11 +197,11 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
        - **Review Triggers:**
          1. **Git Commit:** If the last commit message contains `ready-for-review` (case-insensitive).
          2. **CLI Command:** If the user has just run `/superconductor:review`.
-         3. **Plan Update:** If a task in `plan.md` is marked as `(READY FOR REVIEW)`.
+         3. **Plan Update:** If a task from the task provider is marked as `(READY FOR REVIEW)`.
        - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
-    d. **Iterate Through Tasks:** You MUST now loop through each task in the track's **Implementation Plan one by one.**
+    d. **Iterate Through Tasks:** Use the MCP tool `task_query` (or equivalent) to fetch pending tasks for the current track. You MUST loop through each task one by one.
     e. **For Each Task, You MUST:**
-        i. **Determine Task Tier:** Read the parent task line in `plan.md` to parse the `[TIER-N]` annotation at the end of the line. If no annotation is found, default to `[TIER-3]`.
+        i. **Determine Task Tier:** Inspect the task metadata provided by `task_query` to identify its tier (e.g., `[TIER-N]`). If no tier is found in the metadata, default to `[TIER-3]`.
         ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
         iii. **Tier-Aware Execution Rules:**
             - **For `[TIER-1]` Tasks:** Execute any script, file existence checks, git operations, or test commands directly via `run_shell_command` (zero inference cost). Capture the exit status and stdout/stderr, and pass them back as structured input to the context. The agent will interpret the results (e.g. verifying a build or test run) deterministically.
@@ -215,9 +219,10 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
              1. **Check task outcome:** If the task execution produced a non-zero exit code, a test failure, or an unrecoverable tool error:
                 - Do NOT call task_update(completed). Call task_update(id, status: 'blocked') instead.
                 - Apply Systematic Bug Diagnosis (max 2 attempts). If unresolved after 2 attempts: ESCALATE to user (this is the ONLY permitted mid-track human interrupt besides the 3-cycle remediation cap).
-             2. **Only on task success:** Call task_update({ id: task.id, status: 'completed' }), then call task_query({ status: 'pending', track_id }) and begin the next task immediately.
+             2. **Only on task success:** Call task_update({ id: task.id, status: 'completed' }), execute `npx tsx scripts/sync-plan.ts` to flush changes to disk, then call task_query({ status: 'pending', track_id }) and begin the next task immediately.
            - **PROHIBITED:** Asking the user "shall I continue to the next task?", stopping to summarize between tasks, or waiting for user re-trigger. The only permitted mid-track human-in-the-loop event is an ESCALATION (test failure after 2 attempts, or 3-iteration remediation cap exceeded).
- **Finalize Track (HARD GATE ENFORCED):**
+
+5.  **Finalize Track (HARD GATE ENFORCED):**
 
     **BEFORE touching `tracks.md` or making any finalization commit, you MUST complete ALL of the following in order:**
 
@@ -258,16 +263,16 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
 
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
 **PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
- **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
- **Track Completion Lifecycle:** Upon merging track to target branch, call `NoteWriter.writeProcedureNote`:
+1.  **Execution Trigger:** This protocol MUST only be executed when all tasks for the track are marked completed in the DB (via `task_query`) and the track has reached `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
+2.  **Track Completion Lifecycle:** Upon merging track to target branch, call `NoteWriter.writeProcedureNote`:
  ```ts
  NoteWriter.writeProcedureNote(
    `[LIFECYCLE] Track ${track_id} merged into ${target_branch} at commit ${merge_commit}`,
    { track_id }
  )
  ```
- **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
- **Registry Inclusion Analysis:**
+3.  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
+4.  **Registry Inclusion Analysis:**
     - **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
         - **New Files Scan:** Check for new files in known component directories.
         - **Diff Analysis:** Review `git diff` for new component, class, or logic declarations.
@@ -279,14 +284,16 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **Ask for Approval:** Use `ask_user` (header: "Registry Proposal", question: "I've identified '<component_name>' as a potential candidate for the Design OS kernel. Would you like me to publish it?", type: "yesno"; prefix with `[✓] Spec Analyzed` `[✓] Registry Candidates Identified` unless `--fast`/`--lite`).
         - **If yes:** Invoke the `RegistryClientRouter` utility to publish the component to the registry (Design OS kernel MCP).
         - **If no:** Skip registry proposal and proceed to next sync item.
- **Load Track Context:** Read the track's **Specification** and **Implementation Plan**.
- **Load Project Documents:**
+
+5.  **Load Track Context:** Read the track's **Specification**, **Implementation Plan**, and query its tasks via `task_query`.
+
+6.  **Load Project Documents:**
     - Resolve and read:
         - **Product Definition**
         - **Tech Stack**
         - **Product Guidelines**
- **Analyze and Update:**
-    a.  **Analyze Specification and Plan:** Carefully analyze the **Specification** and **Implementation Plan** to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
+7.  **Analyze and Update:**
+    a.  **Analyze Specification, Plan, and Tasks:** Carefully analyze the **Specification**, **Implementation Plan**, and the track's tasks to identify any new features, changes in functionality, updates to the technology stack, or operational/build process changes.
     b.  **Update Product Definition:**
         i. **Condition for Update:** Based on your analysis, you MUST determine if the completed feature or bug fix significantly impacts the description of the product itself.
         ii. **Propose and Confirm Changes:** If an update is needed:
@@ -396,7 +403,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
  **Audit Phase:**
     - The agent (using the user-selected model) executes the audit objectives:
         - Compare code against `spec.md`.
-        - Verify all `plan.md` tasks are complete.
+        - Verify all assigned tasks are complete.
         - Check `tech-stack.md` and `code_styleguides/`.
         - Scan for feature gaps and DRY violations.
     - **Generate Report:** Output the `Oracle Audit Report` according to the template.
@@ -404,7 +411,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
     - Load `skills/review/SKILL.md` §4.0 Adversarial Audit Protocol.
     - Execute the full protocol in sequence:
         - **§4.1 Undefined Path Hunting:** For every conditional block in the diff, find implicit branches. Flag any `if <X>` with no explicit `else` or fallthrough as `CRITICAL`.
-        - **§4.2 Plan Task Integrity:** For every task marked `[x]` in `plan.md`, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
+        - **§4.2 Plan Task Integrity:** For every task marked as complete by the task provider, verify the completion evidence is genuine — not a silent no-op, cached result, or surface-only check.
         - **§4.3 Test Coverage Legitimacy:** Count new test files in the diff. If behavioral changes were added but zero new tests were written, flag as `HIGH`. Verify "tests passed" means *new code* was covered, not just that old code didn't break.
         - **§4.4 "Recommended" Label Audit:** For every prompt option or default labeled "Recommended", verify the recommendation is context-qualified, not blanket.
         - **§4.5 Shenanigan Checklist:** Run all 8 checks — grade inflation, no-op task completions, spec drift, missing else, self-referential verification, hollow tests, optimistic closures, prerequisite+shortcut traps.
@@ -423,9 +430,9 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **Action:** Transition to **Remediation Phase Generation**.
         - **Protocol:**
             i.   **Extract Feedback:** Identify the specific issues or tasks from the Oracle report that require manual intervention.
-            ii.  **Identify Iteration:** Determine the next iteration number (e.g., check `plan.md` for existing `Review Remediation (Iteration X)` phases).
-            iii. **Generate Phase:** Use the **PhaseGenerator** utility to append a new `## Review Remediation (Iteration X)` phase to the track's `plan.md`.
-            iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. A new 'Review Remediation' phase has been appended to your plan. Please implement the tasks to address the feedback."
+            ii.  **Identify Iteration:** Determine the next iteration number.
+            iii. **Generate Phase:** Use the task provider to add a new `Review Remediation (Iteration X)` task or phase (and append to `plan.md` via `PhaseGenerator`).
+            iv.  **Announce Success:** Announce: "Oracle review identified necessary changes. Remediation tasks have been added via the task provider. Please implement the tasks to address the feedback."
      - If the report suggests **Kernel Sync Candidates**:
          - **Ask for Approval:** "The Oracle has identified high-quality reusable components for the `superconductor-kernel`. Would you like me to publish them now?" (type: "yesno")
          - **If yes:** Save the payload as a JSON file and run `node superconductor/publish_component.js <path_to_payload_json>` to use the `mcp_superconductor-kernel_publish_vetted_component` tool.
