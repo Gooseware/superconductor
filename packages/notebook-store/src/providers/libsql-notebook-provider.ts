@@ -84,10 +84,17 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     
     const sqlMeta = `CREATE TABLE IF NOT EXISTS notebook_metadata (
       id TEXT PRIMARY KEY,
-      content_sha256 TEXT UNIQUE
+      content_sha256 TEXT NOT NULL,
+      track_id TEXT
     );`;
     await this.dbManager.runMigration(this.client, sqlMeta);
+    try {
+      await this.dbManager.runMigration(this.client, `ALTER TABLE notebook_metadata ADD COLUMN track_id TEXT;`);
+    } catch {
+      // Column may already exist
+    }
     await this.dbManager.runMigration(this.client, `CREATE INDEX IF NOT EXISTS idx_notebook_metadata_sha256 ON notebook_metadata(content_sha256);`);
+    await this.dbManager.runMigration(this.client, `CREATE INDEX IF NOT EXISTS idx_notebook_metadata_track_id ON notebook_metadata(track_id);`);
 
     const sqlRateLimits = `CREATE TABLE IF NOT EXISTS rate_limits (
       invocation_id TEXT PRIMARY KEY,
@@ -108,8 +115,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     // Check for exact SHA-256 match
     const existing = await this.client!.execute({
-      sql: `SELECT id FROM notebook_metadata WHERE content_sha256 = ?`,
-      args: [sha256],
+      sql: `SELECT id FROM notebook_fts WHERE content_sha256 = ? AND track_id = ?`,
+      args: [sha256, entry.track_id],
     });
 
     if (existing.rows.length > 0) {
@@ -125,8 +132,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     // Check for near-duplicates via Jaccard similarity fallback (COR-3)
     const allRows = await this.client!.execute({
-      sql: `SELECT id, content FROM notebook_fts ORDER BY rowid DESC LIMIT 100`,
-      args: [],
+      sql: `SELECT id, content FROM notebook_fts WHERE track_id = ? ORDER BY rowid DESC LIMIT 100`,
+      args: [entry.track_id],
     });
     
     for (const row of allRows.rows) {
@@ -187,8 +194,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     });
 
     await this.client!.execute({
-      sql: `INSERT OR IGNORE INTO notebook_metadata (id, content_sha256) VALUES (?, ?)`,
-      args: [id, sha256]
+      sql: `INSERT OR IGNORE INTO notebook_metadata (id, content_sha256, track_id) VALUES (?, ?, ?)`,
+      args: [id, sha256, entry.track_id]
     });
 
     return { id, deduplicated: false };
@@ -270,7 +277,7 @@ export class LibSQLNotebookProvider implements INotebookProvider {
   public async summary(track_id?: string, limit: number = 20): Promise<NotebookSummary> {
     if (!this.client) await this.init();
 
-    const effectiveLimit = typeof limit === 'number' && limit > 0 ? limit : 20;
+    const effectiveLimit = Math.min(Math.max(1, limit || 20), 100);
 
     let resultSet;
     if (track_id) {
