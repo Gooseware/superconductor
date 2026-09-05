@@ -60,8 +60,8 @@
 ## Phase 4: Integration & Finalization
 
 - [x] Task: Run global test suite `npm test -- --run` and confirm all existing tests pass + new tests green. Verify `wc -l` on all 3 amended SKILL.md files ≤500. [TIER-1] [AGENT:setup]
-- [ ] Task: Integrate track 'note_taking_hardening_20260903' into main branch. [TIER-1] [AGENT:setup]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md)
+- [x] Task: Integrate track 'note_taking_hardening_20260903' into main branch. [TIER-1] [AGENT:setup]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Integration & Finalization' (Protocol in workflow.md)
 
 ---
 
