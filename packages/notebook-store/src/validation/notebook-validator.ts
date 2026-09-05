@@ -34,9 +34,14 @@ export class RateLimitError extends Error {
 export interface ValidationOptions {
   user_confirmed?: boolean;
   invocation_id?: string;
+  skipRateLimit?: boolean;
+  skip_rate_limit?: boolean;
 }
 
 export class NotebookValidator {
+  /**
+   * @deprecated File-based rate limiting is deprecated in favor of atomic SQLite provider rate limiting.
+   */
   private static get cacheFilePath(): string {
     const dir = path.join(os.homedir(), '.superconductor');
     if (!fs.existsSync(dir)) {
@@ -45,8 +50,14 @@ export class NotebookValidator {
     return path.join(dir, 'notebook-ratelimits.json');
   }
 
+  /**
+   * @deprecated File-based rate limiting is deprecated in favor of atomic SQLite provider rate limiting.
+   */
   private static fallbackCounts: Map<string, number> = new Map<string, number>();
 
+  /**
+   * @deprecated File-based rate limiting is deprecated in favor of atomic SQLite provider rate limiting.
+   */
   private static loadCounts(): Map<string, number> | null {
     try {
       if (fs.existsSync(NotebookValidator.cacheFilePath)) {
@@ -63,6 +74,9 @@ export class NotebookValidator {
     return new Map<string, number>();
   }
 
+  /**
+   * @deprecated File-based rate limiting is deprecated in favor of atomic SQLite provider rate limiting.
+   */
   private static saveCounts(counts: Map<string, number>) {
     try {
       const tempPath = NotebookValidator.cacheFilePath + `.${Date.now()}.${Math.random().toString(36).substring(2)}.tmp`;
@@ -75,6 +89,9 @@ export class NotebookValidator {
     }
   }
 
+  /**
+   * @deprecated File-based rate limiting is deprecated in favor of atomic SQLite provider rate limiting.
+   */
   public static resetRateLimits(): void {
     NotebookValidator.fallbackCounts = new Map<string, number>();
     try {
@@ -116,6 +133,11 @@ export class NotebookValidator {
     }
 
     // 4. Invocation rate limit: max 3 AGENT-authority writes per invocation_id
+    // When skipRateLimit or skip_rate_limit is enabled, rate limiting is handled atomically by the provider.
+    if (options?.skipRateLimit || options?.skip_rate_limit) {
+      return;
+    }
+
     const authority = NOTE_AUTHORITY[entry.note_type] ?? 'agent';
     if (authority === 'agent') {
       const invId = options?.invocation_id || `anon_${entry.session_id}`;
