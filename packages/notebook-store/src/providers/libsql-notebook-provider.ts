@@ -155,11 +155,12 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     const authority = NOTE_AUTHORITY[entry.note_type] ?? 'agent';
     if (authority === 'agent') {
       const invId = options?.invocation_id || `anon_${entry.session_id}`;
+      const normalizedInvId = invId.trim().toLowerCase().normalize('NFC');
       const rateLimitResult = await this.client!.execute({
         sql: `INSERT INTO rate_limits (invocation_id, count) VALUES (?, 1)
               ON CONFLICT(invocation_id) DO UPDATE SET count = count + 1
               RETURNING count`,
-        args: [invId],
+        args: [normalizedInvId],
       });
       const count = Number(rateLimitResult.rows[0]?.count ?? rateLimitResult.rows[0]?.[0] ?? 0);
       if (count > 3) {
