@@ -55,6 +55,6 @@ export interface NotebookSummary { by_type: Partial<Record<NoteType, NotebookEnt
 export interface INotebookProvider {
   write(entry: Omit<NotebookEntry, 'id' | 'timestamp'>, options?: ValidationOptions): Promise<WriteAck>;
   query(params: NotebookQuery): Promise<NotebookEntry[]>;
-  summary(track_id?: string): Promise<NotebookSummary>;
+  summary(track_id?: string, limit?: number): Promise<NotebookSummary>;
   close(): Promise<void>;
 }

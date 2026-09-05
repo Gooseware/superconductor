@@ -23,6 +23,15 @@ Before pausing for user input, awaiting subagent swarms, or concluding execution
 
 If `{{args}}` contains `--fast` or `--lite`, you may take faster paths and skip explicit rendering of checklists during user prompts.
 
+### User Preferences & Corrections Note-Taking Gate
+When the user expresses a model preference or workflow correction during interactive prompts (`ask_user`), call `NoteWriter.writePreferenceNote`:
+```ts
+NoteWriter.writePreferenceNote(
+  `[PREFERENCE] User preference for ${role_or_feature}: ${preference_summary}`,
+  { track_id, user_confirmed: true }
+)
+```
+
 ## 0.5 Intelligence Preflight (MANDATORY — no exceptions)
 1. Call MCP tool: `kernel_intelligence_status({ track_id: <track_id>, session_id: <session_id> })` 
 2. Your response MUST begin with this header block or the correctness reviewer will FAIL you:
@@ -161,6 +170,13 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **If the model suggests no changes (plan is already correct):** Proceed directly to swarm execution without calling `ask_user`. Announce: "Plan verification complete — no changes required. Proceeding with swarm execution."
         - **PROHIBITED:** The root orchestrator calling `write_to_file`, `replace_file_content`, or any write tool on `plan.md` or `spec.md` during plan verification. This constitutes Hero-Agenting on track documentation — a protocol violation. Delegate exclusively to `superconductor-dreamer`.
     - **If no (user declines verification):** Proceed directly to swarm execution using the existing `plan.md` without any verification or model review.
+    - **Plan Approval Note (MANDATORY):** Once plan is confirmed, call `NoteWriter.writeDesignNote`:
+      ```ts
+      NoteWriter.writeDesignNote(
+        `[PLAN] Confirmed implementation plan for track ${track_id}: ${summary}`,
+        { track_id, user_confirmed: true }
+      )
+      ```
   **Execute Tasks and Update Track Plan:**
     a. **Check for Swarm Execution Skill:**
        - Search for the `swarm-execute` skill in the catalog and active skills.
@@ -211,6 +227,13 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
     
     b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
+       - After Oracle issues final Ready verdict, call `NoteWriter.writeDesignNote`:
+         ```ts
+         NoteWriter.writeDesignNote(
+           `[ORACLE] Final authorization granted for track ${track_id}. Ready to merge.`,
+           { track_id, user_confirmed: true }
+         )
+         ```
     
     c. **Generate and Validate Authorization Trailer:**
        1. Call `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/track/swarm-authorizer.js" --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
@@ -225,11 +248,24 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
        `node packages/superconductor-core/dist/track/swarm-authorizer.js --format-commit-message '<track_description>' <reviewer_ids>`
        Do NOT manually write the commit message — use the script output only.
     
-    f. **Announce:** State that the track is complete and the quorum + Oracle verdicts are on record.
+    f. **Announce & Track Completion:** State that the track is complete and the quorum + Oracle verdicts are on record. Upon merging track to target branch, call `NoteWriter.writeProcedureNote`:
+       ```ts
+       NoteWriter.writeProcedureNote(
+         `[LIFECYCLE] Track ${track_id} merged into ${target_branch} at commit ${merge_commit}`,
+         { track_id }
+       )
+       ```
 
 ## 4.0 SYNCHRONIZE PROJECT DOCUMENTATION & KERNEL ANALYSIS
 **PROTOCOL: Update project-level documentation and analyze for kernel inclusion based on the completed track.**
  **Execution Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file. DO NOT execute this protocol for any other track status changes.
+ **Track Completion Lifecycle:** Upon merging track to target branch, call `NoteWriter.writeProcedureNote`:
+ ```ts
+ NoteWriter.writeProcedureNote(
+   `[LIFECYCLE] Track ${track_id} merged into ${target_branch} at commit ${merge_commit}`,
+   { track_id }
+ )
+ ```
  **Announce Synchronization & Analysis:** Announce that you are now synchronizing the project-level documentation and analyzing new componentry for Design OS kernel inclusion.
  **Registry Inclusion Analysis:**
     - **Identify Candidates:** Analyze the entire track's changes (all phases) for reusable componentry.
@@ -291,9 +327,15 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
 ## 5.0 TRACK CLEANUP (TrackLifecycleWizard)
 **PROTOCOL: Offer to merge, archive, or delete the completed track via `TrackLifecycleWizard`.**
  **Execution Trigger:** This protocol MUST only be executed after the current track has been successfully implemented and the `SYNCHRONIZE PROJECT DOCUMENTATION` step is complete.
- **Approval Gate:** Finalization is strictly blocked until a two-stage approval is achieved.
-    - **Stage 1: Oracle Approval:** The Oracle must provide a "Ready" verdict based on automated checks and spec alignment.
-    - **Stage 2: User Approval:** The User must manually confirm the final state after Oracle approval.
+  **Approval Gate:** Finalization is strictly blocked until a two-stage approval is achieved.
+     - **Stage 1: Oracle Approval:** The Oracle must provide a "Ready" verdict based on automated checks and spec alignment. After Oracle issues final Ready verdict, call `NoteWriter.writeDesignNote`:
+       ```ts
+       NoteWriter.writeDesignNote(
+         `[ORACLE] Final authorization granted for track ${track_id}. Ready to merge.`,
+         { track_id, user_confirmed: true }
+       )
+       ```
+     - **Stage 2: User Approval:** The User must manually confirm the final state after Oracle approval.
  **TrackLifecycleWizard Execution:**
     - Use `TrackLifecycleWizard` (`packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts`) to manage lifecycle actions:
       1. **Interactive Mode:** Prompt the user using `wizard.buildFinalizationPrompt(track_id)`:
@@ -316,6 +358,13 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete.
         - **Target Selection:** Use `wizard.buildTargetBranchPrompt('main')` or `ask_user` to select target (`main`, `dev`, `release`).
         - **Action:** `wizard.finalizeTrack({ trackId: track_id, action: 'merge', targetBranch: selected_target, oracleSignOff: true })`.
+        - **Lifecycle Note (MANDATORY):** Upon merging track to target branch, call `NoteWriter.writeProcedureNote`:
+          ```ts
+          NoteWriter.writeProcedureNote(
+            `[LIFECYCLE] Track ${track_id} merged into ${target_branch} at commit ${merge_commit}`,
+            { track_id }
+          )
+          ```
         - **Post-Merge:** Transition to **Deployment Suggestion**.
     *   **If user chooses "Archive" or "Delete":**
         - **Pre-requisite:** Verify both Stage 1 (Oracle) and Stage 2 (User) approvals are complete. If not, block the action and direct the user to the missing approval stage.

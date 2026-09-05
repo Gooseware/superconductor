@@ -258,6 +258,7 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
             '--content', `[${finding.finding_id || finding.id || 'N/A'}] Quorum resolved: ${finding.description || 'Issue fixed'}`,
             '--files', '[]',
             '--domain', values.domain || 'codebase',
+            '--track_id', track_id,
             '--severity', 'info',
             '--invocation_id', Date.now().toString(),
             '--reviewer_token', finding.reviewer_id || record.reviewer_session_id || record.session_id || ''
@@ -272,6 +273,7 @@ export async function runQuorumReview(rawArgs: string[], options: RunQuorumOptio
           '--content', `Quorum passed for ${track_id}`,
           '--files', '[]',
           '--domain', values.domain || 'codebase',
+          '--track_id', track_id,
           '--severity', 'info',
           '--invocation_id', Date.now().toString(),
           '--reviewer_token', record.reviewer_session_id || record.session_id || ''

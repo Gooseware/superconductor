@@ -584,7 +584,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             user_confirmed: { type: "boolean", description: "Required for preference/design notes" },
             invocation_id: { type: "string", description: "Unique invocation ID for rate limit tracking" }
           },
-          required: ["note_type", "content", "files", "domain", "severity", "invocation_id"]
+          required: ["note_type", "content", "files", "domain", "severity", "invocation_id", "track_id"]
         }
       },
       {
@@ -593,7 +593,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
-            track_id: { type: "string", description: "Optional track ID filter" }
+            track_id: { type: "string", description: "Optional track ID filter" },
+            limit: { type: "number", description: "Maximum number of notes to summarize (default: 20)" }
           }
         }
       },

@@ -54,6 +54,13 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         1. Use the provided description as the track description.
         2. Call the `enter_plan_mode` tool with the reason: "Defining new track".
 3.  **Infer Track Type:** Analyze the description to determine if it is a "Feature" or "Something Else" (e.g., Bug, Chore, Refactor). Do NOT ask the user to classify it.
+4.  **User Preference Capture:** When user selects preferences or choices in `ask_user` (e.g. model choices, architecture options), call `NoteWriter.writePreferenceNote`:
+    ```ts
+    NoteWriter.writePreferenceNote(
+      `[PREFERENCE] Track ${track_id} user selected: ${user_choice}`,
+      { track_id, user_confirmed: true }
+    )
+    ```
 
 ### 2.0.3 Best Practices Research Phase (NEW)
 1. **Trigger:** This phase runs automatically before spec generation for any new track, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
@@ -72,6 +79,30 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 3. Call MCP tool: `notebook_query({ note_types: ["quorum","warning"], limit: 10, track_id: <track_id>, session_id: <session_id> })`
 4. If notes found → inject as "## ⚠️ Known Fragile Areas (Prior Quorum Findings)" in plan.md template
 5. If 0 notes found in both calls → proceed normally (no section injected)
+
+### 2.0.2a NoteWriter Instrumentation Protocol (MANDATORY)
+Throughout the track creation lifecycle, the agent MUST record decisions and preferences using `NoteWriter`:
+1. **Spec Approval (§2.2):** When user approves the specification, call `NoteWriter.writeDesignNote`:
+   ```ts
+   NoteWriter.writeDesignNote(
+     `[SPEC] Track ${track_id} spec approved: ${summary}. Key ACs: ${acs_summary}`,
+     { track_id, user_confirmed: true }
+   )
+   ```
+2. **Plan Approval (§2.3 / §2.3a):** When user approves the implementation plan, call `NoteWriter.writeProcedureNote`:
+   ```ts
+   NoteWriter.writeProcedureNote(
+     `[PLAN] Track ${track_id} plan approved with ${task_count} tasks across ${phase_count} phases`,
+     { track_id }
+   )
+   ```
+3. **User Preference Capture (§2.1 / §2.2 / §2.4):** When user selects preferences or choices in `ask_user` (e.g. model choices, architecture options), call `NoteWriter.writePreferenceNote`:
+   ```ts
+   NoteWriter.writePreferenceNote(
+     `[PREFERENCE] Track ${track_id} user selected: ${user_choice}`,
+     { track_id, user_confirmed: true }
+   )
+   ```
 
 ### 2.0.4 Grilling Phase (Optional)
 1. **Trigger:** This phase runs if `--grill` is provided in `{{args}}`. If the user's initial description is highly ambiguous or lacks domain clarity, you MUST dynamically suggest running with `--grill` to clarify requirements.
@@ -107,6 +138,13 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         *   **Classify Question Type:** Purposely classify questions as Additive (multiSelect: true) or Exclusive Choice (multiSelect: false).
 
     *   *Wait for the user's response to the single batched tool call.*
+    *   **User Preference Capture:** When user selects preferences or choices in `ask_user` (e.g. model choices, architecture options), call `NoteWriter.writePreferenceNote`:
+        ```ts
+        NoteWriter.writePreferenceNote(
+          `[PREFERENCE] Track ${track_id} user selected: ${user_choice}`,
+          { track_id, user_confirmed: true }
+        )
+        ```
 
 3.  **Draft `spec.md`:** Once the response is received, draft the content for the track's `spec.md` file, including sections like Overview, Architectural Committee Recommendations, Research Notes, Grilling Report, Functional Requirements, Non-Functional Requirements, Acceptance Criteria, and Out of Scope.
 
@@ -131,6 +169,13 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
                 - Label: "Approve", Description: "The specification looks correct, proceed to planning."
                 - Label: "Revise", Description: "I want to make changes to the requirements."
     -   **Auto-Approval:** If the user selects "Approve", or if no revision is requested within the first feedback cycle, automatically proceed to plan generation.
+    -   **Spec Approval Note (MANDATORY):** When user approves the specification, call `NoteWriter.writeDesignNote`:
+        ```ts
+        NoteWriter.writeDesignNote(
+          `[SPEC] Track ${track_id} spec approved: ${summary}. Key ACs: ${acs_summary}`,
+          { track_id, user_confirmed: true }
+        )
+        ```
 
 ### 2.3 Interactive Plan Generation (`plan.md`)
 
@@ -186,6 +231,13 @@ After generating the plan draft:
                 - Label: "Approve", Description: "The plan looks solid, proceed to implementation."
                 - Label: "Revise", Description: "I want to modify the implementation steps."
     Await user feedback and revise the `plan.md` content until confirmed.
+    -   **Plan Approval Note (MANDATORY):** When user approves the implementation plan, call `NoteWriter.writeProcedureNote`:
+        ```ts
+        NoteWriter.writeProcedureNote(
+          `[PLAN] Track ${track_id} plan approved with ${task_count} tasks across ${phase_count} phases`,
+          { track_id }
+        )
+        ```
 
 ### 2.4 Skill Recommendation (Interactive)
 1.  **Analyze Needs:**
@@ -202,6 +254,13 @@ After generating the plan draft:
                 - **type:** "choice"
                 - **multiSelect:** true
                 - **options:** (Populate with the recommended skills, providing a `label` and a `description` explaining the relevance for each).
+        -   **User Preference Capture:** When user selects preferences or choices in `ask_user` (e.g. model choices, architecture options), call `NoteWriter.writePreferenceNote`:
+            ```ts
+            NoteWriter.writePreferenceNote(
+              `[PREFERENCE] Track ${track_id} user selected: ${user_choice}`,
+              { track_id, user_confirmed: true }
+            )
+            ```
         -   **Install:** If the user selects any skills, then for each selected skill:
             -   **Determine Installation Path:**
                 - If `alwaysRecommend` is true, set the path to `~/.agents/extensions/superconductor/skills/<skill-name>/`.

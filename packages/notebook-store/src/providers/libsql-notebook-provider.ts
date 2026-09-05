@@ -10,8 +10,13 @@ import {
   NotebookSummary,
   WriteAck,
   NoteType,
+  NOTE_AUTHORITY,
 } from '../types.js';
-import { NotebookValidator, ValidationOptions } from '../validation/notebook-validator.js';
+import {
+  NotebookValidator,
+  ValidationOptions,
+  RateLimitError,
+} from '../validation/notebook-validator.js';
 
 
 function stringSimilarity(a: string, b: string): number {
@@ -79,17 +84,30 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     
     const sqlMeta = `CREATE TABLE IF NOT EXISTS notebook_metadata (
       id TEXT PRIMARY KEY,
-      content_sha256 TEXT UNIQUE
+      content_sha256 TEXT NOT NULL,
+      track_id TEXT
     );`;
     await this.dbManager.runMigration(this.client, sqlMeta);
+    try {
+      await this.dbManager.runMigration(this.client, `ALTER TABLE notebook_metadata ADD COLUMN track_id TEXT;`);
+    } catch {
+      // Column may already exist
+    }
     await this.dbManager.runMigration(this.client, `CREATE INDEX IF NOT EXISTS idx_notebook_metadata_sha256 ON notebook_metadata(content_sha256);`);
+    await this.dbManager.runMigration(this.client, `CREATE INDEX IF NOT EXISTS idx_notebook_metadata_track_id ON notebook_metadata(track_id);`);
+
+    const sqlRateLimits = `CREATE TABLE IF NOT EXISTS rate_limits (
+      invocation_id TEXT PRIMARY KEY,
+      count INTEGER NOT NULL DEFAULT 0
+    );`;
+    await this.dbManager.runMigration(this.client, sqlRateLimits);
   }
 
   public async write(
     entry: Omit<NotebookEntry, 'id' | 'timestamp'>,
     options?: ValidationOptions
   ): Promise<WriteAck> {
-    NotebookValidator.validate(entry, options);
+    NotebookValidator.validate(entry, { ...options, skipRateLimit: true });
     if (!this.client) await this.init();
 
     const normalizedContent = entry.content.trim().toLowerCase();
@@ -97,8 +115,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     // Check for exact SHA-256 match
     const existing = await this.client!.execute({
-      sql: `SELECT id FROM notebook_metadata WHERE content_sha256 = ?`,
-      args: [sha256],
+      sql: `SELECT id FROM notebook_fts WHERE content_sha256 = ? AND track_id = ?`,
+      args: [sha256, entry.track_id],
     });
 
     if (existing.rows.length > 0) {
@@ -114,8 +132,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
 
     // Check for near-duplicates via Jaccard similarity fallback (COR-3)
     const allRows = await this.client!.execute({
-      sql: `SELECT id, content FROM notebook_fts ORDER BY rowid DESC LIMIT 100`,
-      args: [],
+      sql: `SELECT id, content FROM notebook_fts WHERE track_id = ? ORDER BY rowid DESC LIMIT 100`,
+      args: [entry.track_id],
     });
     
     for (const row of allRows.rows) {
@@ -130,6 +148,25 @@ export class LibSQLNotebookProvider implements INotebookProvider {
           });
           return { id: matchId, deduplicated: true };
         }
+      }
+    }
+
+    // Atomic SQLite rate-limiting for AGENT-authority writes (REV-3, REV-4)
+    const authority = NOTE_AUTHORITY[entry.note_type] ?? 'agent';
+    if (authority === 'agent') {
+      const invId = options?.invocation_id || `anon_${entry.session_id}`;
+      const normalizedInvId = invId.trim().toLowerCase().normalize('NFC');
+      const rateLimitResult = await this.client!.execute({
+        sql: `INSERT INTO rate_limits (invocation_id, count) VALUES (?, 1)
+              ON CONFLICT(invocation_id) DO UPDATE SET count = count + 1
+              RETURNING count`,
+        args: [normalizedInvId],
+      });
+      const count = Number(rateLimitResult.rows[0]?.count ?? rateLimitResult.rows[0]?.[0] ?? 0);
+      if (count > 3) {
+        throw new RateLimitError(
+          `Invocation '${invId}' has reached maximum rate limit of 3 agent-authority notes`
+        );
       }
     }
 
@@ -158,8 +195,8 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     });
 
     await this.client!.execute({
-      sql: `INSERT OR IGNORE INTO notebook_metadata (id, content_sha256) VALUES (?, ?)`,
-      args: [id, sha256]
+      sql: `INSERT OR IGNORE INTO notebook_metadata (id, content_sha256, track_id) VALUES (?, ?, ?)`,
+      args: [id, sha256, entry.track_id]
     });
 
     return { id, deduplicated: false };
@@ -238,13 +275,23 @@ export class LibSQLNotebookProvider implements INotebookProvider {
     return entries.slice(0, limit);
   }
 
-  public async summary(track_id?: string): Promise<NotebookSummary> {
+  public async summary(track_id?: string, limit: number = 20): Promise<NotebookSummary> {
     if (!this.client) await this.init();
 
-    const resultSet = await this.client!.execute({
-      sql: `SELECT * FROM notebook_fts ORDER BY timestamp DESC`,
-      args: [],
-    });
+    const effectiveLimit = Math.min(Math.max(1, limit || 20), 100);
+
+    let resultSet;
+    if (track_id) {
+      resultSet = await this.client!.execute({
+        sql: `SELECT * FROM notebook_fts WHERE track_id = ? ORDER BY timestamp DESC LIMIT ?`,
+        args: [track_id, effectiveLimit],
+      });
+    } else {
+      resultSet = await this.client!.execute({
+        sql: `SELECT * FROM notebook_fts ORDER BY timestamp DESC LIMIT ?`,
+        args: [effectiveLimit],
+      });
+    }
 
     let entries: NotebookEntry[] = resultSet.rows.map((r: any) => ({
       id: String(r.id),
