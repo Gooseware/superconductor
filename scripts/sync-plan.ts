@@ -95,9 +95,11 @@ async function main() {
   }
 }
 
-if (process.env.NODE_ENV !== 'test') {
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
   main().catch(err => {
     console.error(err);
     process.exit(1);
   });
 }
+
