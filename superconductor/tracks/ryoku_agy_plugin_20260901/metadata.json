@@ -1,0 +1,31 @@
+{
+  "track_id": "ryoku_agy_plugin_20260901",
+  "title": "Ryoku Desktop Widget — AGY CLI Integration",
+  "type": "Feature",
+  "status": "planned",
+  "created_at": "2026-09-01T05:22:00Z",
+  "target_branch": "main",
+  "track_branch": "track/ryoku_agy_plugin_20260901",
+  "repo": "git@gitlab.com:gooseware/ryoku-agy.git",
+  "local_path": "~/repos/ryoku/antigravity",
+  "phases": 4,
+  "acceptance_criteria_count": 10,
+  "packages_new": [
+    "content/Widget.qml",
+    "service/Main.qml",
+    "hooks/post-tool-use.sh",
+    "hooks/pre-tool-use.sh",
+    "hooks/on-stop.sh",
+    "manifest.json",
+    "gemini-extension.json",
+    "plugin.json"
+  ],
+  "packages_modified": [],
+  "intelligence_source": "SWARM_RESEARCH",
+  "swarm_blueprint": {
+    "cost_summary": "~0.4M tokens · 3 flash research agents + processor + reviewer",
+    "waves": 4,
+    "oracle_cadence": 4,
+    "source": "manual"
+  }
+}
