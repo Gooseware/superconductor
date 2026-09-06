@@ -1,0 +1,16 @@
+[meta]
+track_id = "continuous_learning_engine_20260906"
+generated_at = "2026-09-06T13:47:24.163Z"
+inferred_by = "auto"
+
+[capabilities]
+usb_access = false
+arbitrary_shell = true
+network_unrestricted = false
+fs_outside_root = true
+persistent = false
+
+[allowlist]
+shell_prefixes = []
+domains = []
+paths = []
