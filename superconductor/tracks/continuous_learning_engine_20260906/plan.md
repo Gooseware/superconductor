@@ -97,7 +97,7 @@
     - [x] Implement ReflectiveInvariantSynthesizer integrating with task-store and NoteWriter.writeWarningNote [TIER-1:TCS=3]
     - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Reflective Invariant Synthesizer' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Reflective Invariant Synthesizer' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
@@ -119,7 +119,7 @@
     - [x] Implement SkillIncubationManager isolating candidate skills [TIER-1:TCS=3]
     - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Workflow-to-Skill Distiller' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Workflow-to-Skill Distiller' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
@@ -141,7 +141,7 @@
     - [x] Implement CanaryHarness with mock execution and timeout guards [TIER-1:TCS=2]
     - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Skill Incubation & Automated Vetting Gate' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: Skill Incubation & Automated Vetting Gate' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
@@ -163,7 +163,7 @@
     - [x] Implement learn.ts CLI handler and register learn.toml [TIER-1:TCS=4]
     - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: CLI & Promotion Workflow' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 5: CLI & Promotion Workflow' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
@@ -176,9 +176,9 @@
     - [x] Write end-to-end integration test exercising Harvester -> Synthesizer -> Distiller -> Gate -> Promoter [TIER-1:TCS=2]
     - [x] Run npm test -- --run and verify all tests green [TIER-1:TCS=2]
 
-- [ ] Task: Integrate track 'continuous_learning_engine_20260906' into main branch. [TIER-1:TCS=3] [AGENT:setup]
+- [x] Task: Integrate track 'continuous_learning_engine_20260906' into main branch. [TIER-1:TCS=3] [AGENT:setup]
     CREATES: superconductor/tracks.md
     PROTECTED: .git/
     INVARIANT_AFTER: "Track branch MUST be merged cleanly into main without regressions."
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=4]
