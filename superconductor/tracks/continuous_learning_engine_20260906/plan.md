@@ -49,11 +49,11 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify swarm-orchestrate skill installed and swarm mode is active. Run global preflight npm test -- --run and cache result for quorum reviewers. [TIER-1:TCS=3] [AGENT:setup]
+- [x] Task: Verify swarm-orchestrate skill installed and swarm mode is active. Run global preflight npm test -- --run and cache result for quorum reviewers. [TIER-1:TCS=3] [AGENT:setup]
     CREATES: .superconductor/preflight-cache.json
     PROTECTED: package.json
     INVARIANT_AFTER: "Preflight tests MUST be green before implementation starts."
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
@@ -75,7 +75,7 @@
     - [x] Implement TrajectoryHarvester and ExperienceRecord schemas [TIER-1:TCS=3]
     - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Trajectory Harvester & Data Sanitization' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Trajectory Harvester & Data Sanitization' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
