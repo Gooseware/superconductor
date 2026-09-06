@@ -45,6 +45,8 @@ export class SkillIncubationManager {
       throw new Error('Invalid skill name: skill name must be a non-empty string.');
     }
     if (
+      skillName === '.' ||
+      !/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(skillName) ||
       skillName.includes('..') ||
       skillName.includes('/') ||
       skillName.includes('\\')
@@ -63,7 +65,7 @@ export class SkillIncubationManager {
     const resolvedStaging = path.resolve(stagingDir);
 
     if (
-      resolvedTarget !== resolvedStaging &&
+      resolvedTarget === resolvedStaging ||
       !resolvedTarget.startsWith(resolvedStaging + path.sep)
     ) {
       throw new Error(
@@ -320,6 +322,8 @@ export class SkillIncubationManager {
     }
 
     if (
+      skillName === '.' ||
+      !/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(skillName) ||
       skillName.includes('..') ||
       skillName.includes('/') ||
       skillName.includes('\\')

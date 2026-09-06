@@ -86,6 +86,32 @@ describe('SkillIncubationManager', () => {
       });
       expect(result).toBeNull();
     });
+
+    it('rejects "." in skill name to prevent root staging directory deletion', async () => {
+      await fs.mkdir(stagingDir, { recursive: true });
+
+      const dotSkill: DistilledSkill = {
+        name: '.',
+        description: 'Attempt staging root deletion via dot',
+      };
+
+      await expect(
+        SkillIncubationManager.stageSkill(dotSkill, { stagingDir })
+      ).rejects.toThrow(/traversal|invalid|security/i);
+
+      await expect(
+        SkillIncubationManager.discardSkill('.', { stagingDir })
+      ).rejects.toThrow(/traversal|invalid|security/i);
+
+      const result = await SkillIncubationManager.getIncubatingSkill('.', {
+        stagingDir,
+      });
+      expect(result).toBeNull();
+
+      // Ensure stagingDir was NOT removed
+      const exists = await fs.stat(stagingDir).then(() => true).catch(() => false);
+      expect(exists).toBe(true);
+    });
   });
 
   describe('stageSkill', () => {

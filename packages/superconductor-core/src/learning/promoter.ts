@@ -160,7 +160,20 @@ export class SkillPromoter {
       );
     }
 
-    // 4. INVARIANT GATE: Promoter MUST refuse promotion if vetting gate status is not PASSED
+    // 4. INVARIANT GATE: Promoter MUST refuse promotion if vetting gate status is rejected
+    if (vettingStatus === 'rejected') {
+      const reason = 'Vetting gate status is rejected. Cannot promote rejected skill even with force.';
+      return {
+        success: false,
+        skillName,
+        destinationPath: '',
+        targetPath: '',
+        scope,
+        reason,
+        error: `Cannot promote skill "${skillName}": vetting status is "rejected". Invariant requires status "passed".`,
+      };
+    }
+
     const isPassed =
       vettingStatus === 'passed' ||
       (vettingStatus === 'flagged' && Boolean(options?.allowWarnings));

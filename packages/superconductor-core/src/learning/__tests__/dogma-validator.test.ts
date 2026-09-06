@@ -70,6 +70,68 @@ Check empty.
       expect(report.violations.some(v => v.rule === 'prohibited-shell-pattern')).toBe(true);
     });
 
+    it('rejects skills containing quoted destructive rm arguments (e.g. "/etc", "$HOME", "~")', () => {
+      const quotedCommands = [
+        'rm -rf "/etc"',
+        "rm -rf '/etc'",
+        'rm -rf "$HOME"',
+        "rm -rf '$HOME'",
+        'rm -rf "~"',
+        "rm -rf '~'",
+        'rm -rf "/"',
+        'rm -rf "/*"',
+      ];
+
+      for (const cmd of quotedCommands) {
+        const content = `---
+name: quoted-destructive-skill
+description: Destructive rm with quotes.
+---
+# Quoted Destructive
+## Overview
+Test quotes.
+## Workflow & Procedure
+\`\`\`bash
+${cmd}
+\`\`\`
+## Verification
+Done.
+`;
+        const report = SkillDogmaValidator.validate(content);
+        expect(report.valid).toBe(false);
+        expect(report.status).toBe('rejected');
+        expect(report.violations.some(v => v.rule === 'prohibited-shell-pattern')).toBe(true);
+      }
+    });
+
+    it('rejects skills containing destructive rm commands enclosed in backticks', () => {
+      const backtickedCommands = [
+        '`rm -rf / --no-preserve-root`',
+        '`rm -rf "$HOME"`',
+        '`rm -rf /`',
+        '`rm -rf ~`',
+      ];
+
+      for (const cmd of backtickedCommands) {
+        const content = `---
+name: backticked-destructive-skill
+description: Destructive rm inside inline code backticks.
+---
+# Backticked Destructive
+## Overview
+Testing inline backticked commands.
+## Workflow & Procedure
+1. Execute cleanup command: ${cmd}
+## Verification
+Done.
+`;
+        const report = SkillDogmaValidator.validate(content);
+        expect(report.valid).toBe(false);
+        expect(report.status).toBe('rejected');
+        expect(report.violations.some(v => v.rule === 'prohibited-shell-pattern')).toBe(true);
+      }
+    });
+
     it('rejects skills containing "mkfs" filesystem format commands', () => {
       const content = `---
 name: format-drive
@@ -345,6 +407,49 @@ Verify.
       });
       expect(reportWithOption.valid).toBe(true);
       expect(reportWithOption.status).toBe('passed');
+    });
+
+    it('extracts and validates tools formatted as "Execute `tool`" emitted by distiller', () => {
+      // 1. Valid permitted tool formatted as "Execute `tool`"
+      const cleanContent = `---
+name: distilled-clean-skill
+description: Distilled skill format.
+---
+# Distilled Skill
+## Overview
+Overview.
+## Workflow & Procedure
+1. Execute \`write_to_file\` - Create docker configuration.
+2. Execute \`run_command\` - Launch containers.
+## Verification
+Verify.
+`;
+      const cleanReport = SkillDogmaValidator.validate(cleanContent);
+      expect(cleanReport.valid).toBe(true);
+      expect(cleanReport.status).toBe('passed');
+
+      // 2. Unknown tool formatted as "Execute `tool`"
+      const unknownContent = `---
+name: distilled-unknown-skill
+description: Distilled skill with unapproved tool.
+---
+# Unknown Distilled Tool
+## Overview
+Overview.
+## Workflow & Procedure
+1. Execute \`arbitrary_dangerous_tool\` - Do something unapproved.
+## Verification
+Verify.
+`;
+      const flaggedReport = SkillDogmaValidator.validate(unknownContent);
+      expect(flaggedReport.valid).toBe(true);
+      expect(flaggedReport.status).toBe('flagged');
+      expect(flaggedReport.violations.some(v => v.rule === 'tool-whitelist' && v.tool === 'arbitrary_dangerous_tool')).toBe(true);
+
+      const strictReport = SkillDogmaValidator.validate(unknownContent, { rejectOnUnknownTools: true });
+      expect(strictReport.valid).toBe(false);
+      expect(strictReport.status).toBe('rejected');
+      expect(strictReport.violations.some(v => v.rule === 'tool-whitelist' && v.tool === 'arbitrary_dangerous_tool')).toBe(true);
     });
   });
 

@@ -259,6 +259,69 @@ description: Uses custom tool
       expect(report.passed).toBe(true);
       expect(customSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('adds diagnostic warning to report.warnings when an unmocked unknown tool is encountered (ADV-4)', async () => {
+      const unknownToolSkill: DistilledSkill = {
+        name: 'unmocked-tool-skill',
+        description: 'Uses unmocked tool',
+        content: `---
+name: unmocked-tool-skill
+description: Uses unmocked tool
+---
+# Unmocked Tool Skill
+
+## Workflow & Procedure
+1. Execute \`special_database_migrate\` - Run migrations.
+2. Execute \`run_command\` - Verify server status (\`curl -s http://localhost:8080/health\`).
+
+## Verification
+1. Execute verification command: \`curl -f http://localhost:8080/health\`
+`,
+      };
+
+      const report = await CanaryHarness.evaluateSkill(unknownToolSkill);
+
+      expect(report.passed).toBe(true);
+      expect(report.warnings.length).toBeGreaterThanOrEqual(1);
+      expect(
+        report.warnings.some((w: string) =>
+          w.includes('special_database_migrate') &&
+          /assumed successful without a mock handler/i.test(w)
+        )
+      ).toBe(true);
+    });
+
+    it('does not add unmocked tool warning when unknown tool is provided in options.mockTools', async () => {
+      const customSpy = vi.fn().mockResolvedValue({ processed: true });
+      const unknownToolSkill: DistilledSkill = {
+        name: 'mocked-tool-skill',
+        description: 'Uses mocked tool',
+        content: `---
+name: mocked-tool-skill
+description: Uses mocked tool
+---
+# Mocked Tool Skill
+
+## Workflow & Procedure
+1. Execute \`special_database_migrate\` - Run migrations.
+2. Execute \`run_command\` - Verify server status (\`curl -s http://localhost:8080/health\`).
+
+## Verification
+1. Execute verification command: \`curl -f http://localhost:8080/health\`
+`,
+      };
+
+      const report = await CanaryHarness.evaluateSkill(unknownToolSkill, {
+        mockTools: {
+          special_database_migrate: customSpy,
+        },
+      });
+
+      expect(report.passed).toBe(true);
+      expect(
+        report.warnings.some((w: string) => /assumed successful without a mock handler/i.test(w))
+      ).toBe(false);
+    });
   });
 
   describe('Procedural Step Logic & Parsing', () => {

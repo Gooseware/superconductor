@@ -78,7 +78,7 @@ Compliant procedure documentation.
       });
 
       expect(result.success).toBe(false);
-      expect(result.reason).toBe('Vetting gate status is rejected');
+      expect(result.reason).toBe('Vetting gate status is rejected. Cannot promote rejected skill even with force.');
       expect(result.error).toContain('vetting status is "rejected"');
 
       // Candidate directory must NOT be removed from incubation
@@ -99,6 +99,45 @@ Compliant procedure documentation.
       expect(exists).toBe(false);
 
       // NoteWriter must NOT be called
+      expect(capturedNotes).toHaveLength(0);
+    });
+
+    it('MUST refuse promotion even with force: true if vetting gate status is "rejected"', async () => {
+      const skill = createCleanCandidateSkill('rejected-force-skill', {
+        learningMetadata: {
+          status: 'incubating',
+          vetting_status: 'rejected',
+        },
+      });
+
+      await SkillIncubationManager.stageSkill(skill, { projectRoot: tempRoot, stagingDir });
+
+      const result = await SkillPromoter.promoteSkill('rejected-force-skill', {
+        projectRoot: tempRoot,
+        stagingDir,
+        force: true,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.reason).toBe(
+        'Vetting gate status is rejected. Cannot promote rejected skill even with force.'
+      );
+
+      // Verify active skill path was NOT created
+      const activeSkillPath = path.join(
+        tempRoot,
+        '.agents',
+        'skills',
+        'rejected-force-skill',
+        'SKILL.md'
+      );
+      let exists = true;
+      try {
+        await fs.stat(activeSkillPath);
+      } catch {
+        exists = false;
+      }
+      expect(exists).toBe(false);
       expect(capturedNotes).toHaveLength(0);
     });
 
@@ -186,7 +225,9 @@ Done.
       });
 
       expect(result.success).toBe(false);
-      expect(result.reason).toBe('Vetting gate status is rejected');
+      expect(result.reason).toBe(
+        'Vetting gate status is rejected. Cannot promote rejected skill even with force.'
+      );
 
       // Staging still exists
       const staged = await SkillIncubationManager.getIncubatingSkill('dangerous-candidate', {

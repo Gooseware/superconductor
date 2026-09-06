@@ -118,7 +118,7 @@ export class CanaryHarness {
 
       // 6. Simulate step execution inside isolated sandbox
       for (const step of parsedSteps) {
-        const stepSuccess = await this.simulateStep(step, sandbox, options, errors);
+        const stepSuccess = await this.simulateStep(step, sandbox, options, errors, warnings);
         stepsExecuted++;
         if (!stepSuccess && errors.length > 0) {
           // Halt execution if critical error encountered
@@ -589,7 +589,8 @@ export class CanaryHarness {
     step: ParsedStep,
     sandboxDir: string,
     options: CanaryOptions | undefined,
-    errors: string[]
+    errors: string[],
+    warnings: string[]
   ): Promise<boolean> {
     const tool = step.toolName || 'generic_action';
 
@@ -650,6 +651,24 @@ export class CanaryHarness {
         return false;
       }
       return true;
+    }
+
+    // 4. Built-in simulation for standard inspection tools
+    if (
+      tool === 'view_file' ||
+      tool === 'read_file' ||
+      tool === 'list_dir' ||
+      tool === 'find_by_name' ||
+      tool === 'grep_search'
+    ) {
+      return true;
+    }
+
+    // 5. Unmocked unknown tool: diagnostic warning
+    if (step.toolName) {
+      warnings.push(
+        `Tool "${step.toolName}" in step ${step.stepIndex}: execution was assumed successful without a mock handler.`
+      );
     }
 
     return true;

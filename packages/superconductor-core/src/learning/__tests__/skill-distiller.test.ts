@@ -277,6 +277,26 @@ describe('WorkflowSkillDistiller & SkillTemplateGenerator', () => {
       });
       expect(result?.name).toBe('custom-orchestration-workflow');
     });
+
+    it('sanitizes record.id through toKebabCase in fallback when goal and trackId are absent (ADV-3)', () => {
+      const record1: ExperienceRecord = {
+        ...sampleSuccessRecord,
+        goal: '',
+        trackId: '',
+        id: 'Exp Record #42 / Critical!',
+      };
+      const result1 = WorkflowSkillDistiller.distillFromExperience(record1);
+      expect(result1?.name).toBe('workflow-skill-exp-record-42-critical');
+
+      const record2: ExperienceRecord = {
+        ...sampleSuccessRecord,
+        goal: '',
+        trackId: '',
+        id: '$$$###',
+      };
+      const result2 = WorkflowSkillDistiller.distillFromExperience(record2);
+      expect(result2?.name).toBe('workflow-skill-unnamed');
+    });
   });
 
   describe('Confidence Score Heuristics', () => {

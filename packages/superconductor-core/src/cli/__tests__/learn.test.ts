@@ -4,6 +4,8 @@ import path from 'path';
 import os from 'os';
 import { learnCommand } from '../learn.js';
 import { SkillIncubationManager } from '../../learning/incubation-manager.js';
+import { CanaryHarness } from '../../learning/canary-harness.js';
+import { SkillDogmaValidator } from '../../learning/dogma-validator.js';
 
 describe('learnCommand CLI Handler', () => {
   let tempRoot: string;
@@ -407,6 +409,73 @@ describe('learnCommand CLI Handler', () => {
       expect(code).toBe(1);
       const output = getOutput(errorSpy);
       expect(output).toContain('Track path not found');
+    });
+
+    it('does not stage candidate skills with vetting_status "passed" when Canary evaluation fails (ADV-2)', async () => {
+      const canarySpy = vi.spyOn(CanaryHarness, 'evaluateSkill').mockResolvedValueOnce({
+        passed: false,
+        score: 0.2,
+        executionTimeMs: 15,
+        stepsExecuted: 1,
+        errors: ['Simulated sandbox execution error'],
+        warnings: [],
+      });
+
+      const code = await learnCommand(['--harvest', '--track', 'track_sample_harvest'], {
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(code).toBe(0);
+      expect(canarySpy).toHaveBeenCalled();
+
+      const incubating = await SkillIncubationManager.listIncubating({
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(incubating.length).toBe(1);
+      // Canary failed, so vetting_status must NOT be 'passed'; it must be 'rejected'
+      expect(incubating[0].vettingStatus).toBe('rejected');
+      expect((incubating[0].vettingReport as any)?.canary).toBeDefined();
+      expect((incubating[0].vettingReport as any)?.canary?.passed).toBe(false);
+
+      canarySpy.mockRestore();
+    });
+
+    it('stages candidate skill with vetting_status "passed" when both Dogma and Canary pass without warnings (ADV-2)', async () => {
+      const dogmaSpy = vi.spyOn(SkillDogmaValidator, 'validate').mockReturnValueOnce({
+        valid: true,
+        status: 'passed',
+        violations: [],
+        warnings: [],
+      });
+      const canarySpy = vi.spyOn(CanaryHarness, 'evaluateSkill').mockResolvedValueOnce({
+        passed: true,
+        score: 1.0,
+        executionTimeMs: 10,
+        stepsExecuted: 2,
+        errors: [],
+        warnings: [],
+      });
+
+      const code = await learnCommand(['--harvest', '--track', 'track_sample_harvest'], {
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(code).toBe(0);
+      expect(dogmaSpy).toHaveBeenCalled();
+      expect(canarySpy).toHaveBeenCalled();
+
+      const incubating = await SkillIncubationManager.listIncubating({
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(incubating.length).toBe(1);
+      expect(incubating[0].vettingStatus).toBe('passed');
+      expect((incubating[0].vettingReport as any)?.canary?.passed).toBe(true);
+      expect((incubating[0].vettingReport as any)?.dogma?.valid).toBe(true);
+
+      canarySpy.mockRestore();
+      dogmaSpy.mockRestore();
     });
   });
 

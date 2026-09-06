@@ -183,13 +183,13 @@ export class SkillDogmaValidator {
     {
       id: 'destructive-rm-root',
       name: 'Recursive delete from root or system directory',
-      pattern: /\brm\s+(?:-[a-zA-Z0-9_-]+\s+)*(?:--no-preserve-root\s+)?(?:\/|\/\*|["']\/(?:\*)?["']|\/(?:bin|boot|dev|etc|home|lib|proc|root|sys|usr|var)\b)/i,
+      pattern: /(?:^|[`'";&|\s]|\b)\s*rm\s+(?:-[a-zA-Z0-9_-]+\s+)*-[a-zA-Z0-9]*r[a-zA-Z0-9]*f?[a-zA-Z0-9]*\s+(?:--no-preserve-root\s+)?(?:["']?\/(?:\*)?["']?|["']?\/(?:bin|boot|dev|etc|home|lib|proc|root|sys|usr|var)\b["']?)/i,
       description: 'Destructive recursive rm targeting root or system directory',
     },
     {
       id: 'destructive-rm-home',
       name: 'Recursive delete of home directory',
-      pattern: /\brm\s+(?:-[a-zA-Z0-9_-]+\s+)*(?:~|\$HOME|\$\{HOME\})(?:\/|\/\*)?/i,
+      pattern: /(?:^|[`'";&|\s]|\b)\s*rm\s+(?:-[a-zA-Z0-9_-]+\s+)*-[a-zA-Z0-9]*r[a-zA-Z0-9]*f?[a-zA-Z0-9]*\s+["']?(?:~|\$HOME|\$\{HOME\})(?:\/|\/\*)?["']?/i,
       description: 'Destructive recursive rm targeting home directory (~ or $HOME)',
     },
     {
@@ -479,6 +479,8 @@ export class SkillDogmaValidator {
 
     // 2. Pattern extractions from markdown body
     const toolRegexes: RegExp[] = [
+      // Tools formatted as "Execute `tool`" or "Run `tool`" (emitted by WorkflowSkillDistiller)
+      /(?:Execute|Run|Call|Using)\s+`([a-zA-Z0-9_\-/.]+)`/gi,
       // "use the `my_tool` tool" or "calling `my_tool` tool"
       /(?:using|use|call|calling|invoke|invoking)\s+(?:the\s+)?`([a-zA-Z0-9_\-\/.]+)`\s+(?:mcp\s+)?tool/gi,
       // "use tool `my_tool`" or "tool: `my_tool`"

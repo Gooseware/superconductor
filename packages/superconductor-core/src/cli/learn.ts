@@ -16,6 +16,8 @@ import {
   TrajectoryHarvester,
   WorkflowSkillDistiller,
   SkillDogmaValidator,
+  CanaryHarness,
+  VettingStatus,
 } from '../learning/index.js';
 
 interface ParsedLearnArgs {
@@ -530,9 +532,26 @@ export async function learnCommand(
           return 0;
         }
 
-        // 3. Automated Dogma validation
+        // 3. Automated Vetting Gate (Dogma validation + Canary evaluation)
         const dogmaReport = SkillDogmaValidator.validate(distilled.content || '');
-        const vettingStatus = dogmaReport.status;
+        const canaryReport = await CanaryHarness.evaluateSkill(distilled);
+
+        let vettingStatus: VettingStatus;
+        if (!dogmaReport.valid || dogmaReport.status === 'rejected' || !canaryReport.passed) {
+          vettingStatus = 'rejected';
+        } else if (
+          dogmaReport.status === 'flagged' ||
+          (canaryReport.warnings && canaryReport.warnings.length > 0)
+        ) {
+          vettingStatus = 'flagged';
+        } else {
+          vettingStatus = 'passed';
+        }
+
+        const vettingReport = {
+          dogma: dogmaReport,
+          canary: canaryReport,
+        };
 
         // 4. Stage distilled candidate
         const stagedPath = await SkillIncubationManager.stageSkill(
@@ -544,7 +563,7 @@ export async function learnCommand(
               harvest_timestamp: new Date().toISOString(),
               confidence_score: distilled.confidenceScore ?? 0.85,
               vetting_status: vettingStatus,
-              vetting_report: dogmaReport,
+              vetting_report: vettingReport,
             },
           },
           { projectRoot, stagingDir }

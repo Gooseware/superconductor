@@ -199,7 +199,7 @@ export class WorkflowSkillDistiller {
       }
     }
 
-    return `workflow-skill-${record.id || 'unnamed'}`;
+    return `workflow-skill-${this.toKebabCase(record.id) || 'unnamed'}`;
   }
 
   /**
