@@ -59,21 +59,21 @@
 
 ## Phase 1: Trajectory Harvester & Data Sanitization
 
-- [ ] Task: Implement TrajectorySanitizer utility [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement TrajectorySanitizer utility [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/sanitizer.ts, packages/superconductor-core/src/learning/__tests__/sanitizer.test.ts
     PROTECTED: packages/superconductor-core/src/notebook/note-writer.ts
     INVARIANT_AFTER: "Sanitizer MUST redact API tokens, passwords, and private keys from all recorded traces."
-    - [ ] Write unit tests for sensitive token redaction and input/output truncation [TIER-1:TCS=2]
-    - [ ] Implement TrajectorySanitizer class with regex masks and schema filters [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for sensitive token redaction and input/output truncation [TIER-1:TCS=2]
+    - [x] Implement TrajectorySanitizer class with regex masks and schema filters [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Implement TrajectoryHarvester for swarm & quorum logs [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement TrajectoryHarvester for swarm & quorum logs [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/harvester.ts, packages/superconductor-core/src/learning/types.ts, packages/superconductor-core/src/learning/__tests__/harvester.test.ts
     PROTECTED: packages/superconductor-core/src/orchestration/
     INVARIANT_AFTER: "Harvester MUST serialize execution traces asynchronously without blocking active swarm execution."
-    - [ ] Write unit tests for trajectory parsing from plan.md, quorum-state.json, and review logs [TIER-1:TCS=3]
-    - [ ] Implement TrajectoryHarvester and ExperienceRecord schemas [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for trajectory parsing from plan.md, quorum-state.json, and review logs [TIER-1:TCS=3]
+    - [x] Implement TrajectoryHarvester and ExperienceRecord schemas [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Trajectory Harvester & Data Sanitization' (Protocol in workflow.md) [TIER-1:TCS=4]
 
@@ -81,21 +81,21 @@
 
 ## Phase 2: Reflective Invariant Synthesizer (Fast Loop)
 
-- [ ] Task: Implement InvariantDeduplicator and Fingerprint Index [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement InvariantDeduplicator and Fingerprint Index [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/deduplicator.ts, packages/superconductor-core/src/learning/__tests__/deduplicator.test.ts
     PROTECTED: packages/task-store/src/
     INVARIANT_AFTER: "Deduplicator MUST prevent identical or redundant invariants from polluting task-store."
-    - [ ] Write unit tests for cosine/normalized text fingerprint hashing [TIER-1:TCS=2]
-    - [ ] Implement InvariantDeduplicator with token similarity checks [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for cosine/normalized text fingerprint hashing [TIER-1:TCS=2]
+    - [x] Implement InvariantDeduplicator with token similarity checks [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Implement ReflectiveInvariantSynthesizer for remediation failures [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement ReflectiveInvariantSynthesizer for remediation failures [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/invariant-synthesizer.ts, packages/superconductor-core/src/learning/__tests__/invariant-synthesizer.test.ts
     PROTECTED: packages/superconductor-core/src/notebook/note-writer.ts, packages/task-store/
     INVARIANT_AFTER: "Mined invariants MUST be valid constraint strings and recorded with appropriate severity."
-    - [ ] Write unit tests for extracting invariant rules from Quorum NEEDS_FIXES findings [TIER-1:TCS=2]
-    - [ ] Implement ReflectiveInvariantSynthesizer integrating with task-store and NoteWriter.writeWarningNote [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for extracting invariant rules from Quorum NEEDS_FIXES findings [TIER-1:TCS=2]
+    - [x] Implement ReflectiveInvariantSynthesizer integrating with task-store and NoteWriter.writeWarningNote [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Reflective Invariant Synthesizer' (Protocol in workflow.md) [TIER-1:TCS=4]
 
@@ -103,21 +103,21 @@
 
 ## Phase 3: Workflow-to-Skill Distiller (Slow Loop)
 
-- [ ] Task: Implement WorkflowSkillDistiller and Template Generator [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement WorkflowSkillDistiller and Template Generator [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/skill-distiller.ts, packages/superconductor-core/src/learning/templates.ts, packages/superconductor-core/src/learning/__tests__/skill-distiller.test.ts
     PROTECTED: packages/superconductor-core/src/learning/types.ts
     INVARIANT_AFTER: "Distiller MUST produce valid SKILL.md documents with YAML frontmatter containing name and description."
-    - [ ] Write unit tests for distilling execution graphs into SKILL.md documents [TIER-1:TCS=3]
-    - [ ] Implement WorkflowSkillDistiller with confidence scoring and provenance metadata [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for distilling execution graphs into SKILL.md documents [TIER-1:TCS=3]
+    - [x] Implement WorkflowSkillDistiller with confidence scoring and provenance metadata [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Implement SkillIncubationManager for staging storage [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement SkillIncubationManager for staging storage [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/incubation-manager.ts, packages/superconductor-core/src/learning/__tests__/incubation-manager.test.ts
     PROTECTED: .agents/skills/
     INVARIANT_AFTER: "Incubating skills MUST be written only to .agents/skills/incubating/ and excluded from active discovery."
-    - [ ] Write unit tests for staging directory lifecycle (stage, list, retrieve, clean) [TIER-1:TCS=2]
-    - [ ] Implement SkillIncubationManager isolating candidate skills [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for staging directory lifecycle (stage, list, retrieve, clean) [TIER-1:TCS=2]
+    - [x] Implement SkillIncubationManager isolating candidate skills [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 3: Workflow-to-Skill Distiller' (Protocol in workflow.md) [TIER-1:TCS=4]
 
@@ -125,21 +125,21 @@
 
 ## Phase 4: Skill Incubation & Automated Vetting Gate
 
-- [ ] Task: Implement SkillDogmaValidator and Security Scanner [TIER-2:TCS=4] [AGENT:superconductor-processor]
+- [x] Task: Implement SkillDogmaValidator and Security Scanner [TIER-2:TCS=4] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/dogma-validator.ts, packages/superconductor-core/src/learning/__tests__/dogma-validator.test.ts
     PROTECTED: packages/superconductor-core/src/permissions/
     INVARIANT_AFTER: "DogmaValidator MUST reject skills containing prohibited shell patterns or invalid tool names."
-    - [ ] Write unit tests for syntax linting, frontmatter schema validation, and security pattern screening [TIER-1:TCS=3]
-    - [ ] Implement SkillDogmaValidator enforcing Superconductor and Design OS rules [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for syntax linting, frontmatter schema validation, and security pattern screening [TIER-1:TCS=3]
+    - [x] Implement SkillDogmaValidator enforcing Superconductor and Design OS rules [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Implement CanaryHarness for candidate skill simulation [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement CanaryHarness for candidate skill simulation [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/canary-harness.ts, packages/superconductor-core/src/learning/__tests__/canary-harness.test.ts
     PROTECTED: packages/superconductor-core/src/learning/dogma-validator.ts
     INVARIANT_AFTER: "CanaryHarness MUST execute in an isolated sandbox without mutating production files."
-    - [ ] Write unit tests for canary prompt execution and assertion verification [TIER-1:TCS=3]
-    - [ ] Implement CanaryHarness with mock execution and timeout guards [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for canary prompt execution and assertion verification [TIER-1:TCS=3]
+    - [x] Implement CanaryHarness with mock execution and timeout guards [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: Skill Incubation & Automated Vetting Gate' (Protocol in workflow.md) [TIER-1:TCS=4]
 
@@ -147,21 +147,21 @@
 
 ## Phase 5: CLI & Promotion Workflow (/superconductor:learn)
 
-- [ ] Task: Implement SkillPromoter and Scope Migration [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement SkillPromoter and Scope Migration [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/promoter.ts, packages/superconductor-core/src/learning/__tests__/promoter.test.ts
     PROTECTED: .agents/skills/, ~/.agents/extensions/superconductor/skills/
     INVARIANT_AFTER: "Promoter MUST refuse promotion if vetting gate status is not PASSED."
-    - [ ] Write unit tests for moving vetted skills to project/global active skill directories [TIER-1:TCS=2]
-    - [ ] Implement SkillPromoter with NoteWriter procedure note instrumentation [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for moving vetted skills to project/global active skill directories [TIER-1:TCS=2]
+    - [x] Implement SkillPromoter with NoteWriter procedure note instrumentation [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
-- [ ] Task: Implement CLI command handler and TOML command for /superconductor:learn [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement CLI command handler and TOML command for /superconductor:learn [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/cli/learn.ts, commands/superconductor/learn.toml, packages/superconductor-core/src/learning/index.ts, packages/superconductor-core/src/cli/__tests__/learn.test.ts
     PROTECTED: packages/superconductor-core/src/cli/index.ts
     INVARIANT_AFTER: "CLI learn subcommands (--list, --inspect, --promote, --discard, --harvest) MUST handle non-interactive flags gracefully."
-    - [ ] Write unit tests for CLI argument parsing and interactive dispatch [TIER-1:TCS=2]
-    - [ ] Implement learn.ts CLI handler and register learn.toml [TIER-1:TCS=4]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=3]
+    - [x] Write unit tests for CLI argument parsing and interactive dispatch [TIER-1:TCS=2]
+    - [x] Implement learn.ts CLI handler and register learn.toml [TIER-1:TCS=4]
+    - [x] Verify test suite and coverage [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 5: CLI & Promotion Workflow' (Protocol in workflow.md) [TIER-1:TCS=4]
 
@@ -169,12 +169,12 @@
 
 ## Phase 6: Integration & Finalization
 
-- [ ] Task: Run global test suite and verify end-to-end continuous learning flow [TIER-2:TCS=2] [AGENT:superconductor-processor]
+- [x] Task: Run global test suite and verify end-to-end continuous learning flow [TIER-2:TCS=2] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/tests/e2e/continuous-learning-e2e.test.ts
     PROTECTED: packages/superconductor-core/
     INVARIANT_AFTER: "All existing and new test suites MUST pass with >80% coverage on new learning code."
-    - [ ] Write end-to-end integration test exercising Harvester -> Synthesizer -> Distiller -> Gate -> Promoter [TIER-1:TCS=2]
-    - [ ] Run npm test -- --run and verify all tests green [TIER-1:TCS=2]
+    - [x] Write end-to-end integration test exercising Harvester -> Synthesizer -> Distiller -> Gate -> Promoter [TIER-1:TCS=2]
+    - [x] Run npm test -- --run and verify all tests green [TIER-1:TCS=2]
 
 - [ ] Task: Integrate track 'continuous_learning_engine_20260906' into main branch. [TIER-1:TCS=3] [AGENT:setup]
     CREATES: superconductor/tracks.md

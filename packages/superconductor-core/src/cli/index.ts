@@ -12,6 +12,7 @@ export * from './dispatcher.js';
 export * from './interactive.js';
 export * from './headless.js';
 export * from './merge-track.js';
+export * from './learn.js';
 
 export async function runCli(args: string[] = process.argv.slice(2)): Promise<void> {
   const command = args[0] || 'context';
@@ -282,6 +283,15 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'learn': {
+      const { learnCommand } = await import('./learn.js');
+      const exitCode = await learnCommand(args.slice(1));
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+      break;
+    }
+
     default:
       console.log(`Superconductor Universal CLI
 
@@ -294,6 +304,7 @@ Usage:
   npx superconductor intelligence [--brownfield] [--target <path>]
   npx superconductor infer-permissions <spec.md path> <out manifest.toml path>
   npx superconductor models [--refresh-models|--scope <global|project|session>|--list]
+  npx superconductor learn [--list|--inspect <skill>|--promote <skill>|--discard <skill>|--harvest]
 `);
       process.exit(1);
   }
