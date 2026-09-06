@@ -8,7 +8,11 @@ describe('Command Delegation ("Thin Command" Architecture)', () => {
   const commandsDir = path.join(repoRoot, 'commands', 'superconductor');
   const skillsDir = path.join(repoRoot, 'skills');
 
-  const expectedCommands = [
+  const expectedCommands: Array<{
+    file: string;
+    expectedSkill?: string;
+    expectedSkillRegex?: RegExp;
+  }> = [
     { file: 'setup.toml', expectedSkill: 'skills/setup/SKILL.md' },
     { file: 'newTrack.toml', expectedSkill: 'skills/new-track/SKILL.md' },
     { file: 'implement.toml', expectedSkill: 'skills/implement/SKILL.md' },
@@ -18,9 +22,10 @@ describe('Command Delegation ("Thin Command" Architecture)', () => {
     { file: 'triage.toml', expectedSkill: 'skills/triage/SKILL.md' },
     { file: 'models.toml', expectedSkill: 'skills/models/SKILL.md' },
     { file: 'yolo.toml', expectedSkill: 'skills/yolo/SKILL.md' },
+    { file: 'learn.toml' },
   ];
 
-  it('contains all 9 expected command TOML files', () => {
+  it('contains all expected command TOML files', () => {
     const files = fs.readdirSync(commandsDir).filter(f => f.endsWith('.toml'));
     expect(files.sort()).toEqual(expectedCommands.map(c => c.file).sort());
   });

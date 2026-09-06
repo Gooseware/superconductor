@@ -1,0 +1,16 @@
+description = "Inspect, vet, harvest, promote, or discard continuous learning skills"
+prompt = """
+Inspect, vet, harvest, promote, or discard continuous learning skills.
+
+Flags:
+- `--list`: List all incubating skills with confidence score, vetting status, and source track
+- `--inspect <skill>`: Inspect candidate SKILL.md and automated vetting report
+- `--promote <skill>`: Promote candidate skill to active status
+- `--scope <project|global>`: Target scope for promotion (default: project)
+- `--discard <skill>`: Discard incubating skill candidate from staging
+- `--harvest`: Harvest trajectories and distill candidate skills from track runs
+- `--track <id>`: Target track ID for harvesting
+- `--json`: Output structured JSON for script consumption
+
+The args provided by the user are: {{args}}
+"""
