@@ -624,13 +624,83 @@ Using API key sk-proj-1234567890abcdefghijklmnopqrstuvwxyz and password: SuperSe
     });
   });
 
-  describe('harvestRemediationDiff', () => {
+  describe('harvestRemediationDiff and git revision validation', () => {
+    describe('isValidGitRevision', () => {
+      it('rejects empty, non-string, or undefined inputs', () => {
+        expect(TrajectoryHarvester.isValidGitRevision('')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision(null)).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision(undefined)).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision(12345 as any)).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision({} as any)).toBe(false);
+      });
+
+      it('rejects revision arguments with leading dashes (preventing flag injection)', () => {
+        expect(TrajectoryHarvester.isValidGitRevision('--output=/tmp/evil')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('-p')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('--stat')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('-u')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('--diff-filter=A')).toBe(false);
+      });
+
+      it('rejects revision arguments with invalid characters (spaces, semicolons, backticks, shell metacharacters)', () => {
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD branch')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD;cat /etc/passwd')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD`whoami`')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD$(whoami)')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD|rm -rf /')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD&evil')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD>file')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD<file')).toBe(false);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD\nline')).toBe(false);
+      });
+
+      it('cleanly accepts valid git revisions', () => {
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD~1')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD^2')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('main')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('master')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('feature/branch-name')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('0432a12b')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('e2b8c991a0c44c5f939e6a032890dbd181977717')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('HEAD@{1}')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('v1.0.0')).toBe(true);
+        expect(TrajectoryHarvester.isValidGitRevision('refs/heads/feature/123')).toBe(true);
+      });
+    });
+
     it('returns empty string when preCommit or postCommit is missing', async () => {
       const diff1 = await TrajectoryHarvester.harvestRemediationDiff('', 'abc');
       expect(diff1).toBe('');
 
       const diff2 = await TrajectoryHarvester.harvestRemediationDiff('abc', '');
       expect(diff2).toBe('');
+    });
+
+    it('returns empty string immediately when revision starts with leading dash or is an injected flag', async () => {
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('--output=/tmp/evil', 'HEAD')
+      ).toBe('');
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('HEAD', '--output=/tmp/evil')
+      ).toBe('');
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('-p', 'HEAD')
+      ).toBe('');
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('HEAD', '--stat')
+      ).toBe('');
+    });
+
+    it('returns empty string immediately when revision contains invalid characters or shell metacharacters', async () => {
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('HEAD; rm -rf /', 'HEAD')
+      ).toBe('');
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('HEAD', 'HEAD`touch /tmp/pwn`')
+      ).toBe('');
+      expect(
+        await TrajectoryHarvester.harvestRemediationDiff('HEAD branch', 'HEAD')
+      ).toBe('');
     });
 
     it('extracts git diff between two commits using git diff', async () => {

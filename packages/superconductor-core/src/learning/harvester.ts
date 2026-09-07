@@ -44,6 +44,27 @@ export class TrajectoryHarvester {
   }
 
   /**
+   * Safe git revision regex matching valid git revision specifiers
+   * (e.g., commit SHAs, branch names, tags, reflog/relative references like HEAD~1, HEAD@{1}).
+   * Disallows leading hyphens (flags), whitespace, and shell metacharacters.
+   */
+  public static readonly SAFE_GIT_REVISION_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_.~^/@{}:-]*$/;
+
+  /**
+   * Validates whether a given revision string is safe to pass to git diff.
+   * Rejects non-string, empty, leading-hyphen, whitespace, and shell metacharacter inputs.
+   */
+  public static isValidGitRevision(rev: unknown): boolean {
+    if (typeof rev !== 'string' || !rev) {
+      return false;
+    }
+    if (rev.startsWith('-')) {
+      return false;
+    }
+    return this.SAFE_GIT_REVISION_REGEX.test(rev);
+  }
+
+  /**
    * Safely extracts git diff between two commits using git diff.
    */
   public static async harvestRemediationDiff(
@@ -51,7 +72,7 @@ export class TrajectoryHarvester {
     postCommit: string,
     options?: { repoRoot?: string }
   ): Promise<string> {
-    if (!preCommit || !postCommit) {
+    if (!this.isValidGitRevision(preCommit) || !this.isValidGitRevision(postCommit)) {
       return '';
     }
 
@@ -59,7 +80,7 @@ export class TrajectoryHarvester {
     return new Promise((resolve) => {
       execFile(
         'git',
-        ['diff', `${preCommit}..${postCommit}`],
+        ['diff', `${preCommit}..${postCommit}`, '--'],
         { cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 },
         (error, stdout) => {
           if (error) {
