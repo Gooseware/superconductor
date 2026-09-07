@@ -1,0 +1,20 @@
+# Permission Manifest for track adaptive_research_router_20260907
+track_id = "adaptive_research_router_20260907"
+mode = "TRACKED"
+
+[permissions]
+allowed_paths = [
+  "packages/engine/src/research/",
+  "packages/superconductor-core/src/remediation/",
+  "skills/new-track/",
+  "packages/engine/tests/",
+  "packages/superconductor-core/tests/",
+  ".superconductor/",
+  "superconductor/tracks/adaptive_research_router_20260907/"
+]
+
+allowed_commands = [
+  "npm",
+  "node",
+  "git"
+]
