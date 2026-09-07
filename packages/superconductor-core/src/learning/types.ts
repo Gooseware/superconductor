@@ -101,6 +101,8 @@ export interface DistillationOptions {
   status?: string;
   vettingStatus?: string;
   harvestTimestamp?: string;
+  distillRemediations?: boolean;
+  maxSteps?: number;
 }
 
 export interface SkillProvenanceMetadata {
@@ -126,6 +128,14 @@ export interface SkillTemplateData {
   workflowProcedure?: string | string[];
   guidelinesInvariants?: string | string[];
   verification?: string | string[];
+  antiPattern?: string | string[];
+  hardenedPattern?: string | string[];
+  diffHunk?: string;
+  verificationRecipe?: string | string[];
+  invariantsRules?: string | string[];
+  tools?: string[];
+  tags?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 import type {

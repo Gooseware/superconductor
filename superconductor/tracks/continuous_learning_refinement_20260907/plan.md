@@ -50,23 +50,23 @@
 
 ## Phase 2: Contrastive Template & Micro-Skill Distillation
 
-- [ ] Task: Upgrade SkillTemplateGenerator with Contrastive Learning Sections [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Upgrade SkillTemplateGenerator with Contrastive Learning Sections [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/__tests__/templates.test.ts
     PROTECTED: packages/superconductor-core/src/learning/templates.ts
     INVARIANT_AFTER: "Contrastive templates MUST render Anti-Patterns (where things went wrong) and Hardened Patterns (where things went right)."
-    - [ ] Write unit tests for rendering contrastive sections (Anti-Patterns, Hardened Patterns, Invariants, Verification) [TIER-1:TCS=2]
-    - [ ] Update SkillTemplateGenerator to format contrastive markdown blocks [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for rendering contrastive sections (Anti-Patterns, Hardened Patterns, Invariants, Verification) [TIER-1:TCS=2]
+    - [x] Update SkillTemplateGenerator to format contrastive markdown blocks [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Implement Remediation Micro-Skill Distillation in WorkflowSkillDistiller [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement Remediation Micro-Skill Distillation in WorkflowSkillDistiller [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/__tests__/skill-distiller.test.ts
     PROTECTED: packages/superconductor-core/src/learning/skill-distiller.ts
     INVARIANT_AFTER: "Distilled micro-skills MUST NOT exceed 15 steps and MUST adhere to Dogma tool whitelist."
-    - [ ] Write unit tests for distilling individual remediation cycles into micro-skills [TIER-1:TCS=2]
-    - [ ] Implement distillRemediationMicroSkills to extract problem-solution pairs from Quorum findings & git diffs [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for distilling individual remediation cycles into micro-skills [TIER-1:TCS=2]
+    - [x] Implement distillRemediationMicroSkills to extract problem-solution pairs from Quorum findings & git diffs [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Contrastive Distillation' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Contrastive Distillation' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 

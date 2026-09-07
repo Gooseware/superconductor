@@ -166,7 +166,7 @@ export class ReflectiveInvariantSynthesizer {
   /**
    * Internal grammar formulation engine to produce crisp "The <component> MUST/MUST NOT <rule>" strings.
    */
-  private static formulateRule(
+  public static formulateRule(
     finding: string,
     domain?: string,
     rootCause?: string,
