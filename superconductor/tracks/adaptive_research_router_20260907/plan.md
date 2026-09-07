@@ -78,31 +78,31 @@
     - [x] Connect fallback cascade: DeerFlow -> Gemini Deep Research -> search_web [TIER-1:TCS=2]
     - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Adaptive Router & Resilience' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 2: Adaptive Router & Resilience' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
 ## Phase 3: Prior-Art Anti-Reinvention Gate & Remediation Escalation
 
-- [ ] Task: Implement Prior-Art Anti-Reinvention Gate for track planning [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement Prior-Art Anti-Reinvention Gate for track planning [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/engine/src/research/anti-reinvention-gate.ts, packages/engine/src/research/__tests__/anti-reinvention-gate.test.ts
     PROTECTED: skills/new-track/SKILL.md
     INVARIANT_AFTER: "Anti-reinvention gate MUST emit OSS_DISCOVERY dependencies into ResearchBrief."
-    - [ ] Write unit tests for extracting ecosystem packages and emitting locked dependency sections [TIER-1:TCS=2]
-    - [ ] Implement AntiReinventionGate extracting top OSS libraries and known traps [TIER-1:TCS=3]
-    - [ ] Wire AntiReinventionGate into skills/new-track/SKILL.md research phase [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for extracting ecosystem packages and emitting locked dependency sections [TIER-1:TCS=2]
+    - [x] Implement AntiReinventionGate extracting top OSS libraries and known traps [TIER-1:TCS=3]
+    - [x] Wire AntiReinventionGate into skills/new-track/SKILL.md research phase [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Connect DeepResearchEscalationHandler to research router with multi-turn chat [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Connect DeepResearchEscalationHandler to research router with multi-turn chat [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/remediation/__tests__/deep-research-escalation-router.test.ts
     PROTECTED: packages/superconductor-core/src/remediation/deep-research-escalation-handler.ts
     INVARIANT_AFTER: "DeepResearchEscalationHandler MUST feed failure traces and diffs into the research router."
-    - [ ] Write unit tests for multi-turn remediation research using diagnostic payloads [TIER-1:TCS=2]
-    - [ ] Update DeepResearchEscalationHandler to route through AdaptiveResearchRouter [TIER-1:TCS=3]
-    - [ ] Implement interactive policy confirmation when breaking changes or CVEs are detected [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for multi-turn remediation research using diagnostic payloads [TIER-1:TCS=2]
+    - [x] Update DeepResearchEscalationHandler to route through AdaptiveResearchRouter [TIER-1:TCS=3]
+    - [x] Implement interactive policy confirmation when breaking changes or CVEs are detected [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Anti-Reinvention & Remediation' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: Anti-Reinvention & Remediation' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 

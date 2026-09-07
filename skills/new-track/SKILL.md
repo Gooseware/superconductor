@@ -62,12 +62,14 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
     )
     ```
 
-### 2.0.3 Best Practices Research Phase (NEW)
+### 2.0.3 Best Practices & Anti-Reinvention Research Phase (NEW)
 1. **Trigger:** This phase runs automatically before spec generation for any new track, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
 2. **Action:**
-   - Automatically extract key architectural keywords from the track description (e.g., "authentication", "dashboard", "caching").
-   - Execute a web search query for current state-of-the-art best practices and common pitfalls regarding those keywords (e.g., "modern Next.js auth patterns 2026").
-   - Synthesize the findings into a brief "Research Notes" summary to be directly injected into the Specification.
+   - Execute `AntiReinventionGate.analyzeTrack(track_id, description)` via the Adaptive Multi-Tier Research Router (DeerFlow / Gemini / Web fallback).
+   - Formulate targeted queries for package discovery, ecosystem alternatives, and known anti-patterns.
+   - Emit structured `ResearchBrief` with `OSS_DISCOVERY` categories (Invariant 1).
+   - Ingest generated `## Ecosystem Alignment & Prior Art (Anti-Reinvention)` markdown section directly into `spec.md` and `plan.md`.
+   - Synthesize findings into the "Research Notes" summary to be directly injected into the Specification.
    - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
 
 ### 2.0.2 Notebook History Preflight (NEW — MANDATORY)

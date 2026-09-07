@@ -7,3 +7,4 @@ export * from './query-formulator.js';
 export * from './providers/deerflow-research-provider.js';
 export * from './circuit-breaker.js';
 export * from './adaptive-research-router.js';
+export * from './anti-reinvention-gate.js';
