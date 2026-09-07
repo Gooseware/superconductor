@@ -5,7 +5,7 @@ import { SemanticCache } from '@superconductor/core/src/cache/semantic-cache.js'
 import { WorkUnit, WorkUnitState, WorkUnitStateMachine } from '@superconductor/core/src/track/work-unit.js';
 import { ResearchBudgetExceededError } from './errors/research-budget-exceeded-error.js';
 import { ResearchProviderUnavailableError } from './errors/research-provider-unavailable-error.js';
-import { FallbackFailedError } from './errors.js';
+import { FallbackFailedError } from './errors/fallback-failed-error.js';
 import { ResearchBriefSynthesizer } from './brief-synthesizer.js';
 import { AgentConfigReader } from './agent-config-reader.js';
 import { ResearchProviderRegistry } from './provider-registry.js';

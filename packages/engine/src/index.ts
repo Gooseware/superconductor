@@ -14,4 +14,5 @@ export * from './agents/index.js';
 export { RogueWriteGuard, RogueWriteAttemptError, DEFAULT_PROTECTED_PATTERNS } from './guard/rogue-write-guard.js';
 export { HeadlessModeGuard, type HeadlessModeGuardOptions } from './guard/headless-mode-guard.js';
 export { ExecutionMode, NonInteractiveModeError } from './guard/execution-mode.js';
-// Add future module exports here
+// Research module exports
+export * from './research/index.js';

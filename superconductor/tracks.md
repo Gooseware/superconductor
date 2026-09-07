@@ -27,6 +27,7 @@
 | `[x]` | `note_taking_hardening_20260903` | [Note-Taking Hardening — NoteWriter utility, SKILL.md lifecycle instrumentation, notebook-store security fixes](./tracks/note_taking_hardening_20260903/index.md) | `track/note_taking_hardening_20260903` (merged to main) |
 | `[x]` | `continuous_learning_engine_20260906` | [Superconductor Continuous Learning Engine (CLE)](./tracks/continuous_learning_engine_20260906/index.md) | `track/continuous_learning_engine_20260906` (merged to main) |
 | `[x]` | `continuous_learning_refinement_20260907` | [CLE Refinement — Contrastive Trajectory & Remediation Distillation](./tracks/continuous_learning_refinement_20260907/index.md) | `track/continuous_learning_refinement_20260907` (merged to main) |
+| `[ ]` | `adaptive_research_router_20260907` | [Adaptive Multi-Tier Research Router & DeerFlow MCP Integration](./tracks/adaptive_research_router_20260907/index.md) | `track/adaptive_research_router_20260907` |
 
 ## Absorbed / Closed Tracks
 
