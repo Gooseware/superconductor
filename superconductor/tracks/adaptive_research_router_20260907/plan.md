@@ -23,14 +23,14 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify preflight test baseline is green [TIER-1:TCS=1] [AGENT:setup]
+- [x] Task: Verify preflight test baseline is green [TIER-1:TCS=1] [AGENT:setup]
     CREATES: .superconductor/preflight-cache.json
     PROTECTED: package.json
     INVARIANT_AFTER: "Preflight tests MUST be green before implementation starts."
-    - [ ] Run npm test -- --run and verify 100% green [TIER-1:TCS=1]
-    - [ ] Cache preflight report [TIER-1:TCS=1]
+    - [x] Run npm test -- --run and verify 100% green [TIER-1:TCS=1]
+    - [x] Cache preflight report [TIER-1:TCS=1]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
