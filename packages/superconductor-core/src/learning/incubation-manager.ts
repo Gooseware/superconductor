@@ -196,6 +196,9 @@ export class SkillIncubationManager {
     if (skill.learningMetadata?.vetting_status) {
       learningMetadata.vetting_status = skill.learningMetadata.vetting_status;
     }
+    if (skill.learningMetadata?.vetting_report) {
+      learningMetadata.vetting_report = skill.learningMetadata.vetting_report;
+    }
 
     frontmatter.superconductor_learning = learningMetadata;
 

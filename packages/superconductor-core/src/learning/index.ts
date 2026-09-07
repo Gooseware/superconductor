@@ -16,6 +16,7 @@
 
 export * from './types.js';
 export { TrajectorySanitizer } from './sanitizer.js';
+export { TranscriptParser } from './transcript-parser.js';
 export { TrajectoryHarvester } from './harvester.js';
 export { InvariantDeduplicator } from './deduplicator.js';
 export { ReflectiveInvariantSynthesizer } from './invariant-synthesizer.js';

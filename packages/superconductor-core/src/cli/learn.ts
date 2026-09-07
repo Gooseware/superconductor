@@ -25,6 +25,7 @@ interface ParsedLearnArgs {
   targetSkill?: string;
   trackId?: string;
   scope?: string;
+  remediations?: boolean;
   json: boolean;
   projectRoot?: string;
   stagingDir?: string;
@@ -35,6 +36,7 @@ interface ParsedLearnArgs {
 function parseArgs(args: string[] = [], options?: Record<string, unknown>): ParsedLearnArgs {
   const result: ParsedLearnArgs = {
     json: Boolean(options?.json),
+    remediations: Boolean(options?.remediations),
     projectRoot: options?.projectRoot as string | undefined,
     stagingDir: options?.stagingDir as string | undefined,
     globalSkillsDir: (options?.globalSkillsDir || options?.globalDir) as string | undefined,
@@ -52,6 +54,18 @@ function parseArgs(args: string[] = [], options?: Record<string, unknown>): Pars
 
     if (arg === '--json') {
       result.json = true;
+      continue;
+    }
+
+    if (arg === '--remediations' || arg === '--remediations=true') {
+      result.remediations = true;
+      if (!result.subcommand) {
+        result.subcommand = 'harvest';
+      }
+      continue;
+    }
+    if (arg === '--remediations=false') {
+      result.remediations = false;
       continue;
     }
 
@@ -182,7 +196,7 @@ Usage:
   superconductor learn --inspect <skill> [--json]
   superconductor learn --promote <skill> [--scope project|global] [--json]
   superconductor learn --discard <skill> [--json]
-  superconductor learn --harvest [--track <id>] [--json]
+  superconductor learn --harvest [--remediations] [--track <id>] [--json]
 
 Subcommands & Flags:
   --list                    List all incubating skills with confidence, status, source
@@ -191,6 +205,7 @@ Subcommands & Flags:
   --scope <project|global>  Promotion destination scope (default: project)
   --discard <skill>         Discard incubating skill from staging
   --harvest                 Harvest trajectory from completed track and distill skill
+  --remediations            Harvest focused contrastive micro-skills from track remediation cycles
   --track <id>              Target track ID for harvesting
   --json                    Output structured JSON
   --help, -h                Show this help message
@@ -502,7 +517,99 @@ export async function learnCommand(
           return 1;
         }
 
-        // 2. Distill workflow into candidate skill
+        const hasRemediationPairs =
+          Array.isArray(record.remediationPairs) && record.remediationPairs.length > 0;
+        const harvestRemediations = Boolean(parsed.remediations || hasRemediationPairs);
+
+        if (harvestRemediations) {
+          const microSkills = WorkflowSkillDistiller.distillRemediationMicroSkills(record);
+
+          if (microSkills.length === 0) {
+            if (parsed.remediations) {
+              if (isJson) {
+                console.log(JSON.stringify([], null, 2));
+              } else {
+                console.log(
+                  `ℹ️ No remediation micro-skills found or distilled from track "${path.basename(
+                    resolvedTrackPath
+                  )}".`
+                );
+              }
+              return 0;
+            }
+            // If --remediations was not explicitly specified, fall back to general distillation below
+          } else {
+            const stagedSummaries = [];
+
+            for (const skill of microSkills) {
+              const dogmaReport = SkillDogmaValidator.validate(skill.content || '');
+              const canaryReport = await CanaryHarness.evaluateSkill(skill, { projectRoot });
+
+              let vettingStatus: VettingStatus;
+              if (!dogmaReport.valid || dogmaReport.status === 'rejected' || !canaryReport.passed) {
+                vettingStatus = 'rejected';
+              } else if (
+                dogmaReport.status === 'flagged' ||
+                (canaryReport.warnings && canaryReport.warnings.length > 0)
+              ) {
+                vettingStatus = 'flagged';
+              } else {
+                vettingStatus = 'passed';
+              }
+
+              const vettingReport = {
+                dogma: dogmaReport,
+                canary: canaryReport,
+              };
+
+              const stagedPath = await SkillIncubationManager.stageSkill(
+                {
+                  ...skill,
+                  learningMetadata: {
+                    status: 'incubating',
+                    source_track:
+                      skill.sourceTrackId || record.trackId || path.basename(resolvedTrackPath),
+                    harvest_timestamp: new Date().toISOString(),
+                    confidence_score: skill.confidenceScore ?? 0.85,
+                    vetting_status: vettingStatus,
+                    vetting_report: vettingReport,
+                  },
+                },
+                { projectRoot, stagingDir }
+              );
+
+              const scoreDisplay =
+                typeof skill.confidenceScore === 'number'
+                  ? skill.confidenceScore.toFixed(2)
+                  : String(skill.confidenceScore ?? 'N/A');
+
+              if (!isJson) {
+                console.log(
+                  `✅ Harvested micro-skill "${skill.name}" from remediation cycle (status: ${vettingStatus}, confidence: ${scoreDisplay})`
+                );
+              }
+
+              stagedSummaries.push({
+                success: true,
+                skill: skill.name,
+                name: skill.name,
+                path: stagedPath,
+                vettingStatus,
+                confidenceScore: skill.confidenceScore,
+                sourceTrack:
+                  skill.sourceTrackId || record.trackId || path.basename(resolvedTrackPath),
+                vettingReport,
+              });
+            }
+
+            if (isJson) {
+              console.log(JSON.stringify(stagedSummaries, null, 2));
+            }
+            return 0;
+          }
+        }
+
+        // 2. Distill workflow into candidate skill (fallback when no remediation pairs)
         const distilled = WorkflowSkillDistiller.distillFromExperience(record, {
           allowTrivial: true,
         });

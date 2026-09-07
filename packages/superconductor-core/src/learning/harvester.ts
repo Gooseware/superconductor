@@ -10,13 +10,16 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { execFile } from 'child_process';
 import {
   ExecutionStep,
   QuorumFeedback,
   ExperienceRecord,
   HarvesterOptions,
+  RemediationPair,
 } from './types.js';
 import { TrajectorySanitizer } from './sanitizer.js';
+import { TranscriptParser } from './transcript-parser.js';
 
 export class TrajectoryHarvester {
   private static readonly DEFAULT_STORAGE_DIR = path.join(
@@ -25,6 +28,70 @@ export class TrajectoryHarvester {
     'learning',
     'trajectories'
   );
+
+  /**
+   * Ingest a transcript.jsonl file directly and parse into sanitized ExecutionSteps.
+   */
+  public static async harvestTranscript(
+    transcriptPath: string
+  ): Promise<ExecutionStep[]> {
+    try {
+      const content = await fs.readFile(transcriptPath, 'utf8');
+      return TranscriptParser.parseTranscript(content);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Safe git revision regex matching valid git revision specifiers
+   * (e.g., commit SHAs, branch names, tags, reflog/relative references like HEAD~1, HEAD@{1}).
+   * Disallows leading hyphens (flags), whitespace, and shell metacharacters.
+   */
+  public static readonly SAFE_GIT_REVISION_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_.~^/@{}:-]*$/;
+
+  /**
+   * Validates whether a given revision string is safe to pass to git diff.
+   * Rejects non-string, empty, leading-hyphen, whitespace, and shell metacharacter inputs.
+   */
+  public static isValidGitRevision(rev: unknown): boolean {
+    if (typeof rev !== 'string' || !rev) {
+      return false;
+    }
+    if (rev.startsWith('-')) {
+      return false;
+    }
+    return this.SAFE_GIT_REVISION_REGEX.test(rev);
+  }
+
+  /**
+   * Safely extracts git diff between two commits using git diff.
+   */
+  public static async harvestRemediationDiff(
+    preCommit: string,
+    postCommit: string,
+    options?: { repoRoot?: string }
+  ): Promise<string> {
+    if (!this.isValidGitRevision(preCommit) || !this.isValidGitRevision(postCommit)) {
+      return '';
+    }
+
+    const repoRoot = options?.repoRoot ?? process.cwd();
+    return new Promise((resolve) => {
+      execFile(
+        'git',
+        ['diff', `${preCommit}..${postCommit}`, '--'],
+        { cwd: repoRoot, maxBuffer: 10 * 1024 * 1024 },
+        (error, stdout) => {
+          if (error) {
+            resolve('');
+          } else {
+            resolve(stdout ?? '');
+          }
+        }
+      );
+    });
+  }
 
   /**
    * Harvest track directory artifacts (spec.md, plan.md, metadata.json, quorum state)
@@ -52,6 +119,9 @@ export class TrajectoryHarvester {
     let timestamp = Date.now();
     let steps: ExecutionStep[] = [];
     const quorumReviews: QuorumFeedback[] = [];
+    let preCommit = options?.preCommit ?? options?.remediationHarvestOptions?.preCommit;
+    let postCommit = options?.postCommit ?? options?.remediationHarvestOptions?.postCommit;
+    const repoRoot = options?.repoRoot ?? options?.remediationHarvestOptions?.repoRoot;
 
     // 1. Read metadata.json if present
     const metadataPath = path.join(trackPath, 'metadata.json');
@@ -82,6 +152,12 @@ export class TrajectoryHarvester {
           for (const qr of parsedMeta.quorumReviews) {
             quorumReviews.push(this.normalizeQuorumFeedback(qr));
           }
+        }
+        if (!preCommit && typeof parsedMeta.preCommit === 'string') {
+          preCommit = parsedMeta.preCommit;
+        }
+        if (!postCommit && typeof parsedMeta.postCommit === 'string') {
+          postCommit = parsedMeta.postCommit;
         }
       }
     } catch {
@@ -135,7 +211,42 @@ export class TrajectoryHarvester {
       // spec.md is optional
     }
 
-    // 3. Read plan.md if present (and extract tasks as steps if no steps in metadata)
+    // 3. Ingest transcript.jsonl if available and steps not already extracted from metadata
+    if (steps.length === 0) {
+      const transcriptCandidates: string[] = [];
+      if (options?.transcriptPath) {
+        transcriptCandidates.push(options.transcriptPath);
+      }
+      if (options?.remediationHarvestOptions?.transcriptPath) {
+        transcriptCandidates.push(options.remediationHarvestOptions.transcriptPath);
+      }
+      transcriptCandidates.push(
+        path.join(trackPath, 'transcript.jsonl'),
+        path.join(trackPath, '.superconductor', 'transcript.jsonl'),
+        path.join(trackPath, '.superconductor', 'logs', 'transcript.jsonl'),
+        path.join(trackPath, 'logs', 'transcript.jsonl'),
+        path.join(process.cwd(), '.superconductor', 'logs', `${trackId}-transcript.jsonl`),
+        path.join(process.cwd(), '.superconductor', 'logs', 'transcript.jsonl'),
+        path.join(process.cwd(), '.superconductor', trackId, 'transcript.jsonl')
+      );
+
+      for (const candidate of transcriptCandidates) {
+        try {
+          const stat = await fs.stat(candidate);
+          if (stat.isFile()) {
+            const transcriptSteps = await this.harvestTranscript(candidate);
+            if (transcriptSteps.length > 0) {
+              steps = transcriptSteps;
+              break;
+            }
+          }
+        } catch {
+          // Candidate file not found or unreadable, try next
+        }
+      }
+    }
+
+    // 4. Read plan.md if present (and extract tasks as steps ONLY if no steps in metadata or transcript)
     const planPath = path.join(trackPath, 'plan.md');
     try {
       const planContent = await fs.readFile(planPath, 'utf8');
@@ -175,7 +286,7 @@ export class TrajectoryHarvester {
       // plan.md is optional
     }
 
-    // 4. Read quorum state if present
+    // 5. Read quorum state if present
     const potentialQuorumFiles = [
       'quorum-state.json',
       'quorum_reviews.json',
@@ -208,6 +319,24 @@ export class TrajectoryHarvester {
       outcome = hasNeedsFixes ? 'failure' : 'success';
     }
 
+    // 6. Extract remediation pairs from steps
+    let remediationPairs: RemediationPair[] = [];
+    if (steps.length > 0) {
+      remediationPairs = TranscriptParser.extractFailureRemediationPairs(steps);
+    }
+
+    // Attach diff hunk from git if preCommit and postCommit are provided
+    if (preCommit && postCommit) {
+      const diffHunk = await this.harvestRemediationDiff(preCommit, postCommit, { repoRoot });
+      if (diffHunk && remediationPairs.length > 0) {
+        for (const pair of remediationPairs) {
+          if (!pair.diffHunk) {
+            pair.diffHunk = diffHunk;
+          }
+        }
+      }
+    }
+
     // Apply maxSteps if specified
     if (options?.maxSteps !== undefined && options.maxSteps > 0 && steps.length > options.maxSteps) {
       steps = steps.slice(0, options.maxSteps);
@@ -223,6 +352,7 @@ export class TrajectoryHarvester {
       outcome,
       tags,
       metadata,
+      ...(remediationPairs.length > 0 ? { remediationPairs } : {}),
     };
 
     // Redact sensitive tokens unless explicitly opted out
@@ -330,6 +460,9 @@ export class TrajectoryHarvester {
       steps = steps.slice(0, options.maxSteps);
     }
 
+    const remediationPairs =
+      steps.length > 0 ? TranscriptParser.extractFailureRemediationPairs(steps) : [];
+
     let record: ExperienceRecord = {
       id: `session-${sessionId}-${Date.now()}`,
       trackId: sessionId,
@@ -340,6 +473,7 @@ export class TrajectoryHarvester {
       outcome,
       tags,
       metadata,
+      ...(remediationPairs.length > 0 ? { remediationPairs } : {}),
     };
 
     if (options?.redactSensitive !== false) {

@@ -20,6 +20,23 @@ export interface QuorumFeedback {
   findings: string[];
 }
 
+export interface RemediationPair {
+  id: string;
+  domain?: string;
+  finding?: string;
+  failureStep?: ExecutionStep;
+  errorSummary: string;
+  resolutionSteps: ExecutionStep[];
+  diffHunk?: string;
+}
+
+export interface RemediationHarvestOptions {
+  transcriptPath?: string;
+  preCommit?: string;
+  postCommit?: string;
+  repoRoot?: string;
+}
+
 export interface ExperienceRecord {
   id: string;
   trackId: string;
@@ -30,11 +47,17 @@ export interface ExperienceRecord {
   outcome: 'success' | 'failure';
   tags: string[];
   metadata?: Record<string, unknown>;
+  remediationPairs?: RemediationPair[];
 }
 
 export interface HarvesterOptions {
   redactSensitive?: boolean;
   maxSteps?: number;
+  transcriptPath?: string;
+  preCommit?: string;
+  postCommit?: string;
+  repoRoot?: string;
+  remediationHarvestOptions?: RemediationHarvestOptions;
 }
 
 export interface SynthesizedInvariant {
@@ -78,6 +101,8 @@ export interface DistillationOptions {
   status?: string;
   vettingStatus?: string;
   harvestTimestamp?: string;
+  distillRemediations?: boolean;
+  maxSteps?: number;
 }
 
 export interface SkillProvenanceMetadata {
@@ -103,6 +128,14 @@ export interface SkillTemplateData {
   workflowProcedure?: string | string[];
   guidelinesInvariants?: string | string[];
   verification?: string | string[];
+  antiPattern?: string | string[];
+  hardenedPattern?: string | string[];
+  diffHunk?: string;
+  verificationRecipe?: string | string[];
+  invariantsRules?: string | string[];
+  tools?: string[];
+  tags?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 import type {
@@ -181,6 +214,7 @@ export interface CanaryOptions {
   testPrompts?: string[];
   baseDir?: string;
   allowEmptySteps?: boolean;
+  projectRoot?: string;
 }
 
 export interface PromotionOptions {
