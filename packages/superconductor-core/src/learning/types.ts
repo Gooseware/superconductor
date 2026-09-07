@@ -214,6 +214,7 @@ export interface CanaryOptions {
   testPrompts?: string[];
   baseDir?: string;
   allowEmptySteps?: boolean;
+  projectRoot?: string;
 }
 
 export interface PromotionOptions {

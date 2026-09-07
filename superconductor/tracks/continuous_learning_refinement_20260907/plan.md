@@ -72,23 +72,23 @@
 
 ## Phase 3: CLI Remediation Harvest & E2E Verification
 
-- [ ] Task: Extend CLI learn command to support micro-skill remediation harvesting [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Extend CLI learn command to support micro-skill remediation harvesting [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/cli/__tests__/learn.test.ts
     PROTECTED: packages/superconductor-core/src/cli/learn.ts, commands/superconductor/learn.toml
     INVARIANT_AFTER: "CLI learn --harvest MUST support harvesting remediation micro-skills and staging each individually."
-    - [ ] Write unit tests for learn --harvest --remediations CLI flags [TIER-1:TCS=2]
-    - [ ] Wire remediation micro-skill harvesting into learnCommand [TIER-1:TCS=3]
-    - [ ] Update commands/superconductor/learn.toml documentation [TIER-1:TCS=1]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for learn --harvest --remediations CLI flags [TIER-1:TCS=2]
+    - [x] Wire remediation micro-skill harvesting into learnCommand [TIER-1:TCS=3]
+    - [x] Update commands/superconductor/learn.toml documentation [TIER-1:TCS=1]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Implement End-to-End Contrastive Learning Integration Test Suite [TIER-2:TCS=2] [AGENT:superconductor-processor]
+- [x] Task: Implement End-to-End Contrastive Learning Integration Test Suite [TIER-2:TCS=2] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/tests/e2e/contrastive-learning-e2e.test.ts
     PROTECTED: packages/superconductor-core/tests/e2e/
     INVARIANT_AFTER: "Harvested micro-skills MUST pass SkillDogmaValidator and CanaryHarness vetting gate."
-    - [ ] Write E2E test simulating a failure -> remediation -> transcript/diff harvest -> micro-skill staging -> vetting pass [TIER-1:TCS=2]
-    - [ ] Run global test suite to verify 100% green [TIER-1:TCS=2]
+    - [x] Write E2E test simulating a failure -> remediation -> transcript/diff harvest -> micro-skill staging -> vetting pass [TIER-1:TCS=2]
+    - [x] Run global test suite to verify 100% green [TIER-1:TCS=2]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: CLI & E2E Verification' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 3: CLI & E2E Verification' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 

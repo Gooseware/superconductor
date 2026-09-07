@@ -81,6 +81,7 @@ export class CanaryHarness {
         'verification',
         'validation',
         'verification steps',
+        'verification recipe',
       ]);
 
       // 3. Parse procedural steps
@@ -318,7 +319,12 @@ export class CanaryHarness {
       const parenMatch = rawContent.match(/\(([^)]+)\)/);
       if (parenMatch) {
         const inner = parenMatch[1].replace(/^[`'"]+|[`'"]+$/g, '').trim();
-        if (toolName === 'write_to_file' && !targetFile) {
+        if (
+          (toolName === 'write_to_file' ||
+            toolName === 'replace_file_content' ||
+            toolName === 'edit_file') &&
+          !targetFile
+        ) {
           targetFile = inner;
         } else if (toolName === 'run_command' && !commandLine) {
           commandLine = inner;
@@ -334,15 +340,25 @@ export class CanaryHarness {
       // 3. Check second backtick token if targetFile/commandLine not yet identified
       if (backtickMatches.length > 1) {
         const secondToken = backtickMatches[1];
-        if (toolName === 'write_to_file' && !targetFile) {
+        if (
+          (toolName === 'write_to_file' ||
+            toolName === 'replace_file_content' ||
+            toolName === 'edit_file') &&
+          !targetFile
+        ) {
           targetFile = secondToken;
         } else if (toolName === 'run_command' && !commandLine) {
           commandLine = secondToken;
         }
       }
 
-      // 4. Fallback: check for traversal or path patterns in raw text if tool is write_to_file
-      if (toolName === 'write_to_file' && !targetFile) {
+      // 4. Fallback: check for traversal or path patterns in raw text if tool is write_to_file or edit
+      if (
+        (toolName === 'write_to_file' ||
+          toolName === 'replace_file_content' ||
+          toolName === 'edit_file') &&
+        !targetFile
+      ) {
         const pathToken = rawContent.match(/(?:\.\.\/|\.\/|\/)[^\s`'")]+/);
         if (pathToken) {
           targetFile = pathToken[0];
@@ -613,8 +629,13 @@ export class CanaryHarness {
       }
     }
 
-    // 2. Built-in simulation for write_to_file
-    if (tool === 'write_to_file' || step.targetFile) {
+    // 2. Built-in simulation for write_to_file and file modification tools
+    if (
+      tool === 'write_to_file' ||
+      tool === 'replace_file_content' ||
+      tool === 'edit_file' ||
+      step.targetFile
+    ) {
       const target = step.targetFile || 'default_output.txt';
 
       // Ensure target file does NOT escape sandbox

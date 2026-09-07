@@ -477,7 +477,220 @@ describe('learnCommand CLI Handler', () => {
       canarySpy.mockRestore();
       dogmaSpy.mockRestore();
     });
+
+    describe('--remediations flag (micro-skill harvesting)', () => {
+    const setupRemediationTrack = async (trackName = 'track_remediation_cycle') => {
+      const trackDir = path.join(tempRoot, 'superconductor', 'tracks', trackName);
+      await fs.mkdir(trackDir, { recursive: true });
+
+      const metaContent = JSON.stringify({
+        id: trackName,
+        status: 'completed',
+        goal: 'Track demonstrating remediation cycle',
+      });
+      await fs.writeFile(path.join(trackDir, 'metadata.json'), metaContent, 'utf8');
+
+      const transcriptContent = [
+        JSON.stringify({
+          stepIndex: 0,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'FAIL: Path traversal vulnerability detected in server.ts',
+          status: 'error',
+        }),
+        JSON.stringify({
+          stepIndex: 1,
+          tool: 'replace_file_content',
+          input: {
+            TargetFile: 'src/server.ts',
+            TargetContent: 'path.join(root, p)',
+            ReplacementContent: 'path.resolve(root, p)',
+          },
+          output: 'Content replaced successfully',
+          status: 'success',
+        }),
+        JSON.stringify({
+          stepIndex: 2,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'PASS: All assertions passed',
+          status: 'success',
+        }),
+      ].join('\n');
+
+      await fs.writeFile(path.join(trackDir, 'transcript.jsonl'), transcriptContent, 'utf8');
+      return trackDir;
+    };
+
+    it('successfully harvests and stages micro-skills from mock track with remediation pairs', async () => {
+      await setupRemediationTrack('track_with_remediation');
+
+      const code = await learnCommand(
+        ['--harvest', '--remediations', '--track', 'track_with_remediation'],
+        {
+          projectRoot: tempRoot,
+          stagingDir,
+        }
+      );
+
+      expect(code).toBe(0);
+      const output = getOutput(logSpy);
+      expect(output).toContain('Harvested micro-skill');
+      expect(output).toContain('from remediation cycle');
+      expect(output).toContain('status:');
+      expect(output).toContain('confidence:');
+
+      const incubating = await SkillIncubationManager.listIncubating({
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(incubating.length).toBeGreaterThanOrEqual(1);
+      const skill = incubating[0];
+      expect(skill.sourceTrack).toBe('track_with_remediation');
+      expect(skill.vettingStatus).toBeDefined();
+
+      const skillDetails = await SkillIncubationManager.getIncubatingSkill(skill.name, {
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(skillDetails?.content).toContain('## Anti-Patterns & Common Traps');
+      expect(skillDetails?.content).toContain('## Hardened Implementation Pattern');
+      expect(skillDetails?.vettingReport).toBeDefined();
+    });
+
+    it('runs both Dogma and Canary gates on each micro-skill', async () => {
+      await setupRemediationTrack('track_gates_test');
+
+      const dogmaSpy = vi.spyOn(SkillDogmaValidator, 'validate');
+      const canarySpy = vi.spyOn(CanaryHarness, 'evaluateSkill');
+
+      const code = await learnCommand(
+        ['--harvest', '--remediations', '--track', 'track_gates_test'],
+        {
+          projectRoot: tempRoot,
+          stagingDir,
+        }
+      );
+
+      expect(code).toBe(0);
+      expect(dogmaSpy).toHaveBeenCalled();
+      expect(canarySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ name: expect.any(String) }),
+        expect.objectContaining({ projectRoot: tempRoot })
+      );
+
+      dogmaSpy.mockRestore();
+      canarySpy.mockRestore();
+    });
+
+    it('sets vettingStatus to rejected if Canary gate fails on micro-skill', async () => {
+      await setupRemediationTrack('track_canary_fail');
+
+      const canarySpy = vi.spyOn(CanaryHarness, 'evaluateSkill').mockResolvedValueOnce({
+        passed: false,
+        score: 0.1,
+        executionTimeMs: 12,
+        stepsExecuted: 1,
+        errors: ['Canary sandbox assertion failure'],
+        warnings: [],
+      });
+
+      const code = await learnCommand(
+        ['--harvest', '--remediations', '--track', 'track_canary_fail'],
+        {
+          projectRoot: tempRoot,
+          stagingDir,
+        }
+      );
+
+      expect(code).toBe(0);
+      const output = getOutput(logSpy);
+      expect(output).toContain('status: rejected');
+
+      const incubating = await SkillIncubationManager.listIncubating({
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+      expect(incubating.length).toBe(1);
+      expect(incubating[0].vettingStatus).toBe('rejected');
+
+      canarySpy.mockRestore();
+    });
+
+    it('supports --json flag output returning an array of staged skill summaries', async () => {
+      await setupRemediationTrack('track_json_rem');
+
+      const code = await learnCommand(
+        ['--harvest', '--remediations', '--track', 'track_json_rem', '--json'],
+        {
+          projectRoot: tempRoot,
+          stagingDir,
+        }
+      );
+
+      expect(code).toBe(0);
+      const rawJson = logSpy.mock.calls[0][0] as string;
+      const summaries = JSON.parse(rawJson);
+      expect(Array.isArray(summaries)).toBe(true);
+      expect(summaries.length).toBeGreaterThanOrEqual(1);
+
+      const summary = summaries[0];
+      expect(summary.success).toBe(true);
+      expect(summary.skill).toBeDefined();
+      expect(summary.name).toBeDefined();
+      expect(summary.path).toBeDefined();
+      expect(summary.vettingStatus).toBeDefined();
+      expect(typeof summary.confidenceScore).toBe('number');
+      expect(summary.sourceTrack).toBe('track_json_rem');
+      expect(summary.vettingReport).toBeDefined();
+    });
+
+    it('handles tracks without remediation pairs gracefully', async () => {
+      // track_sample_harvest has no remediation pairs
+      const code = await learnCommand(
+        ['--harvest', '--remediations', '--track', 'track_sample_harvest'],
+        {
+          projectRoot: tempRoot,
+          stagingDir,
+        }
+      );
+
+      expect(code).toBe(0);
+      const output = getOutput(logSpy);
+      expect(output).toContain('No remediation micro-skills found or distilled');
+
+      // Also verify --json output returns empty array gracefully
+      logSpy.mockClear();
+      const codeJson = await learnCommand(
+        ['--harvest', '--remediations', '--track', 'track_sample_harvest', '--json'],
+        {
+          projectRoot: tempRoot,
+          stagingDir,
+        }
+      );
+
+      expect(codeJson).toBe(0);
+      const rawJson = logSpy.mock.calls[0][0] as string;
+      const parsed = JSON.parse(rawJson);
+      expect(Array.isArray(parsed)).toBe(true);
+      expect(parsed).toEqual([]);
+    });
+
+    it('automatically distills micro-skills when remediation pairs exist even without explicit --remediations flag', async () => {
+      await setupRemediationTrack('track_auto_rem');
+
+      const code = await learnCommand(['--harvest', '--track', 'track_auto_rem'], {
+        projectRoot: tempRoot,
+        stagingDir,
+      });
+
+      expect(code).toBe(0);
+      const output = getOutput(logSpy);
+      expect(output).toContain('Harvested micro-skill');
+      expect(output).toContain('from remediation cycle');
+    });
   });
+});
 
   describe('CLI Dispatcher Wiring (runCli)', () => {
     it('dispatches to learnCommand through runCli', async () => {
