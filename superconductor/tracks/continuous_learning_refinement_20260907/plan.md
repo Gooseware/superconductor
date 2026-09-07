@@ -22,29 +22,29 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify preflight test baseline is green [TIER-1:TCS=1] [AGENT:setup]
+- [x] Task: Verify preflight test baseline is green [TIER-1:TCS=1] [AGENT:setup]
     CREATES: .superconductor/preflight-cache.json
     PROTECTED: package.json
     INVARIANT_AFTER: "Preflight tests MUST be green before implementation starts."
-    - [ ] Run npm test -- --run and verify 100% green [TIER-1:TCS=1]
-    - [ ] Cache preflight report [TIER-1:TCS=1]
+    - [x] Run npm test -- --run and verify 100% green [TIER-1:TCS=1]
+    - [x] Cache preflight report [TIER-1:TCS=1]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 0: Swarm Preflight' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
 ## Phase 1: Transcript & Git Diff Ingestion Engine
 
-- [ ] Task: Implement Transcript & Git Diff Ingestion in TrajectoryHarvester [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement Transcript & Git Diff Ingestion in TrajectoryHarvester [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/learning/transcript-parser.ts, packages/superconductor-core/src/learning/__tests__/transcript-parser.test.ts
     PROTECTED: packages/superconductor-core/src/learning/sanitizer.ts
     INVARIANT_AFTER: "Transcript parser MUST extract real tool calls and redact credentials via TrajectorySanitizer."
-    - [ ] Write unit tests for parsing transcript.jsonl entries (tool calls, error outputs, stack traces) [TIER-1:TCS=2]
-    - [ ] Implement TranscriptParser to extract tool action sequences and failure-remediation pairs [TIER-1:TCS=3]
-    - [ ] Implement git diff extraction between pre-remediation commit and post-remediation commit in TrajectoryHarvester [TIER-1:TCS=3]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for parsing transcript.jsonl entries (tool calls, error outputs, stack traces) [TIER-1:TCS=2]
+    - [x] Implement TranscriptParser to extract tool action sequences and failure-remediation pairs [TIER-1:TCS=3]
+    - [x] Implement git diff extraction between pre-remediation commit and post-remediation commit in TrajectoryHarvester [TIER-1:TCS=3]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Transcript & Git Diff Ingestion' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Transcript & Git Diff Ingestion' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 

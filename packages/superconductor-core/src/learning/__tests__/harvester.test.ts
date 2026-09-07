@@ -496,4 +496,228 @@ Using API key sk-proj-1234567890abcdefghijklmnopqrstuvwxyz and password: SuperSe
       expect(record2.steps).toHaveLength(0);
     });
   });
+
+  describe('harvestTranscript', () => {
+    it('returns empty array if the transcript file does not exist', async () => {
+      const result = await TrajectoryHarvester.harvestTranscript(
+        path.join(tempDir, 'nonexistent.jsonl')
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('reads and parses JSONL transcript files into execution steps', async () => {
+      const transcriptPath = path.join(tempDir, 'transcript.jsonl');
+      const lines = [
+        JSON.stringify({
+          stepIndex: 0,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'PASS src/index.test.ts',
+          status: 'success',
+        }),
+        JSON.stringify({
+          stepIndex: 1,
+          tool: 'write_to_file',
+          input: { TargetFile: 'index.ts' },
+          output: 'File written',
+          status: 'success',
+        }),
+      ];
+      await fs.writeFile(transcriptPath, lines.join('\n'), 'utf8');
+
+      const steps = await TrajectoryHarvester.harvestTranscript(transcriptPath);
+
+      expect(steps).toHaveLength(2);
+      expect(steps[0].tool).toBe('run_command');
+      expect(steps[1].tool).toBe('write_to_file');
+    });
+  });
+
+  describe('harvestTrack with transcript ingestion', () => {
+    it('ingests transcript.jsonl from track folder and does not emit dummy plan_task steps', async () => {
+      const trackPath = path.join(tempDir, 'transcript_track');
+      await fs.mkdir(trackPath, { recursive: true });
+
+      await fs.writeFile(
+        path.join(trackPath, 'spec.md'),
+        '# Spec: Real Steps Track\n**Track ID:** `real_steps_track`',
+        'utf8'
+      );
+      await fs.writeFile(
+        path.join(trackPath, 'plan.md'),
+        '# Plan\n- [x] Task: Plan task 1\n- [x] Task: Plan task 2\n- [x] Task: Plan task 3',
+        'utf8'
+      );
+
+      const transcriptContent = [
+        JSON.stringify({
+          stepIndex: 0,
+          tool: 'view_file',
+          input: { AbsolutePath: 'src/main.ts' },
+          output: 'export const app = {};',
+          status: 'success',
+        }),
+        JSON.stringify({
+          stepIndex: 1,
+          tool: 'replace_file_content',
+          input: { TargetFile: 'src/main.ts', ReplacementContent: 'export const app = { run: true };' },
+          output: 'File modified',
+          status: 'success',
+        }),
+      ].join('\n');
+      await fs.writeFile(path.join(trackPath, 'transcript.jsonl'), transcriptContent, 'utf8');
+
+      const record = await TrajectoryHarvester.harvestTrack(trackPath);
+
+      expect(record).not.toBeNull();
+      // Should have the 2 real tool steps, NOT the 3 dummy plan_task steps
+      expect(record?.steps).toHaveLength(2);
+      expect(record?.steps.every(s => s.tool !== 'plan_task')).toBe(true);
+      expect(record?.steps[0].tool).toBe('view_file');
+      expect(record?.steps[1].tool).toBe('replace_file_content');
+    });
+
+    it('extracts remediationPairs when transcript contains failure followed by successful fixes', async () => {
+      const trackPath = path.join(tempDir, 'remediation_track');
+      await fs.mkdir(trackPath, { recursive: true });
+
+      await fs.writeFile(
+        path.join(trackPath, 'spec.md'),
+        '# Spec: Remediation Track\n**Track ID:** `remediation_track`',
+        'utf8'
+      );
+
+      const transcriptContent = [
+        JSON.stringify({
+          stepIndex: 0,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'FAIL src/auth.test.ts\nAssertionError: expected false to be true',
+          status: 'error',
+        }),
+        JSON.stringify({
+          stepIndex: 1,
+          tool: 'replace_file_content',
+          input: { TargetFile: 'src/auth.ts', TargetContent: 'false', ReplacementContent: 'true' },
+          output: 'Replaced content',
+          status: 'success',
+        }),
+        JSON.stringify({
+          stepIndex: 2,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'PASS src/auth.test.ts (1 test passed)',
+          status: 'success',
+        }),
+      ].join('\n');
+      await fs.writeFile(path.join(trackPath, 'transcript.jsonl'), transcriptContent, 'utf8');
+
+      const record = await TrajectoryHarvester.harvestTrack(trackPath);
+
+      expect(record).not.toBeNull();
+      expect(record?.remediationPairs).toBeDefined();
+      expect(record?.remediationPairs).toHaveLength(1);
+      const pair = record!.remediationPairs![0];
+      expect(pair.failureStep?.stepIndex).toBe(0);
+      expect(pair.errorSummary).toContain('AssertionError');
+      expect(pair.resolutionSteps).toHaveLength(2);
+    });
+  });
+
+  describe('harvestRemediationDiff', () => {
+    it('returns empty string when preCommit or postCommit is missing', async () => {
+      const diff1 = await TrajectoryHarvester.harvestRemediationDiff('', 'abc');
+      expect(diff1).toBe('');
+
+      const diff2 = await TrajectoryHarvester.harvestRemediationDiff('abc', '');
+      expect(diff2).toBe('');
+    });
+
+    it('extracts git diff between two commits using git diff', async () => {
+      const gitRepoDir = path.join(tempDir, 'git_repo');
+      await fs.mkdir(gitRepoDir, { recursive: true });
+
+      const { execSync } = await import('child_process');
+      execSync('git init', { cwd: gitRepoDir });
+      execSync('git config user.email "test@example.com"', { cwd: gitRepoDir });
+      execSync('git config user.name "Test Runner"', { cwd: gitRepoDir });
+
+      const testFile = path.join(gitRepoDir, 'hello.txt');
+      await fs.writeFile(testFile, 'initial content\n', 'utf8');
+      execSync('git add hello.txt && git commit -m "initial"', { cwd: gitRepoDir });
+      const c1 = execSync('git rev-parse HEAD', { cwd: gitRepoDir, encoding: 'utf8' }).trim();
+
+      await fs.writeFile(testFile, 'updated content\n', 'utf8');
+      execSync('git add hello.txt && git commit -m "updated"', { cwd: gitRepoDir });
+      const c2 = execSync('git rev-parse HEAD', { cwd: gitRepoDir, encoding: 'utf8' }).trim();
+
+      const diff = await TrajectoryHarvester.harvestRemediationDiff(c1, c2, { repoRoot: gitRepoDir });
+
+      expect(diff).toContain('-initial content');
+      expect(diff).toContain('+updated content');
+    });
+
+    it('attaches git diff to remediationPairs in harvestTrack when preCommit and postCommit are provided', async () => {
+      const gitRepoDir = path.join(tempDir, 'git_track_repo');
+      await fs.mkdir(gitRepoDir, { recursive: true });
+
+      const { execSync } = await import('child_process');
+      execSync('git init', { cwd: gitRepoDir });
+      execSync('git config user.email "test@example.com"', { cwd: gitRepoDir });
+      execSync('git config user.name "Test Runner"', { cwd: gitRepoDir });
+
+      const testFile = path.join(gitRepoDir, 'code.ts');
+      await fs.writeFile(testFile, 'const broken = true;\n', 'utf8');
+      execSync('git add code.ts && git commit -m "failing state"', { cwd: gitRepoDir });
+      const c1 = execSync('git rev-parse HEAD', { cwd: gitRepoDir, encoding: 'utf8' }).trim();
+
+      await fs.writeFile(testFile, 'const broken = false;\n', 'utf8');
+      execSync('git add code.ts && git commit -m "fixed state"', { cwd: gitRepoDir });
+      const c2 = execSync('git rev-parse HEAD', { cwd: gitRepoDir, encoding: 'utf8' }).trim();
+
+      const trackDir = path.join(gitRepoDir, 'my_track');
+      await fs.mkdir(trackDir, { recursive: true });
+      await fs.writeFile(path.join(trackDir, 'spec.md'), '# Spec: Diff Track\n**Track ID:** `diff_track`', 'utf8');
+
+      const transcriptContent = [
+        JSON.stringify({
+          stepIndex: 0,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'FAIL code.test.ts: AssertionError: expected false to be true',
+          status: 'error',
+        }),
+        JSON.stringify({
+          stepIndex: 1,
+          tool: 'run_command',
+          input: { CommandLine: 'npm test' },
+          output: 'PASS code.test.ts',
+          status: 'success',
+        }),
+      ].join('\n');
+      await fs.writeFile(path.join(trackDir, 'transcript.jsonl'), transcriptContent, 'utf8');
+
+      const record = await TrajectoryHarvester.harvestTrack(trackDir, {
+        preCommit: c1,
+        postCommit: c2,
+        repoRoot: gitRepoDir,
+      });
+
+      expect(record).not.toBeNull();
+      expect(record?.remediationPairs).toBeDefined();
+      expect(record?.remediationPairs).toHaveLength(1);
+      expect(record?.remediationPairs![0].diffHunk).toContain('-const broken = true;');
+      expect(record?.remediationPairs![0].diffHunk).toContain('+const broken = false;');
+    });
+
+    it('handles git diff errors gracefully when invalid commit shas are provided', async () => {
+      const diff = await TrajectoryHarvester.harvestRemediationDiff(
+        '0000000000000000000000000000000000000000',
+        '1111111111111111111111111111111111111111',
+        { repoRoot: tempDir }
+      );
+      expect(diff).toBe('');
+    });
+  });
 });
+

@@ -20,6 +20,23 @@ export interface QuorumFeedback {
   findings: string[];
 }
 
+export interface RemediationPair {
+  id: string;
+  domain?: string;
+  finding?: string;
+  failureStep?: ExecutionStep;
+  errorSummary: string;
+  resolutionSteps: ExecutionStep[];
+  diffHunk?: string;
+}
+
+export interface RemediationHarvestOptions {
+  transcriptPath?: string;
+  preCommit?: string;
+  postCommit?: string;
+  repoRoot?: string;
+}
+
 export interface ExperienceRecord {
   id: string;
   trackId: string;
@@ -30,11 +47,17 @@ export interface ExperienceRecord {
   outcome: 'success' | 'failure';
   tags: string[];
   metadata?: Record<string, unknown>;
+  remediationPairs?: RemediationPair[];
 }
 
 export interface HarvesterOptions {
   redactSensitive?: boolean;
   maxSteps?: number;
+  transcriptPath?: string;
+  preCommit?: string;
+  postCommit?: string;
+  repoRoot?: string;
+  remediationHarvestOptions?: RemediationHarvestOptions;
 }
 
 export interface SynthesizedInvariant {
