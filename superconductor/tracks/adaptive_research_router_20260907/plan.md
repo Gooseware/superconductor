@@ -36,25 +36,25 @@
 
 ## Phase 1: DeerFlow Provider & Provider Registry Integration
 
-- [ ] Task: Implement DeerflowResearchProvider with MCP & HTTP bridges [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement DeerflowResearchProvider with MCP & HTTP bridges [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/engine/src/research/providers/deerflow-research-provider.ts, packages/engine/src/research/providers/__tests__/deerflow-research-provider.test.ts
     PROTECTED: packages/engine/src/research/types.ts
     INVARIANT_AFTER: "DeerflowResearchProvider MUST parse markdown findings into IResearchSource objects."
-    - [ ] Write unit tests for DeerflowResearchProvider with mocked MCP and HTTP responses [TIER-1:TCS=2]
-    - [ ] Implement DeerflowResearchProvider supporting modes (pro, ultra, flash) and source normalization [TIER-1:TCS=3]
-    - [ ] Implement multi-turn conversational querying via deerflow_chat [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for DeerflowResearchProvider with mocked MCP and HTTP responses [TIER-1:TCS=2]
+    - [x] Implement DeerflowResearchProvider supporting modes (pro, ultra, flash) and source normalization [TIER-1:TCS=3]
+    - [x] Implement multi-turn conversational querying via deerflow_chat [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Register deerflow provider in ResearchProviderRegistry and AgentConfigReader [TIER-2:TCS=2] [AGENT:superconductor-processor]
+- [x] Task: Register deerflow provider in ResearchProviderRegistry and AgentConfigReader [TIER-2:TCS=2] [AGENT:superconductor-processor]
     CREATES: packages/engine/src/research/__tests__/provider-registry.test.ts
     PROTECTED: packages/engine/src/research/provider-registry.ts, packages/engine/src/research/agent-config-reader.ts
     INVARIANT_AFTER: "ResearchProviderRegistry MUST resolve deerflow provider cleanly."
-    - [ ] Write unit tests verifying provider resolution for 'deerflow' and 'deerflow-2' [TIER-1:TCS=2]
-    - [ ] Wire DeerflowResearchProvider into ResearchProviderRegistry [TIER-1:TCS=2]
-    - [ ] Support researchProvider: 'deerflow' in agent-config-reader [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=1]
+    - [x] Write unit tests verifying provider resolution for 'deerflow' and 'deerflow-2' [TIER-1:TCS=2]
+    - [x] Wire DeerflowResearchProvider into ResearchProviderRegistry [TIER-1:TCS=2]
+    - [x] Support researchProvider: 'deerflow' in agent-config-reader [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=1]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: DeerFlow Provider Integration' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: DeerFlow Provider Integration' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 
