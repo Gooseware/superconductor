@@ -34,11 +34,32 @@ const COMMON_ECOSYSTEM_PACKAGES: Record<string, { pkg: string; desc: string }> =
 export class AntiReinventionGate {
   constructor(private router?: AdaptiveResearchRouter) {}
 
+  public static async analyzeTrack(
+    trackId: string,
+    description: string,
+    optionsOrRouter?: AntiReinventionGateOptions | AdaptiveResearchRouter
+  ): Promise<AntiReinventionReport> {
+    const router = (optionsOrRouter && typeof (optionsOrRouter as any).executeResearch === 'function')
+      ? (optionsOrRouter as AdaptiveResearchRouter)
+      : undefined;
+    const options = (optionsOrRouter && typeof (optionsOrRouter as any).executeResearch !== 'function')
+      ? (optionsOrRouter as AntiReinventionGateOptions)
+      : undefined;
+    return new AntiReinventionGate(router).analyzeTrack(trackId, description, options);
+  }
+
   public async analyzeTrack(
     trackId: string,
     description: string,
-    options?: AntiReinventionGateOptions
+    optionsOrRouter?: AntiReinventionGateOptions | AdaptiveResearchRouter
   ): Promise<AntiReinventionReport> {
+    let effectiveRouter = this.router;
+    let options: AntiReinventionGateOptions | undefined;
+    if (optionsOrRouter && typeof (optionsOrRouter as any).executeResearch === 'function') {
+      effectiveRouter = optionsOrRouter as AdaptiveResearchRouter;
+    } else {
+      options = optionsOrRouter as AntiReinventionGateOptions;
+    }
     const queries: IResearchQuery[] = [
       {
         term: `${description} npm pypi libraries packages alternatives prior art`,
@@ -349,3 +370,11 @@ export class AntiReinventionGate {
     return /^(@[a-z0-9_.-]+\/)?[a-z0-9_.-]+$/i.test(name);
   }
 }
+
+export function detectReinvention(
+  code: string,
+  approvedDeps: string[] = []
+): { hasViolation: boolean; violations: string[] } {
+  return new AntiReinventionGate().detectReinvention(code, approvedDeps);
+}
+

@@ -108,15 +108,15 @@
 
 ## Phase 4: End-to-End Integration Suite & CLI Verification
 
-- [ ] Task: Implement End-to-End Adaptive Research & Fallback Integration Test Suite [TIER-2:TCS=2] [AGENT:superconductor-processor]
+- [x] Task: Implement End-to-End Adaptive Research & Fallback Integration Test Suite [TIER-2:TCS=2] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/tests/e2e/adaptive-research-e2e.test.ts
     PROTECTED: packages/superconductor-core/tests/e2e/
     INVARIANT_AFTER: "E2E suite MUST verify full lifecycle: intent classification -> research dispatch -> brief synthesis -> dependency lock."
-    - [ ] Write E2E test exercising track inception research -> brief generation -> locked dependencies [TIER-1:TCS=2]
-    - [ ] Write E2E test verifying circuit breaker fallback when DeerFlow is offline [TIER-1:TCS=2]
-    - [ ] Run global test suite to verify 100% green [TIER-1:TCS=2]
+    - [x] Write E2E test exercising track inception research -> brief generation -> locked dependencies [TIER-1:TCS=2]
+    - [x] Write E2E test verifying circuit breaker fallback when DeerFlow is offline [TIER-1:TCS=2]
+    - [x] Run global test suite to verify 100% green [TIER-1:TCS=2]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: E2E Verification' (Protocol in workflow.md) [TIER-1:TCS=4]
+- [x] Task: Superconductor - User Manual Verification 'Phase 4: E2E Verification' (Protocol in workflow.md) [TIER-1:TCS=4]
 
 ---
 

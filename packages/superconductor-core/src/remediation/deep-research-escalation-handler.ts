@@ -1,11 +1,15 @@
 export interface EscalationRequest {
   finding: any;
-  codeContext: string;
-  errorMessages: string[];
-  priorFixDiffs: string[];
+  codeContext?: string;
+  errorMessages?: string[];
+  priorFixDiffs?: string[];
   trackId?: string;
   threadId?: string;
+  errorContext?: { stack?: string; [key: string]: any } | string;
+  priorDiff?: string;
+  [key: string]: any;
 }
+
 
 export interface EscalationResult {
   classification: 'auto-applicable' | 'policy-decision-required';
@@ -72,19 +76,49 @@ export class DeepResearchEscalationHandler {
     }
   }
 
+  static async escalateWithRouter(
+    request: EscalationRequest,
+    router?: any,
+    options?: { threadId?: string; trackId?: string }
+  ): Promise<EscalationResult & { threadId?: string }> {
+    return new DeepResearchEscalationHandler().escalateWithRouter(request, router, options);
+  }
+
   async escalateWithRouter(
     request: EscalationRequest,
     router?: any,
-    options?: { threadId?: string }
+    options?: { threadId?: string; trackId?: string }
   ): Promise<EscalationResult & { threadId?: string }> {
     const findingText = typeof request.finding === 'string'
       ? request.finding
       : (request.finding?.message || request.finding?.description || JSON.stringify(request.finding || {}));
 
+    const errorTraces: string[] = [];
+    if (Array.isArray(request.errorMessages)) {
+      errorTraces.push(...request.errorMessages);
+    }
+    if (request.errorContext) {
+      if (typeof request.errorContext === 'string') {
+        errorTraces.push(request.errorContext);
+      } else if (typeof request.errorContext === 'object' && request.errorContext.stack) {
+        errorTraces.push(request.errorContext.stack);
+      } else {
+        errorTraces.push(JSON.stringify(request.errorContext));
+      }
+    }
+
+    const diffs: string[] = [];
+    if (Array.isArray(request.priorFixDiffs)) {
+      diffs.push(...request.priorFixDiffs);
+    }
+    if (request.priorDiff) {
+      diffs.push(request.priorDiff);
+    }
+
     const queryParts: string[] = [
       `Finding: ${findingText}`,
-      `Failure Traces:\n${request.errorMessages?.join('\n') || 'None'}`,
-      `Failing Diffs:\n${request.priorFixDiffs?.join('\n') || 'None'}`,
+      `Failure Traces:\n${errorTraces.length > 0 ? errorTraces.join('\n') : 'None'}`,
+      `Failing Diffs:\n${diffs.length > 0 ? diffs.join('\n') : 'None'}`,
       `Code Context:\n${request.codeContext || 'None'}`
     ];
     const diagnosticQuery = queryParts.join('\n\n');
@@ -107,7 +141,7 @@ export class DeepResearchEscalationHandler {
         researchContent = String(chatRes);
       }
     } else if (typeof targetRouter.executeResearch === 'function') {
-      const trackId = request.trackId || 'remediation';
+      const trackId = options?.trackId || request.trackId || 'remediation';
       const execRes = await targetRouter.executeResearch(trackId, [
         { term: diagnosticQuery, intent: 'FRONTIER' }
       ]);
@@ -178,15 +212,26 @@ export class DeepResearchEscalationHandler {
     }
   }
 
-  async handlePolicyDecision(result: EscalationResult): Promise<'aborted' | 'reverted' | 'deferred'> {
-    if (!this.prompter) {
+  static async handlePolicyDecision(
+    result: EscalationResult,
+    prompter?: Prompter
+  ): Promise<'aborted' | 'reverted' | 'deferred'> {
+    return new DeepResearchEscalationHandler(undefined, prompter).handlePolicyDecision(result, prompter);
+  }
+
+  async handlePolicyDecision(
+    result: EscalationResult,
+    prompter?: Prompter
+  ): Promise<'aborted' | 'reverted' | 'deferred'> {
+    const activePrompter = prompter || this.prompter;
+    if (!activePrompter) {
       throw new Error("Prompter must be provided to handle policy decisions");
     }
 
     const question = `A policy decision is required for this fix:\n${result.policyRationale}\nHow would you like to proceed?`;
     const options = ['Acknowledge & Abort', 'Acknowledge & Revert'];
     
-    const answer = await this.prompter.askQuestion(question, options);
+    const answer = await activePrompter.askQuestion(question, options);
 
     if (answer === 'Acknowledge & Abort') {
       return 'aborted';
@@ -197,3 +242,4 @@ export class DeepResearchEscalationHandler {
     return 'deferred';
   }
 }
+
