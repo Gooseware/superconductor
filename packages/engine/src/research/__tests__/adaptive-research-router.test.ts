@@ -342,5 +342,75 @@ describe('AdaptiveResearchRouter', () => {
         router.executeResearch('track-all-failed', [{ term: 'failing query' }])
       ).rejects.toThrow(FallbackFailedError);
     });
+
+    it('should use options.provider only for first attempt and resolve fallbacks from registry (REV-5 & COR-1)', async () => {
+      process.env.GEMINI_API_KEY = 'test-gemini-key';
+      const failingCustomProvider: IResearchProvider = {
+        search: vi.fn().mockRejectedValue(new Error('Custom provider failed'))
+      };
+
+      const router = new AdaptiveResearchRouter({
+        providerRegistry: mockRegistry,
+        executeTool: mockExecuteTool,
+        executeLlmTool: mockExecuteLlmTool,
+        clock: mockClock,
+        workspaceDir: '/tmp/test-workspace'
+      });
+
+      // Route will be deerflow -> gemini-api-deep-research -> search_web
+      const { brief } = await router.executeResearch(
+        'track-custom-provider-fallback',
+        [{ term: 'npm package for telemetry' }],
+        { provider: failingCustomProvider }
+      );
+
+      // Custom provider was attempted first
+      expect(failingCustomProvider.search).toHaveBeenCalledTimes(1);
+      // Fallback resolved gemini from registry, NOT re-using failingCustomProvider
+      expect(mockGemini.search).toHaveBeenCalled();
+      expect(brief).toBeDefined();
+    });
+
+    it('should cleanly record error and continue when search_web returns 0 results without falling through to registry (REV-5 & COR-1)', async () => {
+      mockDeerflow.search = vi.fn().mockRejectedValue(new Error('DeerFlow unavailable'));
+      // search_web returns empty string (no results)
+      mockExecuteTool.mockResolvedValue('');
+
+      const resolveSpy = vi.spyOn(mockRegistry, 'resolve');
+
+      const router = new AdaptiveResearchRouter({
+        providerRegistry: mockRegistry,
+        executeTool: mockExecuteTool,
+        executeLlmTool: mockExecuteLlmTool,
+        clock: mockClock,
+        workspaceDir: '/tmp/test-workspace'
+      });
+
+      await expect(
+        router.executeResearch('track-empty-search', [{ term: 'npm package for logging' }])
+      ).rejects.toThrow(FallbackFailedError);
+
+      // Verify search_web was NOT passed to providerRegistry.resolve
+      expect(resolveSpy).not.toHaveBeenCalledWith('search_web', expect.anything(), expect.anything());
+    });
+
+    it('should log console.debug when writeBriefFile fails (REV-5 & COR-1)', () => {
+      const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+
+      const router = new AdaptiveResearchRouter();
+      const dummyBrief: any = { trackId: 'test-track' };
+
+      (router as any).writeBriefFile('/dev/null/forbidden', dummyBrief);
+
+      expect(debugSpy).toHaveBeenCalledWith(
+        '[AdaptiveResearchRouter] Failed to write brief.json:',
+        expect.stringMatching(/ENOTDIR|not a directory/i)
+      );
+
+      debugSpy.mockRestore();
+    });
   });
 });
+
+
+

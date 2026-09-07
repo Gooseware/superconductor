@@ -38,7 +38,8 @@ describe('ResearchProviderRegistry', () => {
     const registry = new ResearchProviderRegistry();
     const options = {
       mode: 'ultra' as const,
-      endpoint: 'http://custom-host:9999'
+      endpoint: 'http://custom-host:9999',
+      allowedHosts: ['custom-host']
     };
     const provider = registry.resolve('deerflow', options) as DeerflowResearchProvider;
 

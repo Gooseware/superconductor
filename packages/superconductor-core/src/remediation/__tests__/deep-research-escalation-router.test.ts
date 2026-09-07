@@ -159,4 +159,83 @@ describe('DeepResearchEscalationHandler - Router Integration', () => {
     expect(result.researchContent).toBe('Direct provider result with no policy keywords.');
     expect(result.threadId).toBeDefined();
   });
+
+  it('triggers policy-decision-required for findings or research containing remote code execution, vulnerability, or exploit without explicit CVE (REV-4)', async () => {
+    const mockRouter = {
+      executeResearch: vi.fn().mockResolvedValue({
+        brief: {
+          executiveSummary: 'Identified a remote code execution exploit allowing arbitrary code execution in the parser. Recommend applying strict validation.'
+        }
+      })
+    };
+
+    const handler = new DeepResearchEscalationHandler({ research: vi.fn() });
+
+    const request: EscalationRequest = {
+      finding: { id: 'SEC-RCE', message: 'High severity vulnerability reported in request handling' },
+      codeContext: 'eval(userInput)',
+      errorMessages: ['Arbitrary execution error'],
+      priorFixDiffs: []
+    };
+
+    const result = await handler.escalateWithRouter(request, mockRouter);
+
+    expect(result.classification).toBe('policy-decision-required');
+    expect(result.policyRationale).toContain('vulnerability');
+    expect(result.policyRationale).toContain('exploit');
+    expect(result.policyRationale).toContain('remote code execution');
+    expect(result.policyRationale).toContain('arbitrary code');
+    expect(result.policyRationale).not.toContain('CVE');
+    expect(result.suggestedFix).toBeUndefined();
+  });
+
+  it('triggers policy-decision-required when finding message itself contains remote code execution without CVE (REV-4)', async () => {
+    const mockRouter = {
+      executeResearch: vi.fn().mockResolvedValue({
+        brief: {
+          executiveSummary: 'Use input parser helper to avoid unsafe evaluation.'
+        }
+      })
+    };
+
+    const handler = new DeepResearchEscalationHandler({ research: vi.fn() });
+
+    const request: EscalationRequest = {
+      finding: 'Critical remote code execution flaw in router handler',
+      codeContext: 'parse(payload)',
+      errorMessages: [],
+      priorFixDiffs: []
+    };
+
+    const result = await handler.escalateWithRouter(request, mockRouter);
+
+    expect(result.classification).toBe('policy-decision-required');
+    expect(result.policyRationale).toContain('remote code execution');
+    expect(result.policyRationale).not.toContain('CVE');
+    expect(result.suggestedFix).toBeUndefined();
+  });
+
+  it('does not falsely trigger rce on words containing rce such as source or resource', async () => {
+    const mockRouter = {
+      executeResearch: vi.fn().mockResolvedValue({
+        brief: {
+          executiveSummary: 'Reference the open source library resource for standard implementation.'
+        }
+      })
+    };
+
+    const handler = new DeepResearchEscalationHandler({ research: vi.fn() });
+
+    const request: EscalationRequest = {
+      finding: 'Clean helper refactor',
+      codeContext: 'const x = 1;',
+      errorMessages: [],
+      priorFixDiffs: []
+    };
+
+    const result = await handler.escalateWithRouter(request, mockRouter);
+
+    expect(result.classification).toBe('auto-applicable');
+    expect(result.suggestedFix).toBeDefined();
+  });
 });

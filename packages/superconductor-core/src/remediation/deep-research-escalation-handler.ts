@@ -28,14 +28,20 @@ export interface Prompter {
   askQuestion(question: string, options: string[]): Promise<string>;
 }
 
-const POLICY_KEYWORDS = [
+export const POLICY_KEYWORDS = [
   'breaking change',
   'architectural',
   'compliance',
   'CVE',
   'security policy',
   'requires migration',
-  'deprecation'
+  'deprecation',
+  'vulnerability',
+  'exploit',
+  'arbitrary code',
+  'remote code execution',
+  'rce',
+  'privilege escalation'
 ];
 
 export class DeepResearchEscalationHandler {
@@ -53,11 +59,19 @@ export class DeepResearchEscalationHandler {
     const sanitizedContent = researchContent.replace(/<\/DEEP_RESEARCH_RESULT>/gi, '[/DEEP_RESEARCH_RESULT]');
     const spotlightedContent = `<DEEP_RESEARCH_RESULT>\n${sanitizedContent}\n</DEEP_RESEARCH_RESULT>`;
     
-    const lowerContent = researchContent.toLowerCase();
+    const findingText = typeof request.finding === 'string'
+      ? request.finding
+      : (request.finding?.message || request.finding?.description || (request.finding ? JSON.stringify(request.finding) : ''));
+    const lowerContent = `${researchContent}\n${findingText}`.toLowerCase();
     
-    const matchedKeywords = POLICY_KEYWORDS.filter(keyword => 
-      lowerContent.includes(keyword.toLowerCase())
-    );
+    const matchedKeywords = POLICY_KEYWORDS.filter(keyword => {
+      const lowerKw = keyword.toLowerCase();
+      if (lowerKw.length <= 4) {
+        const regex = new RegExp(`\\b${lowerKw}\\b`, 'i');
+        return regex.test(lowerContent);
+      }
+      return lowerContent.includes(lowerKw);
+    });
 
     if (matchedKeywords.length > 0) {
       return {
@@ -187,11 +201,17 @@ export class DeepResearchEscalationHandler {
     const sanitizedContent = researchContent.replace(/<\/DEEP_RESEARCH_RESULT>/gi, '[/DEEP_RESEARCH_RESULT]');
     const spotlightedContent = `<DEEP_RESEARCH_RESULT>\n${sanitizedContent}\n</DEEP_RESEARCH_RESULT>`;
 
-    const lowerContent = researchContent.toLowerCase();
+    const combinedContent = `${researchContent}\n${findingText}`;
+    const lowerContent = combinedContent.toLowerCase();
 
-    const matchedKeywords = POLICY_KEYWORDS.filter(keyword =>
-      lowerContent.includes(keyword.toLowerCase())
-    );
+    const matchedKeywords = POLICY_KEYWORDS.filter(keyword => {
+      const lowerKw = keyword.toLowerCase();
+      if (lowerKw.length <= 4) {
+        const regex = new RegExp(`\\b${lowerKw}\\b`, 'i');
+        return regex.test(lowerContent);
+      }
+      return lowerContent.includes(lowerKw);
+    });
 
     if (matchedKeywords.length > 0) {
       return {

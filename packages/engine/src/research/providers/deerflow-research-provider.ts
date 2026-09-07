@@ -1,11 +1,20 @@
 import { IResearchProvider, IResearchQuery, IResearchSource } from '../types.js';
 import { ResearchProviderUnavailableError } from '../errors/research-provider-unavailable-error.js';
+import { sanitizeUntrustedText } from '@superconductor/core';
 
 export interface DeerflowResearchProviderOptions {
   mode?: 'pro' | 'ultra' | 'standard' | 'flash';
   endpoint?: string; // default: 'http://127.0.0.1:2026'
   executeTool?: (toolName: string, params: Record<string, unknown>) => Promise<unknown>;
   fetchFn?: typeof fetch;
+  allowedHosts?: string[];
+  allowRemoteEndpoints?: boolean;
+}
+
+function cleanAndSanitize(text: string): string {
+  if (typeof text !== 'string') return '';
+  const stripped = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  return sanitizeUntrustedText(stripped);
 }
 
 function extractText(raw: unknown): string {
@@ -77,6 +86,7 @@ export class DeerflowResearchProvider implements IResearchProvider {
   ) {
     this.options = options || {};
     this.endpoint = (this.options.endpoint || 'http://127.0.0.1:2026').replace(/\/+$/, '');
+    this.validateEndpoint(this.endpoint);
 
     const tool = executeTool || this.options.executeTool;
     if (typeof tool === 'function') {
@@ -86,6 +96,35 @@ export class DeerflowResearchProvider implements IResearchProvider {
     }
 
     this.fetchFn = this.options.fetchFn || (typeof fetch !== 'undefined' ? fetch : undefined);
+  }
+
+  private validateEndpoint(endpoint: string): void {
+    let parsed: URL;
+    try {
+      parsed = new URL(endpoint);
+    } catch {
+      throw new ResearchProviderUnavailableError(
+        `Unauthorized or invalid DeerFlow endpoint host: ${endpoint}`
+      );
+    }
+
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new ResearchProviderUnavailableError(
+        `Unauthorized or invalid DeerFlow endpoint host: ${endpoint}`
+      );
+    }
+
+    const hostname = parsed.hostname;
+    const isLocal = hostname === '127.0.0.1' || hostname === 'localhost';
+    const isAllowedHost = Array.isArray(this.options.allowedHosts) &&
+      (this.options.allowedHosts.includes(hostname) || this.options.allowedHosts.includes(parsed.host));
+    const allowRemote = Boolean(this.options.allowRemoteEndpoints);
+
+    if (!isLocal && !isAllowedHost && !allowRemote) {
+      throw new ResearchProviderUnavailableError(
+        `Unauthorized or invalid DeerFlow endpoint host: ${hostname}`
+      );
+    }
   }
 
   public async search(query: IResearchQuery): Promise<IResearchSource[]> {
@@ -224,9 +263,9 @@ export class DeerflowResearchProvider implements IResearchProvider {
       const content = extractSnippet(reportText, matchIndex, matchLength);
 
       sources.push({
-        url,
-        title,
-        content,
+        url: cleanAndSanitize(url),
+        title: cleanAndSanitize(title),
+        content: cleanAndSanitize(content),
         type: 'deerflow-research'
       });
     }
@@ -235,8 +274,8 @@ export class DeerflowResearchProvider implements IResearchProvider {
       return [
         {
           url: 'deerflow://report',
-          title: queryTerm,
-          content: reportText,
+          title: cleanAndSanitize(queryTerm),
+          content: cleanAndSanitize(reportText),
           type: 'deerflow-research'
         }
       ];

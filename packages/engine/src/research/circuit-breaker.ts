@@ -25,6 +25,7 @@ export class CircuitBreaker {
   private state: CircuitBreakerState = 'CLOSED';
   private consecutiveFailures: number = 0;
   private lastFailureTime: number = 0;
+  private halfOpenProbeInFlight: boolean = false;
 
   constructor(options: CircuitBreakerOptions) {
     this.name = options.name;
@@ -44,12 +45,18 @@ export class CircuitBreaker {
   }
 
   public recordSuccess(): void {
+    if (this.state === 'OPEN') {
+      return;
+    }
     this.consecutiveFailures = 0;
-    this.state = 'CLOSED';
+    if (this.state === 'HALF_OPEN') {
+      this.state = 'CLOSED';
+    }
   }
 
   public recordFailure(): void {
     this.lastFailureTime = this.clock();
+    this.halfOpenProbeInFlight = false;
     if (this.state === 'HALF_OPEN') {
       this.state = 'OPEN';
       this.consecutiveFailures = this.failureThreshold;
@@ -67,11 +74,16 @@ export class CircuitBreaker {
 
   public async execute<T>(action: () => Promise<T>, fallback?: () => Promise<T>): Promise<T> {
     const currentState = this.getState();
-    if (currentState === 'OPEN') {
+    if (currentState === 'OPEN' || (currentState === 'HALF_OPEN' && this.halfOpenProbeInFlight)) {
       if (fallback) {
         return await fallback();
       }
       throw new CircuitBreakerOpenError(`Circuit breaker '${this.name}' is OPEN`);
+    }
+
+    const isProbe = currentState === 'HALF_OPEN';
+    if (isProbe) {
+      this.halfOpenProbeInFlight = true;
     }
 
     try {
@@ -84,6 +96,10 @@ export class CircuitBreaker {
         return await fallback();
       }
       throw error;
+    } finally {
+      if (isProbe) {
+        this.halfOpenProbeInFlight = false;
+      }
     }
   }
 }

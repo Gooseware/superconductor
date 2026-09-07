@@ -165,8 +165,8 @@ export class AntiReinventionGate {
     const violations: string[] = [];
 
     // 1. Hand-rolled base64 decoder regex or custom bitwise decode
-    const base64RegexPattern = /(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)|\/(\^[A-Za-z0-9+/]+\+{0,2}\$|[A-Za-z0-9+/]{4,}={0,2})\//;
-    const base64FuncPattern = /(?:function|const|let)\s+(?:decodeBase64|base64Decode|parseBase64)\b/i;
+    const base64RegexPattern = /(?:^|[^\w$])\/(?:\^?(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)\$?)\/[gimsuy]*|\/(\^[A-Za-z0-9+/]+\+{0,2}\$|[A-Za-z0-9+/]{4,}={0,2})\/[gimsuy]*/;
+    const base64FuncPattern = /(?:function|const|let|var)\s+(?:decodeBase64|base64Decode|b64Decode|decodeB64|parseBase64|parseB64)\b/i;
     const base64CharTablePattern = /['"]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\+\/=/;
 
     if (
@@ -180,9 +180,9 @@ export class AntiReinventionGate {
     }
 
     // 2. Hand-rolled LRU cache class
-    const lruClassPattern = /class\s+(?:LRUCache|LruCache|FifoCache)\b/;
-    const customCacheEvictionPattern = /class\s+\w*Cache\b[\s\S]*?(?:capacity|maxSize)[\s\S]*?(?:\.delete|\.set|\.get)/;
-    const lruFuncPattern = /function\s+(?:createLRUCache|createLruCache)\b/;
+    const lruClassPattern = /class\s+(?:LRUCache|LruCache|FifoCache|MemoryCache)\b/;
+    const customCacheEvictionPattern = /class\s+\w*Cache\b[\s\S]*?(?:capacity|maxSize|limit|maxEntries)[\s\S]*?(?:\.delete|\.set|\.get)/;
+    const lruFuncPattern = /(?:function|const|let|var)\s+(?:createLRUCache|createLruCache|createMemoryCache)\b/;
 
     if (
       lruClassPattern.test(code) ||
@@ -204,7 +204,7 @@ export class AntiReinventionGate {
     // 3. Hand-rolled JWT decoder regex or split logic
     const jwtRegexPattern = /\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+(?:\$|\/)/;
     const jwtSplitPattern = /(?:token|jwt)\.split\(['"]\.['"]\)/;
-    const jwtFuncPattern = /(?:function|const|let)\s+(?:parseJwt|decodeJwt|verifyJwt)\b/i;
+    const jwtFuncPattern = /(?:function|const|let|var)\s+(?:parseJwt|decodeJwt|verifyJwt)\b/i;
 
     if (jwtRegexPattern.test(code) || jwtSplitPattern.test(code) || jwtFuncPattern.test(code)) {
       const approved = approvedDeps.find(d => d.includes('jwt') || d.includes('jose'));
@@ -220,8 +220,8 @@ export class AntiReinventionGate {
     }
 
     // 4. Hand-rolled deep-clone recursion
-    const deepCloneFuncPattern = /(?:function|const|let)\s+(?:deepClone|cloneDeep|deepCopy)\b/;
-    const recursiveClonePattern = /function\s+\w+Clone[\s\S]*?typeof\s+\w+\s*===\s*['"]object['"][\s\S]*?Object\.keys/;
+    const deepCloneFuncPattern = /(?:function|const|let|var)\s+(?:deepClone|cloneDeep|deepCopy|duplicate)\b/;
+    const recursiveClonePattern = /(?:function|const|let|var)\s+\w*(?:Clone|Duplicate)\b[\s\S]*?typeof\s+\w+\s*===\s*['"]object['"][\s\S]*?Object\.keys/;
 
     if (deepCloneFuncPattern.test(code) || recursiveClonePattern.test(code)) {
       const approved = approvedDeps.find(d => d.includes('clone') || d.includes('rfdc'));
@@ -237,9 +237,9 @@ export class AntiReinventionGate {
     }
 
     // 5. Hand-rolled concurrency limiter / semaphore class
-    const semaphorePattern = /class\s+(?:Semaphore|ConcurrencyLimiter|QueueLimiter)\b|function\s+(?:limitConcurrency|createSemaphore)\b/;
+    const semaphorePattern = /class\s+(?:Semaphore|ConcurrencyLimiter|QueueLimiter|TaskQueuePool|ConcurrencyPool|TaskPool|PromisePool)\b|(?:function|const|let|var)\s+(?:limitConcurrency|createSemaphore|createTaskPool)\b/;
     if (semaphorePattern.test(code)) {
-      const approved = approvedDeps.find(d => d.includes('limit') || d.includes('queue'));
+      const approved = approvedDeps.find(d => d.includes('limit') || d.includes('queue') || d.includes('pool'));
       if (approved) {
         violations.push(
           `Hand-rolled concurrency limiter / semaphore detected despite approved dependency '${approved}'. Use the approved library.`
@@ -252,12 +252,13 @@ export class AntiReinventionGate {
     }
 
     // 6. Hand-rolled retry with exponential backoff
-    const retryPattern = /function\s+(?:retryWithBackoff|exponentialBackoff)\b[\s\S]*?Math\.pow\(2/;
+    const retryPattern = /(?:function|const|let|var)\s+(?:retryWithBackoff|exponentialBackoff|retryOperation|retry)\b[\s\S]*?(?:Math\.pow\(2|2\s*\*\*\s*\w+)/;
     if (retryPattern.test(code)) {
       violations.push(
         'Hand-rolled retry/exponential backoff detected. Use an established OSS library (e.g., "p-retry").'
       );
     }
+
 
     return {
       hasViolation: violations.length > 0,

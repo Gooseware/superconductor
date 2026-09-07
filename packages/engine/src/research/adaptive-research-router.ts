@@ -266,6 +266,7 @@ export class AdaptiveResearchRouter {
     const safeTrackId = trackId.replace(/[^a-zA-Z0-9_-]/g, '') || 'default-track';
     const outDir = path.join(workspaceDir, '.superconductor', 'research', safeTrackId);
     const errors: Error[] = [];
+    let customProviderUsed = false;
 
     for (const candidate of candidateProviders) {
       // 1. Internal
@@ -312,6 +313,8 @@ export class AdaptiveResearchRouter {
             this.writeBriefFile(outDir, brief);
             return { brief, decision };
           }
+          errors.push(new ResearchProviderUnavailableError('search_web returned no results'));
+          continue;
         } catch (err: any) {
           errors.push(err);
           continue;
@@ -328,8 +331,9 @@ export class AdaptiveResearchRouter {
       try {
         const brief = await breaker.execute(async () => {
           let provider: IResearchProvider;
-          if (options?.provider) {
+          if (options?.provider && !customProviderUsed) {
             provider = options.provider;
+            customProviderUsed = true;
           } else {
             provider = this.providerRegistry.resolve(candidate, options?.providerOptions, executeTool);
           }
@@ -372,8 +376,8 @@ export class AdaptiveResearchRouter {
         fs.mkdirSync(outDir, { recursive: true });
       }
       fs.writeFileSync(path.join(outDir, 'brief.json'), JSON.stringify(brief, null, 2), 'utf8');
-    } catch {
-      // Best-effort in environments where fs is mocked
+    } catch (err: any) {
+      console.debug('[AdaptiveResearchRouter] Failed to write brief.json:', (err as Error).message);
     }
   }
 }

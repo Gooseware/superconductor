@@ -181,4 +181,85 @@ describe('CircuitBreaker', () => {
     expect(result).toBe('handled-fallback');
     expect(breaker.getState()).toBe('OPEN');
   });
+
+  it('should allow only a single trial probe during HALF_OPEN and reject concurrent calls', async () => {
+    const breaker = new CircuitBreaker({
+      name: 'test-service',
+      failureThreshold: 2,
+      cooldownMs: 60000,
+      clock: mockClock
+    });
+
+    breaker.recordFailure();
+    breaker.recordFailure();
+    expect(breaker.getState()).toBe('OPEN');
+
+    currentTime += 60000;
+    expect(breaker.getState()).toBe('HALF_OPEN');
+
+    let resolveProbe!: (val: string) => void;
+    const probePromise = new Promise<string>((resolve) => {
+      resolveProbe = resolve;
+    });
+
+    // Start probe 1
+    const probe1 = breaker.execute(async () => probePromise);
+
+    // Attempt concurrent execution while probe 1 is in-flight
+    const probe2 = breaker.execute(async () => 'probe2-result');
+
+    await expect(probe2).rejects.toThrow(CircuitBreakerOpenError);
+
+    // Finish probe 1 successfully
+    resolveProbe('probe1-success');
+    await expect(probe1).resolves.toBe('probe1-success');
+
+    expect(breaker.getState()).toBe('CLOSED');
+  });
+
+  it('should not overwrite OPEN state if breaker was tripped back to OPEN before slow probe resolves', async () => {
+    const breaker = new CircuitBreaker({
+      name: 'test-service',
+      failureThreshold: 2,
+      cooldownMs: 60000,
+      clock: mockClock
+    });
+
+    breaker.recordFailure();
+    breaker.recordFailure();
+    expect(breaker.getState()).toBe('OPEN');
+
+    currentTime += 60000;
+    expect(breaker.getState()).toBe('HALF_OPEN');
+
+    let resolveSlowProbe!: (val: string) => void;
+    const slowProbePromise = new Promise<string>((resolve) => {
+      resolveSlowProbe = resolve;
+    });
+
+    // Start slow probe
+    const probePromise = breaker.execute(async () => slowProbePromise);
+
+    // While probe is running, breaker fails or is transitioned back to OPEN
+    breaker.recordFailure();
+    expect(breaker.getState()).toBe('OPEN');
+
+    // Slow probe now finally resolves
+    resolveSlowProbe('slow-probe-success');
+    await expect(probePromise).resolves.toBe('slow-probe-success');
+
+    // Breaker MUST remain OPEN, not reset to CLOSED
+    expect(breaker.getState()).toBe('OPEN');
+    expect(breaker.isOpen()).toBe(true);
+  });
+
+  it('should not transition to CLOSED if recordSuccess is called when breaker is OPEN', () => {
+    const breaker = new CircuitBreaker({ name: 'test-service', failureThreshold: 2, clock: mockClock });
+    breaker.recordFailure();
+    breaker.recordFailure();
+    expect(breaker.getState()).toBe('OPEN');
+
+    breaker.recordSuccess();
+    expect(breaker.getState()).toBe('OPEN');
+  });
 });

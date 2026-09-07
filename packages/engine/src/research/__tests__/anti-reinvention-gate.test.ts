@@ -275,5 +275,82 @@ describe('AntiReinventionGate', () => {
       expect(result.hasViolation).toBe(false);
       expect(result.violations).toHaveLength(0);
     });
+
+    it('does NOT trigger false positives for normal unspaced assignments or equality checks (REV-1)', () => {
+      const codeSnippet = `
+        const len=0;
+        const res=fetch();
+        if(foo==bar) {
+          const sum=1+2;
+        }
+      `;
+      const result = gate.detectReinvention(codeSnippet, []);
+      expect(result.hasViolation).toBe(false);
+      expect(result.violations).toHaveLength(0);
+    });
+
+    it('detects common aliases for hand-rolled primitives (REV-3)', () => {
+      // 1. b64Decode alias
+      const b64Code = `
+        export const b64Decode = (str: string) => {
+          return atob(str);
+        };
+      `;
+      const b64Result = gate.detectReinvention(b64Code, []);
+      expect(b64Result.hasViolation).toBe(true);
+      expect(b64Result.violations.some(v => v.toLowerCase().includes('base64'))).toBe(true);
+
+      // 2. duplicate (deep clone) alias
+      const duplicateCode = `
+        export function duplicate<T>(source: T): T {
+          return JSON.parse(JSON.stringify(source));
+        }
+      `;
+      const duplicateResult = gate.detectReinvention(duplicateCode, []);
+      expect(duplicateResult.hasViolation).toBe(true);
+      expect(duplicateResult.violations.some(v => v.toLowerCase().includes('deep-clone'))).toBe(true);
+
+      // 3. MemoryCache with capacity/limit
+      const memoryCacheCode = `
+        export class MemoryCache {
+          private limit: number;
+          private store = new Map<string, any>();
+          constructor(limit: number) {
+            this.limit = limit;
+          }
+          get(key: string) { return this.store.get(key); }
+          set(key: string, val: any) { this.store.set(key, val); }
+        }
+      `;
+      const cacheResult = gate.detectReinvention(memoryCacheCode, []);
+      expect(cacheResult.hasViolation).toBe(true);
+      expect(cacheResult.violations.some(v => v.toLowerCase().includes('lru cache'))).toBe(true);
+
+      // 4. TaskQueuePool / concurrency pool alias
+      const poolCode = `
+        export class TaskQueuePool {
+          private concurrency: number;
+          constructor(concurrency: number) {
+            this.concurrency = concurrency;
+          }
+        }
+      `;
+      const poolResult = gate.detectReinvention(poolCode, []);
+      expect(poolResult.hasViolation).toBe(true);
+      expect(poolResult.violations.some(v => v.toLowerCase().includes('concurrency limiter') || v.toLowerCase().includes('semaphore'))).toBe(true);
+
+      // 5. 2 ** attempt exponential backoff
+      const backoffCode = `
+        export async function retryWithBackoff(fn: () => Promise<any>, attempt = 0) {
+          const delay = 2 ** attempt * 1000;
+          await new Promise(r => setTimeout(r, delay));
+          return fn();
+        }
+      `;
+      const backoffResult = gate.detectReinvention(backoffCode, []);
+      expect(backoffResult.hasViolation).toBe(true);
+      expect(backoffResult.violations.some(v => v.toLowerCase().includes('retry/exponential backoff'))).toBe(true);
+    });
   });
 });
+
