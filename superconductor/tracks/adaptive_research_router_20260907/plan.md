@@ -60,23 +60,23 @@
 
 ## Phase 2: Adaptive Research Router & Circuit Breaker Fallback
 
-- [ ] Task: Implement AdaptiveResearchRouter with intent classification and credential awareness [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement AdaptiveResearchRouter with intent classification and credential awareness [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/engine/src/research/adaptive-research-router.ts, packages/engine/src/research/__tests__/adaptive-research-router.test.ts
     PROTECTED: packages/engine/src/research/research-executor.ts
     INVARIANT_AFTER: "AdaptiveResearchRouter MUST verify GEMINI_API_KEY before routing to Gemini Deep Research."
-    - [ ] Write unit tests for intent classification (INTERNAL, ECOSYSTEM, FRONTIER) [TIER-1:TCS=2]
-    - [ ] Implement user control hierarchy (agent-config.md settings and CLI overrides) [TIER-1:TCS=2]
-    - [ ] Implement credential verification gate for GEMINI_API_KEY with auto-fallback [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for intent classification (INTERNAL, ECOSYSTEM, FRONTIER) [TIER-1:TCS=2]
+    - [x] Implement user control hierarchy (agent-config.md settings and CLI overrides) [TIER-1:TCS=2]
+    - [x] Implement credential verification gate for GEMINI_API_KEY with auto-fallback [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
-- [ ] Task: Implement 2-strike Circuit Breaker with automatic multi-tier fallback [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement 2-strike Circuit Breaker with automatic multi-tier fallback [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/engine/src/research/circuit-breaker.ts, packages/engine/src/research/__tests__/circuit-breaker.test.ts
     PROTECTED: packages/engine/src/research/adaptive-research-router.ts
     INVARIANT_AFTER: "Circuit breaker MUST trip after 2 failures and recover after 60s cooldown."
-    - [ ] Write unit tests for circuit breaker trip, open, half-open, and recovery states [TIER-1:TCS=2]
-    - [ ] Implement circuit breaker wrapping DeerFlow and external endpoints [TIER-1:TCS=2]
-    - [ ] Connect fallback cascade: DeerFlow -> Gemini Deep Research -> search_web [TIER-1:TCS=2]
-    - [ ] Verify test suite and coverage [TIER-1:TCS=2]
+    - [x] Write unit tests for circuit breaker trip, open, half-open, and recovery states [TIER-1:TCS=2]
+    - [x] Implement circuit breaker wrapping DeerFlow and external endpoints [TIER-1:TCS=2]
+    - [x] Connect fallback cascade: DeerFlow -> Gemini Deep Research -> search_web [TIER-1:TCS=2]
+    - [x] Verify test suite and coverage [TIER-1:TCS=2]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Adaptive Router & Resilience' (Protocol in workflow.md) [TIER-1:TCS=4]
 

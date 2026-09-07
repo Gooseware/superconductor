@@ -5,3 +5,5 @@ export * from './research-executor.js';
 export * from './provider-registry.js';
 export * from './query-formulator.js';
 export * from './providers/deerflow-research-provider.js';
+export * from './circuit-breaker.js';
+export * from './adaptive-research-router.js';

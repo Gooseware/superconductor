@@ -57,4 +57,34 @@ export class AgentConfigReader {
 
         return { providerName, options };
     }
+
+    static getResearchMode(workspaceDir: string): 'auto' | 'deerflow-preferred' | 'gemini-preferred' | 'internal-only' | undefined {
+        let configPath = path.join(workspaceDir, '.superconductor', 'agent-config.md');
+        if (!fs.existsSync(configPath)) {
+            configPath = path.join(workspaceDir, 'superconductor', 'agent-config.md');
+            if (!fs.existsSync(configPath)) {
+                return undefined;
+            }
+        }
+
+        let content = '';
+        try {
+            content = fs.readFileSync(configPath, 'utf8');
+        } catch (e: any) {
+            if (e.code === 'ENOENT' || e.code === 'EISDIR') {
+                return undefined;
+            }
+            throw e;
+        }
+
+        const modeMatch = content.match(/(?:^|\n)\s*(?:[-*]\s*)?(?:\*\*)?(?:Research Mode|researchMode|research_mode)(?:\*\*)?:\s*[`'"]?([^`'"\r\n#]+)[`'"]?/i);
+        if (modeMatch) {
+            const raw = modeMatch[1].trim().toLowerCase();
+            if (['auto', 'deerflow-preferred', 'gemini-preferred', 'internal-only'].includes(raw)) {
+                return raw as 'auto' | 'deerflow-preferred' | 'gemini-preferred' | 'internal-only';
+            }
+        }
+        return undefined;
+    }
 }
+
