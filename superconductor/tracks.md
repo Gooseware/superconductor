@@ -26,6 +26,7 @@
 | `[x]` | `agent_config_model_resolution_20260902` | [Agent Config Model Resolution — honour agent-config.md model assignments at invoke_subagent dispatch time](./tracks/agent_config_model_resolution_20260902/index.md) | `track/agent_config_model_resolution_20260902` (merged to main) |
 | `[x]` | `note_taking_hardening_20260903` | [Note-Taking Hardening — NoteWriter utility, SKILL.md lifecycle instrumentation, notebook-store security fixes](./tracks/note_taking_hardening_20260903/index.md) | `track/note_taking_hardening_20260903` (merged to main) |
 | `[x]` | `continuous_learning_engine_20260906` | [Superconductor Continuous Learning Engine (CLE)](./tracks/continuous_learning_engine_20260906/index.md) | `track/continuous_learning_engine_20260906` (merged to main) |
+| `[ ]` | `continuous_learning_refinement_20260907` | [CLE Refinement — Contrastive Trajectory & Remediation Distillation](./tracks/continuous_learning_refinement_20260907/index.md) | `track/continuous_learning_refinement_20260907` |
 
 ## Absorbed / Closed Tracks
 

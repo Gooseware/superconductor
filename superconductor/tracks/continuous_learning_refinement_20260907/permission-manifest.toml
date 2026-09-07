@@ -1,0 +1,19 @@
+# Permission Manifest for track continuous_learning_refinement_20260907
+track_id = "continuous_learning_refinement_20260907"
+mode = "TRACKED"
+
+[permissions]
+allowed_paths = [
+  "packages/superconductor-core/src/learning/",
+  "packages/superconductor-core/src/cli/",
+  "commands/superconductor/",
+  "packages/superconductor-core/tests/",
+  ".superconductor/",
+  "superconductor/tracks/continuous_learning_refinement_20260907/"
+]
+
+allowed_commands = [
+  "npm",
+  "node",
+  "git"
+]
