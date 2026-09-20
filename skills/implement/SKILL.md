@@ -155,6 +155,8 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
             - **Question:** "This track contains UI/UX elements. Would you like to activate the `design-heuristics` skill to enforce visual design rules?" (type: "yesno").
             - **If yes:** Explicitly activate the `design-heuristics` skill and read its `SKILL.md` and reference files.
             - **If no:** Proceed without activating `design-heuristics`.
+        - **UI / UX Pre-load Check:** If the track's **Specification** or task descriptions contain any UI/UX keywords (case-insensitive: `UI`, `UX`, `CLI`, `banner`, `error message`, `terminal`, `output`, `prompt`, `SKILL.md`, `instruction`, `MCP tool`, `schema`), automatically pre-load `skills/ux-reviewer/SKILL.md` in **PROCESSOR Mode** into the implementing agents' context.
+            - Announce: `"UX / Consistency heuristics pre-loaded (PROCESSOR mode) for UI/CLI/prompt-facing tasks."`
         - **CRITICAL:** For every relevant skill identified, ask the agent to activate it and read its `SKILL.md` and reference files.
         - You MUST explicitly apply and prioritize the guidelines, commands, and constraints from these files during the execution of the track's tasks.
 

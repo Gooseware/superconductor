@@ -1,101 +1,79 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
+import { IntelligenceAuditReporter, type AuditReport } from '@superconductor/core';
 
-export type IntelligenceStatus = 'LIVE' | 'STALE' | 'NONE';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-export interface IntelligenceStatusResult {
-  status: IntelligenceStatus;
-  age_days: number;
-  commits_behind: number;
-  snapshot_path: string;
-  phases: Record<string, 'ok' | 'degraded'>;
+export type IntelligenceStatus = 'LIVE' | 'STALE' | 'NONE' | 'MISMATCH';
+export type IntelligenceStatusResult = AuditReport;
+export type { AuditReport };
+
+function safeRealpath(p: string): string {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return path.resolve(p);
+  }
 }
 
 export class IntelligenceStatusService {
-  async getStatus(outputDir: string): Promise<IntelligenceStatusResult> {
-    const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
-    const resolvedDir = path.resolve(outputDir);
-    if (!resolvedDir.startsWith(PROJECT_ROOT + path.sep) && resolvedDir !== PROJECT_ROOT) {
-      throw new Error('outputDir must be within the workspace root');
-    }
-    let effectiveDir = resolvedDir;
-    let manifestPath = path.join(effectiveDir, 'intelligence', '00_manifest.json');
-    if (!fs.existsSync(manifestPath) && fs.existsSync(path.join(effectiveDir, 'superconductor', 'intelligence', '00_manifest.json'))) {
-      effectiveDir = path.join(effectiveDir, 'superconductor');
-      manifestPath = path.join(effectiveDir, 'intelligence', '00_manifest.json');
-    }
+  async getStatus(outputDir: string, projectRoot?: string): Promise<AuditReport> {
+    const normalizedOutputDir = safeRealpath(outputDir);
+    let targetDir = normalizedOutputDir;
 
-    if (!fs.existsSync(manifestPath)) {
-      return { status: 'NONE', age_days: 0, commits_behind: 0, snapshot_path: outputDir, phases: {} };
+    if (
+      !fs.existsSync(path.join(targetDir, '00_manifest.json')) &&
+      !fs.existsSync(path.join(targetDir, 'superconductor', 'intelligence', '00_manifest.json')) &&
+      fs.existsSync(path.join(targetDir, 'intelligence', '00_manifest.json'))
+    ) {
+      targetDir = path.join(targetDir, 'intelligence');
     }
 
-    let manifest: { timestamp: number };
-    try {
-      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      if (typeof manifest?.timestamp !== 'number' || isNaN(manifest.timestamp)) {
-        throw new Error('Invalid manifest timestamp');
-      }
-    } catch {
-      return { status: 'NONE', age_days: 0, commits_behind: 0, snapshot_path: outputDir, phases: {} };
-    }
+    const effectiveProjectRoot = projectRoot ?? process.env.PROJECT_ROOT;
+    const normalizedProjectRoot = effectiveProjectRoot ? safeRealpath(effectiveProjectRoot) : undefined;
 
-    const age_ms = Date.now() - manifest.timestamp;
-    const age_days = age_ms / 86400000;
-
-    let commits_behind = 0;
-    try {
-      const sinceIso = new Date(manifest.timestamp + 1000).toISOString();
-      const output = execFileSync('git', ['log', '--oneline', `--since=${sinceIso}`], {
-        cwd: effectiveDir,
-        encoding: 'utf8',
-      }).trim();
-      commits_behind = output ? output.split('\n').length : 0;
-    } catch (err) {
-      console.error(`[IntelligenceStatusService] Failed to check commits behind:`, err);
-      throw err;
-    }
-
-    // LIVE: age < 1 day AND commits_behind < 10
-    // STALE: age >= 1 day OR commits_behind >= 10
-    // NONE: no manifest
-    const status: IntelligenceStatus = (age_days < 1 && commits_behind < 10) ? 'LIVE' : 'STALE';
-
-    const phases: Record<string, 'ok' | 'degraded'> = {};
-    const phaseFiles = [
-      ['01_fingerprint', '01_fingerprint.json'],
-      ['02_dependency_graph', '02_dependency_graph.json'],
-      ['03_complexity', '03_complexity.json'],
-      ['04_coupling', '04_coupling.json'],
-    ];
-    for (const [phase, file] of phaseFiles) {
-      phases[phase] = fs.existsSync(path.join(effectiveDir, 'intelligence', file)) ? 'ok' : 'degraded';
-    }
-
-    return { status, age_days, commits_behind, snapshot_path: outputDir, phases };
+    return IntelligenceAuditReporter.report(targetDir, normalizedProjectRoot);
   }
 
-  async refresh(outputDir?: string, force?: boolean): Promise<{ success: boolean; result: IntelligenceStatusResult; message?: string }> {
-    const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
-    const resolvedDir = outputDir ? path.resolve(outputDir) : PROJECT_ROOT;
-    let effectiveDir = resolvedDir;
-    if (fs.existsSync(path.join(effectiveDir, 'superconductor'))) {
-      effectiveDir = path.join(effectiveDir, 'superconductor');
+  async refresh(
+    outputDir?: string,
+    force?: boolean
+  ): Promise<{ success: boolean; result: AuditReport; message?: string }> {
+    const targetDir = outputDir
+      ? safeRealpath(outputDir)
+      : (process.env.PROJECT_ROOT ? safeRealpath(process.env.PROJECT_ROOT) : process.cwd());
+
+    let executionCwd = targetDir;
+    try {
+      const gitRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+        cwd: targetDir,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      }).trim();
+      if (gitRoot) {
+        executionCwd = safeRealpath(gitRoot);
+      }
+    } catch {
+      // Not a git repo, use targetDir
     }
 
     try {
-      const cliPath = path.join(PROJECT_ROOT, 'packages', 'superconductor-core', 'dist', 'cli', 'index.js');
-      const tsCliPath = path.join(PROJECT_ROOT, 'packages', 'superconductor-core', 'src', 'cli', 'index.ts');
-      
-      if (fs.existsSync(cliPath)) {
-        const cliArgs = force ? ['intelligence', '--force'] : ['intelligence', '--refresh'];
+      const cliPath = this.resolveCliBinary();
+      const tsCliPath = this.resolveTsCliBinary();
+
+      const cliArgs = force ? ['intelligence', '--force'] : ['intelligence', '--refresh'];
+
+      if (cliPath) {
         execFileSync('node', [cliPath, ...cliArgs], {
-          cwd: PROJECT_ROOT,
+          cwd: executionCwd,
           encoding: 'utf8',
         });
-      } else if (fs.existsSync(tsCliPath)) {
-        execFileSync('npx', ['tsx', tsCliPath, 'intelligence', force ? '--force' : '--refresh'], {
-          cwd: PROJECT_ROOT,
+      } else if (tsCliPath) {
+        execFileSync('npx', ['tsx', tsCliPath, ...cliArgs], {
+          cwd: executionCwd,
           encoding: 'utf8',
         });
       }
@@ -103,7 +81,61 @@ export class IntelligenceStatusService {
       console.error(`[IntelligenceStatusService] Refresh execution error:`, err);
     }
 
-    const updated = await this.getStatus(resolvedDir);
+    const updated = await this.getStatus(targetDir);
     return { success: true, result: updated };
+  }
+
+  private resolveCliBinary(): string | null {
+    const candidates: string[] = [];
+
+    // 1. Literal path from requirement specification:
+    candidates.push(
+      path.resolve(__dirname, '..', '..', 'superconductor-core', 'dist', 'cli', 'index.js')
+    );
+
+    // 2. Relative from services directory (3 levels up to packages):
+    candidates.push(
+      path.resolve(__dirname, '..', '..', '..', 'superconductor-core', 'dist', 'cli', 'index.js')
+    );
+
+    // 3. Fallback to process.env.SUPERCONDUCTOR_DIR:
+    if (process.env.SUPERCONDUCTOR_DIR) {
+      candidates.push(
+        path.resolve(process.env.SUPERCONDUCTOR_DIR, 'packages', 'superconductor-core', 'dist', 'cli', 'index.js'),
+        path.resolve(process.env.SUPERCONDUCTOR_DIR, 'superconductor-core', 'dist', 'cli', 'index.js'),
+        path.resolve(process.env.SUPERCONDUCTOR_DIR, 'dist', 'cli', 'index.js')
+      );
+    }
+
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  private resolveTsCliBinary(): string | null {
+    const candidates: string[] = [
+      path.resolve(__dirname, '..', '..', 'superconductor-core', 'src', 'cli', 'index.ts'),
+      path.resolve(__dirname, '..', '..', '..', 'superconductor-core', 'src', 'cli', 'index.ts'),
+    ];
+
+    if (process.env.SUPERCONDUCTOR_DIR) {
+      candidates.push(
+        path.resolve(process.env.SUPERCONDUCTOR_DIR, 'packages', 'superconductor-core', 'src', 'cli', 'index.ts'),
+        path.resolve(process.env.SUPERCONDUCTOR_DIR, 'superconductor-core', 'src', 'cli', 'index.ts'),
+        path.resolve(process.env.SUPERCONDUCTOR_DIR, 'src', 'cli', 'index.ts')
+      );
+    }
+
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+
+    return null;
   }
 }

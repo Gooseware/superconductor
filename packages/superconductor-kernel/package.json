@@ -11,6 +11,7 @@
   "dependencies": {
     "@libsql/client": "^0.17.0",
     "@modelcontextprotocol/sdk": "^1.6.0",
+    "@superconductor/core": "workspace:*",
     "@superconductor/notebook-store": "workspace:*",
     "@superconductor/task-store": "workspace:*",
     "simple-git": "^3.30.0",

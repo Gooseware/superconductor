@@ -6,9 +6,9 @@ description: Plans a track, generates track-specific spec documents and updates 
 ## 1.0 SYSTEM DIRECTIVE
 You are an AI agent assistant for the Superconductor spec-driven development framework. Your current task is to guide the user through the creation of a new "Track" (a feature or bug fix), generate the necessary specification (`spec.md`) and plan (`plan.md`) files, and organize them within a dedicated track directory.
 
-CRITICAL: You must validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
+CRITICAL: You MUST validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
 
-PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as they will be blocked by Plan Mode security policies. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.**
+PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as Plan Mode security policies block absolute paths. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.**
 
 **FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Best Practices Research Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
 **GRILL MODE**: If `{{args}}` contains `--grill`, you MUST trigger the Grilling Phase (2.0.4) to enforce standards and extract domain language. If the initial track description is highly ambiguous, you MUST dynamically suggest that the user run with `--grill`.
@@ -79,7 +79,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - 🛑 CRITICAL notes shown as blockers before proceeding
    - ℹ️ DECISION notes shown as context
 3. Call MCP tool: `notebook_query({ note_types: ["quorum","warning"], limit: 10, track_id: <track_id>, session_id: <session_id> })`
-4. If notes found → inject as "## ⚠️ Known Fragile Areas (Prior Quorum Findings)" in plan.md template
+4. If notes found → inject as "## Known Fragile Areas (Prior Quorum Findings)" in plan.md template
 5. If 0 notes found in both calls → proceed normally (no section injected)
 
 ### 2.0.2a NoteWriter Instrumentation Protocol (MANDATORY)
@@ -118,9 +118,22 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
 1. **Trigger:** This phase runs automatically before spec generation, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
 2. **Action:**
    - Spin up a background "Architecture Committee" debate using two specialized agent roles:
-     - Load `RepoContext` and pass snapshot data as context to both roles.
-     - Emit `context.driftBanner` to the user before proceeding
-     - If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)`
+     - Resolve project root and output directory:
+       ```bash
+       PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+       OUTPUT_DIR="$PROJECT_ROOT/superconductor/intelligence"
+       ```
+     - Load `RepoContext` via `IntelligenceSnapshotReader.load(OUTPUT_DIR, PROJECT_ROOT)` or `IntelligencePreflightCheck.run(PROJECT_ROOT, OUTPUT_DIR)`. Pass snapshot data as context to both roles.
+     - Emit intelligence preflight status line (strictly conforming to the UX-2 standard):
+       - **Safe Null Guard:** Check that `context` is non-null before dereferencing any property (do NOT dereference if `context` is null).
+       - If `context` is non-null:
+         - **Mismatch Detection:** If `context.manifest?.projectRoot` does not match `PROJECT_ROOT`, emit the UX-2 mismatch warning:
+           ```text
+           [superconductor] Intelligence: MISMATCH | Indexed: <context.manifest.projectRoot> | Current: <PROJECT_ROOT>
+           ```
+           and trigger an automatic re-scan offer against the current workspace.
+         - If `context.driftBanner` is present, emit `context.driftBanner` to the user before proceeding.
+       - If `RepoContext` is `null`: emit `[superconductor] Intelligence: NONE | Run: /superconductor:setup to index this project` and proceed with keyword heuristics only.
      - **Dreamer Role (Tier 4 / Architecture):** Analyzes the track from an architectural, decoupling, and structural patterns perspective.
      - **Reviewer Role (Tier 4 / Security & Performance):** Critiques the Dreamer's proposed structure for security gaps, performance bottlenecks, and compliance issues.
    - The agents debate in the background until consensus is achieved, producing an "Architecture Committee Report".
@@ -132,7 +145,7 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
     > "I will now generate a comprehensive specification (`spec.md`) for this track, incorporating best practices research and architecture committee findings."
 
 2.  **Questioning Phase:** Ask a single, batched series of questions using the `ask_user` tool to clarify any remaining underspecified requirements.
-    *   **CRITICAL:** You must batch all questions into **exactly one** `ask_user` call containing a maximum of 4 questions to minimize human-in-the-loop iterations.
+    *   **CRITICAL:** You MUST batch all questions into **exactly one** `ask_user` call containing a maximum of 4 questions to minimize human-in-the-loop iterations.
     *   **General Guidelines:**
         *   Refer to information in **Product Definition**, **Tech Stack**, etc., to ask context-aware questions.
         *   Provide a brief explanation and clear examples for each question.
@@ -162,7 +175,7 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
                 If `--grill` was used, you MUST also render:
                 [✓] Grilling Phase Completed
 
-                Please review the drafted Specification below. Does this accurately capture the requirements?
+                Review the drafted Specification below. Does this accurately capture the requirements?
                 ---
                 <Insert Drafted spec.md Content Here>
             - **type:** "choice"
@@ -190,9 +203,22 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
 
 3.  **Generate Plan:**
     *   Read the confirmed `spec.md` content for this track.
-    *   Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
-    *   Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)` and pass it to annotate task complexity scores with real hotspot data. If non-null, the generated Swarm Blueprint will be labeled `source: 'intelligence'` (surgical precision mode).
-    *   If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)` and proceed with keyword heuristics only.
+    *   Resolve snapshot paths:
+        ```bash
+        PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+        OUTPUT_DIR="$PROJECT_ROOT/superconductor/intelligence"
+        ```
+    *   Load `RepoContext` using `IntelligenceSnapshotReader.load(OUTPUT_DIR, PROJECT_ROOT)` or `IntelligencePreflightCheck.run(PROJECT_ROOT, OUTPUT_DIR)`:
+        - **Safe Null Guard:** Add a safe null guard before accessing `context.driftBanner` (do NOT dereference if `context` is null).
+        - **Mismatch Detection:** If `context` is non-null and `context.manifest?.projectRoot` does not match `PROJECT_ROOT`, emit the UX-2 mismatch warning:
+          ```text
+          [superconductor] Intelligence: MISMATCH | Indexed: <context.manifest.projectRoot> | Current: <PROJECT_ROOT>
+          ```
+          and trigger an automatic re-scan offer against the current workspace.
+        - **Preflight Status (UX-2 Conforming):**
+          - If `context` is non-null and `context.driftBanner` is available, emit `context.driftBanner`.
+          - If `RepoContext` is `null`: emit `[superconductor] Intelligence: NONE | Run: /superconductor:setup to index this project` and proceed with keyword heuristics only.
+        - If valid intelligence context is present, pass `RepoContext` to annotate task complexity scores with real hotspot data; the generated Swarm Blueprint will be labeled `source: 'intelligence'` (surgical precision mode).
     *   Resolve and read the **Workflow** file (via the **Universal File Resolution Protocol** using the project's index file).
     *   Generate a `plan.md` with a hierarchical list of Phases, Tasks, and Sub-tasks.
     *   **CRITICAL:** The plan structure MUST adhere to the methodology in the **Workflow** file (e.g., TDD tasks for "Write Tests" and "Implement").
@@ -237,11 +263,18 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
 ### 2.3a Swarm Blueprint Generation
 After generating the plan draft:
 1. Ensure `plan.md` is saved to disk in the track directory.
-2. Run the blueprint CLI script to inject the Swarm Blueprint and annotate the plan:
-   `node ~/.gemini/config/plugins/superconductor/packages/superconductor-core/dist/intelligence/cli-blueprint.js superconductor/tracks/<track_id>/plan.md`
-3. The script will output a JSON summary to stdout. Parse it to surface the token budget estimate to the user in the confirmation message:
+2. Resolve `SUPERCONDUCTOR_DIR`:
+   ```bash
+   SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"
+   ```
+3. Run the compiled blueprint CLI wrapper script to inject the Swarm Blueprint and annotate the plan:
+   ```bash
+   node "${SUPERCONDUCTOR_DIR}/packages/superconductor-core/dist/intelligence/cli-blueprint.js" "<plan.md_path>"
+   ```
+   For this track: `node "${SUPERCONDUCTOR_DIR}/packages/superconductor-core/dist/intelligence/cli-blueprint.js" "superconductor/tracks/<track_id>/plan.md"`
+4. The script will output a JSON summary to stdout. Parse it to surface the token budget estimate to the user in the confirmation message:
    `"Estimated track cost: ${costSummary} · ${waves} waves · Oracle every ${oracleCadence} tasks"`
-4. Show the user the updated plan (now containing the `## Swarm Blueprint` section) for approval.
+5. Show the user the updated plan (now containing the `## Swarm Blueprint` section) for approval.
 
 4.  **User Confirmation:**
     -   **Headless Mode:** Automatically approve the plan.
@@ -249,7 +282,7 @@ After generating the plan draft:
         - **questions:**
             - **header:** "Confirm Plan"
             - **question:**
-                Please review the drafted Implementation Plan below. Does this look correct and cover all the necessary steps?
+                Review the drafted Implementation Plan below. Does this look correct and cover all the necessary steps?
                 ---
                 <Insert Drafted plan.md Content Here>
             - **type:** "choice"
@@ -268,9 +301,13 @@ After generating the plan draft:
 
 ### 2.4 Skill Recommendation (Interactive)
 1.  **Analyze Needs:**
-    -   Read `skills/catalog.md` from the directory where the Superconductor extension is installed (typically `~/.gemini/extensions/superconductor/skills/catalog.md`).
+    -   Resolve `SUPERCONDUCTOR_DIR` dynamically:
+        ```bash
+        SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"
+        ```
+    -   Read `skills/catalog.md` from the Superconductor extension directory (`${SUPERCONDUCTOR_DIR}/skills/catalog.md`).
     -   Analyze the confirmed `spec.md` and `plan.md` against the `Detection Signals` in the loaded `skills/catalog.md`.
-    -   Identify any relevant skills that are NOT yet installed (check `~/.agents/extensions/superconductor/skills/` and `.agents/skills/`).
+    -   Identify any relevant skills that are NOT yet installed (check `${SUPERCONDUCTOR_DIR}/skills/` and `.agents/skills/`).
 2.  **Recommendation Loop:**
     -   **Superconductor Swarm Check:** If the plan has more than 5 tasks, automatically suggest the `swarm-orchestrate` skill. If the track involves code generation, suggest the `superconductor-agents` skill.
     -   **If relevant missing skills are found:**
@@ -318,8 +355,8 @@ After generating the plan draft:
     *   Write the index file to `<Tracks Directory>/<track_id>/index.md`.
     *   **CRITICAL:** Generate the permission manifest by running `npx superconductor infer-permissions <Tracks Directory>/<track_id>/spec.md <Tracks Directory>/<track_id>/permission-manifest.toml`.
 6.  **Register Tasks in Ledger:**
-    *   Parse the confirmed `plan.md` for task cards.
-    *   For each task card line:
+    *   Parse the confirmed `plan.md` for tasks.
+    *   For each task line:
         - **Title Normalization:** Strip checkbox status (`- [ ]`, `- [x]`), optional `Task:` prefix, routing tier hints (`[TIER-N]`), and agent role suggestions (`[AGENT:...]`). Trim leading and trailing whitespace to produce the clean `title`. Extract `tier` (e.g., `"TIER-3"`) and `agent` (e.g., `"superconductor-processor"`) into dedicated string parameters.
         - **Parsing `CREATES` and `PROTECTED` into String Arrays:**
           - *Single-Line Comma-Separated:* If the field value is on a single line following the key (e.g., `CREATES: src/auth/guard.ts, src/auth/types.ts`), split the string by `,`, trim whitespace from each item, and filter out empty strings.

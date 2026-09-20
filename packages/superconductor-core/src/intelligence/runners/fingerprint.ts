@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -12,8 +12,15 @@ export function runFingerprint(projectRoot: string, outputDir: string, capabilit
   try {
     let result: any = { languages: {}, totalLines: 0, totalFiles: 0, primaryLanguage: null };
     if (capability.tool === 'tokei') {
-      const out = execSync(`tokei ${projectRoot} --output json`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
-      const data = JSON.parse(out);
+      const proc = spawnSync('tokei', [projectRoot, '--output', 'json'], {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+      });
+      if (proc.error || proc.status !== 0 || !proc.stdout) {
+        fs.writeFileSync(outFile, JSON.stringify(null));
+        return { status: 'degraded' };
+      }
+      const data = JSON.parse(proc.stdout);
       let maxLines = 0;
       for (const [lang, stats] of Object.entries(data)) {
         if (lang === 'Total') continue;

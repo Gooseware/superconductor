@@ -54,7 +54,24 @@ export function runGraphify(projectRoot: string, outputDir: string, capability: 
   }
 
   try {
-    execFileSync(binary, ['--', '.'], { cwd: projectRoot, stdio: 'pipe', env: { PATH: '/usr/local/bin:/usr/bin:/bin' } });
+    const currentPath = process.env.PATH || '';
+    const fallbackPaths = ['/usr/local/bin', '/usr/bin', '/bin'];
+    const pathParts = currentPath ? currentPath.split(path.delimiter) : [];
+    for (const p of fallbackPaths) {
+      if (!pathParts.includes(p)) {
+        pathParts.push(p);
+      }
+    }
+    const combinedPath = pathParts.join(path.delimiter);
+
+    execFileSync(binary, ['--', '.'], {
+      cwd: projectRoot,
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        PATH: combinedPath,
+      },
+    });
   } catch (e: any) {
     const stdout = e.stdout ? e.stdout.toString() : '';
     const stderr = e.stderr ? e.stderr.toString() : '';

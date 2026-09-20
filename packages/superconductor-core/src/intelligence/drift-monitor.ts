@@ -1,4 +1,6 @@
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface Manifest {
   lastCommitSha?: string;
@@ -13,11 +15,55 @@ export interface DriftReport {
   incrementalRuns: number;
   recommendFullRescan: boolean;
   banner: string; // the 3-state banner string
+  status?: 'LIVE' | 'STALE';
 }
 
 const SHA_RE = /^[0-9a-f]{7,40}$/i;
 
 export class IntelligenceDriftMonitor {
+  /**
+   * Check drift state from either a Manifest object or an output directory / manifest file path.
+   * If outputDir is provided as a string, loads 00_manifest.json (or uses fallback if missing).
+   *
+   * @param outputDirOrManifest - Manifest object or path to intelligence output directory / manifest file.
+   * @param projectRoot - Path to the git repository root.
+   */
+  static check(outputDirOrManifest: Manifest | string, projectRoot?: string): DriftReport {
+    if (typeof outputDirOrManifest === 'string') {
+      const resolvedOutput = path.resolve(outputDirOrManifest);
+      let manifestPath = resolvedOutput;
+      if (!manifestPath.endsWith('.json')) {
+        manifestPath = path.join(resolvedOutput, '00_manifest.json');
+        if (!fs.existsSync(manifestPath)) {
+          const nested = path.join(resolvedOutput, 'superconductor', 'intelligence', '00_manifest.json');
+          if (fs.existsSync(nested)) {
+            manifestPath = nested;
+          }
+        }
+      }
+
+      let manifest: Manifest = { timestamp: Date.now(), lastCommitSha: 'unknown' };
+      if (fs.existsSync(manifestPath)) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          manifest = {
+            lastCommitSha: raw.lastCommitSha ?? raw.last_commit ?? raw.headSha ?? 'unknown',
+            timestamp: typeof raw.timestamp === 'number'
+              ? raw.timestamp
+              : (raw.timestamp ? new Date(raw.timestamp).getTime() : Date.now()),
+            incrementalRuns: raw.incrementalRuns ?? raw.incremental_runs ?? 0,
+          };
+        } catch {
+          // fallback unknown
+        }
+      }
+
+      const root = projectRoot ?? (outputDirOrManifest.endsWith('.json') ? path.dirname(path.dirname(path.dirname(resolvedOutput))) : resolvedOutput);
+      return IntelligenceDriftMonitor.checkDrift(manifest, root);
+    }
+
+    return IntelligenceDriftMonitor.checkDrift(outputDirOrManifest, projectRoot ?? '');
+  }
   /**
    * Check drift state against current HEAD.
    * Uses spawnSync for all git calls — never execSync + string interpolation.
@@ -35,12 +81,14 @@ export class IntelligenceDriftMonitor {
     const incrementalRuns = manifest.incrementalRuns ?? 0;
 
     let commitsBehind = 0;
-    const sha = manifest.lastCommitSha;
+    const headSha = manifest.lastCommitSha;
 
-    if (!sha || !SHA_RE.test(sha)) {
+    if (headSha === 'unknown') {
+      commitsBehind = 0;
+    } else if (!headSha || !SHA_RE.test(headSha)) {
       commitsBehind = Infinity;
     } else {
-      const result = spawnSync('git', ['rev-list', '--count', `${sha}..HEAD`], {
+      const result = spawnSync('git', ['rev-list', '--count', `${headSha}..HEAD`], {
         cwd: projectRoot,
         encoding: 'utf8',
       });
@@ -57,15 +105,21 @@ export class IntelligenceDriftMonitor {
     }
 
     const isDrifted =
-      commitsBehind === Infinity ||
-      commitsBehind > 10 ||
-      snapshotAgeMs > 24 * 3600 * 1000;
+      headSha === 'unknown'
+        ? false
+        : (commitsBehind === Infinity ||
+           commitsBehind > 10 ||
+           snapshotAgeMs > 24 * 3600 * 1000);
 
     const recommendFullRescan =
-      commitsBehind === Infinity ||
-      commitsBehind > 50 ||
-      snapshotAgeMs > 7 * 24 * 3600 * 1000 ||
-      incrementalRuns >= 50;
+      headSha === 'unknown'
+        ? false
+        : (commitsBehind === Infinity ||
+           commitsBehind > 50 ||
+           snapshotAgeMs > 7 * 24 * 3600 * 1000 ||
+           incrementalRuns >= 50);
+
+    const status: 'LIVE' | 'STALE' = isDrifted ? 'STALE' : 'LIVE';
 
     const report: DriftReport = {
       isDrifted,
@@ -74,6 +128,7 @@ export class IntelligenceDriftMonitor {
       incrementalRuns,
       recommendFullRescan,
       banner: '',
+      status,
     };
 
     report.banner = IntelligenceDriftMonitor.formatBanner(report);

@@ -17,3 +17,8 @@ export * from './dag-resolver.js';
 export * from './topography-map.js';
 export * from './domain-partitioner.js';
 export * from './auto-sync-engine.js';
+export * from './utils/resolve-project-root.js';
+export * from './utils/language-profile.js';
+export * from './audit-reporter.js';
+export * from './preflight-check.js';
+export * from './cli-blueprint.js';

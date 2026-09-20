@@ -33,7 +33,7 @@ const DEFAULT_REGISTRY_PATH = path.join(DESIGN_OS_DIR, "registry");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(__dirname, "..");
-const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(PACKAGE_ROOT, "../..");
+const PROJECT_ROOT = process.env.PROJECT_ROOT || process.cwd();
 const OLD_REGISTRY_PATH = path.resolve(PROJECT_ROOT, "packages/ui-kit-registry");
 
 // One-time Migration
@@ -734,6 +734,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
+            workspaceRoot: { type: "string", description: "Optional workspace root directory" },
             outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" },
             track_id: { type: "string", description: "Track ID" },
             session_id: { type: "string", description: "Session ID" }
@@ -746,6 +747,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: "object",
           properties: {
+            workspaceRoot: { type: "string", description: "Optional workspace root directory" },
             outputDir: { type: "string", description: "Optional output directory containing intelligence snapshot" },
             force: { type: "boolean", description: "Force full pipeline re-scan regardless of commit drift" },
             track_id: { type: "string", description: "Optional track ID filter" },
@@ -818,9 +820,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "kernel_intelligence_status") {
-    const { outputDir, track_id, session_id } = z.object({ outputDir: z.string().optional(), track_id: z.string().optional(), session_id: z.string().optional() }).parse(args || {});
-    const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
-    const result = await intelligenceStatusService.getStatus(targetDir);
+    const { outputDir, workspaceRoot, track_id, session_id } = z.object({
+      outputDir: z.string().optional(),
+      workspaceRoot: z.string().optional(),
+      track_id: z.string().optional(),
+      session_id: z.string().optional()
+    }).parse(args || {});
+    const targetDir = outputDir || (workspaceRoot ? path.join(workspaceRoot, "superconductor") : path.join(PROJECT_ROOT, "superconductor"));
+    const result = await intelligenceStatusService.getStatus(targetDir, workspaceRoot);
     if (track_id && session_id) {
       await updateQuorumState('intelligenceStatusChecked', true, track_id, session_id);
     }
@@ -828,13 +835,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   if (name === "kernel_intelligence_refresh") {
-    const { outputDir, force, track_id, session_id } = z.object({
+    const { outputDir, workspaceRoot, force, track_id, session_id } = z.object({
       outputDir: z.string().optional(),
+      workspaceRoot: z.string().optional(),
       force: z.boolean().optional(),
       track_id: z.string().optional(),
       session_id: z.string().optional(),
     }).parse(args || {});
-    const targetDir = outputDir || path.join(PROJECT_ROOT, "superconductor");
+    const targetDir = outputDir || (workspaceRoot ? path.join(workspaceRoot, "superconductor") : path.join(PROJECT_ROOT, "superconductor"));
     const result = await intelligenceStatusService.refresh(targetDir, force);
     if (track_id && session_id) {
       await updateQuorumState('intelligenceStatusChecked', true, track_id, session_id);
@@ -1204,7 +1212,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (name === "kernel_intelligence_get_hotspots") {
     const { metric } = z.object({ metric: z.enum(["churn", "complexity", "pagerank"]) }).parse(args);
-    const data = graphCache.load();
+    let data: any;
+    try {
+      data = graphCache.load();
+    } catch {
+      return { content: [{ type: "text", text: JSON.stringify({ hotspots: [], status: "NONE" }, null, 2) }] };
+    }
+    if (!data || !data.nodes || data.nodes.length === 0) {
+      return { content: [{ type: "text", text: JSON.stringify({ hotspots: [], status: "NONE" }, null, 2) }] };
+    }
     const sorted = [...data.nodes].sort((a: any, b: any) => {
       const valA = a.metadata?.[metric] || 0;
       const valB = b.metadata?.[metric] || 0;

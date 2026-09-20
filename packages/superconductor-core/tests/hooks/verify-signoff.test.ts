@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import crypto from 'crypto';
 import { execSync } from 'child_process';
 
@@ -73,5 +74,122 @@ describe('Git Pre-Commit SignOff Verification Hook', () => {
     expect(fs.existsSync(yoloLogPath)).toBe(true);
     const logContent = fs.readFileSync(yoloLogPath, 'utf8');
     expect(logContent).toContain(`YOLO BYPASS: --no-signoff flag present for track ${testTrackId}`);
+  });
+});
+
+describe('commit-msg hook resolution', () => {
+  let tempRepo: string;
+  const repoRoot = path.resolve(__dirname, '../../../../');
+  const commitMsgHook = path.join(repoRoot, 'scripts/hooks/commit-msg');
+
+  beforeEach(() => {
+    tempRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'commit-msg-test-'));
+    execSync('git init', { cwd: tempRepo, stdio: 'ignore' });
+    execSync('git config user.name "Test"', { cwd: tempRepo });
+    execSync('git config user.email "test@example.com"', { cwd: tempRepo });
+    execSync('git commit --allow-empty -m "initial"', { cwd: tempRepo, stdio: 'ignore' });
+    execSync('git checkout -b track/test-hook-track', { cwd: tempRepo, stdio: 'ignore' });
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempRepo)) {
+      fs.rmSync(tempRepo, { recursive: true, force: true });
+    }
+  });
+
+  it('exits 0 without error when verify-signoff.mjs is not found anywhere', () => {
+    const msgFile = path.join(tempRepo, 'COMMIT_MSG');
+    fs.writeFileSync(msgFile, 'feat: test commit\n\nSwarm-Authorized: test-user\n');
+
+    const hookCopy = path.join(tempRepo, 'commit-msg');
+    fs.copyFileSync(commitMsgHook, hookCopy);
+    fs.chmodSync(hookCopy, 0o755);
+
+    const output = execSync(`bash "${hookCopy}" "${msgFile}"`, {
+      cwd: tempRepo,
+      env: { ...process.env, SUPERCONDUCTOR_DIR: '', SUPERCONDUCTOR_FLAGS: '--no-signoff' },
+      encoding: 'utf8',
+    });
+
+    expect(output).not.toContain('Sign-off verified');
+  });
+
+  it('resolves verify-signoff.mjs via SUPERCONDUCTOR_DIR', () => {
+    const msgFile = path.join(tempRepo, 'COMMIT_MSG');
+    fs.writeFileSync(msgFile, 'feat: test commit\n\nSwarm-Authorized: test-user\n');
+
+    const hookCopy = path.join(tempRepo, 'commit-msg');
+    fs.copyFileSync(commitMsgHook, hookCopy);
+    fs.chmodSync(hookCopy, 0o755);
+
+    const output = execSync(`bash "${hookCopy}" "${msgFile}"`, {
+      cwd: tempRepo,
+      env: {
+        ...process.env,
+        SUPERCONDUCTOR_DIR: repoRoot,
+        SUPERCONDUCTOR_FLAGS: '--no-signoff',
+      },
+      encoding: 'utf8',
+    });
+
+    expect(output).toContain('Sign-off verified');
+  });
+
+  it('resolves verify-signoff.mjs relative to hook directory ($(dirname "$0")/verify-signoff.mjs)', () => {
+    const msgFile = path.join(tempRepo, 'COMMIT_MSG');
+    fs.writeFileSync(msgFile, 'feat: test commit\n\nSwarm-Authorized: test-user\n');
+
+    const hookDir = path.join(tempRepo, 'custom-hooks');
+    fs.mkdirSync(hookDir, { recursive: true });
+    const hookCopy = path.join(hookDir, 'commit-msg');
+    fs.copyFileSync(commitMsgHook, hookCopy);
+    fs.chmodSync(hookCopy, 0o755);
+
+    fs.writeFileSync(
+      path.join(hookDir, 'verify-signoff.mjs'),
+      'console.log("MOCK_FROM_DIRNAME"); process.exit(0);'
+    );
+
+    const output = execSync(`bash "${hookCopy}" "${msgFile}"`, {
+      cwd: tempRepo,
+      env: {
+        ...process.env,
+        SUPERCONDUCTOR_DIR: '',
+        SUPERCONDUCTOR_FLAGS: '--no-signoff',
+      },
+      encoding: 'utf8',
+    });
+
+    expect(output).toContain('Sign-off verified: MOCK_FROM_DIRNAME');
+  });
+
+  it('does not resolve unvalidated ./scripts/hooks/verify-signoff.mjs CWD fallback', () => {
+    const msgFile = path.join(tempRepo, 'COMMIT_MSG');
+    fs.writeFileSync(msgFile, 'feat: test commit\n\nSwarm-Authorized: test-user\n');
+
+    const dotGitHooks = path.join(tempRepo, '.git', 'hooks');
+    fs.mkdirSync(dotGitHooks, { recursive: true });
+    const hookCopy = path.join(dotGitHooks, 'commit-msg');
+    fs.copyFileSync(commitMsgHook, hookCopy);
+    fs.chmodSync(hookCopy, 0o755);
+
+    const targetHooksDir = path.join(tempRepo, 'scripts', 'hooks');
+    fs.mkdirSync(targetHooksDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(targetHooksDir, 'verify-signoff.mjs'),
+      'console.log("MOCK_FROM_TARGET_REPO"); process.exit(0);'
+    );
+
+    const output = execSync(`bash "${hookCopy}" "${msgFile}"`, {
+      cwd: tempRepo,
+      env: {
+        ...process.env,
+        SUPERCONDUCTOR_DIR: '',
+        SUPERCONDUCTOR_FLAGS: '--no-signoff',
+      },
+      encoding: 'utf8',
+    });
+
+    expect(output).not.toContain('Sign-off verified: MOCK_FROM_TARGET_REPO');
   });
 });

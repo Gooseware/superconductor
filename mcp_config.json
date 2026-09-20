@@ -4,7 +4,11 @@
       "command": "node",
       "args": [
         "./packages/superconductor-kernel/dist/index.js"
-      ]
+      ],
+      "env": {
+        "PROJECT_ROOT": "${WORKSPACE_ROOT}",
+        "SUPERCONDUCTOR_DIR": "${EXTENSION_DIR}"
+      }
     }
   }
 }

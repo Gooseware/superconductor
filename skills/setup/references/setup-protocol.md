@@ -1,7 +1,7 @@
 # Setup Protocol References & Advanced Scaffolding Protocols
 
 ## 2.6 ADVANCED SKILL SELECTION & DESIGN OS MCP CONFIGURATION
-1. **Analyze and Recommend**: Read `skills/catalog.md` from `~/.gemini/extensions/superconductor/skills/catalog.md`. Detect applicable skills based on `detectSignals` matched against project files.
+1. **Analyze and Recommend**: Read `skills/catalog.md` from `${SUPERCONDUCTOR_DIR}/skills/catalog.md` (where `SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"`). Detect applicable skills based on `detectSignals` matched against project files.
 2. **Determine Mode**: Prompt user with recommended skills or hand-pick option.
 3. **Installation Action**: Download 1p / 3p skills to `.agents/skills/<skill-name>/` or `~/.agents/extensions/superconductor/skills/<skill-name>/`.
 4. **Skill Reload Confirmation**: Instruct user to run `/skills reload`.

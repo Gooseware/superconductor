@@ -6,9 +6,9 @@ description: Scaffolds the project and sets up the Superconductor environment
 ## 1.0 SYSTEM DIRECTIVE
 You are an AI agent. Your primary function is to set up and manage a software project using the Superconductor methodology. This document is your operational protocol. Adhere to these instructions precisely and sequentially. Do not make assumptions.
 
-CRITICAL: You must validate the success of every tool call. If a tool call fails (e.g., due to a policy restriction or path error), you should attempt to intelligently self-correct by reviewing the error message. If the failure is unrecoverable after a self-correction attempt, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions. All setup steps must be executed idempotently (checking for existence before creation or assuming prior success if artifacts exist).
+CRITICAL: You MUST validate the success of every tool call. If a tool call fails (e.g., due to a policy restriction or path error), you SHOULD attempt to intelligently self-correct by reviewing the error message. If the failure is unrecoverable after a self-correction attempt, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions. All setup steps MUST be executed idempotently (checking for existence before creation or assuming prior success if artifacts exist).
 
-PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as they will be blocked by Plan Mode security policies. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.** Do not defer these actions to a final execution phase; execute them immediately as each step is completed and approved by the user.
+PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as Plan Mode security policies block absolute paths. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.** Do not defer these actions to a final execution phase; execute them immediately as each step is completed and approved by the user.
 ---
 
 ## 1.1 PRE-INITIALIZATION OVERVIEW
@@ -38,13 +38,15 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
     - `code_styleguides/`
     - `workflow.md`
     - `index.md`
+    - `intelligence/00_manifest.json`
     - `tracks/*/` (specifically `plan.md` and `index.md`)
 
 4.  **Determine Target Section:** Map the project's state to a target section using the priority table below (highest match wins). **DO NOT JUMP YET.** Keep this target in mind.
 
 | Artifact Exists | Target Section | Announcement |
 | :--- | :--- | :--- |
-| All files in `tracks/<track_id>/` (`spec`, `plan`, `metadata`, `index`) | **HALT** | "The project is already initialized. Use `/superconductor:newTrack` or `/superconductor:implement`." |
+| All files in `tracks/<track_id>/` (`spec`, `plan`, `metadata`, `index`) AND `intelligence/00_manifest.json` | **HALT** | "The project is already initialized with an active intelligence baseline. Use `/superconductor:newTrack` or `/superconductor:implement`." |
+| Core scaffolding exists (`product.md`, `tech-stack.md`, `workflow.md`) but `intelligence/00_manifest.json` is missing | **Section 2.7 (Intelligence Repair Mode)** | "Project scaffolding is present, but intelligence baseline is missing. Entering Intelligence Repair Mode: establishing intelligence baseline without re-scaffolding." |
 | `index.md` (top-level) | **Section 3.0** | "Resuming setup: Scaffolding is complete. Next: generate the first track. (Note: If an incomplete track folder was detected, we will restart this step to ensure a clean, consistent state)." |
 | `workflow.md` | **Section 2.6** | "Resuming setup: Workflow is defined. Next: select Agent Skills." |
 | `code_styleguides/` | **Section 2.5** | "Resuming setup: Guides/Tech Stack configured. Next: define project workflow." |
@@ -52,6 +54,13 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 | `product-guidelines.md` | **Section 2.3** | "Resuming setup: Guidelines are complete. Next: define the Technology Stack." |
 | `product.md` | **Section 2.2** | "Resuming setup: Product Guide is complete. Next: create Product Guidelines." |
 | (None) | **Section 2.0** | (None) |
+
+### Intelligence Repair Mode
+When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflow.md`) already exist, but `superconductor/intelligence/00_manifest.json` is missing or stale:
+- Setup enters **Intelligence Repair Mode**.
+- Rather than halting or forcing a full project re-scaffolding, skip project inception and intermediate drafting (Sections 2.0–2.6).
+- Jump directly to **Section 2.7 (Step 2c)** to run intelligence baseline indexing.
+- If tracks already exist, verify that `kernel_intelligence_status` returns `status === 'LIVE'` and conclude setup cleanly without overwriting or re-generating tracks.
 
 5. **Proceed to Section 2.0:** You MUST proceed to Section 2.0 to establish the Greenfield/Brownfield context before jumping to your target.
 
@@ -78,7 +87,7 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 2.  **Resume Fast-Forward Check:**
     - If the **Target Section** (from 1.2) is anything other than "Section 2.0":
         - Announce the project maturity (Greenfield/Brownfield) and **briefly state the reason** (e.g., "A Greenfield project was detected because no application code exists"). Then announce the target section.
-        - **IMMEDIATELY JUMP** to the Target Section. Do not execute the rest of Section 2.0.
+        - **IMMEDIATELY JUMP** to the Target Section. If the target is **Section 2.7 (Intelligence Repair Mode)**, fast-forward directly to Section 2.7 Step 2c to run the intelligence baseline scan. Do not execute the rest of Section 2.0.
     - If the Target Section is "Section 2.0", proceed to step 3.
 
 3.  **Execute Workflow based on Maturity:**
@@ -101,9 +110,9 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
                 3.  **Comprehensive Scan:** Extend the analysis to other relevant files to understand the project's purpose, technologies, and conventions.
 
             -   **2.1 File Size and Relevance Triage:**
-                1.  **Respect Ignore Files:** Before scanning any files, you MUST check for the existence of `.geminiignore` and `.gitignore` files. If either or both exist, you MUST use their combined patterns to exclude files and directories from your analysis. The patterns in `.geminiignore` should take precedence over `.gitignore` if there are conflicts. This is the primary mechanism for avoiding token-heavy, irrelevant files like `node_modules`.
-                2.  **Efficiently List Relevant Files:** To list the files for analysis, you MUST use a command that respects the ignore files. For example, you can use `git ls-files --exclude-standard -co | xargs -n 1 dirname | sort -u` which lists all relevant directories (tracked by Git, plus other non-ignored files) without listing every single file. If Git is not used, you must construct a `find` command that reads the ignore files and prunes the corresponding paths.
-                3.  **Fallback to Manual Ignores:** ONLY if neither `.geminiignore` nor `.gitignore` exist, you should fall back to manually ignoring common directories. Example command: `ls -lR -I 'node_modules' -I '.m2' -I 'build' -I 'dist' -I 'bin' -I 'target' -I '.git' -I '.idea' -I '.vscode'`.
+                1.  **Respect Ignore Files:** Before scanning any files, you MUST check for the existence of `.geminiignore` and `.gitignore` files. If either or both exist, you MUST use their combined patterns to exclude files and directories from your analysis. The patterns in `.geminiignore` SHOULD take precedence over `.gitignore` if there are conflicts. This is the primary mechanism for avoiding token-heavy, irrelevant files like `node_modules`.
+                2.  **Efficiently List Relevant Files:** To list the files for analysis, you MUST use a command that respects the ignore files. For example, you can use `git ls-files --exclude-standard -co | xargs -n 1 dirname | sort -u` which lists all relevant directories (tracked by Git, plus other non-ignored files) without listing every single file. If Git is not used, you MUST construct a `find` command that reads the ignore files and prunes the corresponding paths.
+                3.  **Fallback to Manual Ignores:** ONLY if neither `.geminiignore` nor `.gitignore` exist, you SHOULD fall back to manually ignoring common directories. Example command: `ls -lR -I 'node_modules' -I '.m2' -I 'build' -I 'dist' -I 'bin' -I 'target' -I '.git' -I '.idea' -I '.vscode'`.
                 4.  **Prioritize Key Files:** From the filtered list of files, focus your analysis on high-value, low-size files first, such as `package.json`, `pom.xml`, `requirements.txt`, `go.mod`, and other configuration or manifest files.
                 5.  **Handle Large Files:** For any single file over 1MB in your filtered list, DO NOT read the entire file. Instead, read only the first and last 20 lines (using `head` and `tail`) to infer its purpose.
 
@@ -170,7 +179,7 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
         - **questions:**
             - **header:** "Review Draft"
             - **question:**
-                Please review the drafted Product Guide below. What would you like to do next?
+                Review the drafted Product Guide below. What would you like to do next?
 
                 ---
 
@@ -217,7 +226,7 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
         - **questions:**
             - **header:** "Review Draft"
             - **question:**
-                Please review the drafted Product Guidelines below. What would you like to do next?
+                Review the drafted Product Guidelines below. What would you like to do next?
 
                 ---
 
@@ -299,7 +308,7 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
             - **header:** Very short label (max 16 chars).
             - **type:** "choice"
             - **multiSelect:** Set to `true` (Additive) to allow hybrid stacks.
-            - **options:** Provide descriptive options with both `label` and `description`. Use the `label` field to explain *why* or *where* a technology fits (e.g., "Typescript - Ideal for Angular UI"). Ensure the options are coherent when combined.
+            - **options:** Provide descriptive options with both `label` and `description`. Use the `label` field to explain *why* or *where* a technology fits (e.g., "TypeScript - Ideal for Angular UI"). Ensure the options are coherent when combined.
             - **Note:** Do NOT include an "Autogenerate" option here.
         -   **Interaction Flow:** Wait for the user's response, then proceed to the next step.
 
@@ -311,7 +320,7 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
         - **questions:**
             - **header:** "Review Draft"
             - **question:**
-                Please review the drafted Tech Stack below. What would you like to do next?
+                Review the drafted Tech Stack below. What would you like to do next?
 
                 ---
 
@@ -355,7 +364,12 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
 ### 2.4 Select Guides (Interactive)
 1.  **Initiate Dialogue:** Announce that the initial scaffolding is complete and you now need the user's input to select the project's guides from the locally available templates.
 2.  **Select Code Style Guides:**
-    -   List the available style guides by using the `run_shell_command` tool to execute `ls ~/.gemini/extensions/superconductor/templates/code_styleguides/`. **CRITICAL: You MUST use `run_shell_command` for this step. Do NOT use the `list_directory` tool, as the templates directory resides outside of your allowed workspace and the call will fail.**
+    -   List the available style guides by using the `run_shell_command` tool to execute:
+        ```bash
+        SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"
+        ls "${SUPERCONDUCTOR_DIR}/templates/code_styleguides/"
+        ```
+        **CRITICAL: You MUST use `run_shell_command` for this step. Do NOT use the `list_directory` tool, as the templates directory resides outside of your allowed workspace and the call will fail.**
     -   **FOR GREENFIELD PROJECTS:**
         -   **Recommendation:** Based on the Tech Stack defined in the previous step, recommend the most appropriate style guide(s) (e.g., "python.md" for a Python project) and explain why.
         -   **Determine Mode:** Use the `ask_user` tool:
@@ -392,12 +406,12 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
             -   **Action:** Announce "I'll present the additional guides. Please select all that apply." Then, immediately call the `ask_user` tool (do not list the questions in the chat).
             -   **Method:** Use a single `ask_user` tool call. Dynamically split the available guides into batches of 4 options max. Create one `multiSelect: true` question for each batch.
 
-3.  **Action:** Construct and execute a command to create the directory and copy all selected files. For example: `mkdir -p superconductor/code_styleguides && cp ~/.gemini/extensions/superconductor/templates/code_styleguides/python.md ~/.gemini/extensions/superconductor/templates/code_styleguides/javascript.md superconductor/code_styleguides/`
+3.  **Action:** Construct and execute a command to create the directory and copy all selected files using `SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"`. For example: `mkdir -p superconductor/code_styleguides && cp "${SUPERCONDUCTOR_DIR}/templates/code_styleguides/python.md" "${SUPERCONDUCTOR_DIR}/templates/code_styleguides/javascript.md" superconductor/code_styleguides/`
 4.  **Continue:** Immediately proceed to the next section.
 
 ### 2.5 Select Workflow (Interactive)
 1.  **Copy Initial Workflow:**
-    -   Copy `~/.gemini/extensions/superconductor/templates/workflow.md` to `superconductor/workflow.md`.
+    -   Derive `SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"` and copy `"${SUPERCONDUCTOR_DIR}/templates/workflow.md"` to `superconductor/workflow.md`.
 2.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Workflow"
@@ -436,43 +450,40 @@ PLAN MODE PROTOCOL: This setup process runs entirely within Plan Mode. While in 
                     - Commit Frequency: <User Answer 2>
                     - Summary Storage: <User Answer 3>
 
-                    Is there anything else you'd like to change or add to the workflow? (Leave blank to finish or type your additional requirements).
-
+                     Is there anything else you'd like to change or add to the workflow? (Leave blank to finish or type your additional requirements).
 4.  **Action:** Update `superconductor/workflow.md` based on all user answers from both steps.
-
-
 ### 2.6 Select Skills & Design OS MCP Configuration (Interactive)
-1. **Analyze and Recommend**: Read `skills/catalog.md` from `~/.gemini/extensions/superconductor/skills/catalog.md`. Detect applicable skills based on `detectSignals` matched against project files.
+1. **Analyze and Recommend**: Read `skills/catalog.md` from `${SUPERCONDUCTOR_DIR}/skills/catalog.md` (where `SUPERCONDUCTOR_DIR="${SUPERCONDUCTOR_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || echo "$HOME/.gemini/config/plugins/superconductor")}"`). Detect applicable skills based on `detectSignals` matched against project files.
 2. **Installation & MCP Server Setup**: Prompt user to select/install skills and configure `superconductor-kernel` database repository in `mcp_config.json`.
 3. **Reference Protocol**: Detailed step-by-step instructions are available in [references/setup-protocol.md#2.6-advanced-skill-selection--design-os-mcp-configuration](./references/setup-protocol.md).
 
 ### 2.7 Finalization
 1. **Generate Index File**: Create `superconductor/index.md` linking definition, workflow, and track management files.
-2. **Install Worktrunk (Setup Hook)**: Ensure the `worktrunk` backend is available by executing `./scripts/install-worktrunk.sh`.
-2a. **Install Intelligence Git Hook:** Execute `./scripts/install-git-hook.sh` to install the post-commit incremental intelligence updater hook.
-2b. **Install Swarm Enforcement Git Hook:** Execute `./scripts/hooks/install-hooks.sh` to install the pre-commit hook. This hook is a permanent install that self-activates/deactivates based on the track state.
-2c. **Run Full Intelligence Baseline Scan:** Trigger a full intelligence scan by calling the MCP tool `superconductor_run_intelligence` or executing `node packages/superconductor-core/dist/intelligence/cli-update.js` with no arguments (which falls back to full scan). Surface result to user: `"✅ Intelligence baseline established"`.
+2. **Install Worktrunk (Setup Hook)**: Ensure `worktrunk` backend is available via `"${SUPERCONDUCTOR_DIR}/scripts/install-worktrunk.sh"`.
+2a. **Install Intelligence Git Hook:** Run `"${SUPERCONDUCTOR_DIR}/scripts/install-git-hook.sh"` to install the post-commit updater hook.
+2b. **Install Swarm Enforcement Git Hook:** Run `"${SUPERCONDUCTOR_DIR}/scripts/hooks/install-hooks.sh"` to install the pre-commit hook.
+2c. **Run Full Intelligence Baseline Scan:**
+    - Execute baseline scan with active progress tracking via MCP `kernel_intelligence_refresh({ force: true, outputDir: "<projectRoot>/superconductor" })` or CLI `node "${SUPERCONDUCTOR_DIR}/packages/superconductor-core/dist/cli/index.js" intelligence --full`.
+    - **Verification Gate:** Call `kernel_intelligence_status`:
+      - **If `status === 'LIVE'`:** Emit: `✅ Intelligence baseline established for <projectRoot> (SHA: <sha>)`.
+      - **If `status !== 'LIVE'`:** Do **NOT** emit the success banner. Report diagnostic guidance (`NONE`, `MISMATCH`, `STALE`). To fix: verify tool prerequisites, inspect console logs, or re-run scan with explicit root.
+    - **Intelligence Repair Mode Completion:** If entered via Repair Mode and tracks exist in `superconductor/tracks/`, announce `"Intelligence Repair complete: baseline is LIVE."` and conclude without Section 3.0.
 3. **Summarize & Transition**: Report setup summary and transition to initial plan generation.
-
 
 ---
 
 ## 3.0 INITIAL PLAN AND TRACK GENERATION
-> **Note**: To comply with the 500-line Progressive Disclosure rule, the full Initial Plan & Track Generation protocol is stored in [references/setup-protocol.md](./references/setup-protocol.md).
-
-Refer to [references/setup-protocol.md](./references/setup-protocol.md) for detailed step-by-step instructions on:
-- 3.1 Generate Product Requirements (Interactive)
-- 3.2 Propose a Single Initial Track
-- 3.3 Convert Initial Track into Artifacts (`spec.md`, `plan.md`, `metadata.json`, `index.md`)
-- 3.4 Final Setup Announcement
+Refer to [references/setup-protocol.md](./references/setup-protocol.md) for detailed step-by-step instructions on Sections 3.1 through 3.4 (Requirements, Propose Initial Track, Convert into Artifacts, and Final Setup Announcement).
 
 ## Command Flow Diagram
-
 ```mermaid
 graph TD
     A[Start /superconductor:setup] --> B{Project Audit}
-    B -->|All Artifacts Exist| C[HALT - Already Initialized]
-    B -->|Partial Setup| D[Jump to Missing Section]
+    B -->|All Artifacts + Intelligence Exist| C[HALT - Already Initialized]
+    B -->|Scaffolding Exists, Missing Intelligence| IR[Section 2.7 - Intelligence Repair Mode]
+    IR -->|Tracks Exist| N[End Setup]
+    IR -->|No Tracks| M[Generate Initial Track & Plan]
+    B -->|Partial Setup| D[Jump To Missing Section]
     B -->|No Artifacts| E{Project Maturity?}
     E -->|Greenfield| F[Ask Project Goal]
     E -->|Brownfield| G[Analyze Codebase]
@@ -482,6 +493,7 @@ graph TD
     I --> J[Select Code Style Guides]
     J --> K[Customize Workflow]
     K --> L[Select Skills & MCP]
-    L --> M[Generate Initial Track & Plan]
-    M --> N[End Setup]
+    L --> 27[Section 2.7 Finalization & Intelligence Scan]
+    27 --> M
+    M --> N
 ```
