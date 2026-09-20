@@ -1,7 +1,8 @@
-import { execSync, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { RunnerResult } from './types.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import { LanguageProfile } from '../utils/language-profile.js';
 
 export function runSymbolExtraction(projectRoot: string, outputDir: string, capability: any, scopedFiles?: string[]): RunnerResult<any> {
   const outFile = path.join(outputDir, '06_api_surface.toon');
@@ -13,6 +14,11 @@ export function runSymbolExtraction(projectRoot: string, outputDir: string, capa
   }
 
   try {
+    const profile = LanguageProfile.fromFingerprint(outputDir);
+    const ctagsLangArg = profile.ctagsLanguages.startsWith('--')
+      ? profile.ctagsLanguages
+      : `--languages=${profile.ctagsLanguages}`;
+
     if (capability.tool === 'universal-ctags' || capability.tool === 'ctags') {
       let out = '';
       if (scopedFiles && scopedFiles.length > 0) {
@@ -29,7 +35,7 @@ export function runSymbolExtraction(projectRoot: string, outputDir: string, capa
             '-R',
             '--exclude=node_modules', '--exclude=dist', '--exclude=.git', '--exclude=coverage',
             '--exclude=*.min.js', '--exclude=*.bundle.js',
-            '--languages=TypeScript,JavaScript',
+            ctagsLangArg,
             absPath
           ], {
             encoding: 'utf8',
@@ -45,7 +51,7 @@ export function runSymbolExtraction(projectRoot: string, outputDir: string, capa
         '-R',
         '--exclude=node_modules', '--exclude=dist', '--exclude=.git', '--exclude=coverage',
         '--exclude=*.min.js', '--exclude=*.bundle.js',
-        '--languages=TypeScript,JavaScript',
+        ctagsLangArg,
         projectRoot
       ], {
         encoding: 'utf8',

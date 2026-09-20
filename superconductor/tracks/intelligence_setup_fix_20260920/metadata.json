@@ -1,0 +1,23 @@
+{
+  "track_id": "intelligence_setup_fix_20260920",
+  "goal": "Intelligence & Setup Subsystem Fix",
+  "type": "bugfix",
+  "description": "Comprehensive 3-layer fix for Superconductor intelligence directory mismatch, MCP PROJECT_ROOT injection, setup baseline scan, cli-blueprint.ts, multi-language runners, and dual-mode UX Reviewer skill",
+  "created_at": "2026-09-20T07:02:00+04:00",
+  "target_branch": "main",
+  "track_branch": "track/intelligence_setup_fix_20260920",
+  "status": "completed",
+  "outcome": "completed",
+  "author": "root-orchestrator",
+  "session_id": "f10cfcdb-d7cf-416b-a41a-12b90575fd8d",
+  "phases": 7,
+  "max_concurrent_agents": 4,
+  "domains": [
+    "intelligence-core",
+    "mcp-kernel",
+    "skills",
+    "ux-review",
+    "cli-blueprint",
+    "runners-multilang"
+  ]
+}

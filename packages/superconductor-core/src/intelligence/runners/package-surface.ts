@@ -32,7 +32,7 @@ function collectSourceFiles(dir: string, results: string[] = []): string[] {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       collectSourceFiles(full, results);
-    } else if (/\.(ts|tsx|js|mjs)$/.test(entry.name) && !entry.name.endsWith('.d.ts')) {
+    } else if (/\.(ts|tsx|js|mjs|jsx|cjs)$/.test(entry.name) && !entry.name.endsWith('.d.ts')) {
       results.push(full);
     }
   }
@@ -72,13 +72,23 @@ export function runPackageSurface(projectRoot: string, outputDir: string, scoped
   const outFile = path.join(outputDir, '08_package_surface.json');
 
   try {
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
     // Read declared dependencies from all package.json files
     const declaredVersions: Record<string, string> = {};
+    const packagesDir = path.join(projectRoot, 'packages');
+    const hasPackages = fs.existsSync(packagesDir) && fs.statSync(packagesDir).isDirectory();
+    const monorepoPkgJsonPaths = hasPackages
+      ? fs.readdirSync(packagesDir)
+          .map(d => path.join(packagesDir, d, 'package.json'))
+          .filter(p => fs.existsSync(p))
+      : [];
+
     const pkgJsonPaths = [
       path.join(projectRoot, 'package.json'),
-      ...fs.readdirSync(path.join(projectRoot, 'packages'))
-          .map(d => path.join(projectRoot, 'packages', d, 'package.json'))
-          .filter(p => fs.existsSync(p))
+      ...monorepoPkgJsonPaths
     ].filter(p => fs.existsSync(p));
 
     for (const pkgPath of pkgJsonPaths) {
@@ -99,7 +109,10 @@ export function runPackageSurface(projectRoot: string, outputDir: string, scoped
     if (scopedFiles && scopedFiles.length > 0) {
       sourceFiles = scopedFiles.map(f => path.join(projectRoot, f)).filter(f => fs.existsSync(f));
     } else {
-      const srcDirs = ['packages', 'scripts'].map(d => path.join(projectRoot, d));
+      const candidateDirs = hasPackages
+        ? ['packages', 'scripts']
+        : ['src', 'app', 'lib', 'cmd', 'scripts'];
+      const srcDirs = candidateDirs.map(d => path.join(projectRoot, d));
       for (const d of srcDirs) collectSourceFiles(d, sourceFiles);
     }
 
@@ -110,7 +123,7 @@ export function runPackageSurface(projectRoot: string, outputDir: string, scoped
       try {
         const content = fs.readFileSync(file, 'utf8');
         const pkgApis = extractImportedApis(content);
-        const relFile = file.replace(projectRoot + '/', '');
+        const relFile = path.relative(projectRoot, file);
 
         for (const [rawPkg, apis] of pkgApis) {
           const pkg = normalizePackageName(rawPkg);
@@ -158,7 +171,12 @@ export function runPackageSurface(projectRoot: string, outputDir: string, scoped
     return { status: 'ok', entries: null };
   } catch (e) {
     if (scopedFiles && scopedFiles.length > 0) return { status: 'degraded', entries: [] };
-    fs.writeFileSync(outFile, JSON.stringify({}));
+    try {
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+      fs.writeFileSync(outFile, JSON.stringify({}));
+    } catch (_writeErr) {}
     return { status: 'degraded', entries: null };
   }
 }

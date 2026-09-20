@@ -135,6 +135,17 @@ describe('IntelligenceDriftMonitor', () => {
         { cwd: '/my/project', encoding: 'utf8' }
       );
     });
+
+    it('headSha === "unknown" (0-commit greenfield repo) → commitsBehind=0, status=LIVE, isDrifted=false', () => {
+      const manifest = freshManifest({ lastCommitSha: 'unknown' });
+      const report = IntelligenceDriftMonitor.checkDrift(manifest, '/fake/root');
+
+      expect(report.commitsBehind).toBe(0);
+      expect(report.isDrifted).toBe(false);
+      expect(report.status).toBe('LIVE');
+      expect(report.banner).toContain('LIVE');
+      expect(childProcess.spawnSync).not.toHaveBeenCalled();
+    });
   });
 
   // ─── formatBanner ────────────────────────────────────────────────────────────

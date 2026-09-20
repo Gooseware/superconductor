@@ -1,0 +1,16 @@
+[meta]
+track_id = "intelligence_setup_fix_20260920"
+generated_at = "2026-09-20T07:03:00.000Z"
+inferred_by = "auto"
+
+[capabilities]
+usb_access = false
+arbitrary_shell = true
+network_unrestricted = false
+fs_outside_root = true
+persistent = false
+
+[allowlist]
+shell_prefixes = []
+domains = []
+paths = []

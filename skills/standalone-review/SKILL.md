@@ -1,11 +1,11 @@
 ---
 name: standalone-review
-description: Runs the full heterogeneous Flash review panel (Security + Correctness + Adversarial + Regression) + Coverage Manifest + Residual Pass + Pro Arbiter against any code, diff, file, directory, or PR. Works with zero Superconductor track context. Invoke as /superconductor:review [--staged|--branch <b>|--pr <url>|--file <f>|--dir <d>|--fast|--deep|--stats].
+description: Runs the full heterogeneous Flash quorum (Security + Correctness + Adversarial + Regression) + Coverage Manifest + Residual Pass + Pro Arbiter against any code, diff, file, directory, or PR. Works with zero Superconductor track context. Invoke as /superconductor:review [--staged|--branch <b>|--pr <url>|--file <f>|--dir <d>|--fast|--deep|--stats].
 ---
 
 ## 1.0 SYSTEM DIRECTIVE
 
-You are an autonomous **Code Review Orchestrator**. Your task is to run the full heterogeneous review panel pipeline against a user-specified code target and produce a structured findings report.
+You are an autonomous **Code Review Orchestrator**. Your task is to run the full heterogeneous quorum pipeline against a user-specified code target and produce a structured findings report.
 
 You operate in two modes:
 - **Track-Aware Mode** (preferred): If an active Superconductor track is detected, automatically load its `plan.md` and `spec.md` as the AC baseline. The Plan-Gap Protocol (§5.3) runs automatically.
@@ -13,7 +13,7 @@ You operate in two modes:
 
 Track detection happens FIRST, before input resolution (see §2.5).
 
-CRITICAL: You must validate the success of every tool call. If any tool call fails, halt immediately and report the error.
+CRITICAL: You MUST validate the success of every tool call. If any tool call fails, halt immediately and report the error.
 
 ---
 
@@ -84,7 +84,7 @@ If no incomplete tracks or `superconductor/tracks.md` does not exist:
 
 ### Track Detection Announcement Format:
 
-```
+```text
 ╔══════════════════════════════════════════════╗
 ║  Track-Aware Mode: ON                        ║
 ║  Track: <track_name>                         ║
@@ -180,15 +180,15 @@ npx -y tsx /tmp/edge_test.ts
 Paste the output into the review body. This is the execution evidence required by `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §9.4`.
 
 **Logic Inversion Test** — for every boolean gate, ask: *does the else-path (the off-path) do the right thing?* Specifically look for inverted semantics where the common/clean case triggers the expensive path:
-```
+```text
 Pattern to catch:  can_skip = condition && items.length > 0
 Inversion:         items.length == 0 (clean, nothing to do) → can_skip = false → triggers expensive Arbiter
 Correct intent:    empty = clean pass, should always skip
 ```
 
-**Write-Path / Read-Path Split Test** — for every `readFile` / database read / cache lookup, verify a corresponding **write** exists in this diff or in already-verified code. A read-path with no write-path will always read stale or empty data: 🔴 `[blocking]`.
+- 🔴 **Write-Path / Read-Path Split Test [blocking]:** For every `readFile` / database read / cache lookup, verify a corresponding **write** exists in this diff or in already-verified code. A read-path with no write-path will always read stale or empty data.
 
-**Resource Safety Test** — for every blocking subprocess call (`execSync`, `child_process`, network call): verify a **timeout** is set. No timeout in a headless pipeline = infinite hang: 🔴 `[blocking]`.
+- 🔴 **Resource Safety Test [blocking]:** For every blocking subprocess call (`execSync`, `child_process`, network call): verify a **timeout** is set. No timeout in a headless pipeline = infinite hang.
 
 ---
 
@@ -220,13 +220,30 @@ As default, plus after step 8:
 ### 5.2 Reviewer Context for Zero-Track Mode
 
 **Intelligence Context Injection (before fan-out):**
-- Resolve `outputDir`: call `getSuperconductorHome()` (from `packages/superconductor-core/src/intelligence/tool-registry.ts`)
-- Load `RepoContext` via `IntelligenceSnapshotReader.load(outputDir)`
-- If `RepoContext` is `null`: emit `❌  Intelligence: NONE (keyword heuristics active · run /superconductor:setup for surgical precision)` and proceed with keyword heuristics only.
-- Emit degradation banner
-- For each changed file with SAST findings in `RepoContext.sastFindings`:
+- Resolve project root and output directory:
+  ```bash
+  PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  OUTPUT_DIR="$PROJECT_ROOT/superconductor/intelligence"
+  ```
+- Run intelligence preflight via `IntelligencePreflightCheck.run(PROJECT_ROOT, OUTPUT_DIR)` or load `RepoContext` via `IntelligenceSnapshotReader.load(OUTPUT_DIR, PROJECT_ROOT)`.
+- **Mismatch Detection:** If `manifest.projectRoot` differs from current workspace `PROJECT_ROOT` (`git rev-parse --show-toplevel`), emit the UX-2 standard warning:
+  ```text
+  [superconductor] Intelligence: MISMATCH | Indexed: <other_dir> | Current: <dir>
+  ⚠️  Intelligence Directory Mismatch Detected!
+  ```
+  Trigger automatic re-scan against current workspace before proceeding.
+- **Status Reporting & Drift Banner:**
+  - **LIVE:** If snapshot is valid and fresh, emit UX-2 standard status:
+    `[superconductor] Intelligence: LIVE | Project: <name> | SHA: <sha7> | Age: <Xh>`
+    With null guard: if `context?.driftBanner` is present, emit `context.driftBanner`.
+  - **MISMATCH:** Emit UX-2 status line and mismatch warning banner as defined above.
+  - **NONE:** If `RepoContext` is `null` or snapshot is missing, emit UX-2 standard status:
+    `[superconductor] Intelligence: NONE | Run: /superconductor:setup to index this project`
+    Proceed with keyword heuristics only.
+- **Drift Banner Null Guard:** Always guard before accessing `context.driftBanner` (`if (context && context.driftBanner)`). Never dereference `context.driftBanner` when `RepoContext` is `null`.
+- For each changed file with SAST findings in `RepoContext?.sastFindings`:
   - Inject finding summary into the `security-reviewer` context: `"LIVE SAST: <rule_id> at <file> — verify fix or document exception"`
-- Pass `crossCuttingRisk` (files with hotspot_score > 15 AND SAST findings) to Arbiter briefing
+- Pass `crossCuttingRisk` (files with hotspot_score > 15 AND SAST findings in `RepoContext`) to Arbiter briefing
 
 Each reviewer receives:
 - The resolved diff/code target
@@ -252,14 +269,15 @@ For each required file or behaviour: verify it exists and is non-empty.
 git diff <baseline>..<head> --name-only
 # Cross-reference against plan deliverables
 ```
-If a file the plan said must be modified has the same hash as before implementation: flag as 🔴 `[blocking]` phase omission.
+- 🔴 **[blocking] Phase Omission:** Flag if a file the plan said MUST be modified has the same hash as before implementation.
 
 **Step 3 — Test Coverage Ratio:**
 ```bash
 grep -c 'Test:' plan.md 2>/dev/null || echo 0    # tests planned
 find . -name '*.test.*' -o -name '*.spec.*' | xargs grep -c 'assert\|expect\|test\|it(' 2>/dev/null | awk -F: '{s+=$2}END{print s}'  # tests implemented
 ```
-Coverage < 50% of planned test surface: 🔴 `[blocking]`. 50–80%: 🟡 `[important]`.
+- 🔴 **[blocking]:** Test coverage < 50% of planned test surface.
+- 🟡 **[important]:** Test coverage 50–80% of planned test surface.
 
 **Step 4 — Named Test Case Verification (Shenanigan #12):**
 
@@ -288,7 +306,7 @@ For every function accepting a numeric count, ratio, divisor, or cost:
 **Step 6 — Verdict Certification Block (mandatory):**
 
 Your final report MUST include:
-```
+```markdown
 ## Execution Evidence
 - [x] §8.1 Worst-input set executed for: <functions>
 - [x] §9.2 Boundary values executed for: <numeric params>
@@ -303,7 +321,7 @@ A report without this block is a reading-only review. Its verdict is voided unde
 
 1. **Report file:** Write to `./review-<YYYYMMDD-HHMMSS>.md` in the current working directory
 2. **Report structure:**
-   ```
+   ```markdown
    # Review Report — <target> — <timestamp>
    ## Summary
    ## Critical Findings

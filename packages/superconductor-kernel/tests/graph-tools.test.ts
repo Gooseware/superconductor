@@ -110,9 +110,11 @@ describe('GraphCache — MCP tool backing store', () => {
   });
 
   describe('load error handling', () => {
-    it('throws a descriptive error when the graph file is missing', () => {
+    it('handles missing graph file gracefully without throwing', () => {
       const missing = new GraphCache('/tmp/definitely-does-not-exist-graph.json');
-      expect(() => missing.getNode('anything')).toThrow(/Graph cache file not found/);
+      expect(() => missing.getNode('anything')).not.toThrow();
+      expect(missing.getNode('anything')).toBeUndefined();
+      expect(missing.load()).toEqual({ nodes: [], edges: [] });
     });
   });
 });

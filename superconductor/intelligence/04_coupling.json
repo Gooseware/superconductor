@@ -1,19 +1,43 @@
 [
   {
+    "file": "superconductor/tracks.md",
+    "churnCount": 182
+  },
+  {
+    "file": "packages/superconductor-core/tests/intelligence/tmp-test/intelligence/00_manifest.json",
+    "churnCount": 92
+  },
+  {
     "file": "packages/superconductor-core/node_modules/.vite/vitest/results.json",
     "churnCount": 74
   },
   {
+    "file": "skills/implement/SKILL.md",
+    "churnCount": 60
+  },
+  {
     "file": "packages/engine/src/cli/orchestrate.ts",
-    "churnCount": 37
+    "churnCount": 40
   },
   {
     "file": "commands/conductor/setup.toml",
     "churnCount": 34
   },
   {
+    "file": "packages/superconductor-core/src/cli/index.ts",
+    "churnCount": 29
+  },
+  {
+    "file": "superconductor/workflow.md",
+    "churnCount": 27
+  },
+  {
     "file": "packages/engine/node_modules/.vite/vitest/results.json",
     "churnCount": 27
+  },
+  {
+    "file": "scripts/quorum-review.ts",
+    "churnCount": 22
   },
   {
     "file": "pnpm-lock.yaml",
@@ -24,7 +48,7 @@
     "churnCount": 22
   },
   {
-    "file": "scripts/quorum-review.ts",
+    "file": "skills/new-track/SKILL.md",
     "churnCount": 21
   },
   {
@@ -52,11 +76,19 @@
     "churnCount": 19
   },
   {
-    "file": "skills/new-track/SKILL.md",
+    "file": "skills/standalone-review/SKILL.md",
+    "churnCount": 19
+  },
+  {
+    "file": "packages/superconductor-kernel/src/index.ts",
     "churnCount": 19
   },
   {
     "file": "packages/superconductor-core/node_modules/.bin/vitest",
+    "churnCount": 19
+  },
+  {
+    "file": "packages/engine/src/research/research-executor.ts",
     "churnCount": 19
   },
   {
@@ -80,6 +112,10 @@
     "churnCount": 19
   },
   {
+    "file": "skills/swarm-execute/SKILL.md",
+    "churnCount": 18
+  },
+  {
     "file": "packages/superconductor-core/node_modules/.bin/tsserver",
     "churnCount": 18
   },
@@ -97,10 +133,6 @@
   },
   {
     "file": "packages/superconductor-core/node_modules/.bin/playwright",
-    "churnCount": 17
-  },
-  {
-    "file": "packages/engine/src/research/research-executor.ts",
     "churnCount": 17
   },
   {
@@ -128,6 +160,10 @@
     "churnCount": 16
   },
   {
+    "file": "packages/engine/src/verification/quorum-review-loop.ts",
+    "churnCount": 16
+  },
+  {
     "file": "packages/engine/src/dispatcher/job-dispatcher.ts",
     "churnCount": 16
   },
@@ -140,6 +176,18 @@
     "churnCount": 15
   },
   {
+    "file": "packages/superconductor-core/src/index.ts",
+    "churnCount": 15
+  },
+  {
+    "file": "packages/engine/src/research/provider-registry.ts",
+    "churnCount": 15
+  },
+  {
+    "file": "gemini-extension.json",
+    "churnCount": 15
+  },
+  {
     "file": "superconductor/tracks/token_economics_20260710/plan.md",
     "churnCount": 14
   },
@@ -148,15 +196,15 @@
     "churnCount": 14
   },
   {
+    "file": "packages/superconductor-core/src/intelligence/index.ts",
+    "churnCount": 14
+  },
+  {
     "file": "packages/superconductor-core/package.json",
     "churnCount": 14
   },
   {
     "file": "packages/engine/package.json",
-    "churnCount": 14
-  },
-  {
-    "file": "gemini-extension.json",
     "churnCount": 14
   },
   {
@@ -184,23 +232,11 @@
     "churnCount": 13
   },
   {
-    "file": "packages/superconductor-core/src/index.ts",
-    "churnCount": 13
-  },
-  {
     "file": "packages/engine/tests/cli/orchestrate.test.ts",
     "churnCount": 13
   },
   {
-    "file": "packages/engine/src/verification/quorum-review-loop.ts",
-    "churnCount": 13
-  },
-  {
     "file": "packages/engine/src/research/research-executor.test.ts",
-    "churnCount": 13
-  },
-  {
-    "file": "packages/engine/src/research/provider-registry.ts",
     "churnCount": 13
   },
   {
@@ -228,7 +264,15 @@
     "churnCount": 12
   },
   {
+    "file": "skills/catalog.md",
+    "churnCount": 12
+  },
+  {
     "file": "packages/engine/src/telemetry/retrospective-generator.ts",
+    "churnCount": 12
+  },
+  {
+    "file": "packages/engine/src/index.ts",
     "churnCount": 12
   },
   {
@@ -244,7 +288,11 @@
     "churnCount": 11
   },
   {
-    "file": "skills/catalog.md",
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churnCount": 11
+  },
+  {
+    "file": "skills/setup/SKILL.md",
     "churnCount": 11
   },
   {
@@ -252,11 +300,15 @@
     "churnCount": 11
   },
   {
+    "file": "packages/superconductor-core/src/track/archive-manager.ts",
+    "churnCount": 11
+  },
+  {
     "file": "packages/engine/src/verification/reviewer-response-broker.ts",
     "churnCount": 11
   },
   {
-    "file": "packages/engine/src/index.ts",
+    "file": "packages/engine/src/research/providers/async-long-poller.ts",
     "churnCount": 11
   },
   {
@@ -280,7 +332,11 @@
     "churnCount": 10
   },
   {
-    "file": "skills/setup/SKILL.md",
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "churnCount": 10
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
     "churnCount": 10
   },
   {
@@ -292,7 +348,7 @@
     "churnCount": 10
   },
   {
-    "file": "packages/engine/src/research/providers/async-long-poller.ts",
+    "file": "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
     "churnCount": 10
   },
   {
@@ -320,11 +376,23 @@
     "churnCount": 9
   },
   {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "churnCount": 9
+  },
+  {
     "file": "packages/superconductor-core/src/track/work-unit.ts",
     "churnCount": 9
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
+    "churnCount": 9
+  },
+  {
     "file": "packages/superconductor-core/src/intelligence/runners/sast.ts",
+    "churnCount": 9
+  },
+  {
+    "file": "packages/notebook-store/src/validation/notebook-validator.ts",
     "churnCount": 9
   },
   {
@@ -333,6 +401,10 @@
   },
   {
     "file": "packages/engine/tests/swarm-execute.test.ts",
+    "churnCount": 9
+  },
+  {
+    "file": "packages/engine/tests/quorum-review-loop.test.ts",
     "churnCount": 9
   },
   {
@@ -345,6 +417,14 @@
   },
   {
     "file": "packages/engine/src/research/providers/async-long-poller.spec.ts",
+    "churnCount": 9
+  },
+  {
+    "file": "packages/engine/src/research/errors.ts",
+    "churnCount": 9
+  },
+  {
+    "file": "packages/engine/src/dispatcher/parallel-dispatcher.ts",
     "churnCount": 9
   },
   {
@@ -380,6 +460,18 @@
     "churnCount": 8
   },
   {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "churnCount": 8
+  },
+  {
+    "file": "superconductor/archive.md",
+    "churnCount": 8
+  },
+  {
+    "file": "skills/review/SKILL.md",
+    "churnCount": 8
+  },
+  {
     "file": "packages/task-store/src/providers/lancedb-task-provider.ts",
     "churnCount": 8
   },
@@ -392,11 +484,23 @@
     "churnCount": 8
   },
   {
+    "file": "packages/superconductor-core/src/review/index.ts",
+    "churnCount": 8
+  },
+  {
     "file": "packages/superconductor-core/src/orchestration/workspace-guard.ts",
     "churnCount": 8
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/index.ts",
+    "churnCount": 8
+  },
+  {
     "file": "packages/superconductor-core/src/intelligence/runners/graphify.ts",
+    "churnCount": 8
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
     "churnCount": 8
   },
   {
@@ -413,10 +517,6 @@
   },
   {
     "file": "packages/engine/src/guard/headless-mode-guard.ts",
-    "churnCount": 8
-  },
-  {
-    "file": "packages/engine/src/dispatcher/parallel-dispatcher.ts",
     "churnCount": 8
   },
   {
@@ -444,6 +544,18 @@
     "churnCount": 7
   },
   {
+    "file": "superconductor/tracks/adaptive_research_router_20260907/plan.md",
+    "churnCount": 7
+  },
+  {
+    "file": "superconductor/intelligence/05_sast.json",
+    "churnCount": 7
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "churnCount": 7
+  },
+  {
     "file": "scripts/hooks/verify-signoff.mjs",
     "churnCount": 7
   },
@@ -468,10 +580,6 @@
     "churnCount": 7
   },
   {
-    "file": "packages/superconductor-core/src/review/index.ts",
-    "churnCount": 7
-  },
-  {
     "file": "packages/superconductor-core/src/remediation/remediation-orchestrator.ts",
     "churnCount": 7
   },
@@ -492,19 +600,11 @@
     "churnCount": 7
   },
   {
-    "file": "packages/notebook-store/src/providers/libsql-notebook-provider.ts",
-    "churnCount": 7
-  },
-  {
     "file": "packages/engine/tests/research/providers/google-deep-research-provider.test.ts",
     "churnCount": 7
   },
   {
     "file": "packages/engine/tests/research/provider-registry.test.ts",
-    "churnCount": 7
-  },
-  {
-    "file": "packages/engine/tests/quorum-review-loop.test.ts",
     "churnCount": 7
   },
   {
@@ -521,10 +621,6 @@
   },
   {
     "file": "packages/engine/src/research/source-quality-gate.ts",
-    "churnCount": 7
-  },
-  {
-    "file": "packages/engine/src/research/errors.ts",
     "churnCount": 7
   },
   {
@@ -652,6 +748,18 @@
     "churnCount": 6
   },
   {
+    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
+    "churnCount": 6
+  },
+  {
+    "file": "superconductor/intelligence/08_package_surface.json",
+    "churnCount": 6
+  },
+  {
+    "file": "scripts/sync-plan.ts",
+    "churnCount": 6
+  },
+  {
     "file": "scripts/rename-kernel.ts",
     "churnCount": 6
   },
@@ -661,6 +769,10 @@
   },
   {
     "file": ".release-please-manifest.json",
+    "churnCount": 6
+  },
+  {
+    "file": "packages/superconductor-kernel/tests/mcp_tasks.test.ts",
     "churnCount": 6
   },
   {
@@ -700,10 +812,6 @@
     "churnCount": 6
   },
   {
-    "file": "packages/notebook-store/src/validation/notebook-validator.ts",
-    "churnCount": 6
-  },
-  {
     "file": "packages/engine/tests/parallel-dispatcher.test.ts",
     "churnCount": 6
   },
@@ -737,6 +845,10 @@
   },
   {
     "file": "packages/engine/src/research/providers/gemini-api-deep-research-provider.ts",
+    "churnCount": 6
+  },
+  {
+    "file": "packages/engine/src/research/agent-config-reader.ts",
     "churnCount": 6
   },
   {
@@ -800,6 +912,10 @@
     "churnCount": 5
   },
   {
+    "file": "superconductor/tracks/multi_language_persona_architecture_20260820/plan.md",
+    "churnCount": 5
+  },
+  {
     "file": "superconductor/tracks/model_chooser_quorum_remediation_20260814/plan.md",
     "churnCount": 5
   },
@@ -808,7 +924,15 @@
     "churnCount": 5
   },
   {
+    "file": "superconductor/tracks/continuous_learning_refinement_20260907/plan.md",
+    "churnCount": 5
+  },
+  {
     "file": "superconductor/migrate_local_registry.js",
+    "churnCount": 5
+  },
+  {
+    "file": "superconductor/intelligence/08_dependency_surface.json",
     "churnCount": 5
   },
   {
@@ -824,10 +948,6 @@
     "churnCount": 5
   },
   {
-    "file": "scripts/sync-plan.ts",
-    "churnCount": 5
-  },
-  {
     "file": "scripts/hooks/commit-msg",
     "churnCount": 5
   },
@@ -837,6 +957,10 @@
   },
   {
     "file": "scripts/cascade-deferral-gate.ts",
+    "churnCount": 5
+  },
+  {
+    "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
     "churnCount": 5
   },
   {
@@ -865,6 +989,10 @@
   },
   {
     "file": "packages/superconductor-core/src/remediation/remediation-log-writer.ts",
+    "churnCount": 5
+  },
+  {
+    "file": "packages/superconductor-core/src/remediation/deep-research-escalation-handler.ts",
     "churnCount": 5
   },
   {
@@ -920,11 +1048,23 @@
     "churnCount": 5
   },
   {
+    "file": "packages/engine/tests/cli/orchestrate-preflight-parallel.test.ts",
+    "churnCount": 5
+  },
+  {
     "file": "packages/engine/tests/cli/orchestrate-integration.test.ts",
     "churnCount": 5
   },
   {
+    "file": "packages/engine/src/skills/skill-trigger-engine.ts",
+    "churnCount": 5
+  },
+  {
     "file": "packages/engine/src/skills/SkillPortingEngine.ts",
+    "churnCount": 5
+  },
+  {
+    "file": "packages/engine/src/research/index.ts",
     "churnCount": 5
   },
   {
@@ -1176,6 +1316,10 @@
     "churnCount": 4
   },
   {
+    "file": "superconductor/tracks/continuous_learning_engine_20260906/plan.md",
+    "churnCount": 4
+  },
+  {
     "file": "superconductor/tracks/cli_enhancements_20260725/plan.md",
     "churnCount": 4
   },
@@ -1197,6 +1341,10 @@
   },
   {
     "file": "skills/design-os-kernel-dogma/SKILL.md",
+    "churnCount": 4
+  },
+  {
+    "file": "scripts/install-git-hook.sh",
     "churnCount": 4
   },
   {
@@ -1236,7 +1384,7 @@
     "churnCount": 4
   },
   {
-    "file": "packages/superconductor-kernel/tests/mcp_tasks.test.ts",
+    "file": "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
     "churnCount": 4
   },
   {
@@ -1244,7 +1392,15 @@
     "churnCount": 4
   },
   {
+    "file": "packages/superconductor-kernel/src/services/NotebookService.ts",
+    "churnCount": 4
+  },
+  {
     "file": "packages/superconductor-kernel/src/services/GraphCache.ts",
+    "churnCount": 4
+  },
+  {
+    "file": "packages/superconductor-core/tests/track/archive-manager.test.ts",
     "churnCount": 4
   },
   {
@@ -1288,7 +1444,15 @@
     "churnCount": 4
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
+    "churnCount": 4
+  },
+  {
     "file": "packages/superconductor-core/src/models/model-chooser-dialog.ts",
+    "churnCount": 4
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/types.ts",
     "churnCount": 4
   },
   {
@@ -1304,6 +1468,10 @@
     "churnCount": 4
   },
   {
+    "file": "packages/superconductor-core/src/cli/merge-track.ts",
+    "churnCount": 4
+  },
+  {
     "file": "packages/superconductor-core/node_modules/@vitest/coverage-v8",
     "churnCount": 4
   },
@@ -1313,6 +1481,10 @@
   },
   {
     "file": "packages/superconductor-core/node_modules/@swc/core",
+    "churnCount": 4
+  },
+  {
+    "file": "packages/notebook-store/src/types.ts",
     "churnCount": 4
   },
   {
@@ -1360,15 +1532,7 @@
     "churnCount": 4
   },
   {
-    "file": "packages/engine/src/skills/skill-trigger-engine.ts",
-    "churnCount": 4
-  },
-  {
     "file": "packages/engine/src/scheduler/scheduler.ts",
-    "churnCount": 4
-  },
-  {
-    "file": "packages/engine/src/research/agent-config-reader.ts",
     "churnCount": 4
   },
   {
@@ -4196,6 +4360,10 @@
     "churnCount": 3
   },
   {
+    "file": "superconductor/tracks/note_taking_hardening_20260903/plan.md",
+    "churnCount": 3
+  },
+  {
     "file": "superconductor/tracks/headless_batch_20260722/plan.md",
     "churnCount": 3
   },
@@ -4212,7 +4380,15 @@
     "churnCount": 3
   },
   {
+    "file": "superconductor/tracks/continuous_learning_engine_20260906/metadata.json",
+    "churnCount": 3
+  },
+  {
     "file": "superconductor/tracks/clean_test_tracks_20260813/plan.md",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/spec.md",
     "churnCount": 3
   },
   {
@@ -4253,6 +4429,14 @@
   },
   {
     "file": "superconductor/logs/quorum-state.json",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/git_workflow_manager.test.js",
+    "churnCount": 3
+  },
+  {
+    "file": "superconductor/git_workflow_manager.js",
     "churnCount": 3
   },
   {
@@ -4308,7 +4492,15 @@
     "churnCount": 3
   },
   {
+    "file": "skills/to-spec/SKILL.md",
+    "churnCount": 3
+  },
+  {
     "file": "skills/theme-manager-flow/SKILL.md",
+    "churnCount": 3
+  },
+  {
+    "file": "skills/superconductor-kernel-dogma/SKILL.md",
     "churnCount": 3
   },
   {
@@ -4317,6 +4509,10 @@
   },
   {
     "file": "skills/setup/references/setup-protocol.md",
+    "churnCount": 3
+  },
+  {
+    "file": "skills/grill/SKILL.md",
     "churnCount": 3
   },
   {
@@ -4348,11 +4544,19 @@
     "churnCount": 3
   },
   {
+    "file": "scripts/seed-invariants.ts",
+    "churnCount": 3
+  },
+  {
     "file": "scripts/quorum-review.test.ts",
     "churnCount": 3
   },
   {
     "file": "scripts/hooks/pre-commit",
+    "churnCount": 3
+  },
+  {
+    "file": "scripts/hooks/install-hooks.sh",
     "churnCount": 3
   },
   {
@@ -10104,6 +10308,10 @@
     "churnCount": 3
   },
   {
+    "file": "packages/superconductor-kernel/tests/NotebookService.test.ts",
+    "churnCount": 3
+  },
+  {
     "file": "packages/superconductor-kernel/tests/graph-tools.test.ts",
     "churnCount": 3
   },
@@ -10216,11 +10424,39 @@
     "churnCount": 3
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
+    "churnCount": 3
+  },
+  {
     "file": "packages/superconductor-core/src/orchestration/background-task-monitor.ts",
     "churnCount": 3
   },
   {
     "file": "packages/superconductor-core/src/orchestration/background-task-monitor.test.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/skill-distiller.test.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/harvester.test.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/skill-distiller.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/incubation-manager.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/harvester.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/canary-harness.ts",
     "churnCount": 3
   },
   {
@@ -10248,7 +10484,15 @@
     "churnCount": 3
   },
   {
+    "file": "packages/superconductor-core/src/cli/__tests__/learn.test.ts",
+    "churnCount": 3
+  },
+  {
     "file": "packages/superconductor-core/src/cli/merge-track.test.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/learn.ts",
     "churnCount": 3
   },
   {
@@ -10328,10 +10572,6 @@
     "churnCount": 3
   },
   {
-    "file": "packages/notebook-store/src/types.ts",
-    "churnCount": 3
-  },
-  {
     "file": "packages/engine/tests/tool-analyzer.test.ts",
     "churnCount": 3
   },
@@ -10373,6 +10613,10 @@
   },
   {
     "file": "packages/engine/src/research/providers/async-long-poller.test.ts",
+    "churnCount": 3
+  },
+  {
+    "file": "packages/engine/src/research/anti-reinvention-gate.ts",
     "churnCount": 3
   },
   {
@@ -15664,6 +15908,10 @@
     "churnCount": 2
   },
   {
+    "file": "superconductor/tracks/swarm_implementation_20260901/plan.md",
+    "churnCount": 2
+  },
+  {
     "file": "superconductor/tracks/self-improvement_20260402/verify_metrics.sh",
     "churnCount": 2
   },
@@ -15804,6 +16052,10 @@
     "churnCount": 2
   },
   {
+    "file": "superconductor/tracks/continuous_learning_refinement_20260907/metadata.json",
+    "churnCount": 2
+  },
+  {
     "file": "superconductor/tracks/complexity_refactor_round3_20260723/plan.md",
     "churnCount": 2
   },
@@ -15817,10 +16069,6 @@
   },
   {
     "file": "superconductor/tracks/branch_management_20260411/index.md",
-    "churnCount": 2
-  },
-  {
-    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/spec.md",
     "churnCount": 2
   },
   {
@@ -15880,6 +16128,10 @@
     "churnCount": 2
   },
   {
+    "file": "superconductor/invariants.md",
+    "churnCount": 2
+  },
+  {
     "file": "superconductor/intelligence/repository-health-report.md",
     "churnCount": 2
   },
@@ -15888,11 +16140,27 @@
     "churnCount": 2
   },
   {
+    "file": "superconductor/intelligence/02_dependency_graph.json",
+    "churnCount": 2
+  },
+  {
     "file": "superconductor/intelligence/02_dependencies.json",
     "churnCount": 2
   },
   {
     "file": "superconductor/index.md",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/archive/self-improvement_20260402/test_token_opt.js",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/archive/self-improvement_20260402/test_suggestions.js",
+    "churnCount": 2
+  },
+  {
+    "file": "superconductor/archive/self-improvement_20260402/test_initiate.js",
     "churnCount": 2
   },
   {
@@ -15916,15 +16184,11 @@
     "churnCount": 2
   },
   {
-    "file": "skills/to-spec/SKILL.md",
-    "churnCount": 2
-  },
-  {
-    "file": "skills/superconductor-kernel-dogma/SKILL.md",
-    "churnCount": 2
-  },
-  {
     "file": "skills/superconductor-kernel-dogma.skill",
+    "churnCount": 2
+  },
+  {
+    "file": "skills/superconductor-kernel-dogma/references/dogma.md",
     "churnCount": 2
   },
   {
@@ -15948,11 +16212,11 @@
     "churnCount": 2
   },
   {
-    "file": "skills/grill/SKILL.md",
+    "file": "skills/design-os-kernel-dogma.skill",
     "churnCount": 2
   },
   {
-    "file": "skills/design-os-kernel-dogma.skill",
+    "file": "skills/design-heuristics/SKILL.md",
     "churnCount": 2
   },
   {
@@ -16000,11 +16264,19 @@
     "churnCount": 2
   },
   {
+    "file": "RECOMMENDED_FIXES.md",
+    "churnCount": 2
+  },
+  {
     "file": "read_context.js",
     "churnCount": 2
   },
   {
     "file": "policies/conductor.toml",
+    "churnCount": 2
+  },
+  {
+    "file": "plugin.json",
     "churnCount": 2
   },
   {
@@ -16060,7 +16332,7 @@
     "churnCount": 2
   },
   {
-    "file": "packages/superconductor-kernel/src/services/NotebookService.ts",
+    "file": "packages/superconductor-kernel/tests/mcp.test.ts",
     "churnCount": 2
   },
   {
@@ -16100,11 +16372,19 @@
     "churnCount": 2
   },
   {
+    "file": "packages/superconductor-core/tests/review/review-quorum-protocol.test.ts",
+    "churnCount": 2
+  },
+  {
     "file": "packages/superconductor-core/tests/playwright-harness.test.ts",
     "churnCount": 2
   },
   {
     "file": "packages/superconductor-core/tests/pair-programming.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
     "churnCount": 2
   },
   {
@@ -16157,6 +16437,10 @@
   },
   {
     "file": "packages/superconductor-core/tests/cli/interactive.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/tests/cli/command-delegation.test.ts",
     "churnCount": 2
   },
   {
@@ -16224,6 +16508,10 @@
     "churnCount": 2
   },
   {
+    "file": "packages/superconductor-core/src/remediation/__tests__/deep-research-escalation-router.test.ts",
+    "churnCount": 2
+  },
+  {
     "file": "packages/superconductor-core/src/remediation/standalone-remediation.test.ts",
     "churnCount": 2
   },
@@ -16244,10 +16532,6 @@
     "churnCount": 2
   },
   {
-    "file": "packages/superconductor-core/src/remediation/deep-research-escalation-handler.ts",
-    "churnCount": 2
-  },
-  {
     "file": "packages/superconductor-core/src/remediation/bias-isolated-review-gate.test.ts",
     "churnCount": 2
   },
@@ -16264,11 +16548,27 @@
     "churnCount": 2
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/__tests__/swarm-granularity.test.ts",
+    "churnCount": 2
+  },
+  {
     "file": "packages/superconductor-core/src/orchestration/preflight-gate.ts",
     "churnCount": 2
   },
   {
     "file": "packages/superconductor-core/src/orchestration/abstract-gate.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/notebook/__tests__/note-writer.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/notebook/note-writer.ts",
     "churnCount": 2
   },
   {
@@ -16285,6 +16585,42 @@
   },
   {
     "file": "packages/superconductor-core/src/models/agent-config-writer.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/promoter.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/incubation-manager.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/dogma-validator.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/canary-harness.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/templates.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/promoter.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/invariant-synthesizer.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/index.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/dogma-validator.ts",
     "churnCount": 2
   },
   {
@@ -23244,6 +23580,10 @@
     "churnCount": 2
   },
   {
+    "file": "packages/notebook-store/tests/notebook-hardening.test.ts",
+    "churnCount": 2
+  },
+  {
     "file": "packages/notebook-store/test-factory-fallback/superconductor/notebook/notebook_fts.db",
     "churnCount": 2
   },
@@ -23484,6 +23824,10 @@
     "churnCount": 2
   },
   {
+    "file": "packages/engine/src/verification/preflight-test-runner.ts",
+    "churnCount": 2
+  },
+  {
     "file": "packages/engine/src/types/dispatcher.types.ts",
     "churnCount": 2
   },
@@ -23500,11 +23844,47 @@
     "churnCount": 2
   },
   {
+    "file": "packages/engine/src/research/__tests__/provider-registry.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/__tests__/circuit-breaker.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/__tests__/anti-reinvention-gate.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/__tests__/adaptive-research-router.test.ts",
+    "churnCount": 2
+  },
+  {
     "file": "packages/engine/src/research/research-executor.ts.orig",
     "churnCount": 2
   },
   {
     "file": "packages/engine/src/research/query-formulator.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/providers/__tests__/deerflow-research-provider.test.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/providers/deerflow-research-provider.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/errors/fallback-failed-error.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/circuit-breaker.ts",
+    "churnCount": 2
+  },
+  {
+    "file": "packages/engine/src/research/adaptive-research-router.ts",
     "churnCount": 2
   },
   {
@@ -37748,6 +38128,10 @@
     "churnCount": 2
   },
   {
+    "file": "commands/superconductor/learn.toml",
+    "churnCount": 2
+  },
+  {
     "file": "agents/superconductor-processor/agent.md",
     "churnCount": 2
   },
@@ -38036,6 +38420,30 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/swarm_implementation_20260901/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/swarm_implementation_20260901/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/swarm_implementation_20260901/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/swarm_granularity_hardening_20260902/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/swarm_granularity_hardening_20260902/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/swarm_granularity_hardening_20260902/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/swarm_excellence_20260722/swarm_log.md",
     "churnCount": 1
   },
@@ -38113,6 +38521,22 @@
   },
   {
     "file": "superconductor/tracks/sandboxing_resilience_20260710/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/ryoku_agy_plugin_20260901/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/ryoku_agy_plugin_20260901/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/ryoku_agy_plugin_20260901/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/ryoku_agy_plugin_20260901/index.md",
     "churnCount": 1
   },
   {
@@ -38276,11 +38700,43 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/note_taking_hardening_20260903/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/note_taking_hardening_20260903/permission-manifest.toml",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/note_taking_hardening_20260903/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/note_taking_hardening_20260903/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/multimodal_oracle_review_20260725/metadata.json",
     "churnCount": 1
   },
   {
     "file": "superconductor/tracks/multimodal_oracle_review_20260725/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/multi_language_persona_architecture_20260820/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/multi_language_persona_architecture_20260820/permission-manifest.toml",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/multi_language_persona_architecture_20260820/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/multi_language_persona_architecture_20260820/index.md",
     "churnCount": 1
   },
   {
@@ -38544,6 +39000,34 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/continuous_learning_refinement_20260907/transcript.jsonl",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/continuous_learning_refinement_20260907/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/continuous_learning_refinement_20260907/permission-manifest.toml",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/continuous_learning_refinement_20260907/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/continuous_learning_engine_20260906/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/continuous_learning_engine_20260906/permission-manifest.toml",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/continuous_learning_engine_20260906/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/complexity_refactor_20260723/plan.md",
     "churnCount": 1
   },
@@ -38768,6 +39252,26 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/swarm_log.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_planner_20260724/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/archive/swarm_orchestrator_20260727/topography.json",
     "churnCount": 1
   },
@@ -38812,6 +39316,18 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/metadata.json",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/archive/skill_trigger_20260722/spec.md",
     "churnCount": 1
   },
@@ -38841,6 +39357,38 @@
   },
   {
     "file": "superconductor/tracks/archive/setup_enhancements_20260711/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/verify_metrics.sh",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_validation.sh",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_token_opt.sh",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/test_log_analysis.sh",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/self-improvement_20260402/index.md",
     "churnCount": 1
   },
   {
@@ -38912,6 +39460,22 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/archive/production_verification_20260710/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/production_verification_20260710/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/archive/pipeline_swarm_20260722/spec.md",
     "churnCount": 1
   },
@@ -38925,6 +39489,26 @@
   },
   {
     "file": "superconductor/tracks/archive/pipeline_swarm_20260722/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/swarm_log.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/index.md",
     "churnCount": 1
   },
   {
@@ -38964,6 +39548,58 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/swarm_log.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/archive/model_selector_20260721/swarm_log.md",
     "churnCount": 1
   },
@@ -38981,6 +39617,54 @@
   },
   {
     "file": "superconductor/tracks/archive/model_selector_20260721/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/model_routing_20260630/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/kernel_analysis_20260330/index.md",
     "churnCount": 1
   },
   {
@@ -39013,6 +39697,18 @@
   },
   {
     "file": "superconductor/tracks/archive/job_board_integration_20260711/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/index.md",
     "churnCount": 1
   },
   {
@@ -39057,6 +39753,58 @@
   },
   {
     "file": "superconductor/tracks/archive/intelligence_incremental_20260724/abi_report.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/init_context_20260330/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_select_20260409/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/swarm_log.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/implement_redesign_20260725/index.md",
     "churnCount": 1
   },
   {
@@ -39108,6 +39856,22 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/func_surface_intel_20260724/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/archive/execution_mode_selector_20260722/spec.md",
     "churnCount": 1
   },
@@ -39125,6 +39889,38 @@
   },
   {
     "file": "superconductor/tracks/archive/engine_complexity_refactor_20260723/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_os_integration_20260630/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/index.md",
     "churnCount": 1
   },
   {
@@ -39180,6 +39976,78 @@
     "churnCount": 1
   },
   {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/centralize_publishing_20260419/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/branch_management_20260411/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/batch_run_20260723/retrospective-batch_run_20260723-2026-07-23.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_lifecycle_intelligence_sync_20260820/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_lifecycle_intelligence_sync_20260820/permission-manifest.toml",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_lifecycle_intelligence_sync_20260820/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_lifecycle_intelligence_sync_20260820/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/autonomous_curator_20260710/index.md",
+    "churnCount": 1
+  },
+  {
     "file": "superconductor/tracks/archive/astryx_skills_20260725/swarm_log.md",
     "churnCount": 1
   },
@@ -39201,6 +40069,26 @@
   },
   {
     "file": "superconductor/tracks/archive/astryx_skills_20260725/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/plan.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/agent_write_tools_20260726/audit_table.md",
     "churnCount": 1
   },
   {
@@ -39253,6 +40141,22 @@
   },
   {
     "file": "superconductor/tracks/ad_hoc_triage_mode_20260818/index.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/adaptive_research_router_20260907/spec.md",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/adaptive_research_router_20260907/permission-manifest.toml",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/adaptive_research_router_20260907/metadata.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/tracks/adaptive_research_router_20260907/index.md",
     "churnCount": 1
   },
   {
@@ -39337,6 +40241,30 @@
   },
   {
     "file": "superconductor/quorum/signoff_test-track-2.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/quorum/signoff_task_graph_20260812.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/quorum/signoff_ryoku_agy_plugin_20260901.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/quorum/signoff_continuous_learning_refinement_20260907.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/quorum/signoff_continuous_learning_engine_20260906.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/quorum/signoff_autonomous_lifecycle_intelligence_sync_20260820.json",
+    "churnCount": 1
+  },
+  {
+    "file": "superconductor/quorum/signoff_adaptive_research_router_20260907.json",
     "churnCount": 1
   },
   {
@@ -39956,10 +40884,6 @@
     "churnCount": 1
   },
   {
-    "file": "skills/superconductor-kernel-dogma/references/dogma.md",
-    "churnCount": 1
-  },
-  {
     "file": "skills/status/skill-rules.json",
     "churnCount": 1
   },
@@ -39981,6 +40905,46 @@
   },
   {
     "file": "skills/revert/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/zig-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/ui-layout-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/typescript-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/swift-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/rust-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/python-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/kotlin-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/go-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/csharp-reviewer/SKILL.md",
+    "churnCount": 1
+  },
+  {
+    "file": "skills/personas/cpp-reviewer/SKILL.md",
     "churnCount": 1
   },
   {
@@ -40029,10 +40993,6 @@
   },
   {
     "file": "skills/design-os-data-model/SKILL.md",
-    "churnCount": 1
-  },
-  {
-    "file": "skills/design-heuristics/SKILL.md",
     "churnCount": 1
   },
   {
@@ -40256,11 +41216,11 @@
     "churnCount": 1
   },
   {
-    "file": "scripts/seed-invariants.ts",
+    "file": "scripts/review-self-check.ts",
     "churnCount": 1
   },
   {
-    "file": "scripts/review-self-check.ts",
+    "file": "scripts/generate-invariants.ts",
     "churnCount": 1
   },
   {
@@ -40297,10 +41257,6 @@
   },
   {
     "file": "policies/superconductor.toml",
-    "churnCount": 1
-  },
-  {
-    "file": "plugin.json",
     "churnCount": 1
   },
   {
@@ -43068,10 +44024,6 @@
     "churnCount": 1
   },
   {
-    "file": "packages/superconductor-kernel/tests/mcp.test.ts",
-    "churnCount": 1
-  },
-  {
     "file": "packages/superconductor-kernel/tests/integration.test.ts",
     "churnCount": 1
   },
@@ -43188,7 +44140,19 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/tests/track/canonical-archive-manager.test.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/tests/telemetry/token-budget-estimator.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/swarm/LanguagePersonaResolver.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/swarm/DynamicQuorumContextSplicer.test.ts",
     "churnCount": 1
   },
   {
@@ -43208,6 +44172,10 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/tests/review/preflight-test-runner.test.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/tests/reviewers/correctness-reviewer-template.test.ts",
     "churnCount": 1
   },
@@ -43221,6 +44189,10 @@
   },
   {
     "file": "packages/superconductor-core/tests/permissions/keyword-inferrer.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-orchestrator.test.ts",
     "churnCount": 1
   },
   {
@@ -43288,6 +44260,10 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/tests/input-resolution.test.ts",
     "churnCount": 1
   },
@@ -43304,6 +44280,18 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/tests/e2e/contrastive-learning-e2e.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/e2e/continuous-learning-e2e.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/e2e/adaptive-research-e2e.test.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/tests/deterministic-preflight.test.ts",
     "churnCount": 1
   },
@@ -43312,11 +44300,11 @@
     "churnCount": 1
   },
   {
-    "file": "packages/superconductor-core/tests/cli/index.test.ts",
+    "file": "packages/superconductor-core/tests/cli/merge-target-branch.test.ts",
     "churnCount": 1
   },
   {
-    "file": "packages/superconductor-core/tests/cli/command-delegation.test.ts",
+    "file": "packages/superconductor-core/tests/cli/index.test.ts",
     "churnCount": 1
   },
   {
@@ -43376,6 +44364,18 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/src/swarm/LanguagePersonaResolver.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/swarm/index.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/swarm/DynamicQuorumContextSplicer.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/src/shared/libsql-database-manager.ts",
     "churnCount": 1
   },
@@ -43385,6 +44385,10 @@
   },
   {
     "file": "packages/superconductor-core/src/review/vision-oracle.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/preflight-test-runner.ts",
     "churnCount": 1
   },
   {
@@ -43412,6 +44416,18 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-orchestrator.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/__tests__/agent-config-model-resolution.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/swarm-granularity.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/src/orchestration/model-routing-enforcer.ts",
     "churnCount": 1
   },
@@ -43420,7 +44436,43 @@
     "churnCount": 1
   },
   {
+    "file": "packages/superconductor-core/src/orchestration/agent-config-model-resolution.ts",
+    "churnCount": 1
+  },
+  {
     "file": "packages/superconductor-core/src/models/model-catalog-service.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/transcript-parser.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/transcript-parser.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/templates.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/sanitizer.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/invariant-synthesizer.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/__tests__/deduplicator.test.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/sanitizer.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/learning/deduplicator.ts",
     "churnCount": 1
   },
   {
@@ -43449,6 +44501,10 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/dependency-context.ts",
+    "churnCount": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
     "churnCount": 1
   },
   {
@@ -48980,10 +50036,6 @@
     "churnCount": 1
   },
   {
-    "file": "packages/engine/src/verification/preflight-test-runner.ts",
-    "churnCount": 1
-  },
-  {
     "file": "packages/engine/src/verification/pbt-validator.ts",
     "churnCount": 1
   },
@@ -49080,7 +50132,7 @@
     "churnCount": 1
   },
   {
-    "file": "packages/engine/src/research/index.ts",
+    "file": "packages/engine/src/research/__tests__/agent-config-reader.test.ts",
     "churnCount": 1
   },
   {
@@ -49089,10 +50141,6 @@
   },
   {
     "file": "packages/engine/src/research/errors/research-budget-exceeded-error.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/engine/src/research/errors/fallback-failed-error.ts",
     "churnCount": 1
   },
   {
@@ -49484,6 +50532,10 @@
     "churnCount": 1
   },
   {
+    "file": "docs/plans/2026-09-07-adaptive-research-router-deerflow-design.md",
+    "churnCount": 1
+  },
+  {
     "file": "deep_research_result_tools.md",
     "churnCount": 1
   },
@@ -49742,589 +50794,5 @@
   {
     "file": "0333d1e9759e7c10d10c8d5fd0f834c87a812cc2",
     "churnCount": 1
-  },
-  {
-    "file": "RECOMMENDED_FIXES.md",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/index.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/pipeline.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/intelligence/auto-sync-engine.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/review/review-quorum-protocol.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-kernel/src/index.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-kernel/tests/IntelligenceStatusService.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-kernel/tests/NotebookService.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "scripts/hooks/install-hooks.sh",
-    "churn": 1
-  },
-  {
-    "file": "scripts/install-git-hook.sh",
-    "churn": 1
-  },
-  {
-    "file": "skills/review/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "skills/standalone-review/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/01_fingerprint.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/02_dependency_graph.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/06_api_surface.toon",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_dependency_surface.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_package_surface.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/autonomous_lifecycle_intelligence_sync_20260820/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/index.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/merge-track.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/index.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/sign-off-gate.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-orchestrator.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/track/archive-manager.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/cli/merge-target-branch.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/intelligence/tmp-test/intelligence/00_manifest.json",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-orchestrator.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/orchestration/track-lifecycle-wizard.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/track/archive-manager.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/tests/track/canonical-archive-manager.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "skills/implement/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "skills/swarm-execute/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/archive.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/archive/self-improvement_20260402/test_initiate.js",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/archive/self-improvement_20260402/test_suggestions.js",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/archive/self-improvement_20260402/test_token_opt.js",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/git_workflow_manager.js",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/git_workflow_manager.test.js",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/agent_write_tools_20260726/audit_table.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/agent_write_tools_20260726/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/agent_write_tools_20260726/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/agent_write_tools_20260726/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/agent_write_tools_20260726/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/autonomous_curator_20260710/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/autonomous_curator_20260710/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/autonomous_curator_20260710/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/autonomous_curator_20260710/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/batch_run_20260723/retrospective-batch_run_20260723-2026-07-23.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/branch_management_20260411/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/branch_management_20260411/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/branch_management_20260411/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/branch_management_20260411/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/centralize_publishing_20260419/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/centralize_publishing_20260419/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/centralize_publishing_20260419/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/centralize_publishing_20260419/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_heuristics_skill_20260630/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_os_integration_20260630/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_os_integration_20260630/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_os_integration_20260630/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/design_os_integration_20260630/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/func_surface_intel_20260724/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/func_surface_intel_20260724/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/func_surface_intel_20260724/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/func_surface_intel_20260724/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_redesign_20260725/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_redesign_20260725/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_redesign_20260725/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_redesign_20260725/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_redesign_20260725/swarm_log.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_select_20260409/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_select_20260409/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_select_20260409/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/implement_select_20260409/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/init_context_20260330/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/init_context_20260330/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/init_context_20260330/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/init_context_20260330/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/iterative_review_remediation_20260409/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_analysis_20260330/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_analysis_20260330/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_analysis_20260330/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_analysis_20260330/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/kernel_sync_oracle_20260412/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/model_routing_20260630/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/model_routing_20260630/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/model_routing_20260630/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/model_routing_20260630/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/multimodal_oracle_review_20260725/swarm_log.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/obsidian_portable_skills_20260630/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/oracle_code_review_loop_20260409/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/parallel_execution_model_20260725/swarm_log.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/production_verification_20260710/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/production_verification_20260710/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/production_verification_20260710/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/production_verification_20260710/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/test_log_analysis.sh",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/test_token_opt.sh",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/test_validation.sh",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/self-improvement_20260402/verify_metrics.sh",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_enforcement_20260725/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_planner_20260724/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_planner_20260724/metadata.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_planner_20260724/plan.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_planner_20260724/spec.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/archive/swarm_planner_20260724/swarm_log.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/workflow.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/05_sast.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "churn": 1
   }
 ]

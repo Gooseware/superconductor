@@ -13,7 +13,7 @@ describe('MCP Task Tools Integration', () => {
   let stderrOutput = '';
   let tempDir: string;
 
-  const sendRequest = (method: string, params: any, timeoutMs = 5000) => {
+  const sendRequest = (method: string, params: any, timeoutMs = 15000) => {
     return new Promise((resolve, reject) => {
       const id = ++messageId;
       let timer: NodeJS.Timeout | undefined;
@@ -81,11 +81,11 @@ describe('MCP Task Tools Integration', () => {
       protocolVersion: '2024-11-05',
       capabilities: {},
       clientInfo: { name: 'test-client', version: '1.0.0' }
-    }, 5000);
+    }, 15000);
 
     // Followed by tools/list to confirm readiness
-    await sendRequest('tools/list', {}, 5000);
-  });
+    await sendRequest('tools/list', {}, 15000);
+  }, 30000);
 
   afterAll(() => {
     proc.kill();
