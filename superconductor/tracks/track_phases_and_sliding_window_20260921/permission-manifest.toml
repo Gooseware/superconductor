@@ -1,0 +1,16 @@
+[meta]
+track_id = "track_phases_and_sliding_window_20260921"
+generated_at = "2026-09-21T07:54:00.000Z"
+inferred_by = "auto"
+
+[capabilities]
+usb_access = false
+arbitrary_shell = true
+network_unrestricted = false
+fs_outside_root = true
+persistent = false
+
+[allowlist]
+shell_prefixes = []
+domains = []
+paths = []

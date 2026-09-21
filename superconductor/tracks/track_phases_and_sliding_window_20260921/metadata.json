@@ -1,0 +1,22 @@
+{
+  "track_id": "track_phases_and_sliding_window_20260921",
+  "goal": "Track Phase System & Dynamic Sliding-Window Progression",
+  "type": "feature",
+  "description": "First-class milestone phase system for Superconductor tracks: multi-section registry, interactive phase switcher (/superconductor:phase), phase-aware batch execution with interactive continuation, and automatic sliding-window renumbering.",
+  "created_at": "2026-09-21T07:54:00+04:00",
+  "target_branch": "main",
+  "track_branch": "track/track_phases_and_sliding_window_20260921",
+  "status": "planned",
+  "author": "root-orchestrator",
+  "session_id": "f10cfcdb-d7cf-416b-a41a-12b90575fd8d",
+  "phases": 7,
+  "phase_id": "core-foundation",
+  "max_concurrent_agents": 6,
+  "domains": [
+    "phase-system",
+    "track-registry",
+    "batch-execution",
+    "cli-commands",
+    "ast-parser"
+  ]
+}
