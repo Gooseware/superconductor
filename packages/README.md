@@ -6,7 +6,8 @@ This directory contains external package repositories integrated as Git submodul
 
 ### `superconductor-kernel`
 The core Model Context Protocol (MCP) server that powers Design OS.
-- **Repository:** `git@gitlab.com:socialhippos/superconductor-kernel`
+- **Repository (SSH):** `git@gitlab.com:goosewares/superconductor-kernel.git`
+- **Repository (HTTPS):** `https://gitlab.com/goosewares/superconductor-kernel.git`
 - **Path:** `packages/superconductor-kernel`
 
 ---

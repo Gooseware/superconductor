@@ -13,14 +13,16 @@ The "Brain" of the Design OS. This Model Context Protocol (MCP) server provides 
 ## Prerequisites
 
 - **Node.js**: v18 or higher.
-- **Git**: Configured with SSH for GitLab access (`git@gitlab.com:socialhippos/...`).
+- **Git**: Configured with SSH for GitLab access (`git@gitlab.com:goosewares/...`).
 - **SQLite**: Local state is stored in `local.db`.
 
 ## Installation
 
 1.  **Clone the repository** (if using standalone):
     ```bash
-    git clone git@gitlab.com:socialhippos/superconductor-kernel.git
+    git clone git@gitlab.com:goosewares/superconductor-kernel.git
+    # OR via HTTPS:
+    git clone https://gitlab.com/goosewares/superconductor-kernel.git
     cd superconductor-kernel
     ```
 

@@ -30,26 +30,55 @@ Superconductor bundles the complete **Design OS** system to provide a structured
    - **UI Construction:** `design-os-app-shell`, `design-os-spec-ingest`, `component-adapter`, `design-os-extractor`
 
 ### Submodule & Build Setup
-When checking out this repository or developing locally, you must initialize and build the bundled MCP server:
 
-```bash
-# 1. Initialize the submodule
-git submodule update --init --recursive
+Superconductor integrates the Design OS Kernel via a Git submodule at `packages/superconductor-kernel`.
 
-# 2. Build the superconductor-kernel package
-cd packages/superconductor-kernel
-npm install
-npm run build
-```
-This will compile the TypeScript source into `packages/superconductor-kernel/dist/index.js`, making the MCP server available to your client.
+#### Submodule Repositories & Protocols
+| Host / Protocol | Submodule Repository URL | Notes |
+| :--- | :--- | :--- |
+| **GitLab SSH (Standard)** | `git@gitlab.com:goosewares/superconductor-kernel.git` | Default in `.gitmodules`. Recommended for development with GitLab SSH keys. |
+| **GitLab HTTPS (Fallback / CI)** | `https://gitlab.com/goosewares/superconductor-kernel.git` | Recommended for CI/CD, containerized runners, or environments without SSH keys. |
+
+#### Automated LLM / Agent Protocol for Submodule Selection
+When an LLM agent is bootstrapping, setting up, or installing Superconductor, it MUST execute the following sequence to choose and apply the appropriate submodule URL:
+
+1. **Verify SSH Connectivity**:
+   ```bash
+   ssh -T git@gitlab.com
+   ```
+2. **Select & Configure Submodule URL**:
+   - **If SSH succeeds** (`Welcome to GitLab, @<user>`):
+     Use the canonical SSH URL defined in `.gitmodules`:
+     ```bash
+     git submodule sync --recursive
+     git submodule update --init --recursive
+     ```
+   - **If SSH fails** (`Permission denied` / CI / token-based / HTTPS clone):
+     Switch the submodule remote URL to HTTPS before initializing:
+     ```bash
+     git config submodule.packages/superconductor-kernel.url https://gitlab.com/goosewares/superconductor-kernel.git
+     git submodule sync --recursive
+     git submodule update --init --recursive
+     ```
+
+3. **Build the Kernel Package**:
+   The MCP server must be built locally to produce `packages/superconductor-kernel/dist/index.js`:
+   ```bash
+   cd packages/superconductor-kernel
+   npm install
+   npm run build
+   ```
+   *(Or from the repository root: `npm --workspace=@superconductor/kernel run build`)*
 
 ## Installation
 
+Install via AGY CLI using the primary GitLab origin:
 ```bash
-agy plugin install https://github.com/gooseware/superconductor --auto-update
+agy plugin install https://gitlab.com/goosewares/superconductor --auto-update
 ```
+*(Or via the GitHub mirror: `agy plugin install https://github.com/Gooseware/superconductor --auto-update`)*
 
-That's it. The `--auto-update` flag keeps you on the latest version automatically.
+The `--auto-update` flag keeps you on the latest version automatically.
 
 **For local development** (changes reflected immediately):
 ```bash

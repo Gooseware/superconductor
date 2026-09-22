@@ -16,17 +16,17 @@ This skill guides the setup and configuration of the `superconductor-kernel`, th
 ## The Process
 
 ### 1. Check for Kernel
-Check if `packages/superconductor-kernel` exists. If not, suggest cloning it from `git@gitlab.com:socialhippos/superconductor-kernel`.
+Check if `packages/superconductor-kernel` exists. If not, suggest cloning it from `git@gitlab.com:goosewares/superconductor-kernel.git` (or `https://gitlab.com/goosewares/superconductor-kernel.git`).
 
 ### 2. Dependency Check
 Verify `npm install` and `npm run build` have been executed in the kernel directory.
 
 ### 3. Remote Tracking
 Ensure the kernel is tracking the correct origin:
-`git remote -v` should show `git@gitlab.com:socialhippos/superconductor-kernel`.
+`git remote -v` SHOULD show `git@gitlab.com:goosewares/superconductor-kernel.git` (or HTTPS alternative).
 
 ### 4. Configuration
-Ensure the `README.md` instructions for MCP settings are followed. The agent should help the user copy the JSON snippet for their `claude_desktop_config.json` or equivalent.
+Ensure the `README.md` instructions for MCP settings are followed. The agent SHOULD help the user copy the JSON snippet for their `claude_desktop_config.json` or equivalent.
 
 ### 5. Verification
 Run a simple tool call like `registry_recommend(context="test")` to ensure the kernel is responsive.
