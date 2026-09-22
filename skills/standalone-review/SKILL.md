@@ -1,6 +1,6 @@
 ---
 name: standalone-review
-description: Runs the full heterogeneous Flash quorum (Security + Correctness + Adversarial + Regression) + Coverage Manifest + Residual Pass + Pro Arbiter against any code, diff, file, directory, or PR. Works with zero Superconductor track context. Invoke as /superconductor:review [--staged|--branch <b>|--pr <url>|--file <f>|--dir <d>|--fast|--deep|--stats].
+description: Runs the full heterogeneous Flash quorum (Security + Correctness + Adversarial + Regression + UX & Ergonomics) + Coverage Manifest + Residual Pass + Pro Arbiter against any code, diff, file, directory, or PR. Works with zero Superconductor track context. Invoke as /superconductor:review [--staged|--branch <b>|--pr <url>|--file <f>|--dir <d>|--fast|--deep|--stats].
 ---
 
 ## 1.0 SYSTEM DIRECTIVE
@@ -119,11 +119,13 @@ Include this directly in the adversarial reviewer prompt when `skills/code-revie
 
 ### 4.2 Subagent Quorum Dispatch Protocol (MANDATORY)
 
-You MUST ALWAYS dispatch the 4 heterogeneous review roles as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
+You MUST ALWAYS dispatch the 5 heterogeneous review roles (Security, Correctness, Adversarial, Regression, UX & Ergonomics) as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
+
+The 5th seat—`ux-reviewer`—audits CLI ergonomics, UX-2 status lines (`[ICON] [MODULE]: ...`), Elm/Rust 7-element error diagnostics, canonical terminology, and executes the 56-rule programmatic `UxRuleEngine`.
 
 #### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
-Before dispatching the 4 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 subagents (unless `--no-preflight` is explicitly set).
-This single pre-execution prevents 4 parallel subagents from executing `npm test` redundantly and saturating CPU/memory resources.
+Before dispatching the 5 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 5 subagents (unless `--no-preflight` is explicitly set).
+This single pre-execution prevents parallel subagents from executing `npm test` redundantly and saturating CPU/memory resources.
 
 Dispatch Call Pattern:
 ```javascript
@@ -132,12 +134,13 @@ invoke_subagent({
     { TypeName: "superconductor-reviewer", Role: "security-reviewer", Prompt: "..." },
     { TypeName: "superconductor-reviewer", Role: "correctness-reviewer", Prompt: "..." },
     { TypeName: "superconductor-reviewer", Role: "adversarial-reviewer", Prompt: "..." },
-    { TypeName: "superconductor-reviewer", Role: "regression-reviewer", Prompt: "..." }
+    { TypeName: "superconductor-reviewer", Role: "regression-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "ux-reviewer", Prompt: "..." }
   ]
 })
 ```
 
-Rule: NEVER conclude a quorum review until all 4 subagents have returned their independent verdicts.
+Rule: NEVER conclude a quorum review until all 4 subagents (plus ux-reviewer for all 5 subagents) have returned their independent verdicts.
 
 ### 4.3 Structured JSON Output Extraction Block Schema
 All subagent reviewers MUST return their structured findings enclosed in the standard markdown block:
@@ -145,7 +148,7 @@ All subagent reviewers MUST return their structured findings enclosed in the sta
 [
   {
     "severity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
-    "domain": "security" | "logic" | "tests" | "types" | "frontend" | "config" | "schema",
+    "domain": "security" | "logic" | "tests" | "types" | "frontend" | "config" | "schema" | "ux-review",
     "file": "path/to/file.tsx",
     "line": 42,
     "description": "..."
@@ -197,13 +200,13 @@ Correct intent:    empty = clean pass, should always skip
 ### 5.1 Depth Mode Dispatch
 
 **`--fast` mode:**
-1. Dispatch Flash[Security], Flash[Correctness], Flash[Adversarial], Flash[Regression] in parallel (isolated)
+1. Dispatch Flash[Security], Flash[Correctness], Flash[Adversarial], Flash[Regression], Flash[UX & Ergonomics] in parallel (isolated)
 2. Aggregate findings via `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/aggregate-findings.ts`
 3. Emit findings report immediately — no residual pass, no arbiter
 
 **Default mode (full pipeline):**
 1. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/deterministic-preflight.ts` (language-detected or extension-heuristic)
-2. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-review.ts` to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression
+2. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-review.ts` to orchestrate `review > remediate > review` cycle (up to maxIterations) across the Flash panel: Security + Correctness + Adversarial + Regression + UX & Ergonomics
 3. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/aggregate-coverage-manifest.ts` → ResidualCoverageMap
 4. If ResidualCoverageMap non-empty → dispatch residual Flash pass
 5. Run `${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/aggregate-findings.ts` → unified findings
@@ -388,6 +391,7 @@ The review pipeline is fully operational with FSM state machine persistence (`pa
 | `types` | `types/`, `*.d.ts`, `interfaces/` | `types-remediator` |
 | `config` | `config/`, `*.json`, `*.yaml`, `*.yml`, `*.toml` | `config-remediator` |
 | `frontend` | `ui/`, `components/`, `pages/`, `styles/` | `frontend-remediator` |
+| `ux-review` / `ux` | `commands/`, `skills/`, CLI output, prompts, error copy | `ux-remediator` |
 | `schema` | `db/`, `models/`, `migrations/`, `repository/` | `schema-remediator` |
 | *(unclassified)* | Any uncategorized files | `general-remediator` |
 
@@ -450,11 +454,12 @@ INIT → REVIEWING → NEEDS_FIXES → REMEDIATING → VERIFYING → PASSED (all
 
 ## 10.0 QUORUM ENFORCEMENT
 
-All track integration and finalization operations MUST pass through the `QuorumValidator`. The standard panel requires the following 4 distinct reviewer roles to grant a clean pass before merge:
+All track integration and finalization operations MUST pass through the `QuorumValidator`. The standard panel requires the following 5 distinct reviewer roles to grant a clean pass before merge:
 - `security-reviewer`
 - `correctness-reviewer`
 - `adversarial-reviewer`
 - `regression-reviewer`
+- `ux-reviewer`
 
 ## 11.0 WORKTREE ISOLATION
 

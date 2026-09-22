@@ -93,11 +93,13 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
                 3.  Store findings in your temporary memory.
 ### 2.3 Quorum Review Dispatch Protocol (MANDATORY)
 
-You MUST ALWAYS dispatch the 4 heterogeneous review roles as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
+You MUST ALWAYS dispatch the 5 heterogeneous review roles (Security, Correctness, Adversarial, Regression, UX & Ergonomics) as distinct concurrent subagents using the `invoke_subagent` tool. You are STRICTLY PROHIBITED from evaluating, simulating, or writing reviewer verdicts in-process within your own session (e.g., executing roles directly or in parallel in-process is forbidden).
+
+The 5th seat—`ux-reviewer`—audits CLI ergonomics, UX-2 status lines (`[ICON] [MODULE]: ...`), Elm/Rust 7-element error diagnostics, canonical terminology, and executes the 56-rule programmatic `UxRuleEngine`.
 
 #### Quorum Preflight Test Execution & Context Injection Protocol (MANDATORY)
-Before dispatching the 4 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 4 subagents (unless `--no-preflight` is explicitly set).
-This single execution provides authoritative test evidence upfront and strictly prevents 4 parallel subagents from running `npm test` redundantly and saturating CPU/memory resources.
+Before dispatching the 5 Quorum Reviewer subagents, the orchestrator MUST run the Preflight Test Runner (`QuorumPreflightTestRunner` / `runPreflightTests`) once and inject the formatted `## Preflight Test Execution Evidence` block directly into the system prompts and context of all 5 subagents (unless `--no-preflight` is explicitly set).
+This single execution provides authoritative test evidence upfront and strictly prevents parallel subagents from running `npm test` redundantly and saturating CPU/memory resources.
 
 Dispatch Call Pattern:
 ```javascript
@@ -106,12 +108,13 @@ invoke_subagent({
     { TypeName: "superconductor-reviewer", Role: "security-reviewer", Prompt: "..." },
     { TypeName: "superconductor-reviewer", Role: "correctness-reviewer", Prompt: "..." },
     { TypeName: "superconductor-reviewer", Role: "adversarial-reviewer", Prompt: "..." },
-    { TypeName: "superconductor-reviewer", Role: "regression-reviewer", Prompt: "..." }
+    { TypeName: "superconductor-reviewer", Role: "regression-reviewer", Prompt: "..." },
+    { TypeName: "superconductor-reviewer", Role: "ux-reviewer", Prompt: "..." }
   ]
 })
 ```
 
-Rule: NEVER conclude a quorum review until all 4 subagents have returned their independent verdicts.
+Rule: NEVER conclude a quorum review until all 4 subagents (plus ux-reviewer for all 5 subagents) have returned their independent verdicts.
 
 ### 2.4 Structured JSON Output Extraction Block Schema
 All subagent reviewers MUST return their structured findings enclosed in the standard markdown block:
@@ -119,7 +122,7 @@ All subagent reviewers MUST return their structured findings enclosed in the sta
 [
   {
     "severity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
-    "domain": "security" | "logic" | "tests" | "types" | "frontend" | "config" | "schema",
+    "domain": "security" | "logic" | "tests" | "types" | "frontend" | "config" | "schema" | "ux-review",
     "file": "path/to/file.tsx",
     "line": 42,
     "description": "..."
