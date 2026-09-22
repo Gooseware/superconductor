@@ -220,9 +220,24 @@ packages/superconductor-kernel/node_modules/.vite/
 
 # Node / TypeScript build artifacts
 node_modules/
+**/node_modules/
 packages/*/node_modules/
+dist/
+**/dist/
 packages/*/dist/
+**/.vite/
 packages/*/.vite/
+coverage/
+**/coverage/
+*.tsbuildinfo
+.turbo/
+.cache/
+
+# Agent & Swarm runtime scratch
+.agents/
+swarm_log.md
+superconductor/notebook/
+*.lance/
 
 # Swarm scratch files (adversarial test scripts, temp diffs, one-off debug files)
 adv*.ts
