@@ -1,0 +1,36 @@
+name = "phase"
+description = "Manage track milestone phases with dynamic sliding-window progression"
+usage = "/superconductor:phase [list|status|switch|advance] [options]"
+prompt = """
+Manage track milestone phases with dynamic sliding-window progression.
+
+Usage:
+superconductor phase [list|status|switch|advance] [options]
+
+Subcommands:
+- list: List all phases with status, track counts, and dynamic ordinals
+- status: Show glancable status of the current active phase
+- switch <phase_id>: Switch the active phase
+- advance: Advance the sliding window when Phase 1 is 100% complete
+
+Options:
+- `--phase <id|ordinal>`: Target phase ordinal or symbolic ID
+
+The args provided by the user are: {{args}}
+"""
+
+[subcommands.list]
+description = "List all phases with status, track counts, and dynamic ordinals"
+
+[subcommands.status]
+description = "Show glancable status of the current active phase"
+
+[subcommands.switch]
+description = "Switch the active phase"
+args = ["<phase_id>"]
+
+[subcommands.advance]
+description = "Advance the sliding window when Phase 1 is 100% complete"
+
+[options]
+phase = { type = "string", description = "Target phase ordinal or symbolic ID" }

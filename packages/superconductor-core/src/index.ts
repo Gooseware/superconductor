@@ -14,6 +14,7 @@ export * from './shared/libsql-database-manager.js';
 export * from './models/index.js';
 export * from './swarm/index.js';
 export * from './notebook/note-writer.js';
+export * from './phase/index.js';
 
 export type { ModelTier } from './intelligence/index.js';
 export type { Finding, UxReviewReport, UxReviewInput } from './review/index.js';
@@ -42,5 +43,15 @@ export type {
   ModelChooserResult,
   RoleMeta,
 } from './models/index.js';
+export type {
+  PhaseStoreLockOptions,
+  PhaseStoreOptions,
+  AdvanceWindowResult,
+  SwitchActivePhaseResult,
+  PhaseDependencyValidationResult,
+  ActivePhaseInfo,
+} from './phase/index.js';
+export type { PhaseCliOptions } from './cli/index.js';
+
 
 

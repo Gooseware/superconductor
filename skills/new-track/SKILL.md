@@ -12,6 +12,7 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
 
 **FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Best Practices Research Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
 **GRILL MODE**: If `{{args}}` contains `--grill`, you MUST trigger the Grilling Phase (2.0.4) to enforce standards and extract domain language. If the initial track description is highly ambiguous, you MUST dynamically suggest that the user run with `--grill`.
+**PHASE TARGETING**: If `{{args}}` contains `--phase <id|num>`, target that specific milestone phase (e.g. `--phase 2` or `--phase phase-core-foundation`). Otherwise, default to the currently active phase (Phase 1) or prompt interactively.
 
 ---
 
@@ -72,6 +73,14 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
    - Synthesize findings into the "Research Notes" summary to be directly injected into the Specification.
    - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
 
+### 2.0.4 Grilling Phase (Optional)
+1. **Trigger:** This phase runs if `--grill` is provided in `{{args}}`. If the user's initial description is highly ambiguous or lacks domain clarity, you MUST dynamically suggest running with `--grill` to clarify requirements.
+2. **Action:**
+   - Execute an in-depth contextual analysis (Grilling) against existing documentation to enforce standards.
+   - Generate and update `superconductor/CONTEXT.md` (ubiquitous language) based on the Grilling output.
+   - Synthesize the findings into a brief "Grilling Report" to be directly injected into the Specification.
+   - Do NOT prompt the user for confirmation during this cycle.
+
 ### 2.0.2 Notebook History Preflight (NEW — MANDATORY)
 1. Call MCP tool: `notebook_summary({ note_types: ["preference","design","style","procedure"] })`
 2. If notes found → inject as "## Project Constraints (from Notebook)" at the TOP of the spec.md draft
@@ -106,13 +115,38 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
    )
    ```
 
-### 2.0.4 Grilling Phase (Optional)
-1. **Trigger:** This phase runs if `--grill` is provided in `{{args}}`. If the user's initial description is highly ambiguous or lacks domain clarity, you MUST dynamically suggest running with `--grill` to clarify requirements.
-2. **Action:**
-   - Execute an in-depth contextual analysis (Grilling) against existing documentation to enforce standards.
-   - Generate and update `superconductor/CONTEXT.md` (ubiquitous language) based on the Grilling output.
-   - Synthesize the findings into a brief "Grilling Report" to be directly injected into the Specification.
-   - Do NOT prompt the user for confirmation during this cycle.
+### 2.1.1 Target Phase Resolution & Assignment
+
+During track inception and scaffolding, determine the target milestone phase:
+1.  **Inspect Existing Phases:** Read `superconductor/tracks.md` to identify existing phase sections formatted as `## Phase <N>: <Name> (<Status>)`.
+2.  **Explicit CLI Phase Flag (`--phase`):**
+    - If `{{args}}` contains `--phase <id|num>` or `--phase=<id|num>`:
+      - If numeric (e.g. `--phase 2`), resolve to the phase with that ordinal.
+      - If symbolic string (e.g. `--phase core-foundation` or `--phase phase-core-foundation`), resolve to the phase matching that `phase_id` or sanitized name.
+      - If the target phase does not exist, scaffold a new pending phase section for it.
+3.  **Interactive Selection vs Defaulting:**
+    - **Interactive Mode:** If multiple phases exist in `superconductor/tracks.md` and `--phase` was NOT provided in `{{args}}`:
+      - Prompt the user using the `ask_user` tool:
+        - **questions:**
+            - **header:** "Target Phase"
+            - **type:** "choice"
+            - **question:** "Select the milestone phase for this new track:"
+            - **options:**
+                - Label: "Phase 1: <Active Phase Name> (Active) [Default]", Description: "Assign to currently active phase"
+                - Label: "Phase 2: <Next Phase Name> (Pending)", Description: "Assign to upcoming milestone phase"
+                - Label: "New Phase...", Description: "Create a new milestone phase section"
+    - **Headless Mode / Default:** Assign to the currently active phase (Phase 1, status: `(Active)`) by default.
+    - **Fallback (No Phases Defined):** If `superconductor/tracks.md` contains no phase sections yet (legacy unphased registry), default to `## Phase 1: Active Tracks (Active)` with symbolic ID `"core-foundation"`.
+4.  **Symbolic Phase ID Sanitization & Invariant:**
+    - Resolve the permanent, sanitized symbolic `phase_id` (e.g., `"core-foundation"`, `"multi-language"`).
+    - **CRITICAL INVARIANT:** `phase_id` MUST match `/^[a-z0-9_-]{1,64}$/`. It MUST NOT contain path traversal sequences (`..`), path separators (`/`, `\`), or null bytes (`\0`).
+5.  **Record Phase Assignment Note:**
+    ```ts
+    NoteWriter.writePreferenceNote(
+      `[PREFERENCE] Track ${track_id} assigned to phase: ${phase_id}`,
+      { track_id, user_confirmed: true }
+    )
+    ```
 
 ### 2.0.5 Architecture Committee Phase (NEW)
 1. **Trigger:** This phase runs automatically before spec generation, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
@@ -233,7 +267,7 @@ Throughout the track creation lifecycle, the agent MUST record decisions and pre
         - `- [ ] Task: Run security validation [TIER-4] [AGENT:superconductor-oracle]`
         - `- [ ] Task: Identify path traversal vulnerabilities [TIER-3] [AGENT:superconductor-reviewer]`
         - `- [ ] Task: Create module architecture [TIER-4] [AGENT:superconductor-dreamer]`
-    *   **Task Metadata Formatting (`CREATES`, `PROTECTED`, `INVARIANT_AFTER`):** Task cards in `plan.md` may specify file paths created/modified, protected critical paths, and invariant post-conditions. These fields MUST be indented directly below the task line (4 spaces indent).
+    *   **Task Metadata Formatting (`CREATES`, `PROTECTED`, `INVARIANT_AFTER`):** Tasks in `plan.md` may specify file paths created/modified, protected critical paths, and invariant post-conditions. These fields MUST be indented directly below the task line (4 spaces indent).
         - `CREATES:` Specifies files created or modified by the task. Can be specified as a single-line comma-separated list or an indented multi-line bullet list.
         - `PROTECTED:` Specifies existing critical files or resources that must not be broken or mutated by the task. Can be specified as a single-line comma-separated list or an indented multi-line bullet list.
         - `INVARIANT_AFTER:` Specifies a post-condition or invariant assertion string (enclosed in double or single quotes).
@@ -348,7 +382,23 @@ After generating the plan draft:
 1.  **Check for existing track name:** Before generating a new Track ID, resolve the **Tracks Directory** using the **Universal File Resolution Protocol**. List all existing track directories in that resolved path. If the proposed short name for the new track matches an existing short name, halt the `newTrack` creation. Explain that a track with that name already exists.
 2.  **Generate Track ID:** Create a unique Track ID (e.g., `shortname_YYYYMMDD`).
 3.  **Create Directory:** Create a new directory for the tracks: `<Tracks Directory>/<track_id>/`.
-4.  **Create `metadata.json`:** Create a metadata file at `<Tracks Directory>/<track_id>/metadata.json` with actual values and current timestamps.
+4.  **Create `metadata.json` (Phase Metadata Injection):** Create a metadata file at `<Tracks Directory>/<track_id>/metadata.json` with actual values, current timestamps, and the assigned symbolic phase ID:
+    ```json
+    {
+      "track_id": "<track_id>",
+      "goal": "<track_description>",
+      "type": "<feature|bug|chore|refactor>",
+      "description": "<track_description>",
+      "created_at": "<ISO-8601-timestamp>",
+      "target_branch": "<target_branch>",
+      "track_branch": "track/<track_id>",
+      "status": "planned",
+      "phase_id": "<symbolic-id>",
+      "phases": <plan_phase_count>
+    }
+    ```
+    - **CRITICAL:** `"phase_id"` MUST be set to the symbolic phase ID (e.g. `"core-foundation"`, `"phase-core-foundation"`).
+    - **CRITICAL:** `"phase_id"` MUST strictly validate against `/^[a-z0-9_-]{1,64}$/`. Path traversal sequences (`..`), path separators (`/`, `\`), and null bytes (`\0`) are strictly prohibited.
 5.  **Write Files:**
     *   Write the confirmed specification content to `<Tracks Directory>/<track_id>/spec.md`.
     *   Write the confirmed plan content to `<Tracks Directory>/<track_id>/plan.md`.
@@ -376,7 +426,19 @@ After generating the plan draft:
         }
         ```
 7.  **Exit Plan Mode:** Call the `exit_plan_mode` tool with the path: `<Tracks Directory>/<track_id>/index.md`.
-8.  **Update Tracks Registry:** Append a new section for the track to the end of the tracks file.
+8.  **Update Tracks Registry (`tracks.md` Phase Registration):**
+    - Locate the target phase section in `superconductor/tracks.md` matching `phase_id` or ordinal under `## Phase <N>: <Name> (<Status>)`.
+    - If no phase section exists yet in `superconductor/tracks.md`, default to creating or appending under:
+      ```markdown
+      ## Phase 1: Active Tracks (Active)
+
+      | Status | Track ID | Title | Branch |
+      |---|---|---|---|
+      ```
+    - Insert the new track row with status `[ ]` into the target phase table:
+      `| `[ ]` | `<track_id>` | [<title>](./tracks/<track_id>/index.md) | `track/<track_id>` |`
+    - If the target phase table does not yet have a table header, initialize it before inserting the row.
+    - Ensure clean, aligned markdown table formatting adhering to Superconductor UX standards.
 9.  **Commit Code Changes:** Stage the tracks registry files and commit with the message `chore(superconductor): Add new track '<track_description>'`.
 10. **Announce Completion:** Inform the user:
     > "New track '<track_id>' has been created and tasks registered. You can now start implementation by running `/superconductor:implement`."
@@ -387,7 +449,7 @@ After generating the plan draft:
 graph TD
     A[Start /superconductor:newTrack] --> B{Check Core Context}
     B -->|Missing| C[Ask to run setup]
-    B -->|Valid| D[Get Track Description]
+    B -->|Valid| D[Get Track Description & Resolve Phase]
     D --> E[Best Practices Research Phase]
     E --> E2{--grill flag?}
     E2 -->|Yes| E3[Grilling Phase & Update CONTEXT.md]
@@ -402,6 +464,6 @@ graph TD
     K --> L{User Confirms Plan?}
     L -->|Revise| K
     L -->|Approve| M[Recommend/Install Skills]
-    M --> N[Create Artifacts & Update Registry]
+    M --> N[Create Artifacts, Inject phase_id & Register in Phase Table]
     N --> O[Commit & Announce]
 ```

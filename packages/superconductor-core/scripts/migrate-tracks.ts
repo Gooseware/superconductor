@@ -102,39 +102,51 @@ export function parseTracksMarkdown(content: string): TrackManifestYaml {
   const lines = content.split('\n');
 
   // Strategy 1: Check for Markdown Tables
-  const tableRows: string[] = [];
-  let inTable = false;
+  const tableBlocks: string[][] = [];
+  let currentTable: string[] = [];
 
   for (const line of lines) {
     const trimmed = line.trim();
     if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-      inTable = true;
-      tableRows.push(trimmed);
-    } else if (inTable) {
-      // Table ended or interrupted
-      if (tableRows.length >= 2) break; // We found a table block
-      tableRows.length = 0;
-      inTable = false;
+      currentTable.push(trimmed);
+    } else if (currentTable.length > 0) {
+      if (currentTable.length >= 2) {
+        tableBlocks.push(currentTable);
+      }
+      currentTable = [];
     }
   }
+  if (currentTable.length >= 2) {
+    tableBlocks.push(currentTable);
+  }
 
-  if (tableRows.length >= 2) {
+  for (const tableRows of tableBlocks) {
     // Parse table headers
     const headerCells = tableRows[0]
       .split('|')
       .map(c => c.trim().toLowerCase())
       .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
 
+    // Skip absorbed tracks tables
+    if (headerCells.some(h => /absorbed/i.test(h))) {
+      continue;
+    }
+
     const getColIndex = (patterns: RegExp[]): number => {
       return headerCells.findIndex(h => patterns.some(p => p.test(h)));
     };
 
-    const idIdx = getColIndex([/^(id|track_?id)$/i]);
-    const nameIdx = getColIndex([/^(name|title|track|track_?name)$/i]);
+    const idIdx = getColIndex([/^(id|track[\s_-]?id)$/i]);
+    const nameIdx = getColIndex([/^(name|title|track[\s_-]?name)$/i]);
+    const fallbackNameIdx = nameIdx === -1 ? getColIndex([/^track$/i]) : nameIdx;
     const statusIdx = getColIndex([/^(status|state)$/i]);
     const linkIdx = getColIndex([/^(link|path|url)$/i]);
     const depsIdx = getColIndex([/^(deps|dependencies|prereq|prerequisites|requires)$/i]);
     const noteIdx = getColIndex([/^(note|notes|description|desc)$/i]);
+
+    if (idIdx === -1 && fallbackNameIdx === -1 && statusIdx === -1) {
+      continue;
+    }
 
     // Process table data rows (skipping header row [0] and separator row [1])
     for (let i = 2; i < tableRows.length; i++) {
@@ -145,12 +157,18 @@ export function parseTracksMarkdown(content: string): TrackManifestYaml {
 
       if (cells.length === 0) continue;
 
-      const rawName = nameIdx >= 0 ? cells[nameIdx] : (cells[0] || '');
+      const rawName = fallbackNameIdx >= 0 ? cells[fallbackNameIdx] : (cells[0] || '');
       const cleanName = cleanMarkdown(rawName).replace(/^Track:\s*/i, '');
       if (!cleanName) continue;
 
       const rawLink = linkIdx >= 0 ? cells[linkIdx] : '';
-      const link = extractUrl(rawLink);
+      let link = extractUrl(rawLink);
+      if (!link) {
+        const linkInName = rawName.match(/\[([^\]]+)\]\(([^)]+)\)/);
+        if (linkInName) {
+          link = linkInName[2].trim();
+        }
+      }
 
       let id = idIdx >= 0 ? cleanMarkdown(cells[idIdx]) : '';
       if (!id && link) {

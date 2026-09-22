@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { PhaseRegistryParser } from '../phase/phase-registry-parser.js';
 
 export interface TrackEntry {
   trackId: string;
@@ -30,31 +31,19 @@ export function readTrackRegistry(projectRoot: string): TrackEntry[] {
   if (!fs.existsSync(tracksPath)) return [];
 
   const content = fs.readFileSync(tracksPath, 'utf-8');
+  const manifest = PhaseRegistryParser.parse(content);
+
   const entries: TrackEntry[] = [];
-  const regex = /-\s*\[([ x~])\]\s*\*\*Track:\s*([^*]+)\*\*(?:\s*\*(.*?)\*)?\s*\n\*Link:\s*\[([^\]]+)\]\(([^)]+)\)\*/g;
-
-  let match;
-  while ((match = regex.exec(content)) !== null) {
-    const rawStatus = match[1];
-    const name = match[2].trim();
-    const note = match[3] ? match[3].trim() : undefined;
-    const rawLink = match[5].trim();
-
-    let status: TrackEntry['status'] = 'planned';
-    if (rawStatus === 'x') status = 'completed';
-    else if (rawStatus === '~') status = 'in_progress';
-
-    // Extract trackId from link like ./tracks/core_harness_abstraction_20260723/
-    const trackIdMatch = rawLink.match(/tracks\/([^/]+)/);
-    const trackId = trackIdMatch ? trackIdMatch[1] : name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-
-    entries.push({
-      trackId,
-      name,
-      status,
-      link: rawLink,
-      note
-    });
+  for (const phase of manifest.phases) {
+    for (const track of phase.tracks) {
+      entries.push({
+        trackId: track.trackId,
+        name: track.title,
+        status: track.status,
+        link: track.link || `./tracks/${track.trackId}/`,
+        note: track.note,
+      });
+    }
   }
 
   return entries;

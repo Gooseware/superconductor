@@ -147,6 +147,31 @@ describe('migrate-tracks script', () => {
       expect(result.tracks[2].deps).toEqual(['track_one', 'track_two']);
     });
 
+    it('parses multiple tables without truncation across sections', () => {
+      const markdown = `
+# Multi Phase Project
+
+## Phase 1: Foundation
+
+| Status | Track ID | Title | Branch |
+| --- | --- | --- | --- |
+| [x] | phase1_track | Phase 1 Track | main |
+
+## Phase 2: Features
+
+| Status | Track ID | Title | Branch |
+| --- | --- | --- | --- |
+| [~] | phase2_track | Phase 2 Track | feat/p2 |
+`;
+
+      const result = parseTracksMarkdown(markdown);
+      expect(result.tracks).toHaveLength(2);
+      expect(result.tracks[0].id).toBe('phase1_track');
+      expect(result.tracks[0].status).toBe('completed');
+      expect(result.tracks[1].id).toBe('phase2_track');
+      expect(result.tracks[1].status).toBe('in_progress');
+    });
+
     it('cross-references dependencies from inline notes', () => {
       const markdown = `
 - [x] **Track: Core Abstraction** *(prerequisite for intelligence layer)*

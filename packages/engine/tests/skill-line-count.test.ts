@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-
 describe('Skill Line Count Verification (500-Line Rule)', () => {
-  const skillsDir = path.join(process.cwd(), '../../skills');
+  const resolvedDir = path.resolve(__dirname, '../../../skills');
+  const skillsDir = fs.existsSync(resolvedDir) ? resolvedDir : path.join(process.cwd(), '../../skills');
 
   it('should enforce ≤ 500 lines for all SKILL.md files', () => {
     const entries = fs.readdirSync(skillsDir, { withFileTypes: true });

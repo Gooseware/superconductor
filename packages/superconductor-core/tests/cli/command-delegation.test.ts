@@ -23,6 +23,7 @@ describe('Command Delegation ("Thin Command" Architecture)', () => {
     { file: 'models.toml', expectedSkill: 'skills/models/SKILL.md' },
     { file: 'yolo.toml', expectedSkill: 'skills/yolo/SKILL.md' },
     { file: 'learn.toml' },
+    { file: 'phase.toml' },
   ];
 
   it('contains all expected command TOML files', () => {

@@ -73,6 +73,8 @@ describe('CliDispatcher', () => {
 
   describe('Default Orchestrator Imports', () => {
     it('uses real/stub InteractiveOrchestrator module when none injected in TTY mode', async () => {
+      const { InteractiveOrchestrator } = await import('../../src/cli/interactive.js');
+      vi.spyOn(InteractiveOrchestrator.prototype, 'run').mockResolvedValue({ mode: 'interactive' } as any);
       const dispatcher = new CliDispatcher({ isTTY: true });
       const result = await dispatcher.run(['track-default']);
       expect(result.mode).toBe('interactive');

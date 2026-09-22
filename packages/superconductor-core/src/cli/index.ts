@@ -13,6 +13,7 @@ export * from './interactive.js';
 export * from './headless.js';
 export * from './merge-track.js';
 export * from './learn.js';
+export * from './phase-cli.js';
 
 export async function runCli(args: string[] = process.argv.slice(2)): Promise<void> {
   const command = args[0] || 'context';
@@ -292,12 +293,22 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<vo
       break;
     }
 
+    case 'phase': {
+      const { runPhaseCli } = await import('./phase-cli.js');
+      const exitCode = await runPhaseCli(args.slice(1));
+      if (exitCode !== 0) {
+        process.exit(exitCode);
+      }
+      break;
+    }
+
     default:
       console.log(`Superconductor Universal CLI
 
 Usage:
   npx superconductor context [--json]
   npx superconductor track status [<track_id>]
+  npx superconductor phase [list|status|switch|advance] [options]
   npx superconductor review [--staged|--branch <b>|--pr <url>]
   npx superconductor merge-track <branch> <reviewerId1> [reviewerId2...]
   npx superconductor setup [--reset-registry]
