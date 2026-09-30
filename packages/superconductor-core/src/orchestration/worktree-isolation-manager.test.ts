@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import fs from 'node:fs';
 import {
   WorktreeIsolationManager,
   WorktreeAlreadyAllocatedError,
   WorktrunkNotInstalledError,
   InvalidAgentIdError,
+  findWtBinary,
   type ShellRunner,
 } from './worktree-isolation-manager.js';
 
@@ -24,12 +26,67 @@ describe('WorktreeIsolationManager', () => {
     }).toThrow(WorktrunkNotInstalledError);
   });
 
+  it('falls back cleanly in test environment when default wt binary is missing', () => {
+    expect(() => {
+      const manager = new WorktreeIsolationManager(mockShell);
+      manager.destroy();
+    }).not.toThrow();
+  });
+
+  it('skips binary existence check when skipBinaryCheck option is true', () => {
+    expect(() => {
+      const manager = new WorktreeIsolationManager(mockShell, '/arbitrary/missing/wt', {
+        skipBinaryCheck: true,
+      });
+      manager.destroy();
+    }).not.toThrow();
+  });
+
+  it('throws WorktrunkNotInstalledError outside of test environment when wt binary is missing', () => {
+    const origEnv = process.env.NODE_ENV;
+    try {
+      process.env.NODE_ENV = 'production';
+      expect(() => {
+        new WorktreeIsolationManager(mockShell, '/nonexistent/path/to/wt');
+      }).toThrow(WorktrunkNotInstalledError);
+    } finally {
+      process.env.NODE_ENV = origEnv;
+    }
+  });
+
+  it('properly uses mocked fs.existsSync for custom wt binary paths', () => {
+    const existsSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+    try {
+      expect(() => {
+        const manager = new WorktreeIsolationManager(mockShell, '/custom/mock/path/wt');
+        manager.destroy();
+      }).not.toThrow();
+    } finally {
+      existsSpy.mockRestore();
+    }
+  });
+
+  it('quotes wt binary in shell executions to avoid word splitting when path contains spaces', async () => {
+    const existsSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+    try {
+      const manager = new WorktreeIsolationManager(mockShell, '/opt/custom tools/bin/wt');
+      const branch = await manager.allocate('agent-space', 'track-1');
+      expect(branch).toBe('wt/agent-space-track-1');
+      expect(execSpy).toHaveBeenCalledWith('"/opt/custom tools/bin/wt" switch --create wt/agent-space-track-1');
+      await manager.release('agent-space');
+      expect(execSpy).toHaveBeenCalledWith('"/opt/custom tools/bin/wt" remove wt/agent-space-track-1');
+      manager.destroy();
+    } finally {
+      existsSpy.mockRestore();
+    }
+  });
+
   it('allocate with mock shell calls wt switch --create <branch> and returns branch', async () => {
     const manager = new WorktreeIsolationManager(mockShell);
     const branch = await manager.allocate('agent-1', 'track-123');
 
     expect(branch).toBe('wt/agent-1-track-123');
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt switch --create wt/agent-1-track-123');
+    expect(execSpy).toHaveBeenCalledWith(`"${findWtBinary()}" switch --create wt/agent-1-track-123`);
     manager.destroy();
   });
 
@@ -76,7 +133,7 @@ describe('WorktreeIsolationManager', () => {
 
     await manager.release('agent-1');
 
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt remove wt/agent-1-track-123');
+    expect(execSpy).toHaveBeenCalledWith(`"${findWtBinary()}" remove wt/agent-1-track-123`);
     expect(manager.getWorktreePath('agent-1')).toBeUndefined();
     manager.destroy();
   });
@@ -98,8 +155,8 @@ describe('WorktreeIsolationManager', () => {
     await manager.releaseAll();
 
     expect(execSpy).toHaveBeenCalledTimes(2);
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt remove wt/agent-1-track-1');
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt remove wt/agent-2-track-2');
+    expect(execSpy).toHaveBeenCalledWith(`"${findWtBinary()}" remove wt/agent-1-track-1`);
+    expect(execSpy).toHaveBeenCalledWith(`"${findWtBinary()}" remove wt/agent-2-track-2`);
     expect(manager.getWorktreePath('agent-1')).toBeUndefined();
     expect(manager.getWorktreePath('agent-2')).toBeUndefined();
     manager.destroy();
@@ -126,7 +183,7 @@ describe('WorktreeIsolationManager', () => {
 
     await new Promise((r) => setTimeout(r, 50));
 
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt remove wt/agent-1-track-sigint');
+    expect(execSpy).toHaveBeenCalledWith(`"${findWtBinary()}" remove wt/agent-1-track-sigint`);
     manager.destroy();
   });
 
@@ -139,7 +196,7 @@ describe('WorktreeIsolationManager', () => {
 
     await new Promise((r) => setTimeout(r, 50));
 
-    expect(execSpy).toHaveBeenCalledWith('/home/gooseware/.cargo/bin/wt remove wt/agent-2-track-sigterm');
+    expect(execSpy).toHaveBeenCalledWith(`"${findWtBinary()}" remove wt/agent-2-track-sigterm`);
     manager.destroy();
   });
 });

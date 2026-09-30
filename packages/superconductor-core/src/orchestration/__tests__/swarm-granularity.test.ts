@@ -52,6 +52,31 @@ describe('parseAndDispatch — 1:1 WorkUnit mapping', () => {
     expect(units[0].tier).toBe(1);
     expect(units[1].tier).toBe(2);
   });
+
+  it('accurately parses tasks with complexity scores like [TIER-2:TCS=3] without dropping tasks', () => {
+    const plan = `
+## Phase 1
+- [ ] Task: Build MicroSwarmOrchestrator [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:orchestration]
+- [ ] Task: Triage protocol expansion [TIER-2:TCS=5] [AGENT:superconductor-processor] [DOMAIN:triage]
+- [ ] Task: Setup task [TIER-1:TCS=1] [AGENT:setup] [DOMAIN:setup]
+`;
+    const units = parseWorkUnits(plan);
+    expect(units).toHaveLength(3);
+    expect(units[0].task).toBe('Build MicroSwarmOrchestrator');
+    expect(units[0].tier).toBe(3);
+    expect(units[0].agent).toBe('superconductor-processor');
+    expect(units[0].domain).toBe('orchestration');
+
+    expect(units[1].task).toBe('Triage protocol expansion');
+    expect(units[1].tier).toBe(2);
+    expect(units[1].agent).toBe('superconductor-processor');
+    expect(units[1].domain).toBe('triage');
+
+    expect(units[2].task).toBe('Setup task');
+    expect(units[2].tier).toBe(1);
+    expect(units[2].agent).toBe('setup');
+    expect(units[2].domain).toBe('setup');
+  });
 });
 
 // ---------------------------------------------------------------------------

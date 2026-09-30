@@ -46,7 +46,7 @@ export function parseWorkUnits(planMarkdown: string): SwarmWorkUnit[] {
 
     // Match annotated task lines
     const taskMatch = line.match(
-      /^- \[ \] Task: (.+?) \[TIER-(\d+)\] \[AGENT:([^\]]+)\] \[DOMAIN:([^\]]+)\]/
+      /^- \[ \] Task: (.+?) \[TIER-(\d+)(?::[^\]]+)?\] \[AGENT:([^\]]+)\] \[DOMAIN:([^\]]+)\]/
     );
     if (taskMatch) {
       units.push({

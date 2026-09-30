@@ -2,7 +2,7 @@
 
 **Track ID:** `adhoc_swarm_lifecycle_guardrails_20260930`  
 **Target Milestone Phase:** `core-foundation` (Active)  
-**Status:** `[ ]`  
+**Status:** `[x]`  
 
 ---
 
@@ -646,43 +646,43 @@
 
 ## Phase 0: Swarm Preflight
 
-- [ ] Task: Verify test runner, dependencies, and core build [TIER-1:TCS=3] [AGENT:superconductor-processor] [DOMAIN:core]
+- [x] Task: Verify test runner, dependencies, and core build [TIER-1:TCS=3] [AGENT:superconductor-processor] [DOMAIN:core]
     CREATES:
       - superconductor/logs/preflight_adhoc_swarm_20260930.log
     PROTECTED:
       - packages/superconductor-core/package.json
     INVARIANT_AFTER: "The build and test suite of superconductor-core must execute cleanly."
-    - [ ] Run test suite check [TIER-1:TCS=3]
-    - [ ] Confirm clean workspace state [TIER-1:TCS=3]
+    - [x] Run test suite check [TIER-1:TCS=3]
+    - [x] Confirm clean workspace state [TIER-1:TCS=3]
 
 ---
 
 ## Phase 1: Planning & Dispatch Dogma Enforcement (Anti-Hero Protocol)
 
-- [ ] Task: Codify Planning & Dispatch Dogma across GEMINI.md and WorkspaceGuard [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:guardrails]
+- [x] Task: Codify Planning & Dispatch Dogma across GEMINI.md and WorkspaceGuard [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:guardrails]
     CREATES:
       - packages/superconductor-core/src/orchestration/workspace-guard.ts
       - GEMINI.md
     PROTECTED:
       - packages/superconductor-core/src/orchestration/abstract-gate.ts
     INVARIANT_AFTER: "The root agent must be explicitly declared as Planning & Dispatch Only even under YOLO mode."
-    - [ ] Write tests for workspace guard root write rules [TIER-1:TCS=3]
-    - [ ] Implement guardrail directives and checks [TIER-1:TCS=3]
+    - [x] Write tests for workspace guard root write rules [TIER-1:TCS=3]
+    - [x] Implement guardrail directives and checks [TIER-1:TCS=3]
 
-- [ ] Task: Intercept root direct file edits on product code and enforce invoke_subagent [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:guardrails]
+- [x] Task: Intercept root direct file edits on product code and enforce invoke_subagent [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:guardrails]
     CREATES:
       - packages/superconductor-core/src/permissions/interceptor.ts
     PROTECTED:
       - packages/superconductor-core/src/permissions/engine.ts
     INVARIANT_AFTER: "Direct edits to application source files by the primary session trigger rogue write detection or redirect to subagent dispatch."
-    - [ ] Write tests for tool interceptor [TIER-1:TCS=3]
-    - [ ] Implement interceptor enforcement logic [TIER-1:TCS=3]
+    - [x] Write tests for tool interceptor [TIER-1:TCS=3]
+    - [x] Implement interceptor enforcement logic [TIER-1:TCS=3]
 
 ---
 
 ## Phase 2: Universal Ad-Hoc Enhancement & Triage Engine
 
-- [ ] Task: Build MicroSwarmOrchestrator in superconductor-core [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:orchestration]
+- [x] Task: Build MicroSwarmOrchestrator in superconductor-core [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:orchestration]
     CREATES:
       - packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.ts
       - packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.test.ts
@@ -690,82 +690,82 @@
       - packages/superconductor-core/src/orchestration/swarm-granularity.ts
       - packages/superconductor-core/src/remediation/domain-split-remediation-dispatcher.ts
     INVARIANT_AFTER: "MicroSwarmOrchestrator must parse ad-hoc intents, allocate isolated worktrees, dispatch parallel processors, and run quorum."
-    - [ ] Write unit tests for MicroSwarmOrchestrator [TIER-1:TCS=3]
-    - [ ] Implement MicroSwarmOrchestrator class and dispatcher [TIER-1:TCS=3]
+    - [x] Write unit tests for MicroSwarmOrchestrator [TIER-1:TCS=3]
+    - [x] Implement MicroSwarmOrchestrator class and dispatcher [TIER-1:TCS=3]
 
-- [ ] Task: Expand triage protocol to detect and route ad-hoc enhancements and copy tweaks [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:triage]
+- [x] Task: Expand triage protocol to detect and route ad-hoc enhancements and copy tweaks [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:triage]
     CREATES:
       - skills/triage/SKILL.md
     PROTECTED:
       - GEMINI.md
     INVARIANT_AFTER: "Ad-hoc enhancement requests outside active tracks route automatically to MicroSwarmOrchestrator instead of direct chat edits."
-    - [ ] Update triage signal detection table with enhancement patterns [TIER-1:TCS=3]
-    - [ ] Add Micro-Swarm routing branch in triage SKILL.md [TIER-1:TCS=5]
+    - [x] Update triage signal detection table with enhancement patterns [TIER-1:TCS=3]
+    - [x] Add Micro-Swarm routing branch in triage SKILL.md [TIER-1:TCS=5]
 
 ---
 
 ## Phase 3: Parallel Implementor Swarm & Concurrency Gate Alignment
 
-- [ ] Task: Remove sequential task loop in implement skill and bind to Minimum Concurrency Gate [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:skills]
+- [x] Task: Remove sequential task loop in implement skill and bind to Minimum Concurrency Gate [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:skills]
     CREATES:
       - skills/implement/SKILL.md
     PROTECTED:
       - skills/swarm-execute/SKILL.md
     INVARIANT_AFTER: "skills/implement/SKILL.md forbids serial one-by-one task iteration and mandates parallel batch dispatch."
-    - [ ] Refactor Step 4.d in skills/implement/SKILL.md to enforce batching [TIER-1:TCS=5]
-    - [ ] Verify alignment with swarm-granularity.ts minimum concurrency gate [TIER-1:TCS=4]
+    - [x] Refactor Step 4.d in skills/implement/SKILL.md to enforce batching [TIER-1:TCS=5]
+    - [x] Verify alignment with swarm-granularity.ts minimum concurrency gate [TIER-1:TCS=4]
 
-- [ ] Task: Standardize worktree isolation and multi-agent dispatch rules in swarm-execute [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:skills]
+- [x] Task: Standardize worktree isolation and multi-agent dispatch rules in swarm-execute [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:skills]
     CREATES:
       - skills/swarm-execute/SKILL.md
     PROTECTED:
       - packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts
     INVARIANT_AFTER: "Swarm execution mandates parallel worktree isolation for both initial implementors and domain remediators."
-    - [ ] Verify worktree isolation steps in swarm-execute SKILL.md [TIER-1:TCS=5]
-    - [ ] Update documentation and examples [TIER-1:TCS=3]
+    - [x] Verify worktree isolation steps in swarm-execute SKILL.md [TIER-1:TCS=5]
+    - [x] Update documentation and examples [TIER-1:TCS=3]
 
 ---
 
 ## Phase 4: Dynamic Quorum Matrix & SwarmAuthorizer Alignment
 
-- [ ] Task: Codify Quorum Composition Matrix with omnipresent Regression and mandatory UI/UX [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:quorum]
+- [x] Task: Codify Quorum Composition Matrix with omnipresent Regression and mandatory UI/UX [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:quorum]
     CREATES:
       - packages/superconductor-core/src/review/quorum-composition-resolver.ts
       - packages/superconductor-core/src/review/quorum-composition-resolver.test.ts
     PROTECTED:
       - packages/superconductor-core/src/review/index.ts
     INVARIANT_AFTER: "Quorum composition resolver always includes Regression and includes UI/UX whenever frontend/copy files are modified."
-    - [ ] Write tests for QuorumCompositionResolver [TIER-1:TCS=3]
-    - [ ] Implement QuorumCompositionResolver [TIER-1:TCS=3]
+    - [x] Write tests for QuorumCompositionResolver [TIER-1:TCS=3]
+    - [x] Implement QuorumCompositionResolver [TIER-1:TCS=3]
 
-- [ ] Task: Synchronize SwarmAuthorizer commit trailer generation for 5 reviewers [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:authorizer]
+- [x] Task: Synchronize SwarmAuthorizer commit trailer generation for 5 reviewers [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:authorizer]
     CREATES:
       - packages/superconductor-core/src/track/swarm-authorizer.ts
       - packages/superconductor-core/src/track/swarm-authorizer.test.ts
     PROTECTED:
       - packages/superconductor-core/src/orchestration/sign-off-gate.ts
     INVARIANT_AFTER: "SwarmAuthorizer accepts 4-to-5 reviewer conversation IDs and validates commit trailers accurately."
-    - [ ] Write unit tests for 5-reviewer SwarmAuthorizer trailer generation [TIER-1:TCS=3]
-    - [ ] Update SwarmAuthorizer logic [TIER-1:TCS=3]
+    - [x] Write unit tests for 5-reviewer SwarmAuthorizer trailer generation [TIER-1:TCS=3]
+    - [x] Update SwarmAuthorizer logic [TIER-1:TCS=3]
 
 ---
 
 ## Phase 5: Integration & Finalization
 
-- [ ] Task: Run full test suite and verify cross-subsystem integration [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:verification]
+- [x] Task: Run full test suite and verify cross-subsystem integration [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:verification]
     CREATES:
       - superconductor/logs/verification_adhoc_swarm_20260930.log
     PROTECTED:
       - packages/superconductor-core/src/index.ts
     INVARIANT_AFTER: "All superconductor-core tests pass with zero regressions."
-    - [ ] Run vitest suite across superconductor-core [TIER-1:TCS=3]
-    - [ ] Verify clean build [TIER-1:TCS=3]
+    - [x] Run vitest suite across superconductor-core [TIER-1:TCS=3]
+    - [x] Verify clean build [TIER-1:TCS=3]
 
-- [ ] Task: Integrate track 'adhoc_swarm_lifecycle_guardrails_20260930' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor] [DOMAIN:git]
+- [x] Task: Integrate track 'adhoc_swarm_lifecycle_guardrails_20260930' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor] [DOMAIN:git]
     CREATES:
       - superconductor/tracks.md
     PROTECTED:
       - superconductor/tracks.md
     INVARIANT_AFTER: "Track status marked complete [x] in superconductor/tracks.md with Swarm-Authorized commit."
-    - [ ] Update track entry in tracks.md [TIER-1:TCS=5]
-    - [ ] Commit and merge to main [TIER-1:TCS=3]
+    - [x] Update track entry in tracks.md [TIER-1:TCS=5]
+    - [x] Commit and merge to main [TIER-1:TCS=3]

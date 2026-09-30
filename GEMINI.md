@@ -45,17 +45,18 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 - **MCP Server**: The `superconductor-kernel` MCP server is configured in `mcp_config.json` at the extension root, and runs using node on the local compiled build (`packages/superconductor-kernel/dist/index.js`).
 - **Skills**: When the superconductor plugin is installed, 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.) are automatically registered and available for discovery.
 
-## SWARM GUARDRAILS
+## SWARM GUARDRAILS & PLANNING/DISPATCH DOGMA
 
-- When Superconductor is active + swarm mode: root agent MUST NOT write to `packages/*/src/**` directly. Must use `invoke_subagent` → Processor.
+- **Planning & Dispatch Dogma (Anti-Hero Protocol)**: The primary/root session operates strictly as **Planning & Dispatch Only**. Under NO circumstances—**even under YOLO mode**—may the root agent directly mutate application source code files (`src/**`, `app/**`, `packages/*/src/**`).
+  - All code modifications, refactorings, feature implementations, and bug fixes must be delegated to a Processor subagent via `invoke_subagent` (or `send_message`).
+  - If the root agent attempts to write directly to application source code files, the operation is blocked and it must emit the following exact error message:
+    `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
 - When Superconductor is active (any mode): root agent MUST NOT commit a track branch until Quorum loop is complete and green. Quorum FSM state is persisted to `.superconductor/quorum/` or `superconductor/logs/quorum-state.json`.
-- If the root agent catches itself violating this rule, it must emit the following exact error message:
-  "[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."
 - **Kernel Tool Restriction**: When using `superconductor-kernel` tools (e.g., `kernel_graph_get_node`, `kernel_graph_get_neighbors`, `kernel_graph_shortest_path`, `kernel_intelligence_get_hotspots`, `kernel_intelligence_get_dependency_graph`, `kernel_policy_get_mode`, etc.), ensure appropriate permissions are granted according to the current mode.
 - **Adaptive Permission Guardrails**:
   - **IDLE MODE bypass**: In IDLE mode, general exploration is permitted, but the root agent MUST NOT modify `superconductor/tracks.md` directly to spoof or bypass IDLE mode checks without prior authorization.
   - **TRACKED MODE**: Adhere to the capabilities granted in `permission-manifest.toml`. The Tool Call Interceptor will block unauthorized access and prompt the user.
-  - **YOLO MODE**: All restrictions are bypassed, but activities are tracked in the append-only `yolo-audit.log`. Use YOLO only when explicitly authorized or persistently required.
+  - **YOLO MODE**: All permission restrictions are bypassed for exploration, but activities are tracked in the append-only `yolo-audit.log`. **Note**: Planning & Dispatch Dogma remains strictly enforced even in YOLO mode — root session cannot directly mutate application source files and must delegate code edits to subagents.
 - **No Polling Loops (PROHIBITED)**: After spawning subagents or background tasks, the root agent MUST stop calling tools and yield. Maximum 1 status check per turn. Polling `manage_subagents list` in a loop BLOCKS incoming messages and is PROHIBITED. Violation causes stalls — subagent completions cannot be delivered while the agent is actively calling tools.
 - **No Hero-Agenting in Remediation (PROHIBITED)**: When quorum returns `NEEDS_FIXES`, the root agent MUST NOT self-fix using `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command`. MUST dispatch `DomainSplitRemediationDispatcher` with domain-split parallel agents. If the root agent catches itself self-fixing during remediation, it must emit: `"[Superconductor] Hero-agenting detected in remediation. Aborting. I must dispatch domain-split remediators instead."`
 
@@ -96,7 +97,7 @@ Once triage is triggered, assess scope and classify as exactly one of:
 
 - **SMALL** → invoke `correctness-reviewer` standalone → standalone remediation loop (no track created)
 - **MEDIUM** → invoke 2-reviewer quorum (`correctness-reviewer` + `adversarial-reviewer`) → standalone remediation loop (no track created)
-- **LARGE** → announce shift to Track Planning Mode → invoke Dreamer subagent to write `spec.md` + `plan.md` → auto-execute via `swarm-execute --headless --triage-source` → full 4-reviewer quorum → Oracle gate → merge
+- **LARGE** → announce shift to Track Planning Mode → invoke Dreamer subagent to write `spec.md` + `plan.md` → auto-execute via `swarm-execute --headless --triage-source` → full 5-reviewer quorum → Oracle gate → merge
 
 ### Anti-Hero-Agenting Rule
 

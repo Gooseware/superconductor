@@ -6,19 +6,7 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-core/src/cli/index.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 29,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/engine/src/research/research-executor.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 19,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-kernel/src/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 19,
     "riskLevel": "critical"
@@ -45,18 +33,6 @@
     "file": "packages/engine/src/research/provider-registry.ts",
     "exportedSymbols": [],
     "gitChurnScore": 15,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-core/src/index.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 15,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/index.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 14,
     "riskLevel": "critical"
   },
   {
@@ -180,12 +156,6 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-core/src/intelligence/runners/graphify.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 8,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/superconductor-core/src/orchestration/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 8,
@@ -193,12 +163,6 @@
   },
   {
     "file": "packages/superconductor-core/src/orchestration/workspace-guard.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 8,
-    "riskLevel": "critical"
-  },
-  {
-    "file": "packages/superconductor-core/src/review/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 8,
     "riskLevel": "critical"
@@ -330,12 +294,6 @@
     "riskLevel": "critical"
   },
   {
-    "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 5,
-    "riskLevel": "critical"
-  },
-  {
     "file": "packages/engine/src/cache/ModelFetcher.ts",
     "exportedSymbols": [],
     "gitChurnScore": 4,
@@ -403,12 +361,6 @@
   },
   {
     "file": "packages/superconductor-core/src/remediation/index.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 4,
-    "riskLevel": "high"
-  },
-  {
-    "file": "packages/superconductor-kernel/src/services/GraphCache.ts",
     "exportedSymbols": [],
     "gitChurnScore": 4,
     "riskLevel": "high"
@@ -948,12 +900,6 @@
     "riskLevel": "high"
   },
   {
-    "file": "packages/superconductor-core/src/track/track-reader.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 2,
-    "riskLevel": "high"
-  },
-  {
     "file": "packages/superconductor-core/src/utils/input-sanitizer.ts",
     "exportedSymbols": [],
     "gitChurnScore": 2,
@@ -1194,12 +1140,6 @@
     "riskLevel": "medium"
   },
   {
-    "file": "packages/superconductor-core/scripts/migrate-tracks.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/auto-sync-engine.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
@@ -1225,12 +1165,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/report.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
@@ -1339,12 +1273,6 @@
   },
   {
     "file": "packages/superconductor-core/src/swarm/LanguagePersonaResolver.ts",
-    "exportedSymbols": [],
-    "gitChurnScore": 1,
-    "riskLevel": "medium"
-  },
-  {
-    "file": "packages/superconductor-core/src/swarm/index.ts",
     "exportedSymbols": [],
     "gitChurnScore": 1,
     "riskLevel": "medium"
@@ -4686,9 +4614,663 @@
     "riskLevel": "low"
   },
   {
+    "file": "superconductor/tracks.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 182,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 60,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 29,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/new-track/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 21,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/swarm-orchestrate/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 20,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/.bin/vitest",
+    "exportedSymbols": [],
+    "gitChurnScore": 19,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-kernel/src/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 19,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/standalone-review/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 19,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/.bin/js-yaml",
+    "exportedSymbols": [],
+    "gitChurnScore": 18,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/.bin/tsc",
+    "exportedSymbols": [],
+    "gitChurnScore": 18,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/.bin/tsserver",
+    "exportedSymbols": [],
+    "gitChurnScore": 18,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/swarm-execute/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 18,
+    "riskLevel": "critical"
+  },
+  {
+    "file": ".gitignore",
+    "exportedSymbols": [],
+    "gitChurnScore": 17,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/.bin/playwright",
+    "exportedSymbols": [],
+    "gitChurnScore": 17,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "README.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 16,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 15,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 14,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/setup/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 11,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 11,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 10,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 10,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 9,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/graphify.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/review/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/06_api_surface.toon",
+    "exportedSymbols": [],
+    "gitChurnScore": 8,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 7,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/05_sast.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 7,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/dependency-graph.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 6,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-kernel/package.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 6,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/08_package_surface.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 6,
+    "riskLevel": "critical"
+  },
+  {
     "file": "packages/superconductor-core/src/intelligence/cli-update.ts",
     "exportedSymbols": [],
     "gitChurnScore": 5,
     "riskLevel": "critical"
+  },
+  {
+    "file": "packages/superconductor-kernel/src/services/IntelligenceStatusService.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 5,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "scripts/hooks/commit-msg",
+    "exportedSymbols": [],
+    "gitChurnScore": 5,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/coding-agent/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 5,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "skills/status/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 5,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "superconductor/intelligence/08_dependency_surface.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 5,
+    "riskLevel": "critical"
+  },
+  {
+    "file": "mcp_config.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@swc/core",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@vitest/coverage-v8",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/vitest",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/package-surface.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-kernel/src/services/GraphCache.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 4,
+    "riskLevel": "high"
+  },
+  {
+    "file": ".gitmodules",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/README.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@types/js-yaml",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@types/node",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@types/prompts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@types/proper-lockfile",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/js-yaml",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/prompts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/proper-lockfile",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/typescript",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/zod",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/test-gaps.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "skills/setup/references/setup-protocol.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 3,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/@superconductor/engine",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/playwright",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/node_modules/smol-toml",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/src/track/track-reader.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-kernel/README.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "skills/batch-execute/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 2,
+    "riskLevel": "high"
+  },
+  {
+    "file": "packages/superconductor-core/scripts/migrate-tracks.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/runners/fingerprint.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "packages/superconductor-core/src/swarm/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "packages/superconductor-kernel/.gitignore",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "skills/superconductor-kernel-setup/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 1,
+    "riskLevel": "medium"
+  },
+  {
+    "file": "commands/superconductor/phase.toml",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/.gitignore",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/phase-cli.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/audit-reporter.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/cli-blueprint.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/preflight-check.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/utils/language-profile.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/phase/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/phase/phase-manager.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/phase/phase-manifest.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/phase/phase-registry-parser.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/phase/phase-state-store.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/phase/phase-transition-service.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/cognitive-load.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/emoji-usage.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/index.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/instruction-clarity.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/output-message-quality.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/schema-ergonomics.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/simplification.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/terminology-consistency.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/types.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/rules/visual-hierarchy.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/ux-rule-engine-cli.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "packages/superconductor-core/src/review/ux-rule-engine.ts",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "skills/ux-reviewer/SKILL.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "skills/ux-reviewer/references/checklist.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "skills/ux-reviewer/references/processor-heuristics.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/quorum/signoff_intelligence_setup_fix_20260920.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/quorum/signoff_multi_language_persona_architecture_20260820.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/quorum/signoff_track_phases_and_sliding_window_20260921.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/intelligence_setup_fix_20260920/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/intelligence_setup_fix_20260920/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/intelligence_setup_fix_20260920/permission-manifest.toml",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/intelligence_setup_fix_20260920/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/intelligence_setup_fix_20260920/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/track_phases_and_sliding_window_20260921/index.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/track_phases_and_sliding_window_20260921/metadata.json",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/track_phases_and_sliding_window_20260921/permission-manifest.toml",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/track_phases_and_sliding_window_20260921/plan.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
+  },
+  {
+    "file": "superconductor/tracks/track_phases_and_sliding_window_20260921/spec.md",
+    "exportedSymbols": [],
+    "gitChurnScore": 0,
+    "riskLevel": "low"
   }
 ]

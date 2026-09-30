@@ -98,4 +98,95 @@ describe('ToolCallInterceptor', () => {
         expect(result.allowed).toBe(false);
         expect(result.reason).toContain('globbing');
     });
+
+    describe('Planning & Dispatch Dogma (Rogue Write Interception)', () => {
+        const ROGUE_WRITE_REASON = '[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead.';
+
+        it('blocks direct write to src/** by root session in IDLE mode', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('IDLE');
+
+            const result = await interceptor.intercept('write_file', { path: '/test/workspace/src/index.ts' });
+
+            expect(result.allowed).toBe(false);
+            expect(result.reason).toBe(ROGUE_WRITE_REASON);
+        });
+
+        it('blocks direct write to packages/*/src/** by root session even in YOLO mode', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+            const result = await interceptor.intercept('replace_file_content', {
+                TargetFile: '/test/workspace/packages/core/src/index.ts'
+            });
+
+            expect(result.allowed).toBe(false);
+            expect(result.reason).toBe(ROGUE_WRITE_REASON);
+        });
+
+        it('blocks direct write to app/** by root session in TRACKED mode', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('TRACKED');
+            vi.mocked(stateManager.getActiveTrackId).mockReturnValue('track-1');
+
+            const result = await interceptor.intercept('write_to_file', {
+                TargetFile: 'app/routes/api.ts'
+            });
+
+            expect(result.allowed).toBe(false);
+            expect(result.reason).toBe(ROGUE_WRITE_REASON);
+        });
+
+        it('allows direct write to non-application files in IDLE mode', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('IDLE');
+
+            const result = await interceptor.intercept('write_file', { path: '/tmp/scratch.txt' });
+
+            expect(result.allowed).toBe(true);
+        });
+
+        it('allows direct write to application files when isRootSession is false (Processor subagent)', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+            const result = await interceptor.intercept(
+                'write_file',
+                { path: '/test/workspace/src/index.ts' },
+                undefined,
+                { isRootSession: false }
+            );
+
+            expect(result.allowed).toBe(true);
+        });
+
+        it('rejects caller argument spoofing (_isRootSession: false in args) and blocks rogue write', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+            const result = await interceptor.intercept('write_file', {
+                path: '/test/workspace/src/index.ts',
+                _isRootSession: false
+            });
+
+            expect(result.allowed).toBe(false);
+            expect(result.reason).toBe(ROGUE_WRITE_REASON);
+        });
+
+        it('intercepts rogue writes using AbsolutePath', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+            const result = await interceptor.intercept('write_to_file', {
+                AbsolutePath: '/test/workspace/src/index.ts'
+            });
+
+            expect(result.allowed).toBe(false);
+            expect(result.reason).toBe(ROGUE_WRITE_REASON);
+        });
+
+        it('intercepts rogue writes using FilePath', async () => {
+            vi.mocked(stateManager.detectCurrentState).mockReturnValue('YOLO');
+
+            const result = await interceptor.intercept('replace_file_content', {
+                FilePath: '/test/workspace/app/main.ts'
+            });
+
+            expect(result.allowed).toBe(false);
+            expect(result.reason).toBe(ROGUE_WRITE_REASON);
+        });
+    });
 });
