@@ -30,6 +30,7 @@
 | `[x]` | `adaptive_research_router_20260907` | [Adaptive Multi-Tier Research Router & DeerFlow MCP Integration](./tracks/adaptive_research_router_20260907/index.md) | `track/adaptive_research_router_20260907` (merged to main) |
 | `[x]` | `intelligence_setup_fix_20260920` | [Intelligence & Setup Subsystem Fix](./tracks/intelligence_setup_fix_20260920/index.md) | `track/intelligence_setup_fix_20260920` (merged to main) |
 | `[x]` | `track_phases_and_sliding_window_20260921` | [Track Phase System & Dynamic Sliding-Window Progression](./tracks/track_phases_and_sliding_window_20260921/index.md) | `track/track_phases_and_sliding_window_20260921` (merged to main) |
+| `[ ]` | `adhoc_swarm_lifecycle_guardrails_20260930` | [Ad-Hoc Enhancement & Bug Fix Lifecycle Guardrails](./tracks/adhoc_swarm_lifecycle_guardrails_20260930/index.md) | `track/adhoc_swarm_lifecycle_guardrails_20260930` |
 
 ## Absorbed / Closed Tracks
 
