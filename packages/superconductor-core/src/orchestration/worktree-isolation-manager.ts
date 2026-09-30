@@ -28,7 +28,11 @@ export interface ShellRunner {
   exec(command: string): Promise<{ stdout: string; stderr: string; exitCode?: number } | string>;
 }
 
-function findWtBinary(): string {
+export interface WorktreeIsolationManagerOptions {
+  skipBinaryCheck?: boolean;
+}
+
+export function findWtBinary(): string {
   try {
     return execSync('which wt', { encoding: 'utf8' }).trim();
   } catch {
@@ -38,6 +42,9 @@ function findWtBinary(): string {
 
 export class WorktreeIsolationManager {
   private allocations = new Map<string, string>(); // agentId -> branchName
+  private wtBinary: string;
+  private isCustomBinary: boolean;
+  private options?: WorktreeIsolationManagerOptions;
 
   private sigintHandler = (): void => {
     void this.releaseAll();
@@ -49,15 +56,36 @@ export class WorktreeIsolationManager {
 
   constructor(
     private shell: ShellRunner,
-    private wtBinary = findWtBinary()
+    wtBinaryOrOptions?: string | WorktreeIsolationManagerOptions,
+    options?: WorktreeIsolationManagerOptions
   ) {
+    let customBinary: string | undefined;
+    let opts: WorktreeIsolationManagerOptions | undefined;
+
+    if (typeof wtBinaryOrOptions === 'string') {
+      customBinary = wtBinaryOrOptions;
+      opts = options;
+    } else if (wtBinaryOrOptions && typeof wtBinaryOrOptions === 'object') {
+      opts = wtBinaryOrOptions;
+    }
+
+    this.isCustomBinary = customBinary !== undefined;
+    this.wtBinary = customBinary ?? findWtBinary();
+    this.options = opts;
+
     this.verifyWt();
     process.on('SIGINT', this.sigintHandler);
     process.on('SIGTERM', this.sigtermHandler);
   }
 
   private verifyWt(): void {
+    if (this.options?.skipBinaryCheck) {
+      return;
+    }
     if (!fs.existsSync(this.wtBinary)) {
+      if (process.env.NODE_ENV === 'test' && !this.isCustomBinary) {
+        return;
+      }
       console.error(
         `Worktrunk binary not found at ${this.wtBinary}. Run scripts/install-worktrunk.sh to install.`
       );
@@ -80,7 +108,7 @@ export class WorktreeIsolationManager {
     const safeAgentId = this.sanitizeBranchName(agentId);
     const safeTrackId = this.sanitizeBranchName(trackId);
     const branch = `wt/${safeAgentId}-${safeTrackId}`;
-    await this.shell.exec(`${this.wtBinary} switch --create ${branch}`);
+    await this.shell.exec(`"${this.wtBinary}" switch --create ${branch}`);
     this.allocations.set(agentId, branch);
     return branch;
   }
@@ -88,7 +116,7 @@ export class WorktreeIsolationManager {
   async release(agentId: string): Promise<void> {
     const branch = this.allocations.get(agentId);
     if (!branch) return;
-    await this.shell.exec(`${this.wtBinary} remove ${branch}`);
+    await this.shell.exec(`"${this.wtBinary}" remove ${branch}`);
     this.allocations.delete(agentId);
   }
 

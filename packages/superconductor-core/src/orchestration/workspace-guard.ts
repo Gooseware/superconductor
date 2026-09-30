@@ -1,3 +1,4 @@
+import path from 'path';
 import { AbstractGate, GateContext, GateResult, GateError } from './abstract-gate.js';
 import { SignOffGate, SignOffRequiredError } from './sign-off-gate.js';
 
@@ -26,11 +27,73 @@ export class UnauthorizedMergeError extends Error {
   }
 }
 
+export class RogueWriteError extends Error {
+  constructor(
+    message = '[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead.'
+  ) {
+    super(message);
+    this.name = 'RogueWriteError';
+  }
+}
+
+export function isApplicationSourceFile(filePath: string, workspaceRoot?: string): boolean {
+  if (!filePath || typeof filePath !== 'string') return false;
+
+  let normalized: string;
+
+  if (workspaceRoot) {
+    const root = path.resolve(workspaceRoot);
+    const resolved = path.resolve(root, filePath);
+    const rel = path.relative(root, resolved);
+    if (rel === '' || rel.startsWith('..') || path.isAbsolute(rel)) {
+      return false;
+    }
+    normalized = rel.replace(/\\/g, '/');
+  } else {
+    if (path.isAbsolute(filePath)) {
+      normalized = path.normalize(filePath).replace(/\\/g, '/');
+    } else {
+      const dummyRoot = '/__virtual_workspace__';
+      const resolved = path.resolve(dummyRoot, filePath);
+      const rel = path.relative(dummyRoot, resolved);
+      normalized = rel.replace(/\\/g, '/');
+    }
+  }
+
+  // Strip leading "./" if any remained
+  normalized = normalized.replace(/^\.\//, '');
+
+  // 1. Direct prefix matches from workspace root:
+  // - src/**
+  // - app/**
+  // - packages/<pkg>/src/**
+  // - packages/<pkg>/app/**
+  if (/^src\//.test(normalized) || /^app\//.test(normalized)) {
+    return true;
+  }
+  if (/^packages\/[^/]+\/(src|app)\//.test(normalized)) {
+    return true;
+  }
+
+  // 2. If it's an absolute path (or path with ancestor segments) without workspaceRoot:
+  if (!workspaceRoot && (path.isAbsolute(normalized) || normalized.includes('/src/') || normalized.includes('/app/'))) {
+    if (/\/packages\/[^/]+\/(src|app)\//.test(normalized)) {
+      return true;
+    }
+    if (/(?:^|\/)src\//.test(normalized) || /(?:^|\/)app\//.test(normalized)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export interface WorkspaceGuardOptions {
   workspaceRoot?: string;
   assignedBranch?: string;
   shell?: ShellRunner;
   stateStore?: any;
+  isRootSession?: boolean;
 }
 
 export class WorkspaceGuard extends AbstractGate {
@@ -40,6 +103,7 @@ export class WorkspaceGuard extends AbstractGate {
   private shell?: ShellRunner;
   private workspaceRoot?: string;
   protected stateStore?: any;
+  private isRootSession: boolean;
 
   constructor(opts?: WorkspaceGuardOptions);
   constructor(assignedBranch: string, shell?: ShellRunner);
@@ -53,10 +117,34 @@ export class WorkspaceGuard extends AbstractGate {
       this.shell = assignedBranchOrOpts.shell;
       this.workspaceRoot = assignedBranchOrOpts.workspaceRoot;
       this.stateStore = assignedBranchOrOpts.stateStore;
+      this.isRootSession = assignedBranchOrOpts.isRootSession ?? true;
     } else {
       this.assignedBranch = assignedBranchOrOpts ?? 'main';
       this.shell = shell;
+      this.isRootSession = true;
     }
+  }
+
+  static isApplicationSourceFile(filePath: string, workspaceRoot?: string): boolean {
+    return isApplicationSourceFile(filePath, workspaceRoot);
+  }
+
+  isApplicationSourceFile(filePath: string): boolean {
+    return isApplicationSourceFile(filePath, this.workspaceRoot);
+  }
+
+  assertCanMutate(filePath: string, isRootSession: boolean = this.isRootSession): void {
+    if (isRootSession && this.isApplicationSourceFile(filePath)) {
+      throw new RogueWriteError();
+    }
+  }
+
+  assertPlanningAndDispatchOnly(filePath: string, isRootSession: boolean = this.isRootSession): void {
+    this.assertCanMutate(filePath, isRootSession);
+  }
+
+  validateRootWrite(filePath: string, isRootSession: boolean = this.isRootSession): void {
+    this.assertCanMutate(filePath, isRootSession);
   }
 
   protected createError(message: string): GateError {
@@ -65,6 +153,15 @@ export class WorkspaceGuard extends AbstractGate {
 
   async check(context: GateContext): Promise<GateResult> {
     try {
+      if (context.metadata?.files && Array.isArray(context.metadata.files)) {
+        const isRoot = context.metadata.isRootSession !== false;
+        for (const file of context.metadata.files as string[]) {
+          this.assertCanMutate(file, isRoot);
+        }
+      } else if (context.metadata?.targetFile && typeof context.metadata.targetFile === 'string') {
+        const isRoot = context.metadata.isRootSession !== false;
+        this.assertCanMutate(context.metadata.targetFile, isRoot);
+      }
       await this.preCommitCheck();
       return { passed: true };
     } catch (err) {

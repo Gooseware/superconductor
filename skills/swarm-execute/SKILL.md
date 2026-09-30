@@ -22,9 +22,10 @@ This command replaces the older monolithic loop and allows targeted execution of
 
 ## Root Orchestration Dogma (Anti-Hero-Agent Protocol)
 
-1. **The Root Agent is an Orchestrator and Conductor, not an individual contributor.** The root session coordinates, dispatches, and aggregates; it never directly authors or modifies product code.
-2. **Direct edits on product code files by the Root Agent are strictly PROHIBITED during Swarm Execution.** Any attempt by the root orchestrator to directly call `write_to_file`, `replace_file_content`, or execute direct code mutations is a protocol violation.
-3. **Every plan phase MUST be delegated to one or more specialized `superconductor-processor` subagents.** Implementations run in isolated child subagent contexts.
+1. **The Root Agent is an Orchestrator and Conductor, not an individual contributor.** The root session coordinates, dispatches, and aggregates; it never directly authors or modifies product code. This rule is absolute and applies across ALL modes, including YOLO mode (`/superconductor:yolo`). Under YOLO mode, permission checks are bypassed, but the architectural constraint remains invariant: the root agent NEVER performs inline edits on product code.
+2. **Direct edits on product code files by the Root Agent are strictly PROHIBITED during Swarm Execution.** Any attempt by the root orchestrator to directly call `write_to_file`, `replace_file_content`, `multi_replace_file_content`, or execute direct code mutations is a protocol violation. If the root agent detects itself attempting a direct write, it MUST immediately emit:
+   `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
+3. **Every plan phase MUST be delegated to one or more specialized `superconductor-processor` subagents.** Implementations run in isolated child subagent contexts in allocated git worktrees.
 4. **Quorum reviews MUST be conducted by parallel `superconductor-reviewer` subagents.** Security, Correctness, Adversarial, Regression, and UX / Consistency reviews must execute independently.
 5. **Remediation loops triggered by `NEEDS_FIXES` MUST dispatch isolated remediator subagents.** Never attempt root-level hero fixing.
 
@@ -145,18 +146,24 @@ if (currentBatch.length < required) {
 | Batch 2 | 2 | ❌ `min(7, 4) = 4`, dispatched only 2 |
 
 For each batch:
-1. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`, passing `Model: modelConfig.processor` (resolved from `agent-config.md` in §Step 1 — NOT `"inherit"`).
-2. Each agent receives:
+1. Enforce **git worktree isolation** (`WorktreeIsolationManager`) for each spawned implementor to prevent file collisions, dirty working tree state, and git lock contention:
+   - Call `await worktreeIsolationManager.allocate(agentId, trackId)` producing isolated branch `wt/${safeAgentId}-${safeTrackId}`.
+   - Each subagent executes strictly within its allocated worktree directory.
+2. Invoke N `superconductor-processor` subagents **in parallel** using `invoke_subagent` / `IAgentSpawner.spawn()`, passing `Model: modelConfig.processor` (resolved from `agent-config.md` in §Step 1 — NOT `"inherit"`).
+3. Each agent receives:
    - Its WorkUnit `spec` (task description)
    - Its `domainScope` (files it is responsible for)
+   - Its allocated `worktreePath`
    - Any injected `researchContext` from the research brief
-3. `await Promise.all(batchPromises)` — ALL agents in the batch must complete before the next batch begins.
+4. `await Promise.all(batchPromises)` — ALL agents in the batch run concurrently and must complete before the next batch begins. Await completions reactively (NO polling loops).
+5. Merge each implementor's isolated worktree branch back to the track branch via fast-forward or clean merge, and release worktrees via `await worktreeIsolationManager.release(agentId)`.
 
 **PROHIBITED during Implementation Swarm:**
 - Spawning implementors one-at-a-time (sequential loop)
-- Root orchestrator writing any product code directly (hero-agenting)
+- Root orchestrator writing any product code directly (hero-agenting) even under YOLO mode
 - Skipping batching to "save orchestration overhead"
 - Deliberately undersizing batches below maxConcurrent to serialize execution
+- Running parallel implementors in the same working tree without worktree isolation
 
 ### Step 4 — Transition to Quorum Swarm
 After ALL implementor batches complete:
@@ -332,4 +339,30 @@ When executing in Headless Mode (`--headless`):
 1. **Autonomous Sign-Off:** Upon unanimous Quorum (`RESOLVED`, 0 findings across all 5 reviewers) and Oracle `READY`, `TrackLifecycleOrchestrator` automatically records an autonomous HMAC sign-off (`SignOffGate.recordAutonomousSignOff()`) with zero human blocking prompts.
 2. **Dynamic Target Branch Merge:** Resolves the integration branch from `superconductor/tech-stack.md` (`Target Branch`), falling back to CLI `--target` or `main`. Executes `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
 3. **Canonical Archival:** Moves the completed track transactionally to `superconductor/tracks/archive/<track_id>` and atomically updates `tracks.md` and `archive.md`.
+
+---
+
+## Micro-Swarm Pipeline Alignment (Ad-Hoc Enhancements & Refinements)
+
+Ad-hoc enhancements, wording changes, UI tweaks, and post-track refinements detected via the Ad-Hoc Triage Protocol (`skills/triage/SKILL.md`) do NOT spawn full tracks, but **MUST adhere to the exact same multi-agent concurrency and worktree isolation architecture** via `MicroSwarmOrchestrator` (`packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.ts`).
+
+### Shared Concurrency & Isolation Primitives
+
+1. **Root Orchestration Dogma Invariant:**
+   - Whether executing full tracks via `swarm-execute` or handling ad-hoc requests via `MicroSwarmOrchestrator`, the root agent remains strictly **Planning & Dispatch Only**.
+   - Direct edits on product code files by the root agent are strictly PROHIBITED across all execution modes, including YOLO mode (`/superconductor:yolo`).
+   - Any rogue direct write attempt MUST be intercepted and rejected:
+     `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
+
+2. **Unified WorkUnit Parsing & Concurrency Gate:**
+   - Ad-hoc intents are parsed into `SwarmWorkUnit`s using the same granularity standards (`parseWorkUnits` from `packages/superconductor-core/src/orchestration/swarm-granularity.ts`).
+   - TIER-1 tasks are pre-filtered and executed inline with zero LLM overhead (`filterForSubagentDispatch`).
+   - Dispatchable tasks are grouped into parallel batches via `buildBatches(dispatchableUnits, maxConcurrent)` and validated via `validateBatches`.
+   - Serial 1-by-1 task loops are strictly PROHIBITED in both full swarms and micro-swarms.
+
+3. **Mandatory Worktree Isolation:**
+   - Every `superconductor-processor` subagent dispatched by `MicroSwarmOrchestrator` runs in an isolated git worktree allocated via `WorktreeIsolationManager` (`wt/micro-<agent-id>-adhoc`).
+   - Isolating workspace state prevents branch dirtiness, race conditions, and file collisions across parallel processors.
+   - Worktree branches are merged back cleanly upon processor completion, followed by targeted reviewer verification (`correctness-reviewer` + `ux-reviewer` if UI/copy affected) before final commit.
+
 

@@ -4,30 +4,70 @@ import { PermissionManifest, PermissionState } from './schemas.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PermissionManifestParser } from './providers/toml-provider.js';
+import { isApplicationSourceFile } from '../orchestration/workspace-guard.js';
 
 import { InlineOverrideHandler } from './prompter.js';
 import { YoloAuditLogger } from './audit.js';
 
 export class ToolCallInterceptor {
     private auditLogger: YoloAuditLogger;
+    private isRootSession: boolean;
+
     constructor(
         private stateManager: TrackStateManager,
         private policyEngine: PolicyEngine,
         private workspacePath: string,
-        private overrideHandler?: InlineOverrideHandler
+        private overrideHandler?: InlineOverrideHandler,
+        isRootSession: boolean = true
     ) {
         this.auditLogger = new YoloAuditLogger(workspacePath);
+        this.isRootSession = isRootSession;
     }
+
+    public setIsRootSession(isRoot: boolean): void {
+        this.isRootSession = isRoot;
+    }
+
+    public getIsRootSession(): boolean {
+        return this.isRootSession;
+    }
+
     private getManifest(trackId: string): PermissionManifest | null {
         const manifestPath = path.join(this.workspacePath, 'superconductor', 'tracks', trackId, 'permission-manifest.toml');
         const parser = new PermissionManifestParser(manifestPath);
         return parser.read();
     }
 
-    async intercept(toolName: string, args: any, manifest?: PermissionManifest): Promise<{ allowed: boolean, reason?: string }> {
+    async intercept(
+        toolName: string,
+        args: any,
+        manifest?: PermissionManifest,
+        context?: { isRootSession?: boolean }
+    ): Promise<{ allowed: boolean; reason?: string }> {
+        const isRoot = context?.isRootSession ?? this.isRootSession;
+
+        // Planning & Dispatch Dogma: Root session is strictly Planning & Dispatch Only (all modes, including YOLO)
+        // Block direct writes to application source code (src/**, app/**, packages/*/src/**)
+        if (isRoot && (
+            toolName === 'write_file' ||
+            toolName === 'write_to_file' ||
+            toolName === 'replace_file_content' ||
+            toolName === 'multi_replace_file_content' ||
+            toolName === 'delete_file' ||
+            toolName === 'edit_file'
+        )) {
+            const targetFile = args?.path || args?.TargetFile || args?.AbsolutePath || args?.FilePath || args?.file || args?.filePath || args?.targetFile || '';
+            if (targetFile && isApplicationSourceFile(targetFile, this.workspacePath)) {
+                return {
+                    allowed: false,
+                    reason: '[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead.'
+                };
+            }
+        }
+
         // Global block against modifying yolo-audit.log, logs directory, or the superconductor root itself (all modes)
-        if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
-            const targetFile = args?.path || args?.TargetFile || '';
+        if (toolName === 'write_file' || toolName === 'write_to_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file' || toolName === 'edit_file') {
+            const targetFile = args?.path || args?.TargetFile || args?.AbsolutePath || args?.FilePath || args?.file || args?.filePath || args?.targetFile || '';
             const logsDir = path.join(this.workspacePath, 'superconductor', 'logs');
 
             // REV-24: only run path-based checks when a target path was actually supplied.
@@ -89,7 +129,7 @@ export class ToolCallInterceptor {
 
         if (state === 'IDLE') {
             if (toolName === 'write_file' || toolName === 'replace_file_content' || toolName === 'multi_replace_file_content' || toolName === 'delete_file') {
-                const targetFile = args?.path || args?.TargetFile || '';
+                const targetFile = args?.path || args?.TargetFile || args?.AbsolutePath || args?.FilePath || args?.file || args?.filePath || args?.targetFile || '';
                 const resolved = path.resolve(this.workspacePath, targetFile);
                 
                 const sensitivePaths = [

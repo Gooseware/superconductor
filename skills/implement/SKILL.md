@@ -67,7 +67,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
    - You MUST NOT use the `ask_user` tool for any manual verification, review, or confirmation prompts.
    - For any "yes/no" or "choice" prompts (e.g., skill auto-activation, documentation sync, or track cleanup), you MUST assume the default automated behavior (e.g., automatically activate required skills, automatically sync documentation, auto-advance Oracle review).
    - For Phase Completion Checkpoints, follow the Headless bypass rule in `workflow.md`: automatically pass the checkpoint if automated tests and coverage assertions succeed.
-   - **Zero-Touch Headless Finalization (`TrackLifecycleOrchestrator`):** When the 4-agent Quorum is unanimous `RESOLVED` and Oracle verdict is `READY`, the orchestrator automatically:
+   - **Zero-Touch Headless Finalization (`TrackLifecycleOrchestrator`):** When the 5-agent Quorum is unanimous `RESOLVED` and Oracle verdict is `READY`, the orchestrator automatically:
      1. Issues an autonomous HMAC sign-off record via `SignOffGate.recordAutonomousSignOff()`.
      2. Resolves the target integration branch dynamically from `superconductor/tech-stack.md` (or `--target=<branch>`).
      3. Executes `--no-ff` merge embedding cryptographic Swarm Authorizer trailers and Oracle verdicts.
@@ -201,34 +201,59 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
          2. **CLI Command:** If the user has just run `/superconductor:review`.
          3. **Plan Update:** If a task from the task provider is marked as `(READY FOR REVIEW)`.
        - **Action:** If a trigger is detected, you MUST HALT current implementation and transition to the **5.0 TRACK CLEANUP** protocol to initiate the review process.
-    d. **Iterate Through Tasks:** Use the MCP tool `task_query` (or equivalent) to fetch pending tasks for the current track. You MUST loop through each task one by one.
-    e. **For Each Task, You MUST:**
-        i. **Determine Task Tier:** Inspect the task metadata provided by `task_query` to identify its tier (e.g., `[TIER-N]`). If no tier is found in the metadata, default to `[TIER-3]`.
-        ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using the resolution logic from `agent_config_resolver.js`). Identify the configured models and proxy settings for each tier.
-        iii. **Tier-Aware Execution Rules:**
-            - **For `[TIER-1]` Tasks:** Execute any script, file existence checks, git operations, or test commands directly via `run_shell_command` (zero inference cost). Capture the exit status and stdout/stderr, and pass them back as structured input to the context. The agent will interpret the results (e.g. verifying a build or test run) deterministically.
-  **NOTE:** Before any TIER-2+ subagent dispatch, ALL TIER-1 WorkUnits must have already been extracted and executed inline by the `swarm-execute` TIER-1 Pre-Filter (§Step 2a of `swarm-execute/SKILL.md`). If you reach this point during swarm dispatch and still have TIER-1 WorkUnits in your batch, this is a protocol violation — the Pre-Filter was not applied.
-            - **For `[TIER-4]` Tasks:** Read the configured Tier 4 model name. Announce to the user: "This task requires deep reasoning (Tier 4). Using model: <Model Name>." Then proceed.
-            - **For `[TIER-2]` and `[TIER-3]` Tasks:** Execute standard tool calls and logic with no special announcements.
-        iv. **Defer to Workflow:** The **Workflow** file is the **single source of truth** for the entire task lifecycle. You MUST now read and execute the procedures defined in the "Task Workflow" section of the **Workflow** file you have in your context. Follow its steps for implementation, testing, and committing precisely.
-           - **CRITICAL:** To minimize human-in-the-loop interruptions, phase completion checkpoints in the workflow must run all tests and verify test coverage automatically. Do NOT prompt the user for manual verification checkpoints during intermediate phases. All human-in-the-loop checks must be deferred to the final track review and cleanup phase at the very end of the track.
-           - **STRICT TDD ENFORCEMENT:** You MUST strictly enforce Red-Green-Refactor cycles. You are forbidden from implementing feature logic without first writing and running a failing test (Red phase).
-           - **SYSTEMATIC BUG DIAGNOSIS:** During the testing feedback loop, if tests fail, you MUST employ Systematic Bug Diagnosis heuristics (isolate variables, trace execution, state assumptions clearly) rather than blindly patching code.
-           - **QUORUM REMEDIATION (MANDATORY — NO HERO-AGENTING):** If at any point during task execution the quorum loop returns `NEEDS_FIXES`, the root orchestrator MUST NOT call `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command` to fix findings directly. This is Hero-Agenting and is a PROTOCOL VIOLATION. Instead, MUST invoke domain-split remediation as specified in `skills/swarm-execute/SKILL.md §Remediation Protocol`.
+    d. **Swarm Concurrency Gate & Parallel Batch Dispatch (MANDATORY — Sequential Task Loops PROHIBITED):**
+       - **Strict Prohibition of Sequential Execution:** You MUST NOT loop through tasks one by one. Serial execution in a single thread or context is strictly PROHIBITED.
+       - **Root Orchestration Dogma (Planning & Dispatch Only — Invariant across all modes):**
+         - The root agent is strictly an **Orchestrator and Conductor, NOT an individual contributor**.
+         - The root agent is strictly **Planning & Dispatch Only, even under YOLO mode (`/superconductor:yolo`)**. Under YOLO mode, permission boundaries are bypassed for tool execution, but the architectural role invariant remains strict: the root orchestrator NEVER directly modifies product code files.
+         - Any direct file edit on product code by the root agent is a severe protocol violation. If attempted, the root agent MUST immediately abort:
+           `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
+       - **WorkUnit Parsing:**
+         - Call `parseWorkUnits(planMarkdown)` (`packages/superconductor-core/src/orchestration/swarm-granularity.ts`).
+         - Each annotated `- [ ] Task: ... [TIER-N] [AGENT:...] [DOMAIN:...]` line in `plan.md` maps 1:1 to exactly one `SwarmWorkUnit`. Manual merging of task lines across domains or concerns is strictly forbidden.
+       - **TIER-1 Pre-Filter Execution:**
+         - Separate TIER-1 tasks via `filterForSubagentDispatch(workUnits)`:
+           ```ts
+           const tier1Units = workUnits.filter(u => u.tier === 1);
+           const dispatchableUnits = filterForSubagentDispatch(workUnits); // tier >= 2
+           ```
+         - Execute all TIER-1 units inline via `run_command` in-context (zero LLM inference cost) before spawning any subagent. Log results to `swarm_log.md`.
+         - Scaffold directories, migration scripts, git operations, and environment checks MUST NOT consume a subagent slot.
+       - **Minimum Concurrency Gate & Batch Partitioning:**
+         - Partition all dispatchable WorkUnits (`tier >= 2`) into parallel batches using `buildBatches(dispatchableUnits, maxConcurrent)` (`packages/superconductor-core/src/orchestration/swarm-granularity.ts`).
+         - Validate batches with `validateBatches(batches, maxConcurrent, dispatchableUnits.length)`.
+         - Every non-final batch MUST contain exactly `min(remaining, maxConcurrent)` WorkUnits. Undersizing batches below `maxConcurrent` to serialize execution is a protocol violation.
+       - **Parallel Subagent Dispatch in Worktree Isolation:**
+         - For each batch, allocate isolated git worktrees for each subagent via `WorktreeIsolationManager` (`packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts`).
+         - Spawn parallel `superconductor-processor` subagents concurrently using `invoke_subagent` (or `IAgentSpawner.spawn()`) with `Model: modelConfig.processor` (resolved from `agent-config.md` — NEVER `"inherit"`).
+         - Each processor executes in its assigned worktree on its assigned WorkUnit spec and domain boundary.
+         - The orchestrator awaits all subagents in the batch reactively via `Promise.all(batchPromises)` (NO polling loops).
+         - Upon batch completion, worktree branches are merged back to the track branch and released (`WorktreeIsolationManager.release()`).
 
-        v. **AUTO-ADVANCE (MANDATORY — no user prompt between tasks):**
-           - Immediately after a task completes:
-             1. **Check task outcome:** If the task execution produced a non-zero exit code, a test failure, or an unrecoverable tool error:
-                - Do NOT call task_update(completed). Call task_update(id, status: 'blocked') instead.
-                - Apply Systematic Bug Diagnosis (max 2 attempts). If unresolved after 2 attempts: ESCALATE to user (this is the ONLY permitted mid-track human interrupt besides the 3-cycle remediation cap).
-             2. **Only on task success:** Call task_update({ id: task.id, status: 'completed' }), execute `npx tsx scripts/sync-plan.ts` to flush changes to disk, then call task_query({ status: 'pending', track_id }) and begin the next task immediately.
-           - **PROHIBITED:** Asking the user "shall I continue to the next task?", stopping to summarize between tasks, or waiting for user re-trigger. The only permitted mid-track human-in-the-loop event is an ESCALATION (test failure after 2 attempts, or 3-iteration remediation cap exceeded).
+    e. **For Each WorkUnit / Batch Execution Requirements:**
+        i. **Determine Task Tier:** Inspect the WorkUnit tier (`[TIER-N]`). If no tier is found in the metadata, default to `[TIER-3]`.
+        ii. **Resolve Model Config:** Read the global `~/.gemini/agent-config.md` and project-level `superconductor/agent-config.md` (using `AgentConfigReader.resolve(projectRoot)`). Identify configured models for each tier. NEVER resolve to `"inherit"`.
+        iii. **Tier-Aware Execution Rules:**
+            - **For `[TIER-1]` Tasks:** Handled entirely by the TIER-1 Pre-Filter inline via `run_command` (zero inference cost). Captures exit status and stdout/stderr deterministically.
+            - **For `[TIER-4]` Tasks:** Read the configured Tier 4 model name. Announce to the user: "This task requires deep reasoning (Tier 4). Using model: <Model Name>." Dispatched with Tier 4 model.
+            - **For `[TIER-2]` and `[TIER-3]` Tasks:** Dispatched to parallel `superconductor-processor` subagents in isolated worktrees using configured processor model.
+        iv. **Defer to Workflow & Subagent Mandates:** The **Workflow** file is the **single source of truth** for the task implementation lifecycle inside each processor context.
+           - **STRICT TDD ENFORCEMENT:** Processors MUST strictly enforce Red-Green-Refactor cycles. Feature logic must not be implemented without first writing a failing test.
+           - **SYSTEMATIC BUG DIAGNOSIS:** If tests fail during processor implementation, Systematic Bug Diagnosis heuristics MUST be used.
+           - **QUORUM REMEDIATION (MANDATORY — NO HERO-AGENTING):** If at any point during task execution or review the quorum loop returns `NEEDS_FIXES`, the root orchestrator MUST NOT call `write_to_file`, `multi_replace_file_content`, `replace_file_content`, or `run_command` to fix findings directly. This is Hero-Agenting and is a PROTOCOL VIOLATION. Instead, MUST invoke domain-split remediation as specified in `skills/swarm-execute/SKILL.md §Remediation Protocol`.
+        v. **BATCH AUTO-ADVANCE (MANDATORY — no user prompt between batches):**
+           - Immediately after all subagents in a batch complete:
+             1. **Check batch outcome:** If any subagent encountered an unrecoverable failure or non-zero test exit:
+                - Mark failing tasks `blocked` via `task_update`.
+                - Apply Systematic Bug Diagnosis (max 2 attempts). If unresolved after 2 attempts: ESCALATE to user.
+             2. **On batch success:** Call `task_update({ id: task.id, status: 'completed' })` for each completed task, execute `npx tsx scripts/sync-plan.ts` to flush changes to disk, and immediately advance to dispatch the next batch.
+           - **PROHIBITED:** Asking the user "shall I continue to the next batch?", stopping to summarize between batches, or waiting for user re-trigger.
 
 5.  **Finalize Track (HARD GATE ENFORCED):**
 
     **BEFORE touching `tracks.md` or making any finalization commit, you MUST complete ALL of the following in order:**
 
-    a. **Assert Quorum Green:** Verify that the full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) has reached unanimous `RESOLVED` status.
+    a. **Assert Quorum Green:** Verify that the full 5-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer, ux-reviewer) has reached unanimous `RESOLVED` status.
        - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
        - Enforcement: Run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
     
@@ -243,7 +268,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
          ```
     
     c. **Generate and Validate Authorization Trailer:**
-       1. Call `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/track/swarm-authorizer.js" --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4>`
+       1. Call `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/track/swarm-authorizer.js" --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4> <reviewer_conv_id_5>`
        2. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
        3. **HALT if validation fails.** Do NOT proceed to step 5.d.
        4. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
@@ -394,7 +419,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
 **Step 0 — Quorum Pre-Condition (MANDATORY — POST-IMPLEMENTATION GATE ORACLE ONLY):**
    This step applies ONLY to the Post-Quorum Gate Oracle (the final merge gate). It does NOT apply to Periodic Advisory Oracle cycles (which fire during implementation and are advisory-only, never blocking).
 
-   Verify `quorumPassed === true`. The full 4-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer) MUST have reached unanimous RESOLVED before the Oracle is invoked.
+   Verify `quorumPassed === true`. The full 5-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer, ux-reviewer) MUST have reached unanimous RESOLVED before the Oracle is invoked.
 
    If the quorum loop has not completed: HALT. Return to the quorum loop. Oracle MUST NOT be invoked until quorum is green.
 

@@ -5,7 +5,9 @@ import {
   ShellRunner,
   BranchMismatchError,
   TypeScriptError,
-  UnauthorizedMergeError
+  UnauthorizedMergeError,
+  RogueWriteError,
+  isApplicationSourceFile
 } from './workspace-guard.js';
 
 vi.mock('child_process', async (importOriginal) => {
@@ -250,6 +252,117 @@ diff --git a/OtherFile.ts b/OtherFile.ts
       const guard = new WorkspaceGuard('main', mockShell);
       const res = await guard.check({ trackId: 't1', sessionId: 's1' });
       expect(res.passed).toBe(true);
+    });
+  });
+
+  describe('Planning & Dispatch Dogma (Root Session Mutation Guards)', () => {
+    describe('isApplicationSourceFile', () => {
+      it('detects top-level src/** files', () => {
+        expect(isApplicationSourceFile('src/index.ts')).toBe(true);
+        expect(isApplicationSourceFile('src/components/Button.tsx')).toBe(true);
+        expect(isApplicationSourceFile('./src/deep/module.ts')).toBe(true);
+      });
+
+      it('detects top-level app/** files', () => {
+        expect(isApplicationSourceFile('app/page.tsx')).toBe(true);
+        expect(isApplicationSourceFile('app/routes/api.ts')).toBe(true);
+        expect(isApplicationSourceFile('./app/layout.tsx')).toBe(true);
+      });
+
+      it('detects packages/*/src/** and packages/*/app/** files', () => {
+        expect(isApplicationSourceFile('packages/core/src/index.ts')).toBe(true);
+        expect(isApplicationSourceFile('packages/superconductor-core/src/orchestration/guard.ts')).toBe(true);
+        expect(isApplicationSourceFile('packages/web/app/routes.tsx')).toBe(true);
+      });
+
+      it('resolves absolute paths with workspaceRoot properly', () => {
+        const root = '/home/user/repo';
+        expect(isApplicationSourceFile('/home/user/repo/src/index.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('/home/user/repo/packages/core/src/index.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('/home/user/repo/app/routes.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('/home/user/repo/superconductor/tracks.md', root)).toBe(false);
+      });
+
+      it('canonicalizes path traversals and detects application source files', () => {
+        expect(isApplicationSourceFile('docs/../src/index.ts')).toBe(true);
+        expect(isApplicationSourceFile('././src/index.ts')).toBe(true);
+        expect(isApplicationSourceFile('foo/../src/index.ts')).toBe(true);
+        expect(isApplicationSourceFile('packages/superconductor-core/../superconductor-core/src/index.ts')).toBe(true);
+
+        const root = '/home/user/repo';
+        expect(isApplicationSourceFile('/home/user/repo/docs/../src/index.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('docs/../src/index.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('././src/index.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('foo/../src/index.ts', root)).toBe(true);
+        expect(isApplicationSourceFile('packages/superconductor-core/../superconductor-core/src/index.ts', root)).toBe(true);
+
+        // Traversal away from src/ to non-source file should NOT match
+        expect(isApplicationSourceFile('src/../docs/readme.md')).toBe(false);
+        expect(isApplicationSourceFile('src/../docs/readme.md', root)).toBe(false);
+      });
+
+      it('returns false for non-application files', () => {
+        expect(isApplicationSourceFile('superconductor/tracks.md')).toBe(false);
+        expect(isApplicationSourceFile('superconductor/tracks/adhoc/plan.md')).toBe(false);
+        expect(isApplicationSourceFile('GEMINI.md')).toBe(false);
+        expect(isApplicationSourceFile('package.json')).toBe(false);
+        expect(isApplicationSourceFile('packages/core/package.json')).toBe(false);
+        expect(isApplicationSourceFile('packages/core/test/guard.test.ts')).toBe(false);
+        expect(isApplicationSourceFile('')).toBe(false);
+      });
+    });
+
+    describe('assertCanMutate and RogueWriteError', () => {
+      it('throws RogueWriteError when root session attempts to mutate application source files', () => {
+        const guard = new WorkspaceGuard({ isRootSession: true });
+        const expectedMsg = '[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead.';
+
+        expect(() => guard.assertCanMutate('src/index.ts')).toThrow(RogueWriteError);
+        expect(() => guard.assertCanMutate('src/index.ts')).toThrow(expectedMsg);
+        expect(() => guard.assertCanMutate('packages/core/src/service.ts')).toThrow(RogueWriteError);
+        expect(() => guard.assertCanMutate('app/routes.tsx')).toThrow(RogueWriteError);
+      });
+
+      it('assertPlanningAndDispatchOnly and validateRootWrite aliases throw RogueWriteError on root source mutation', () => {
+        const guard = new WorkspaceGuard({ isRootSession: true });
+        expect(() => guard.assertPlanningAndDispatchOnly('src/index.ts')).toThrow(RogueWriteError);
+        expect(() => guard.validateRootWrite('packages/pkg/src/main.ts')).toThrow(RogueWriteError);
+      });
+
+      it('allows root session to mutate non-application source files', () => {
+        const guard = new WorkspaceGuard({ isRootSession: true });
+        expect(() => guard.assertCanMutate('superconductor/tracks.md')).not.toThrow();
+        expect(() => guard.assertCanMutate('package.json')).not.toThrow();
+        expect(() => guard.assertCanMutate('GEMINI.md')).not.toThrow();
+      });
+
+      it('allows subagents (isRootSession = false) to mutate application source files', () => {
+        const guard = new WorkspaceGuard({ isRootSession: false });
+        expect(() => guard.assertCanMutate('src/index.ts')).not.toThrow();
+        expect(() => guard.assertCanMutate('packages/core/src/index.ts')).not.toThrow();
+        expect(() => guard.assertCanMutate('src/index.ts', false)).not.toThrow();
+      });
+
+      it('WorkspaceGuard.check fails when root session touches application source files via metadata', async () => {
+        const guard = new WorkspaceGuard({ isRootSession: true });
+        const res = await guard.check({
+          trackId: 't1',
+          sessionId: 's1',
+          metadata: { targetFile: 'src/index.ts', isRootSession: true }
+        });
+        expect(res.passed).toBe(false);
+        expect(res.reason).toContain('Rogue write attempt detected');
+      });
+
+      it('WorkspaceGuard.check passes when subagent touches application source files via metadata', async () => {
+        const guard = new WorkspaceGuard({ isRootSession: false });
+        const res = await guard.check({
+          trackId: 't1',
+          sessionId: 's1',
+          metadata: { targetFile: 'src/index.ts', isRootSession: false }
+        });
+        expect(res.passed).toBe(true);
+      });
     });
   });
 });
