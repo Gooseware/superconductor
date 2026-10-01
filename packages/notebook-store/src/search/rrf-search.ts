@@ -5,11 +5,17 @@ import { NotebookEntry } from '../types.js';
 export function rrfMerge(
   vectorResults: NotebookEntry[],
   bm25Results: NotebookEntry[],
-  k = 60
+  k = 60,
+  vectorWeight = 1,
+  bm25Weight = 1
 ): NotebookEntry[] {
   const scores = new Map<string, number>();
-  vectorResults.forEach((e, i) => scores.set(e.id, (scores.get(e.id) || 0) + 1 / (k + i + 1)));
-  bm25Results.forEach((e, i) => scores.set(e.id, (scores.get(e.id) || 0) + 1 / (k + i + 1)));
+  vectorResults.forEach((e, i) =>
+    scores.set(e.id, (scores.get(e.id) || 0) + vectorWeight * (1 / (k + i + 1)))
+  );
+  bm25Results.forEach((e, i) =>
+    scores.set(e.id, (scores.get(e.id) || 0) + bm25Weight * (1 / (k + i + 1)))
+  );
   const allEntries = new Map<string, NotebookEntry>();
   [...vectorResults, ...bm25Results].forEach((e) => allEntries.set(e.id, e));
   return [...allEntries.values()].sort(
@@ -21,8 +27,9 @@ export function rrfMerge(
 export function applyTokenBudget(entries: NotebookEntry[], maxChars = 3200): NotebookEntry[] {
   let total = 0;
   return entries.filter((e) => {
-    if (total + e.content.length <= maxChars) {
-      total += e.content.length;
+    const len = e.content ? e.content.length : 0;
+    if (total + len <= maxChars) {
+      total += len;
       return true;
     }
     return false;

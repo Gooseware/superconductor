@@ -190,71 +190,91 @@ export class LanceDBNotebookProvider implements INotebookProvider {
     return { id, deduplicated: false };
   }
 
-  public async query(params: NotebookQuery): Promise<NotebookEntry[]> {
+  public mapToEntry(r: any): NotebookEntry {
+    return {
+      id: r.id,
+      session_id: r.session_id,
+      track_id: r.track_id,
+      agent_role: r.agent_role,
+      domain: r.domain,
+      files: typeof r.files === 'string' ? (() => { try { return JSON.parse(r.files); } catch { return []; } })() : (r.files || []),
+      note_type: r.note_type as NoteType,
+      content: r.content,
+      severity: r.severity,
+      timestamp: r.timestamp,
+      reviewer_token: r.reviewer_token || undefined,
+    };
+  }
+
+  public async vectorSearch(query: string, limit: number = 50): Promise<NotebookEntry[]> {
+    if (!query || query.trim() === '') return [];
     const globalTable = await this.getTable('global');
     const projectTable = await this.getTable('project');
+    const queryVector = await this.getEmbedding(query);
+    const vectorRows: any[] = [];
+    for (const table of [globalTable, projectTable]) {
+      if (!table) continue;
+      const vSearch = await table.search(queryVector).distanceType('cosine').limit(limit).toArray();
+      vectorRows.push(...vSearch);
+    }
+    return vectorRows.map((r: any) => this.mapToEntry(r));
+  }
 
+  public async bm25Search(query: string, limit: number = 50): Promise<NotebookEntry[]> {
+    if (!query || query.trim() === '') return [];
+    const globalTable = await this.getTable('global');
+    const projectTable = await this.getTable('project');
+    const queryTerms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const bm25Rows: any[] = [];
+    for (const table of [globalTable, projectTable]) {
+      if (!table) continue;
+      const allTableRows = await table.query().toArray();
+      const bMatch = allTableRows.filter((r: any) =>
+        queryTerms.some((term) => r.content.toLowerCase().includes(term))
+      );
+      bm25Rows.push(...bMatch);
+    }
+    return bm25Rows.slice(0, limit).map((r: any) => this.mapToEntry(r));
+  }
+
+  public async getAllEntries(): Promise<NotebookEntry[]> {
+    const globalTable = await this.getTable('global');
+    const projectTable = await this.getTable('project');
+    const rawRows: any[] = [];
+    for (const table of [globalTable, projectTable]) {
+      if (!table) continue;
+      const rows = await table.query().toArray();
+      rawRows.push(...rows);
+    }
+    return rawRows.map((r: any) => this.mapToEntry(r));
+  }
+
+  public async getById(id: string): Promise<NotebookEntry | null> {
+    const all = await this.getAllEntries();
+    return all.find((r) => r.id === id) || null;
+  }
+
+  public async healthCheck(): Promise<boolean> {
+    try {
+      await this.init();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public async query(params: NotebookQuery): Promise<NotebookEntry[]> {
     const { rrfMerge, applyTokenBudget } = await import('../search/rrf-search.js');
 
     let entries: NotebookEntry[] = [];
 
     if (params.query && params.query.trim() !== '') {
-      const queryVector = await this.getEmbedding(params.query);
-      const queryTerms = params.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-      let vectorRows: any[] = [];
-      let bm25Rows: any[] = [];
-
-      for (const table of [globalTable, projectTable]) {
-        if (!table) continue;
-        const vSearch = await table.search(queryVector).distanceType('cosine').limit(params.limit !== undefined ? params.limit : 50).toArray();
-        vectorRows.push(...vSearch);
-
-        const allTableRows = await table.query().toArray();
-        const bMatch = allTableRows.filter((r: any) =>
-          queryTerms.some((term) => r.content.toLowerCase().includes(term))
-        );
-        bm25Rows.push(...bMatch);
-      }
-
-      const mapToEntry = (r: any): NotebookEntry => ({
-        id: r.id,
-        session_id: r.session_id,
-        track_id: r.track_id,
-        agent_role: r.agent_role,
-        domain: r.domain,
-        files: typeof r.files === 'string' ? (() => { try { return JSON.parse(r.files); } catch { return []; } })() : (r.files || []),
-        note_type: r.note_type as NoteType,
-        content: r.content,
-        severity: r.severity,
-        timestamp: r.timestamp,
-        reviewer_token: r.reviewer_token || undefined,
-      });
-
-      const vectorEntries = vectorRows.map(mapToEntry);
-      const bm25Entries = bm25Rows.map(mapToEntry);
-
+      const searchLimit = params.limit !== undefined ? params.limit : 50;
+      const vectorEntries = await this.vectorSearch(params.query, searchLimit);
+      const bm25Entries = await this.bm25Search(params.query, searchLimit);
       entries = rrfMerge(vectorEntries, bm25Entries);
     } else {
-      let rawRows: any[] = [];
-      for (const table of [globalTable, projectTable]) {
-        if (!table) continue;
-        const rows = await table.query().toArray();
-        rawRows.push(...rows);
-      }
-      entries = rawRows.map((r: any) => ({
-        id: r.id,
-        session_id: r.session_id,
-        track_id: r.track_id,
-        agent_role: r.agent_role,
-        domain: r.domain,
-        files: typeof r.files === 'string' ? (() => { try { return JSON.parse(r.files); } catch { return []; } })() : (r.files || []),
-        note_type: r.note_type as NoteType,
-        content: r.content,
-        severity: r.severity,
-        timestamp: r.timestamp,
-        reviewer_token: r.reviewer_token || undefined,
-      }));
+      entries = await this.getAllEntries();
     }
 
     const now = Date.now();
