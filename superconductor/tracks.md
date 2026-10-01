@@ -38,6 +38,7 @@
 | [x] | living_wireframe_visual_feedback_to_tracks_20261001 | [Living Application Wireframes & Visual Feedback-to-Tracks Assembly Engine](./tracks/living_wireframe_visual_feedback_to_tracks_20261001/index.md) | track/living_wireframe_visual_feedback_to_tracks_20261001 (merged to main) |
 | [x] | parallel_multi_track_swarm_orchestration_20261001 | [First-Class Parallel Multi-Track Swarm Orchestration (Topological Waves, Worktrunk Isolation & DMQ-POP)](./tracks/parallel_multi_track_swarm_orchestration_20261001/index.md) | track/parallel_multi_track_swarm_orchestration_20261001 (merged to main) |
 | [x] | prime_directive_superpowers_vibe_antichain_20261001 | [Prime Directive: Superpowers Integration, Self-Affirming Prompt Vibes, Deep Research Gate & Antichain Swarm Dogma](./tracks/prime_directive_superpowers_vibe_antichain_20261001/index.md) | track/prime_directive_superpowers_vibe_antichain_20261001 (merged to main) |
+| [ ] | automated_app_wireframe_route_crawler_20261001 | [Automated App Wireframe & Route Flow Crawler with Journey Video Recording](./tracks/automated_app_wireframe_route_crawler_20261001/index.md) |  |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |
