@@ -28,8 +28,8 @@ export function isValidFinding(f: unknown): f is ReviewFinding {
 }
 
 export function mapReviewerIssue(issue: unknown, reviewerId: string, options?: unknown): ReviewFinding | null {
-  if (typeof issue !== 'object' || issue === null) {
-    throw new TypeError('issue must be a non-null object');
+  if (typeof issue !== 'object' || issue === null || Array.isArray(issue)) {
+    return null;
   }
   if (!isValidFinding(issue)) return null;
   const f = { ...(issue as unknown as Record<string, unknown>) };
@@ -60,6 +60,11 @@ export function extractReviewerFindings(
     const parsed = extractFencedBlock<unknown[]>(item.raw_text, 'review-findings');
     if (Array.isArray(parsed)) {
       parsedArray = parsed;
+    } else {
+      const parsedJson = extractFencedBlock<unknown[]>(item.raw_text, 'json');
+      if (Array.isArray(parsedJson) && parsedJson.some(isValidFinding)) {
+        parsedArray = parsedJson;
+      }
     }
   }
 
@@ -85,6 +90,7 @@ export function extractReviewerFindings(
   let findings: ReviewFinding[] | null = null;
   if (parsedArray) {
     findings = parsedArray
+      .filter(issue => typeof issue === 'object' && issue !== null && !Array.isArray(issue))
       .map(issue => mapReviewerIssue(issue, item.reviewer_id))
       .filter((f): f is ReviewFinding => f !== null);
   }
