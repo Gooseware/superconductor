@@ -44,4 +44,21 @@ describe('RRF Search & Token Budget', () => {
     expect(result).toHaveLength(2);
     expect(result.map((e) => e.id)).toEqual(['1', '2']);
   });
+
+  it('supports vectorWeight and bm25Weight parameters', () => {
+    const entryA = createEntry('entry-a', 'Vector candidate');
+    const entryB = createEntry('entry-b', 'BM25 candidate');
+
+    // Default weights: equal ranks
+    const mergedDefault = rrfMerge([entryA], [entryB]);
+    expect(mergedDefault).toHaveLength(2);
+
+    // Vector heavily weighted
+    const mergedVectorHeavy = rrfMerge([entryA], [entryB], 60, 10, 0.1);
+    expect(mergedVectorHeavy[0].id).toBe('entry-a');
+
+    // BM25 heavily weighted
+    const mergedBm25Heavy = rrfMerge([entryA], [entryB], 60, 0.1, 10);
+    expect(mergedBm25Heavy[0].id).toBe('entry-b');
+  });
 });
