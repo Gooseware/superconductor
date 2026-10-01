@@ -131,6 +131,9 @@ importers:
       js-yaml:
         specifier: ^4.3.0
         version: 4.3.0
+      playwright:
+        specifier: ^1.40.0
+        version: 1.62.0
       prompts:
         specifier: ^2.4.2
         version: 2.4.2
@@ -165,9 +168,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^1.6.1
         version: 1.6.1(vitest@1.6.1(@types/node@20.19.43)(jsdom@24.1.3)(lightningcss@1.33.0))
-      playwright:
-        specifier: ^1.40.0
-        version: 1.62.0
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
@@ -224,8 +224,8 @@ importers:
         specifier: ^1.6.0
         version: 1.29.0(zod@3.25.76)
       '@superconductor/core':
-        specifier: file:../superconductor-core
-        version: file:packages/superconductor-core
+        specifier: workspace:*
+        version: link:../superconductor-core
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -982,10 +982,6 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
-
-  '@superconductor/core@file:packages/superconductor-core':
-    resolution: {directory: packages/superconductor-core, type: directory}
-    hasBin: true
 
   '@swc/core-darwin-arm64@1.15.46':
     resolution: {integrity: sha512-IsISIT22EfktVJrlvIpnAxG2u/A9aob9l99HMlx80x72WlFmFPk1V3UhkEzx86eJP8hw049KTFv/RISho2cq2Q==}
@@ -3534,20 +3530,6 @@ snapshots:
   '@sinclair/typebox@0.27.12': {}
 
   '@standard-schema/spec@1.1.0': {}
-
-  '@superconductor/core@file:packages/superconductor-core':
-    dependencies:
-      '@libsql/client': 0.17.4
-      '@superconductor/engine': link:packages/engine
-      js-yaml: 4.3.0
-      prompts: 2.4.2
-      proper-lockfile: 4.1.2
-      smol-toml: 1.7.1
-      ts-morph: 27.0.2
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   '@swc/core-darwin-arm64@1.15.46':
     optional: true

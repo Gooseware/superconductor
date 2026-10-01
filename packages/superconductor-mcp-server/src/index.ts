@@ -22,7 +22,8 @@ import {
   FileTelemetryStore,
   TokenUsageReport,
   getDependencySurface,
-  IntelligenceSnapshotReader
+  IntelligenceSnapshotReader,
+  handleWireframeCrawlProject
 } from "@superconductor/core";
 
 class TelemetrySession {
@@ -253,6 +254,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
     case "superconductor_get_dependency_surface":
       return handleGetDependencySurface(projectRoot, args ?? {});
+
+    case "wireframe_crawl_project": {
+      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const result = await handleWireframeCrawlProject({
+        projectRoot: targetProjectRoot,
+        baseUrl: typeof args?.baseUrl === 'string' ? args.baseUrl : undefined,
+        outputDir: typeof args?.outputDir === 'string' ? args.outputDir : undefined,
+        recordVideo: typeof args?.recordVideo === 'boolean' ? args.recordVideo : undefined,
+      });
+      return result;
+    }
 
     default:
       throw new Error(`Unknown tool: ${name}`);

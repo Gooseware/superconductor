@@ -134,5 +134,31 @@ export const SUPERCONDUCTOR_MCP_TOOLS: McpToolDeclaration[] = [
       },
       required: ['projectRoot']
     }
+  },
+  {
+    name: 'wireframe_crawl_project',
+    description: 'Crawl project routes, capture multi-viewport screenshots, record continuous journey video, probe interactive affordances/modals safely, and generate interactive wireframe flow boards.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectRoot: {
+          type: 'string',
+          description: 'Absolute path to project root directory'
+        },
+        baseUrl: {
+          type: 'string',
+          description: 'Optional running dev server base URL'
+        },
+        outputDir: {
+          type: 'string',
+          description: 'Optional directory path where wireframe board and manifest will be emitted'
+        },
+        recordVideo: {
+          type: 'boolean',
+          description: 'Whether to record continuous journey video (default: true)'
+        }
+      },
+      required: ['projectRoot']
+    }
   }
 ];

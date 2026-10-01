@@ -1059,6 +1059,27 @@ Options:
         return await ModelChooserDialog.prompt(subArgs);
       },
     });
+
+    // 15. crawl
+    this.registerCommand('crawl', {
+      description: 'Automated App Wireframe & Route Flow Crawler',
+      usage: 'crawl [--dir <path>] [--base-url <url>] [--output <dir>] [--no-video] [--standalone]',
+      options: [
+        { flag: '--dir <path>', description: 'Target project root directory' },
+        { flag: '--base-url <url>', description: 'Explicit running dev server base URL' },
+        { flag: '--output <dir>', description: 'Output directory for wireframes & manifest' },
+        { flag: '--no-video', description: 'Disable continuous journey video recording' },
+        { flag: '--standalone', description: 'Emit standalone HTML board artifact' },
+      ],
+      execute: async (subArgs, ctx) => {
+        const { runCrawlCli } = await import('./crawl.js');
+        return runCrawlCli(subArgs, {
+          cwd: ctx.cwd,
+          stdout: ctx.stdout,
+          stderr: ctx.stderr,
+        });
+      },
+    });
   }
 
   public static async dispatch(

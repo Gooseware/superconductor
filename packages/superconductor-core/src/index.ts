@@ -17,6 +17,7 @@ export * from './notebook/note-writer.js';
 export * from './phase/index.js';
 export * from './planning/index.js';
 export * from './visual/index.js';
+export * from './crawler/index.js';
 
 export type { ModelTier } from './intelligence/index.js';
 export type {
