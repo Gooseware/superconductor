@@ -16,6 +16,7 @@ export * from './swarm/index.js';
 export * from './notebook/note-writer.js';
 export * from './phase/index.js';
 export * from './planning/index.js';
+export * from './visual/index.js';
 
 export type { ModelTier } from './intelligence/index.js';
 export type {
@@ -45,6 +46,8 @@ export type {
   WaveExecutionResult,
   TrackWaveResult,
   BatchExecutionResult,
+  TaskPlanUnit,
+  TaskWavePlannerOptions,
 } from './orchestration/index.js';
 export type {
   DiscoveredModel,
@@ -67,6 +70,27 @@ export type {
   ActivePhaseInfo,
 } from './phase/index.js';
 export type { PhaseCliOptions } from './cli/index.js';
-
-
-
+export type {
+  ScannedComponent,
+  ComponentProp,
+  ScannerOptions,
+  ProposalHistoryEntry,
+  ProposalDiff,
+  ApplyProposalResult,
+  FiberSourceLocation,
+  SelectedElementContext,
+  ElementSelectedEvent,
+  AnnotationCreatedEvent,
+  CopilotPromptEvent,
+  ProposalHotInjectedEvent,
+  ABToggledEvent,
+  CopilotResponseChunk,
+  ConnectedClient,
+  WebSocketBridgeOptions,
+  LayerLevel,
+  LayerName,
+  ClusteredTrackCandidate,
+  LayeredAssemblyOptions,
+  TrackCompilerOptions,
+  CompiledTrackResult,
+} from './visual/index.js';

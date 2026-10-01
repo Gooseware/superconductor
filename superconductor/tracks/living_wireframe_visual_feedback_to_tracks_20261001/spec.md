@@ -50,6 +50,7 @@ The Grill Session for this track has completed with 4 major architectural decisi
 - **FR-8**: Conversational Agent Bridge & Context Injection via WebSocket/SSE.
 - **FR-9**: Hot In-DOM Proposal Injection & Live A/B Toggle.
 - **FR-10**: Motion Design & Animation Prototyping Engine.
+- **FR-11**: Intra-Track Task Wave Antichain Planning. The orchestrator must parse tasks across all phases, construct a file/dependency DAG, and group unblocked tasks into parallel topological waves (antichains) regardless of phase heading numbers.
 
 ## Non-Functional Requirements
 - **Zero-Config**: Seamless integration into existing brownfield projects.
@@ -66,6 +67,7 @@ The Grill Session for this track has completed with 4 major architectural decisi
 - **AC-6**: The agent receives live Fiber context and screen states.
 - **AC-7**: In-DOM patches apply instantly without disk writes, supporting A/B toggles.
 - **AC-8**: Animation scrubber accurately controls spring physics and adheres to 60fps fluidity constraints.
+- **AC-10**: TaskWavePlanner computes topological task waves across phases without sequential phase-by-phase stalling.
 
 ## Out of Scope
 - Full end-to-end integration testing of generated tracks.
