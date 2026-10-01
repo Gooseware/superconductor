@@ -38,6 +38,13 @@ export type {
   FinalizationOptions,
   FinalizationResult,
   TrackLifecycleWizardOptions,
+  MergeQueueItem,
+  MergeResult,
+  MergeQueueManagerOptions,
+  MultiTrackSwarmOrchestratorOptions,
+  WaveExecutionResult,
+  TrackWaveResult,
+  BatchExecutionResult,
 } from './orchestration/index.js';
 export type {
   DiscoveredModel,

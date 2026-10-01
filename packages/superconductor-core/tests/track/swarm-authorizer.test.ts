@@ -39,4 +39,28 @@ describe('SwarmAuthorizer', () => {
       expect(SwarmAuthorizer.validateTrailer(msg)).toBe(false);
     });
   });
+
+  describe('ReDoS Resilience (SEC-2)', () => {
+    it('processes pathological input strings with 50+ newlines/spaces followed by non-matching characters in < 5ms', () => {
+      const pathological = 'Swarm-Authorized: true | reviewers: id1,id2' + ' \r\n '.repeat(60) + 'tail-mismatch';
+
+      const start = performance.now();
+      const result = SwarmAuthorizer.validateTrailer(pathological);
+      const elapsed = performance.now() - start;
+
+      expect(result).toBe(false);
+      expect(elapsed).toBeLessThan(5);
+    });
+
+    it('processes pathological string with 50+ trailing newlines and spaces in < 5ms', () => {
+      const pathological = 'feat: foo\n\nSwarm-Authorized: true | reviewers: id1,id2,id3' + ' \r\n '.repeat(60);
+
+      const start = performance.now();
+      const reviewers = SwarmAuthorizer.extractReviewers(pathological);
+      const elapsed = performance.now() - start;
+
+      expect(reviewers).toEqual(['id1', 'id2', 'id3']);
+      expect(elapsed).toBeLessThan(5);
+    });
+  });
 });

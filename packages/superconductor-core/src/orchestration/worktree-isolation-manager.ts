@@ -1,5 +1,7 @@
 import fs from 'node:fs';
-import { execSync } from 'node:child_process';
+import path from 'node:path';
+import * as child_process from 'node:child_process';
+import { parse } from 'smol-toml';
 
 export class WorktreeAlreadyAllocatedError extends Error {
   constructor(agentId: string) {
@@ -30,11 +32,12 @@ export interface ShellRunner {
 
 export interface WorktreeIsolationManagerOptions {
   skipBinaryCheck?: boolean;
+  execSync?: (command: string, options?: any) => string | Buffer;
 }
 
 export function findWtBinary(): string {
   try {
-    return execSync('which wt', { encoding: 'utf8' }).trim();
+    return child_process.execSync('which wt', { encoding: 'utf8' }).trim();
   } catch {
     return '/home/gooseware/.cargo/bin/wt';
   }
@@ -45,6 +48,7 @@ export class WorktreeIsolationManager {
   private wtBinary: string;
   private isCustomBinary: boolean;
   private options?: WorktreeIsolationManagerOptions;
+  private execSyncFn: (command: string, options?: any) => string | Buffer;
 
   private sigintHandler = (): void => {
     void this.releaseAll();
@@ -72,6 +76,7 @@ export class WorktreeIsolationManager {
     this.isCustomBinary = customBinary !== undefined;
     this.wtBinary = customBinary ?? findWtBinary();
     this.options = opts;
+    this.execSyncFn = opts?.execSync ?? child_process.execSync;
 
     this.verifyWt();
     process.on('SIGINT', this.sigintHandler);
@@ -110,6 +115,21 @@ export class WorktreeIsolationManager {
     const branch = `wt/${safeAgentId}-${safeTrackId}`;
     await this.shell.exec(`"${this.wtBinary}" switch --create ${branch}`);
     this.allocations.set(agentId, branch);
+
+    const worktreeDir = this.getWorktreePath(agentId);
+    if (worktreeDir) {
+      const targetNodeModules = path.join(worktreeDir, 'node_modules');
+      const rootNodeModulesDir = path.join(process.cwd(), 'node_modules');
+      if (!fs.existsSync(targetNodeModules) && fs.existsSync(rootNodeModulesDir)) {
+        const rootNodeModules = path.relative(worktreeDir, rootNodeModulesDir);
+        try {
+          fs.symlinkSync(rootNodeModules, targetNodeModules, 'junction');
+        } catch {
+          // If worktree directory doesn't exist on disk (e.g. in mocked test environments), ignore
+        }
+      }
+    }
+
     return branch;
   }
 
@@ -127,10 +147,71 @@ export class WorktreeIsolationManager {
     }
   }
 
+  private resolveConfigWorktreePath(branch: string): string | undefined {
+    try {
+      const configPath = path.join(process.cwd(), '.config', 'wt.toml');
+      if (fs.existsSync(configPath)) {
+        const content = fs.readFileSync(configPath, 'utf8');
+        let template: string | undefined;
+        try {
+          const parsed = parse(content) as Record<string, any>;
+          if (typeof parsed['worktree-path'] === 'string') {
+            template = parsed['worktree-path'];
+          }
+        } catch {
+          const match = content.match(/worktree-path\s*=\s*["']([^"']+)["']/);
+          if (match && match[1]) {
+            template = match[1];
+          }
+        }
+
+        if (template) {
+          const sanitizedBranch = branch.replace(/\//g, '-');
+          return template
+            .replace(/\{\{\s*repo_path\s*\}\}/g, process.cwd())
+            .replace(/\{\{\s*branch\s*\|\s*sanitize\s*\}\}/g, sanitizedBranch)
+            .replace(/\{\{\s*branch\s*\}\}/g, branch);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return undefined;
+  }
+
   getWorktreePath(agentId: string): string | undefined {
     const branch = this.allocations.get(agentId);
     if (!branch) return undefined;
-    return `.worktrees/${branch}`;
+
+    try {
+      const rawOutput = this.execSyncFn(`"${this.wtBinary}" list --format=json`, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+        env: { ...process.env, PAGER: 'cat' },
+      });
+      const output = typeof rawOutput === 'string' ? rawOutput : rawOutput.toString('utf8');
+
+      const jsonStart = output.indexOf('{');
+      const jsonEnd = output.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        const parsed = JSON.parse(output.slice(jsonStart, jsonEnd + 1));
+        if (Array.isArray(parsed?.items)) {
+          const match = parsed.items.find((item: any) => item.branch === branch);
+          if (match?.worktree?.path) {
+            return match.worktree.path;
+          }
+        }
+      }
+    } catch {
+      // Query failed or wt list not available; fall through to canonical path
+    }
+
+    const configResolved = this.resolveConfigWorktreePath(branch);
+    if (configResolved) {
+      return configResolved;
+    }
+
+    return path.join(process.cwd(), '.worktrees', branch);
   }
 
   destroy(): void {

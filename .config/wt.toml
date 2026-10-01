@@ -1,0 +1,10 @@
+# .config/wt.toml - Superconductor Worktrunk Configuration
+
+worktree-path = "{{ repo_path }}/.worktrees/{{ branch | sanitize }}"
+
+[projects."gitlab.com/goosewares/superconductor"]
+pre-start = "ln -sfn {{ repo_path }}/node_modules node_modules"
+pre-merge = "pnpm --filter @superconductor/core build"
+
+[step.copy-ignored]
+exclude = [".cache/", ".turbo/", "dist/", ".worktrees/"]

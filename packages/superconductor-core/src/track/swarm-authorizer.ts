@@ -55,8 +55,9 @@ export class SwarmAuthorizer {
   static extractReviewers(commitMsg: string): string[] | null {
     if (!commitMsg || typeof commitMsg !== 'string') return null;
 
-    const regex = /(?:^|\r?\n)Swarm-Authorized:\s*true\s*\|\s*reviewers:\s*([^\r\n]+?)\s*(?:\r?\n\s*)*$/;
-    const match = commitMsg.match(regex);
+    // Avoid overlapping nested quantifiers (\\s* and (?:\\r?\\n\\s*)*$)
+    const cleanMsg = commitMsg.trimEnd();
+    const match = cleanMsg.match(/(?:^|\r?\n)Swarm-Authorized:\s*true\s*\|\s*reviewers:\s*([^\r\n]+?)$/);
     if (!match) return null;
 
     const ids = match[1]
