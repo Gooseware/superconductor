@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.0",
-    "@superconductor/core": "file:../superconductor-core",
+    "@superconductor/core": "workspace:*",
     "zod": "^3.25.76"
   },
   "devDependencies": {

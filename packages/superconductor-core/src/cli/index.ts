@@ -7,6 +7,7 @@ export * from './headless.js';
 export * from './merge-track.js';
 export * from './learn.js';
 export * from './phase-cli.js';
+export * from './crawl.js';
 
 /**
  * Universal CLI entrypoint for Superconductor Core.
