@@ -1,0 +1,557 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-10-01T04:43:34.032Z",
+  "projectRoot": "/home/gooseware/repos/gemini/extensions/superconductor",
+  "candidates": [
+    {
+      "id": "cand-nondry-1",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'cachemanager.test'",
+      "description": "Multiple disparate modules or reinventions of 'cachemanager.test' detected across packages (packages/engine/tests/CacheManager.test.ts, packages/engine/src/cache/CacheManager.test.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "packages/engine/tests/CacheManager.test.ts",
+        "packages/engine/src/cache/CacheManager.test.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'cachemanager.test' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"packages/engine/tests/CacheManager.test.ts\"]\n    M1[\"packages/engine/src/cache/CacheManager.test.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/cachemanager.test\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_cachemanager_test_20261001",
+        "title": "Consolidate duplicate cachemanager.test implementations",
+        "description": "Refactor disparate cachemanager.test modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "packages/engine/tests/CacheManager.test.ts",
+          "packages/engine/src/cache/CacheManager.test.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-2",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'agent_config_resolver'",
+      "description": "Multiple disparate modules or reinventions of 'agent_config_resolver' detected across packages (superconductor/agent_config_resolver.js, superconductor/agent_config_resolver.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "superconductor/agent_config_resolver.js",
+        "superconductor/agent_config_resolver.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'agent_config_resolver' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"superconductor/agent_config_resolver.js\"]\n    M1[\"superconductor/agent_config_resolver.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/agent_config_resolver\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_agent_config_resolver_20261001",
+        "title": "Consolidate duplicate agent_config_resolver implementations",
+        "description": "Refactor disparate agent_config_resolver modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "superconductor/agent_config_resolver.js",
+          "superconductor/agent_config_resolver.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-3",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'caduceus_registry_client'",
+      "description": "Multiple disparate modules or reinventions of 'caduceus_registry_client' detected across packages (superconductor/caduceus_registry_client.js, superconductor/caduceus_registry_client.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "superconductor/caduceus_registry_client.js",
+        "superconductor/caduceus_registry_client.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'caduceus_registry_client' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"superconductor/caduceus_registry_client.js\"]\n    M1[\"superconductor/caduceus_registry_client.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/caduceus_registry_client\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_caduceus_registry_client_20261001",
+        "title": "Consolidate duplicate caduceus_registry_client implementations",
+        "description": "Refactor disparate caduceus_registry_client modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "superconductor/caduceus_registry_client.js",
+          "superconductor/caduceus_registry_client.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-4",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'design_os_registry_client'",
+      "description": "Multiple disparate modules or reinventions of 'design_os_registry_client' detected across packages (superconductor/design_os_registry_client.js, superconductor/design_os_registry_client.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "superconductor/design_os_registry_client.js",
+        "superconductor/design_os_registry_client.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'design_os_registry_client' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"superconductor/design_os_registry_client.js\"]\n    M1[\"superconductor/design_os_registry_client.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/design_os_registry_client\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_design_os_registry_client_20261001",
+        "title": "Consolidate duplicate design_os_registry_client implementations",
+        "description": "Refactor disparate design_os_registry_client modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "superconductor/design_os_registry_client.js",
+          "superconductor/design_os_registry_client.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-5",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'registry_client_router'",
+      "description": "Multiple disparate modules or reinventions of 'registry_client_router' detected across packages (superconductor/registry_client_router.js, superconductor/registry_client_router.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "superconductor/registry_client_router.js",
+        "superconductor/registry_client_router.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'registry_client_router' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"superconductor/registry_client_router.js\"]\n    M1[\"superconductor/registry_client_router.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/registry_client_router\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_registry_client_router_20261001",
+        "title": "Consolidate duplicate registry_client_router implementations",
+        "description": "Refactor disparate registry_client_router modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "superconductor/registry_client_router.js",
+          "superconductor/registry_client_router.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-6",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'aggregate-findings'",
+      "description": "Multiple disparate modules or reinventions of 'aggregate-findings' detected across packages (scripts/aggregate-findings.ts, packages/superconductor-core/src/review/aggregate-findings.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "scripts/aggregate-findings.ts",
+        "packages/superconductor-core/src/review/aggregate-findings.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'aggregate-findings' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"scripts/aggregate-findings.ts\"]\n    M1[\"packages/superconductor-core/src/review/aggregate-findings.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/aggregate-findings\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_aggregate_findings_20261001",
+        "title": "Consolidate duplicate aggregate-findings implementations",
+        "description": "Refactor disparate aggregate-findings modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "scripts/aggregate-findings.ts",
+          "packages/superconductor-core/src/review/aggregate-findings.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-7",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'extract-fenced-block'",
+      "description": "Multiple disparate modules or reinventions of 'extract-fenced-block' detected across packages (scripts/extract-fenced-block.ts, packages/superconductor-core/src/review/extract-fenced-block.ts). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "scripts/extract-fenced-block.ts",
+        "packages/superconductor-core/src/review/extract-fenced-block.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'extract-fenced-block' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"scripts/extract-fenced-block.ts\"]\n    M1[\"packages/superconductor-core/src/review/extract-fenced-block.ts\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/extract-fenced-block\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_extract_fenced_block_20261001",
+        "title": "Consolidate duplicate extract-fenced-block implementations",
+        "description": "Refactor disparate extract-fenced-block modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "scripts/extract-fenced-block.ts",
+          "packages/superconductor-core/src/review/extract-fenced-block.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-8",
+      "type": "NON_DRY_DUPLICATION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'agent.md'",
+      "description": "Multiple disparate modules or reinventions of 'agent.md' detected across packages (agents/adversarial-reviewer/agent.md, agents/correctness-reviewer/agent.md, agents/regression-reviewer/agent.md, agents/remediation-processor/agent.md, agents/security-reviewer/agent.md, agents/superconductor-dreamer/agent.md, agents/superconductor-invariant-discovery/agent.md, agents/superconductor-oracle/agent.md, agents/superconductor-processor/agent.md, agents/superconductor-reviewer/agent.md). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "agents/adversarial-reviewer/agent.md",
+        "agents/correctness-reviewer/agent.md",
+        "agents/regression-reviewer/agent.md",
+        "agents/remediation-processor/agent.md",
+        "agents/security-reviewer/agent.md",
+        "agents/superconductor-dreamer/agent.md",
+        "agents/superconductor-invariant-discovery/agent.md",
+        "agents/superconductor-oracle/agent.md",
+        "agents/superconductor-processor/agent.md",
+        "agents/superconductor-reviewer/agent.md"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'agent.md' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"agents/adversarial-reviewer/agent.md\"]\n    M1[\"agents/correctness-reviewer/agent.md\"]\n    M2[\"agents/regression-reviewer/agent.md\"]\n    M3[\"agents/remediation-processor/agent.md\"]\n    M4[\"agents/security-reviewer/agent.md\"]\n    M5[\"agents/superconductor-dreamer/agent.md\"]\n    M6[\"agents/superconductor-invariant-discovery/agent.md\"]\n    M7[\"agents/superconductor-oracle/agent.md\"]\n    M8[\"agents/superconductor-processor/agent.md\"]\n    M9[\"agents/superconductor-reviewer/agent.md\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/agent.md\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core\n  Consumer2 --> Core\n  Consumer3 --> Core\n  Consumer4 --> Core\n  Consumer5 --> Core\n  Consumer6 --> Core\n  Consumer7 --> Core\n  Consumer8 --> Core\n  Consumer9 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_agent_md_20261001",
+        "title": "Consolidate duplicate agent.md implementations",
+        "description": "Refactor disparate agent.md modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "agents/adversarial-reviewer/agent.md",
+          "agents/correctness-reviewer/agent.md",
+          "agents/regression-reviewer/agent.md",
+          "agents/remediation-processor/agent.md",
+          "agents/security-reviewer/agent.md",
+          "agents/superconductor-dreamer/agent.md",
+          "agents/superconductor-invariant-discovery/agent.md",
+          "agents/superconductor-oracle/agent.md",
+          "agents/superconductor-processor/agent.md",
+          "agents/superconductor-reviewer/agent.md"
+        ]
+      }
+    },
+    {
+      "id": "cand-nondry-9",
+      "type": "COMPONENT_REINVENTION",
+      "title": "Consolidate Non-DRY Duplicate Logic for 'mockbutton'",
+      "description": "Multiple disparate modules or reinventions of 'mockbutton' detected across packages (src/components/MockButton.js, src/components/MockButton.ts, src/components/MockButton.tsx). Violates Design OS Kernel DRY dogma and introduces semantic drift.",
+      "files": [
+        "src/components/MockButton.js",
+        "src/components/MockButton.ts",
+        "src/components/MockButton.tsx"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Unifies scattered 'mockbutton' implementations under an authoritative golden source module.",
+        "leverage": "Refactors and bugfixes propagate immediately to all consumers without copy-pasting.",
+        "testability": "Replaces redundant per-module mocks with a single comprehensive test suite."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Dispersed [\"Duplicate Reinventions\"]\n    M0[\"src/components/MockButton.js\"]\n    M1[\"src/components/MockButton.ts\"]\n    M2[\"src/components/MockButton.tsx\"]\n  end",
+        "afterDiagram": "flowchart TD\n  subgraph Golden [\"Golden Component / Shared Package\"]\n    Core[\"@superconductor/core/mockbutton\"]\n  end\n  Consumer0 --> Core\n  Consumer1 --> Core\n  Consumer2 --> Core",
+        "beforeDescription": "Duplicated implementations scattered in multiple package directories.",
+        "afterDescription": "Single deep golden source module reused across all callers."
+      },
+      "proposedTrack": {
+        "trackId": "dry_consolidate_mockbutton_20261001",
+        "title": "Consolidate duplicate mockbutton implementations",
+        "description": "Refactor disparate mockbutton modules into an authoritative, reusable core module to prevent component reinvention.",
+        "filesAffected": [
+          "src/components/MockButton.js",
+          "src/components/MockButton.ts",
+          "src/components/MockButton.tsx"
+        ]
+      }
+    },
+    {
+      "id": "cand-shallow-1",
+      "type": "SHALLOW_MODULE",
+      "title": "Deepen or Inline Shallow Module 'index'",
+      "description": "'packages/superconductor-core/src/cli/index.ts' exhibits notable dependency surface (4 callers/references) but almost zero internal cyclomatic complexity (0). Its interface is nearly as complex as its implementation. This is a prime deletion test candidate: deleting it would concentrate complexity rather than scatter it.",
+      "files": [
+        "packages/superconductor-core/src/cli/index.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Inlines pass-through boilerplate directly into primary caller or coalesces it into a deep subsystem facade.",
+        "leverage": "Eliminates cognitive hops and reduces boundary friction across small files.",
+        "testability": "Interface test surface becomes meaningful rather than testing trivial passthrough mappings."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Shallow[\"index.ts (Shallow Shim)\"]\n  Shallow --> Target[\"Real Worker\"]",
+        "afterDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Deep[\"Deep Unified Module\"]",
+        "beforeDescription": "Thin intermediary pass-through module separating callers from logic.",
+        "afterDescription": "Deep interface with hidden internal implementation complexity."
+      },
+      "proposedTrack": {
+        "trackId": "deepen_shallow_index_20261001",
+        "title": "Deepen or inline shallow module index",
+        "description": "Apply the deletion test to packages/superconductor-core/src/cli/index.ts: inline pass-through logic and deepen caller boundary.",
+        "filesAffected": [
+          "packages/superconductor-core/src/cli/index.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-shallow-2",
+      "type": "SHALLOW_MODULE",
+      "title": "Deepen or Inline Shallow Module 'phase-cli'",
+      "description": "'packages/superconductor-core/src/cli/phase-cli.ts' exhibits notable dependency surface (4 callers/references) but almost zero internal cyclomatic complexity (0). Its interface is nearly as complex as its implementation. This is a prime deletion test candidate: deleting it would concentrate complexity rather than scatter it.",
+      "files": [
+        "packages/superconductor-core/src/cli/phase-cli.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Inlines pass-through boilerplate directly into primary caller or coalesces it into a deep subsystem facade.",
+        "leverage": "Eliminates cognitive hops and reduces boundary friction across small files.",
+        "testability": "Interface test surface becomes meaningful rather than testing trivial passthrough mappings."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Shallow[\"phase-cli.ts (Shallow Shim)\"]\n  Shallow --> Target[\"Real Worker\"]",
+        "afterDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Deep[\"Deep Unified Module\"]",
+        "beforeDescription": "Thin intermediary pass-through module separating callers from logic.",
+        "afterDescription": "Deep interface with hidden internal implementation complexity."
+      },
+      "proposedTrack": {
+        "trackId": "deepen_shallow_phase_cli_20261001",
+        "title": "Deepen or inline shallow module phase-cli",
+        "description": "Apply the deletion test to packages/superconductor-core/src/cli/phase-cli.ts: inline pass-through logic and deepen caller boundary.",
+        "filesAffected": [
+          "packages/superconductor-core/src/cli/phase-cli.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-shallow-3",
+      "type": "SHALLOW_MODULE",
+      "title": "Deepen or Inline Shallow Module 'language-profile'",
+      "description": "'packages/superconductor-core/src/intelligence/utils/language-profile.ts' exhibits notable dependency surface (5 callers/references) but almost zero internal cyclomatic complexity (0). Its interface is nearly as complex as its implementation. This is a prime deletion test candidate: deleting it would concentrate complexity rather than scatter it.",
+      "files": [
+        "packages/superconductor-core/src/intelligence/utils/language-profile.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Inlines pass-through boilerplate directly into primary caller or coalesces it into a deep subsystem facade.",
+        "leverage": "Eliminates cognitive hops and reduces boundary friction across small files.",
+        "testability": "Interface test surface becomes meaningful rather than testing trivial passthrough mappings."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Shallow[\"language-profile.ts (Shallow Shim)\"]\n  Shallow --> Target[\"Real Worker\"]",
+        "afterDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Deep[\"Deep Unified Module\"]",
+        "beforeDescription": "Thin intermediary pass-through module separating callers from logic.",
+        "afterDescription": "Deep interface with hidden internal implementation complexity."
+      },
+      "proposedTrack": {
+        "trackId": "deepen_shallow_language_profile_20261001",
+        "title": "Deepen or inline shallow module language-profile",
+        "description": "Apply the deletion test to packages/superconductor-core/src/intelligence/utils/language-profile.ts: inline pass-through logic and deepen caller boundary.",
+        "filesAffected": [
+          "packages/superconductor-core/src/intelligence/utils/language-profile.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-shallow-4",
+      "type": "SHALLOW_MODULE",
+      "title": "Deepen or Inline Shallow Module 'resolve-project-root'",
+      "description": "'packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts' exhibits notable dependency surface (8 callers/references) but almost zero internal cyclomatic complexity (0). Its interface is nearly as complex as its implementation. This is a prime deletion test candidate: deleting it would concentrate complexity rather than scatter it.",
+      "files": [
+        "packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts"
+      ],
+      "recommendationStrength": "Strong",
+      "benefits": {
+        "locality": "Inlines pass-through boilerplate directly into primary caller or coalesces it into a deep subsystem facade.",
+        "leverage": "Eliminates cognitive hops and reduces boundary friction across small files.",
+        "testability": "Interface test surface becomes meaningful rather than testing trivial passthrough mappings."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Shallow[\"resolve-project-root.ts (Shallow Shim)\"]\n  Shallow --> Target[\"Real Worker\"]",
+        "afterDiagram": "flowchart LR\n  Caller[\"Caller Subsystem\"] --> Deep[\"Deep Unified Module\"]",
+        "beforeDescription": "Thin intermediary pass-through module separating callers from logic.",
+        "afterDescription": "Deep interface with hidden internal implementation complexity."
+      },
+      "proposedTrack": {
+        "trackId": "deepen_shallow_resolve_project_root_20261001",
+        "title": "Deepen or inline shallow module resolve-project-root",
+        "description": "Apply the deletion test to packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts: inline pass-through logic and deepen caller boundary.",
+        "filesAffected": [
+          "packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-coupling-1",
+      "type": "HIGH_COUPLING_CLUSTER",
+      "title": "Seal Leaky Seam in Core Framework Services",
+      "description": "High churn (329) and leaky cross-partition coupling (0) in core. Internal implementation details leak across subsystem boundaries, forcing cascading edits.",
+      "files": [
+        "packages/engine/src/events/SuperconductorEventEmitter.ts",
+        "packages/notebook-store/src/search/rrf-search.ts",
+        "packages/notebook-store/src/validation/notebook-validator.ts",
+        "packages/notebook-store/test-db/superconductor/notebook/notebook.lance/data/637fa3a0-2b6f-474c-9cd0-86517bc24092.lance",
+        "packages/notebook-store/tests/search/rrf-search.test.ts",
+        "packages/superconductor-core/src/__tests__/integration/phase-system-flow.test.ts",
+        "packages/superconductor-core/src/__tests__/integration/setup-intelligence-flow.test.ts",
+        "packages/superconductor-core/src/cache/semantic-cache.ts"
+      ],
+      "recommendationStrength": "Worth exploring",
+      "benefits": {
+        "locality": "Constrains ripple effects by establishing a formal architectural seam with an opaque interface.",
+        "leverage": "Enables internal refactoring of core without breaking callers.",
+        "testability": "External tests bind strictly to the boundary seam rather than volatile internal implementation files."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Leaky [\"Leaky Subsystem (core)\"]\n    F0[\"SuperconductorEventEmitter.ts\"]\n    F1[\"rrf-search.ts\"]\n    F2[\"notebook-validator.ts\"]\n    F3[\"637fa3a0-2b6f-474c-9cd0-86517bc24092.lance\"]\n    F0 <--> F1\n  end\n  External[\"External Callers\"] <--> F0\n  External <--> F1",
+        "afterDiagram": "flowchart TD\n  External[\"External Callers\"] --> Facade[\"Deep Domain Facade Seam\"]\n  subgraph Encapsulated [\"Private Subsystem Internals\"]\n    Facade --> Internal[\"Internal Modules\"]\n  end",
+        "beforeDescription": "Multiple cross-cutting calls directly into internal implementation files.",
+        "afterDescription": "Single stable architectural seam encapsulating subsystem details."
+      },
+      "proposedTrack": {
+        "trackId": "seal_leaky_seam_core_20261001",
+        "title": "Isolate and encapsulate core coupling cluster",
+        "description": "Construct a formal architectural seam around core to dampen change cascades.",
+        "filesAffected": [
+          "packages/engine/src/events/SuperconductorEventEmitter.ts",
+          "packages/notebook-store/src/search/rrf-search.ts",
+          "packages/notebook-store/src/validation/notebook-validator.ts",
+          "packages/notebook-store/test-db/superconductor/notebook/notebook.lance/data/637fa3a0-2b6f-474c-9cd0-86517bc24092.lance",
+          "packages/notebook-store/tests/search/rrf-search.test.ts",
+          "packages/superconductor-core/src/__tests__/integration/phase-system-flow.test.ts",
+          "packages/superconductor-core/src/__tests__/integration/setup-intelligence-flow.test.ts",
+          "packages/superconductor-core/src/cache/semantic-cache.ts"
+        ]
+      }
+    },
+    {
+      "id": "cand-coupling-2",
+      "type": "HIGH_COUPLING_CLUSTER",
+      "title": "Seal Leaky Seam in Superconductor Skills & Workflows",
+      "description": "High churn (1085) and leaky cross-partition coupling (0) in skills. Internal implementation details leak across subsystem boundaries, forcing cascading edits.",
+      "files": [
+        "superconductor/tracks/abi_retrospective_20260723/index.md",
+        "superconductor/tracks/abi_retrospective_20260723/metadata.json",
+        "superconductor/tracks/abi_retrospective_20260723/plan.md",
+        "superconductor/tracks/abi_retrospective_20260723/spec.md",
+        "superconductor/tracks/abi_retrospective_20260723/swarm_log.md",
+        "superconductor/tracks/ad_hoc_triage_mode_20260818/index.md",
+        "superconductor/tracks/ad_hoc_triage_mode_20260818/metadata.json",
+        "superconductor/tracks/ad_hoc_triage_mode_20260818/permission-manifest.toml"
+      ],
+      "recommendationStrength": "Worth exploring",
+      "benefits": {
+        "locality": "Constrains ripple effects by establishing a formal architectural seam with an opaque interface.",
+        "leverage": "Enables internal refactoring of skills without breaking callers.",
+        "testability": "External tests bind strictly to the boundary seam rather than volatile internal implementation files."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Leaky [\"Leaky Subsystem (skills)\"]\n    F0[\"index.md\"]\n    F1[\"metadata.json\"]\n    F2[\"plan.md\"]\n    F3[\"spec.md\"]\n    F0 <--> F1\n  end\n  External[\"External Callers\"] <--> F0\n  External <--> F1",
+        "afterDiagram": "flowchart TD\n  External[\"External Callers\"] --> Facade[\"Deep Domain Facade Seam\"]\n  subgraph Encapsulated [\"Private Subsystem Internals\"]\n    Facade --> Internal[\"Internal Modules\"]\n  end",
+        "beforeDescription": "Multiple cross-cutting calls directly into internal implementation files.",
+        "afterDescription": "Single stable architectural seam encapsulating subsystem details."
+      },
+      "proposedTrack": {
+        "trackId": "seal_leaky_seam_skills_20261001",
+        "title": "Isolate and encapsulate skills coupling cluster",
+        "description": "Construct a formal architectural seam around skills to dampen change cascades.",
+        "filesAffected": [
+          "superconductor/tracks/abi_retrospective_20260723/index.md",
+          "superconductor/tracks/abi_retrospective_20260723/metadata.json",
+          "superconductor/tracks/abi_retrospective_20260723/plan.md",
+          "superconductor/tracks/abi_retrospective_20260723/spec.md",
+          "superconductor/tracks/abi_retrospective_20260723/swarm_log.md",
+          "superconductor/tracks/ad_hoc_triage_mode_20260818/index.md",
+          "superconductor/tracks/ad_hoc_triage_mode_20260818/metadata.json",
+          "superconductor/tracks/ad_hoc_triage_mode_20260818/permission-manifest.toml"
+        ]
+      }
+    },
+    {
+      "id": "cand-coupling-3",
+      "type": "HIGH_COUPLING_CLUSTER",
+      "title": "Seal Leaky Seam in Core Engine & Runtime",
+      "description": "High churn (875) and leaky cross-partition coupling (0) in engine. Internal implementation details leak across subsystem boundaries, forcing cascading edits.",
+      "files": [
+        ".gemini/policies/conductor.toml",
+        ".gemini/settings.json",
+        ".gitignore",
+        ".gitmodules",
+        ".release-please-manifest.json",
+        "0333d1e9759e7c10d10c8d5fd0f834c87a812cc2",
+        "04855a88cfc38c3755b1e18d4f5a0f86fb00974a",
+        "05fe088cb3099fb9f0b7c42a88ced1732b26266f"
+      ],
+      "recommendationStrength": "Worth exploring",
+      "benefits": {
+        "locality": "Constrains ripple effects by establishing a formal architectural seam with an opaque interface.",
+        "leverage": "Enables internal refactoring of engine without breaking callers.",
+        "testability": "External tests bind strictly to the boundary seam rather than volatile internal implementation files."
+      },
+      "beforeAfter": {
+        "beforeDiagram": "flowchart TD\n  subgraph Leaky [\"Leaky Subsystem (engine)\"]\n    F0[\"conductor.toml\"]\n    F1[\"settings.json\"]\n    F2[\".gitignore\"]\n    F3[\".gitmodules\"]\n    F0 <--> F1\n  end\n  External[\"External Callers\"] <--> F0\n  External <--> F1",
+        "afterDiagram": "flowchart TD\n  External[\"External Callers\"] --> Facade[\"Deep Domain Facade Seam\"]\n  subgraph Encapsulated [\"Private Subsystem Internals\"]\n    Facade --> Internal[\"Internal Modules\"]\n  end",
+        "beforeDescription": "Multiple cross-cutting calls directly into internal implementation files.",
+        "afterDescription": "Single stable architectural seam encapsulating subsystem details."
+      },
+      "proposedTrack": {
+        "trackId": "seal_leaky_seam_engine_20261001",
+        "title": "Isolate and encapsulate engine coupling cluster",
+        "description": "Construct a formal architectural seam around engine to dampen change cascades.",
+        "filesAffected": [
+          ".gemini/policies/conductor.toml",
+          ".gemini/settings.json",
+          ".gitignore",
+          ".gitmodules",
+          ".release-please-manifest.json",
+          "0333d1e9759e7c10d10c8d5fd0f834c87a812cc2",
+          "04855a88cfc38c3755b1e18d4f5a0f86fb00974a",
+          "05fe088cb3099fb9f0b7c42a88ced1732b26266f"
+        ]
+      }
+    }
+  ],
+  "topRecommendationId": "cand-nondry-1",
+  "metrics": {
+    "totalCandidates": 16,
+    "nonDryCount": 9,
+    "shallowModuleCount": 4,
+    "leakySeamCount": 0,
+    "highCouplingCount": 3
+  }
+}
