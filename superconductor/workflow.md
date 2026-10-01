@@ -21,6 +21,22 @@ The `task-store` manages not only tasks but also **Invariants**. Invariants are 
 2. **Discovery:** The `superconductor-invariant-discovery` agent runs in the background or during setup to discover unprotected critical paths and register them as invariants with a `HIGH` (active) or `MEDIUM/LOW` (untriaged) confidence.
 3. **Dreamer Tasks:** The Dreamer agent MUST tag all new task cards in `plan.md` with `CREATES:`, `PROTECTED:`, and `INVARIANT_AFTER:` fields to seed the task store with new invariants as features are built.
 
+## Superpowers Process Skills Bridge
+
+Superconductor formally bridges Superpowers core process skills into the engineering lifecycle:
+- **Track Inception & Ideation:** Always use `superpowers:brainstorming` before entering track planning or drafting `spec.md`. Banter, challenge assumptions, and explore requirements.
+- **Plan Generation:** Use `superpowers:writing-plans` for plan generation, producing bite-sized, dependency-ordered tasks in `plan.md`.
+- **Processor Implementation:** Mandate `superpowers:test-driven-development` (strict Red-Green-Refactor cycle) and `superpowers:systematic-debugging` (isolate root causes before proposing fixes; no trial-and-error guessing) during all processor execution.
+- **Worktree Isolation:** Mandate `superpowers:using-git-worktrees` for worktree isolation during parallel track execution and multi-track batch waves.
+
+## Research Lifecycle: Hunch to Roundhouse Punch
+
+Whenever a track touches external packages, new architecture, or unexplored problem spaces, execute the 4-phase Deep Research Gate before finalizing `spec.md`:
+1. **The Hunch:** Banter and brainstorm what-ifs with the user (via `superpowers:brainstorming`). Unpack vague requirements, identify unknowns, and formulate architectural hypotheses.
+2. **The Deep Dive:** Autonomously trigger Deep Research via `gemini-deep-research` (`uv run python /home/gooseware/repos/gemini/extensions/jev-ultrafast/skills/gemini-deep-research/scripts/run_deep_research.py --prompt "<topic>" --vault-dir /home/gooseware/repos/gemini/gemini-obsidian`) or an autonomous `research` subagent to scout SOTA options, benchmarks, and real-world gotchas.
+3. **Obsidian Archival:** Save structured findings directly to `/home/gooseware/repos/gemini/gemini-obsidian/Research/YYYY-MM-DD - <Topic>.md` and sync to GitLab (`git@gitlab.com:goosewares/gemini-obsidian`).
+4. **The Roundhouse Punch:** Feed proven findings, benchmarks, and authoritative citations directly into `spec.md` and ADRs (`superconductor/CONTEXT.md`), eliminating architectural guesswork before code implementation begins.
+
 ## Task Workflow
 
 All tasks follow a strict lifecycle:
@@ -35,7 +51,7 @@ The Superconductor engine operates in either Interactive or Headless mode.
 
 When running batch multi-track execution (via `/superconductor:batch-execute`), independent tracks within an active phase execute concurrently in dedicated worktrees with a serialized merge gate:
 - **Dependency Wave Partitioning:** Tracks are topologically analyzed and partitioned into waves (`Wave 1`, `Wave 2`, ...). Independent tracks within each wave run in parallel.
-- **Dedicated Worktree Isolation:** Each track executes inside an isolated worktree (`.worktrees/wt-track-<track_id>`) allocated by `WorktreeIsolationManager`, ensuring zero git index lock contention or filesystem cross-talk.
+- **Dedicated Worktree Isolation:** Each track executes inside an isolated worktree (`.worktrees/wt-track-<track_id>`) allocated by `WorktreeIsolationManager` (mandating `superpowers:using-git-worktrees`), ensuring zero git index lock contention or filesystem cross-talk.
 - **Serialized Merge Gate:** As tracks pass verification, track branches (`track/<track_id>`) integrate into `main` sequentially through a serialized merge gate mutex before worktrees are deallocated, guaranteeing linear and conflict-free integration.
 
 ### Standard Task Workflow
@@ -45,6 +61,7 @@ When running batch multi-track execution (via `/superconductor:batch-execute`), 
 2. **Mark In Progress & Load Context:** Before beginning work, use the `task_update` MCP tool to change the task status to in progress. **CRITICAL:** Ensure you are working on the dedicated track branch (`track/<track_id>`). All implementation work MUST happen on this branch. Using the **Universal File Resolution Protocol**, resolve and read `superconductor/CONTEXT.md` so ubiquitous language is active during implementation.
 
 3. **Write Failing Tests (Red Phase):**
+   - Mandate `superpowers:test-driven-development` for test-first discipline.
    - Create a new test file for the feature or bug fix.
    - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
    - **CRITICAL:** Assertions MUST verify a state change in the System Under Test. Test theatre (assertions that cannot fail) is an anti-pattern.
@@ -53,6 +70,7 @@ When running batch multi-track execution (via `/superconductor:batch-execute`), 
 4. **Implement to Pass Tests (Green Phase):**
    - Write the minimum amount of application code necessary to make the failing tests pass.
    - Run the test suite again and confirm that all tests now pass. This is the "Green" phase.
+   - If tests fail unexpectedly, mandate `superpowers:systematic-debugging` to trace data flow and verify root cause hypotheses before changing code.
 
 5. **Refactor (Strict Refactor Phase):**
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
@@ -116,7 +134,7 @@ When running batch multi-track execution (via `/superconductor:batch-execute`), 
     -   Before execution, you **must** announce the exact shell command you will use to run the tests.
     -   **Example Announcement:** "I will now run the automated test suite to verify the phase. **Command:** `CI=true npm test`"
     -   Execute the announced command.
-    -   If tests fail, you **must** inform the user and apply **Systematic Bug Diagnosis heuristics**. Do not blindly guess or trial-and-error. Instead:
+    -   If tests fail, you **must** inform the user and apply **Systematic Bug Diagnosis heuristics** (mandating `superpowers:systematic-debugging`). Do not blindly guess or trial-and-error. Instead:
         1. Isolate the failure to the exact failing component.
         2. Trace the data flow to identify where it deviates from assumptions.
         3. Formulate a hypothesis and verify it before proposing a fix.
@@ -222,28 +240,10 @@ Before marking any task complete, verify:
 
 ## Development Commands
 
-**AI AGENT INSTRUCTION: This section should be adapted to the project's specific language, framework, and build tools.**
-
-### Setup
-```bash
-# Example: Commands to set up the development environment (e.g., install dependencies, configure database)
-# e.g., for a Node.js project: npm install
-# e.g., for a Go project: go mod tidy
-```
-
-### Daily Development
-```bash
-# Example: Commands for common daily tasks (e.g., start dev server, run tests, lint, format)
-# e.g., for a Node.js project: npm run dev, npm test, npm run lint
-# e.g., for a Go project: go run main.go, go test ./..., go fmt ./...
-```
-
-### Before Committing
-```bash
-# Example: Commands to run all pre-commit checks (e.g., format, lint, type check, run tests)
-# e.g., for a Node.js project: npm run check
-# e.g., for a Go project: make check (if a Makefile exists)
-```
+Configure language/framework commands in project configuration:
+- **Setup:** `npm install` (or language equivalent e.g., `go mod tidy`)
+- **Daily Dev:** `npm run dev`, `CI=true npm test`, `npm run lint`
+- **Pre-Commit:** `CI=true npm run check` (format, lint, type check, tests)
 
 ## Testing Requirements
 
@@ -432,39 +432,11 @@ A task is complete when:
 6. **Final Task:** Every `plan.md` MUST include this as its absolute last task:
    - `- [ ] Task: Integrate track '<track_id>' into <target_branch> branch.`
 
-## Deployment Workflow
+## Deployment Workflow & Continuous Improvement
 
-### Pre-Deployment Checklist
-- [ ] All tests passing
-- [ ] Coverage >80%
-- [ ] No linting errors
-- [ ] Mobile testing complete
-- [ ] Environment variables configured
-- [ ] Database migrations ready
-- [ ] Backup created
-
-### Deployment Steps
-1. Merge the track branch (`track/<track_id>`) into `main` (or `master`).
-2. Tag release with version
-3. Push to deployment service
-4. Run database migrations
-5. Verify deployment
-6. Test critical paths
-7. Monitor for errors
-
-### Post-Deployment
-1. Monitor analytics
-2. Check error logs
-3. Gather user feedback
-4. Plan next iteration
-
-## Continuous Improvement
-
-- Review workflow weekly
-- Update based on pain points
-- Document lessons learned
-- Optimize for user happiness
-- Keep things simple and maintainable
+- **Pre-Deployment Checklist:** All tests passing (>80% coverage), lint/types clean, environment variables configured, migrations ready.
+- **Deployment Steps:** Merge `track/<track_id>` into target branch, tag release, push to deployment service, run migrations, verify critical paths.
+- **Post-Deployment & Feedback:** Monitor error logs and metrics, capture lessons learned, and feed insights into the next track planning cycle.
 
 ---
 

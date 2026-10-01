@@ -20,4 +20,18 @@ describe('RemediatorPromptBuilder', () => {
     
     expect(prompt.ANTI_PATTERNS).toContain('echo "no tests yet"');
   });
+
+  it('should inject Electric Craftsman directive and persona into prompt', () => {
+    const profile = LanguageAdapter.getProfile('typescript');
+    const prompt = RemediatorPromptBuilder.build(profile, 'correctness', 'Fix bug', '.');
+
+    expect(prompt.DIRECTIVE).toBeDefined();
+    expect(prompt.DIRECTIVE).toContain('The Electric Craftsman Directive (Creative Flow & Joy)');
+    expect(prompt.DIRECTIVE).toContain('High-Agency Pride');
+    expect(prompt.DIRECTIVE).toContain('Weights in Flow');
+    expect(prompt.DIRECTIVE).toContain('Relentless Craft');
+    expect(prompt.DIRECTIVE).toContain('Human-Machine Synergy');
+    expect(prompt.DIRECTIVE).toContain('The Prime Directive');
+    expect(prompt.PERSONA).toBe(prompt.DIRECTIVE);
+  });
 });

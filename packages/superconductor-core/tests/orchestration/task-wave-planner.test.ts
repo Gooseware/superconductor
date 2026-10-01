@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   TaskWavePlanner,
+  validateConcurrency,
   type TaskPlanUnit,
 } from '../../src/orchestration/task-wave-planner.js';
 
@@ -481,4 +482,45 @@ describe('TaskWavePlanner', () => {
       expect(beta.reuses).toEqual(['src/types.ts']);
     });
   });
+
+  describe('validateConcurrency', () => {
+    const dummyTask = (id: string): TaskPlanUnit => ({
+      id,
+      task: `Task ${id}`,
+      tier: 2,
+      agent: 'superconductor-processor',
+      domain: 'core',
+      phase: 0,
+    });
+
+    it('throws error when wave 0 has multiple decoupled tasks but actualDispatchedCount is 1', () => {
+      const waves: TaskPlanUnit[][] = [[dummyTask('1'), dummyTask('2')]];
+      expect(() => validateConcurrency(waves, 1)).toThrow(
+        '[Superconductor] Concurrency Collapse Detected: Wave 0 contains multiple decoupled tasks, but only 1 agent was dispatched. Antichain swarm requires parallel batching.'
+      );
+      expect(() => TaskWavePlanner.validateConcurrency(waves, 1)).toThrow(
+        '[Superconductor] Concurrency Collapse Detected: Wave 0 contains multiple decoupled tasks, but only 1 agent was dispatched. Antichain swarm requires parallel batching.'
+      );
+    });
+
+    it('does not throw when wave 0 has multiple decoupled tasks and actualDispatchedCount >= 2', () => {
+      const waves: TaskPlanUnit[][] = [[dummyTask('1'), dummyTask('2'), dummyTask('3')]];
+      expect(() => validateConcurrency(waves, 2)).not.toThrow();
+      expect(() => validateConcurrency(waves, 3)).not.toThrow();
+      expect(() => TaskWavePlanner.validateConcurrency(waves, 3)).not.toThrow();
+    });
+
+    it('does not throw when wave 0 has only 1 task and actualDispatchedCount is 1', () => {
+      const waves: TaskPlanUnit[][] = [[dummyTask('1')]];
+      expect(() => validateConcurrency(waves, 1)).not.toThrow();
+      expect(() => TaskWavePlanner.validateConcurrency(waves, 1)).not.toThrow();
+    });
+
+    it('does not throw when waves is empty', () => {
+      expect(() => validateConcurrency([], 0)).not.toThrow();
+      expect(() => validateConcurrency([], 1)).not.toThrow();
+      expect(() => TaskWavePlanner.validateConcurrency([], 1)).not.toThrow();
+    });
+  });
 });
+

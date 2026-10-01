@@ -36,6 +36,8 @@
 | [x] | deepen_shallow_cli_facades_20261001 | [Deepen or Inline Shallow CLI Wrappers (cli/index.ts, dispatcher.ts, phase-cli.ts)](./tracks/deepen_shallow_cli_facades_20261001/index.md) | track/deepen_shallow_cli_facades_20261001 (merged to main) |
 | [x] | seal_leaky_seam_core_services_20261001 | [Seal Leaky Boundary Between Notebook Store & Core Services](./tracks/seal_leaky_seam_core_services_20261001/index.md) | track/seal_leaky_seam_core_services_20261001 (merged to main) |
 | [x] | living_wireframe_visual_feedback_to_tracks_20261001 | [Living Application Wireframes & Visual Feedback-to-Tracks Assembly Engine](./tracks/living_wireframe_visual_feedback_to_tracks_20261001/index.md) | track/living_wireframe_visual_feedback_to_tracks_20261001 (merged to main) |
+| [x] | parallel_multi_track_swarm_orchestration_20261001 | [First-Class Parallel Multi-Track Swarm Orchestration (Topological Waves, Worktrunk Isolation & DMQ-POP)](./tracks/parallel_multi_track_swarm_orchestration_20261001/index.md) | track/parallel_multi_track_swarm_orchestration_20261001 (merged to main) |
+| [x] | prime_directive_superpowers_vibe_antichain_20261001 | [Prime Directive: Superpowers Integration, Self-Affirming Prompt Vibes, Deep Research Gate & Antichain Swarm Dogma](./tracks/prime_directive_superpowers_vibe_antichain_20261001/index.md) | track/prime_directive_superpowers_vibe_antichain_20261001 (merged to main) |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |
@@ -56,5 +58,3 @@ See `superconductor/tracks/archive/` for the following completed tracks:
 - `[~]` — In progress
 - `[x]` — Complete
 - `[-]` — Cancelled / absorbed
-
-| [x] | parallel_multi_track_swarm_orchestration_20261001 | [First-Class Parallel Multi-Track Swarm Orchestration (Topological Waves, Worktrunk Isolation & DMQ-POP)](./tracks/parallel_multi_track_swarm_orchestration_20261001/index.md) | track/parallel_multi_track_swarm_orchestration_20261001 (merged to main) |

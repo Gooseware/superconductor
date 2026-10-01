@@ -62,7 +62,36 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
 - Jump directly to **Section 2.7 (Step 2c)** to run intelligence baseline indexing.
 - If tracks already exist, verify that `kernel_intelligence_status` returns `status === 'LIVE'` and conclude setup cleanly without overwriting or re-generating tracks.
 
-5. **Proceed to Section 2.0:** You MUST proceed to Section 2.0 to establish the Greenfield/Brownfield context before jumping to your target.
+5. **Proceed to Preflight & Section 2.0:** Verify environment preflight (Section 1.3), then establish Greenfield/Brownfield context before jumping to target.
+
+---
+
+## 1.3 ENVIRONMENT PREFLIGHT & TOOL DETECTION (THE PRIME DIRECTIVE)
+**PROTOCOL: Verify required environment dependencies before scaffolding ("If you don't have what you need, ask and install").**
+
+1. **Superpowers Extension Preflight:**
+   - Audit `~/.gemini/config/plugins/superpowers` and `~/.gemini/extensions/extension-enablement.json`.
+   - If missing or not enabled:
+     - Prompt user: *"Superpowers extension is not linked or enabled in Gemini. Would you like me to link and enable it from `/home/gooseware/repos/gemini/extensions/superpowers`?"*
+     - On approval, link and enable:
+       ```bash
+       mkdir -p ~/.gemini/config/plugins ~/.gemini/extensions
+       ln -sf /home/gooseware/repos/gemini/extensions/superpowers ~/.gemini/config/plugins/superpowers
+       # Add "superpowers": { "overrides": ["/home/gooseware/*"] } to extension-enablement.json
+       ```
+2. **Worktrunk (`wt`) Preflight:**
+   - Verify `wt`: `which wt || command -v wt`.
+   - If missing: DO NOT fail silently or crash. Prompt user:
+     *"Worktrunk (`wt`) is not installed on this system. It is required for lightning-fast Git worktree isolation for parallel agent swarms."*
+     Options:
+     - 1. *(Recommended)* Install via cargo: `cargo install worktrunk` (or `cargo install worktrunk@0.68.0 --locked`)
+     - 2. Download precompiled binary to `~/.local/bin/wt`
+     - 3. Skip (fallback to native git worktree)
+   - On approval: execute installation, ensure `~/.local/bin` and `~/.cargo/bin` in PATH (`export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"`), and verify `wt --version`.
+3. **Deep Research Dependencies Preflight:**
+   - Check `which uv || command -v uv` and `which python3 || which python`.
+   - If `uv` is missing: prompt user to install via `curl -LsSf https://astral.sh/uv/install.sh | sh` or cargo.
+   - If Python is missing or < 3.10: prompt user to install Python 3.10+ via system packages or `uv python install 3.12`.
 
 ---
 
@@ -175,20 +204,7 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
     -   **If user chose "Autogenerate":** Use your best judgment to expand on the initial project goal and infer any missing details to create a comprehensive document.
     -   **If user chose "Interactive":** Use the specific answers provided. The source of truth is **only the user's selected answer(s)**. You are encouraged to expand on these choices to create a polished output.
 5.  **User Confirmation Loop:**
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
-        - **questions:**
-            - **header:** "Review Draft"
-            - **question:**
-                Review the drafted Product Guide below. What would you like to do next?
-
-                ---
-
-                <Insert Drafted product.md Content Here>
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "Approve", Description: "The guide looks good, proceed to the next step."
-                - Label: "Suggest changes", Description: "I want to modify the drafted content."
+    -   **Ask for Approval:** Use `ask_user` with `header: "Review Draft"`, `type: "choice"`, embedding the drafted content into `question`. Options: "Approve" (looks good, proceed) and "Suggest changes" (modify drafted content).
 6.  **Write File:** Once approved, append the generated content to the existing `superconductor/product.md` file, preserving the `# Initial Concept` section.
 7.  **Continue:** Immediately proceed to the next section.
 
@@ -222,20 +238,7 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
     -   **If user chose "Autogenerate":** Use your best judgment to infer standard, high-quality guidelines suitable for the project type.
     -   **If user chose "Interactive":** Use the specific answers provided. The source of truth is **only the user's selected answer(s)**. You are encouraged to expand on these choices to create a polished output.
 5.  **User Confirmation Loop:**
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
-        - **questions:**
-            - **header:** "Review Draft"
-            - **question:**
-                Review the drafted Product Guidelines below. What would you like to do next?
-
-                ---
-
-                <Insert Drafted product-guidelines.md Content Here>
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "Approve", Description: "The guidelines look good, proceed to the next step."
-                - Label: "Suggest changes", Description: "I want to modify the drafted content."
+    -   **Ask for Approval:** Use `ask_user` with `header: "Review Draft"`, `type: "choice"`, embedding the drafted content into `question`. Options: "Approve" (looks good, proceed) and "Suggest changes" (modify drafted content).
 6.  **Write File:** Once approved, write the generated content to the `superconductor/product-guidelines.md` file.
 7.  **Continue:** Immediately proceed to the next section.
 
@@ -275,15 +278,7 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
     -   **FOR BROWNFIELD PROJECTS:**
         -   **CRITICAL WARNING:** Your goal is to document the project's *existing* tech stack, not to propose changes.
         -   **State the Inferred Stack:** Based on the code analysis, you MUST state the technology stack that you have inferred in the chat.
-        -   **Target Branch Selection:** Add a question for selecting the preferred target branch for track integration.
-            - **header:** "Target Branch"
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "dev", Description: "Standard development branch."
-                - Label: "main", Description: "Primary production branch."
-                - Label: "master", Description: "Legacy primary branch."
-            - **placeholder:** "Enter a custom branch name..."
+        -   **Target Branch Selection:** Include a question for selecting the preferred target branch for track integration (`dev`, `main`, `master`, or custom).
         -   **Request Confirmation:** After stating the detected stack, you MUST ask the user for confirmation using the `ask_user` tool:
             - **questions:**
                 - **header:** "Tech Stack"
@@ -294,15 +289,7 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
 3.  **Gather Information (Greenfield Interactive Only):**
     -   **If user chose "Interactive":** Use a single `ask_user` tool call to gather detailed preferences.
         -   **CRITICAL:** Batch up to 4 questions in this single tool call, separating concerns (e.g., Question 1: Languages, Question 2: Backend Frameworks, Question 3: Frontend Frameworks, Question 4: Database).
-        -   **Target Branch Selection:** Add a question for selecting the preferred target branch for track integration.
-            - **header:** "Target Branch"
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "dev", Description: "Standard development branch."
-                - Label: "main", Description: "Primary production branch."
-                - Label: "master", Description: "Legacy primary branch."
-            - **placeholder:** "Enter a custom branch name..."
+        -   **Target Branch Selection:** Include a question for selecting the preferred target branch for track integration (`dev`, `main`, `master`, or custom).
         -   **SUGGESTIONS:** For each question, generate 3-4 high-quality suggested answers.
         -   **Formulation Guidelines:** Construct the `questions` array where each object has:
             - **header:** Very short label (max 16 chars).
@@ -316,20 +303,7 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
     -   **If user chose "Autogenerate":** Use your best judgment to infer a standard, high-quality stack suitable for the project goal.
     -   **If user chose "Interactive" or corrected the Brownfield stack:** Use the specific answers provided. The source of truth is **only the user's selected answer(s)**.
 5.  **User Confirmation Loop:**
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
-        - **questions:**
-            - **header:** "Review Draft"
-            - **question:**
-                Review the drafted Tech Stack below. What would you like to do next?
-
-                ---
-
-                <Insert Drafted tech-stack.md Content Here>
-            - **type:** "choice"
-            - **multiSelect:** false
-            - **options:**
-                - Label: "Approve", Description: "The tech stack looks good, proceed to the next step."
-                - Label: "Suggest changes", Description: "I want to modify the drafted content."
+    -   **Ask for Approval:** Use `ask_user` with `header: "Review Draft"`, `type: "choice"`, embedding the drafted content into `question`. Options: "Approve" (looks good, proceed) and "Suggest changes" (modify drafted content).
 6.  **Write File:** Once approved, write the generated content to the `superconductor/tech-stack.md` file.
 7.  **Continue:** Immediately proceed to the next section.
 
@@ -459,7 +433,7 @@ When core project scaffolding files (`product.md`, `tech-stack.md`, and `workflo
 
 ### 2.7 Finalization
 1. **Generate Index File**: Create `superconductor/index.md` linking definition, workflow, and track management files.
-2. **Install Worktrunk (Setup Hook)**: Ensure `worktrunk` backend is available via `"${SUPERCONDUCTOR_DIR}/scripts/install-worktrunk.sh"`.
+2. **Verify Worktrunk Backend**: Ensure `worktrunk` (`wt`) backend is installed via Section 1.3 preflight or `"${SUPERCONDUCTOR_DIR}/scripts/install-worktrunk.sh"`.
 2a. **Install Intelligence Git Hook:** Run `"${SUPERCONDUCTOR_DIR}/scripts/install-git-hook.sh"` to install the post-commit updater hook.
 2b. **Install Swarm Enforcement Git Hook:** Run `"${SUPERCONDUCTOR_DIR}/scripts/hooks/install-hooks.sh"` to install the pre-commit hook.
 2c. **Run Full Intelligence Baseline Scan:**
@@ -478,7 +452,8 @@ Refer to [references/setup-protocol.md](./references/setup-protocol.md) for deta
 ## Command Flow Diagram
 ```mermaid
 graph TD
-    A[Start /superconductor:setup] --> B{Project Audit}
+    A[Start /superconductor:setup] --> PF[Section 1.3 - Preflight: superpowers, wt, uv]
+    PF --> B{Project Audit}
     B -->|All Artifacts + Intelligence Exist| C[HALT - Already Initialized]
     B -->|Scaffolding Exists, Missing Intelligence| IR[Section 2.7 - Intelligence Repair Mode]
     IR -->|Tracks Exist| N[End Setup]

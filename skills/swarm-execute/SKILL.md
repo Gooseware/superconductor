@@ -33,7 +33,7 @@ When executed as part of parallel multi-track wave orchestration (via `/supercon
 1. **The Root Agent is an Orchestrator and Conductor, not an individual contributor.** The root session coordinates, dispatches, and aggregates; it never directly authors or modifies product code. This rule is absolute and applies across ALL modes, including YOLO mode (`/superconductor:yolo`). Under YOLO mode, permission checks are bypassed, but the architectural constraint remains invariant: the root agent NEVER performs inline edits on product code.
 2. **Direct edits on product code files by the Root Agent are strictly PROHIBITED during Swarm Execution.** Any attempt by the root orchestrator to directly call `write_to_file`, `replace_file_content`, `multi_replace_file_content`, or execute direct code mutations is a protocol violation. If the root agent detects itself attempting a direct write, it MUST immediately emit:
    `"[Superconductor] Rogue write attempt detected. Aborting. I must dispatch a Processor subagent instead."`
-3. **Every plan phase MUST be delegated to one or more specialized `superconductor-processor` subagents.** Implementations run in isolated child subagent contexts in allocated git worktrees.
+3. **The orchestrator MUST immediately flatten all dispatchable tasks across the entire plan and dispatch full parallel batches of maxConcurrent agents (default: 4-5) via TaskWavePlanner topological antichains. Disagreeing with concurrency or dispatching a single subagent when multiple decoupled tasks exist is an explicit protocol violation.** Implementations run in isolated child subagent contexts in allocated git worktrees.
 4. **Quorum reviews MUST be conducted by parallel `superconductor-reviewer` subagents.** Security, Correctness, Adversarial, Regression, and UX / Consistency reviews must execute independently.
 5. **Remediation loops triggered by `NEEDS_FIXES` MUST dispatch isolated remediator subagents.** Never attempt root-level hero fixing.
 
@@ -51,14 +51,16 @@ Before pausing for user input, awaiting subagent swarms, or concluding track exe
 Before dispatching any quorum reviewers, the orchestrator MUST complete the full
 Implementation Swarm phase in this exact order:
 
-### Step 1 — Parse Plan into WorkUnits
-Call `parseAndDispatch(topographyPath, planPath)` → produces `WorkUnit[]`.
+### Step 1 — Parse Plan into WorkUnits & Plan Topological Antichain Waves
+Call `TaskWavePlanner.parsePlanWithDependencies(planMarkdown)` and `TaskWavePlanner.planTaskWaves(units, { maxConcurrent })` (or `parseAndDispatch(topographyPath, planPath)`) → produces topological antichain waves (`TaskPlanUnit[][]`).
 Each `- [ ] Task:` line in `plan.md` becomes one WorkUnit with its `[AGENT:]`, `[DOMAIN:]`,
-and `[TIER-N]` annotations preserved.
+`[TIER-N]`, `CREATES`, `PROTECTED`, and `DEPENDS` annotations preserved.
+
+All dispatchable tasks across ALL phases are flattened into topological antichains. Tasks from different phases that have no conflicting CREATES/PROTECTED files and no explicit dependencies execute in parallel within the same wave. Any sequential phase barriers or waterfall assumptions are strictly PROHIBITED.
 
 **Verification Gate (MANDATORY before any invoke_subagent call):**
-- Log the WorkUnit count to `swarm_log.md`: `[swarm-execute] parseAndDispatch produced N WorkUnits`.
-- PROHIBITED: Deriving WorkUnits by any method other than `parseAndDispatch()`. Manual in-context grouping of plan tasks is a protocol violation equivalent to skipping this step.
+- Log the WorkUnit and wave count to `swarm_log.md`: `[swarm-execute] TaskWavePlanner produced N WorkUnits across M antichain waves`.
+- PROHIBITED: Deriving WorkUnits by any method other than `TaskWavePlanner` / `parseAndDispatch()`. Manual in-context grouping of plan tasks or enforcing sequential phase barriers is a protocol violation equivalent to skipping this step.
 - Each `- [ ] Task:` line in `plan.md` with `[AGENT:]`, `[DOMAIN:]`, and `[TIER-N]` annotations maps 1:1 to exactly one WorkUnit. Two task lines MUST NOT be merged into a single WorkUnit without an explicit blocking dependency edge declared in the plan.
 
 **WorkUnit mapping example:**
@@ -122,8 +124,18 @@ before spawning ANY implementor agent.
 **PROHIBITED:** Running `PreflightTestRunner.run()` inside a per-WorkUnit closure or inside
 the quorum reviewer dispatch. This is a PROTOCOL VIOLATION that saturates CI.
 
-### Step 3 — Batch Implementor Swarm Dispatch
-Group WorkUnits into batches of exactly maxConcurrent agents (or fewer only for the final remainder batch if `workUnits.length` is not a multiple of `maxConcurrent`).
+### Step 3 — Batch Implementor Swarm Dispatch (Antichain Waves Across Phases)
+Dispatch WorkUnits wave-by-wave as computed by `TaskWavePlanner.planTaskWaves()`, dispatching full parallel batches of up to `maxConcurrent` agents per wave across all phases.
+
+**CONCURRENCY GUARD (enforced before dispatching Wave 0):**
+```ts
+// Validate concurrency before dispatching:
+TaskWavePlanner.validateConcurrency(waves, actualDispatchedCount);
+```
+If `waves[0].length >= 2` and `actualDispatchedCount === 1`:
+The guard throws an error and halts execution:
+`[Superconductor] Concurrency Collapse Detected: Wave 0 contains multiple decoupled tasks, but only 1 agent was dispatched. Antichain swarm requires parallel batching.`
+Serializing decoupled tasks across phases or artificially throttling concurrency below the antichain wave capacity is a strict protocol violation.
 
 **MINIMUM CONCURRENCY GATE (enforced before each batch dispatch):**
 ```
