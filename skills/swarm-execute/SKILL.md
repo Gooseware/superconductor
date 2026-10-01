@@ -20,6 +20,14 @@ This command replaces the older monolithic loop and allows targeted execution of
 
 ---
 
+## Multi-Track Wave Concurrency Protocol
+When executed as part of parallel multi-track wave orchestration (via `/superconductor:batch-execute`):
+- **Worktree Isolation:** `swarm-execute` runs inside a dedicated worktree allocated by `WorktreeIsolationManager` (located at `.worktrees/wt-track-<track_id>`), completely isolated from the primary repository working directory and concurrent sibling tracks.
+- **Dedicated Branch:** Operates on the dedicated track branch `track/<track_id>`. File modifications and commits stay contained within the isolated worktree until integrated via the serialized merge gate.
+- **Scoped Quorum Paths:** All Quorum FSM state files, review logs, coverage manifests, and residuals are strictly scoped to the worktree path (`.worktrees/wt-track-<track_id>/.superconductor/quorum/` or `superconductor/tracks/<track_id>/`). This guarantees zero state leakage or file contention across parallel tracks running in the same wave.
+
+---
+
 ## Root Orchestration Dogma (Anti-Hero-Agent Protocol)
 
 1. **The Root Agent is an Orchestrator and Conductor, not an individual contributor.** The root session coordinates, dispatches, and aggregates; it never directly authors or modifies product code. This rule is absolute and applies across ALL modes, including YOLO mode (`/superconductor:yolo`). Under YOLO mode, permission checks are bypassed, but the architectural constraint remains invariant: the root agent NEVER performs inline edits on product code.

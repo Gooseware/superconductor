@@ -31,6 +31,13 @@ The Superconductor engine operates in either Interactive or Headless mode.
 - **Interactive (Default):** Requires manual human verification at phase boundaries and utilizes the `ask_user` tool.
 - **Headless (`--headless`):** Designed for asynchronous/autonomous factory execution. Bypasses manual prompts if automated tests pass and >80% coverage is achieved. If quality gates fail, it triggers an escalation router fallback.
 
+### Multi-Track Wave Concurrency
+
+When running batch multi-track execution (via `/superconductor:batch-execute`), independent tracks within an active phase execute concurrently in dedicated worktrees with a serialized merge gate:
+- **Dependency Wave Partitioning:** Tracks are topologically analyzed and partitioned into waves (`Wave 1`, `Wave 2`, ...). Independent tracks within each wave run in parallel.
+- **Dedicated Worktree Isolation:** Each track executes inside an isolated worktree (`.worktrees/wt-track-<track_id>`) allocated by `WorktreeIsolationManager`, ensuring zero git index lock contention or filesystem cross-talk.
+- **Serialized Merge Gate:** As tracks pass verification, track branches (`track/<track_id>`) integrate into `main` sequentially through a serialized merge gate mutex before worktrees are deallocated, guaranteeing linear and conflict-free integration.
+
 ### Standard Task Workflow
 
 1. **Select Task:** Choose the next available task using the `task_query` MCP tool in sequential order

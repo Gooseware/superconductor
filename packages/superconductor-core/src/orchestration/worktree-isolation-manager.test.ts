@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'node:fs';
+import path from 'node:path';
+import * as child_process from 'node:child_process';
 import {
   WorktreeIsolationManager,
   WorktreeAlreadyAllocatedError,
@@ -129,7 +131,9 @@ describe('WorktreeIsolationManager', () => {
   it('release calls wt remove <branch> and clears allocation map', async () => {
     const manager = new WorktreeIsolationManager(mockShell);
     await manager.allocate('agent-1', 'track-123');
-    expect(manager.getWorktreePath('agent-1')).toBe('.worktrees/wt/agent-1-track-123');
+    expect(manager.getWorktreePath('agent-1')).toBe(
+      path.join(process.cwd(), '.worktrees', 'wt/agent-1-track-123')
+    );
 
     await manager.release('agent-1');
 
@@ -167,11 +171,144 @@ describe('WorktreeIsolationManager', () => {
     expect(manager.getWorktreePath('agent-1')).toBeUndefined();
 
     await manager.allocate('agent-1', 'track-100');
-    expect(manager.getWorktreePath('agent-1')).toBe('.worktrees/wt/agent-1-track-100');
+    expect(manager.getWorktreePath('agent-1')).toBe(
+      path.join(process.cwd(), '.worktrees', 'wt/agent-1-track-100')
+    );
 
     await manager.release('agent-1');
     expect(manager.getWorktreePath('agent-1')).toBeUndefined();
     manager.destroy();
+  });
+
+  it('getWorktreePath returns path from wt list --format=json if available', async () => {
+    const mockExecSync = vi.fn().mockReturnValue(
+      JSON.stringify({
+        schema: 2,
+        items: [
+          {
+            branch: 'wt/agent-wt-track-wt',
+            worktree: { path: '/custom/worktrees/wt-agent-wt-track-wt' },
+          },
+        ],
+      })
+    );
+    const manager = new WorktreeIsolationManager(mockShell, {
+      execSync: mockExecSync as any,
+    });
+    await manager.allocate('agent-wt', 'track-wt');
+
+    expect(manager.getWorktreePath('agent-wt')).toBe(
+      '/custom/worktrees/wt-agent-wt-track-wt'
+    );
+    expect(mockExecSync).toHaveBeenCalledWith(
+      expect.stringContaining('list --format=json'),
+      expect.anything()
+    );
+    manager.destroy();
+  });
+
+  it('getWorktreePath falls back to canonical path if wt list fails or branch not in items', async () => {
+    const mockExecSync = vi.fn().mockImplementation(() => {
+      throw new Error('wt list failed');
+    });
+    const manager = new WorktreeIsolationManager(mockShell, {
+      execSync: mockExecSync as any,
+    });
+    await manager.allocate('agent-fallback', 'track-fallback');
+
+    expect(manager.getWorktreePath('agent-fallback')).toBe(
+      path.join(process.cwd(), '.worktrees', 'wt/agent-fallback-track-fallback')
+    );
+    manager.destroy();
+  });
+
+  it('getWorktreePath resolves worktree-path from .config/wt.toml when wt list fails', async () => {
+    const mockExecSync = vi.fn().mockImplementation(() => {
+      throw new Error('wt list failed');
+    });
+    const manager = new WorktreeIsolationManager(mockShell, {
+      execSync: mockExecSync as any,
+    });
+    await manager.allocate('agent-cfg', 'track-cfg');
+
+    const configPath = path.join(process.cwd(), '.config', 'wt.toml');
+    const existsSpy = vi.spyOn(fs, 'existsSync').mockImplementation((p) => {
+      if (p === configPath) return true;
+      return false;
+    });
+    const readSpy = vi.spyOn(fs, 'readFileSync').mockImplementation(((p: any) => {
+      if (p === configPath) {
+        return 'worktree-path = "{{ repo_path }}/custom-trees/{{ branch | sanitize }}"';
+      }
+      return '';
+    }) as any);
+
+    try {
+      expect(manager.getWorktreePath('agent-cfg')).toBe(
+        `${process.cwd()}/custom-trees/wt-agent-cfg-track-cfg`
+      );
+    } finally {
+      existsSpy.mockRestore();
+      readSpy.mockRestore();
+      manager.destroy();
+    }
+  });
+
+  it('allocate creates relative symlink to node_modules if worktree node_modules is missing and root exists', async () => {
+    const manager = new WorktreeIsolationManager(mockShell);
+    const branch = 'wt/agent-symlink-track-symlink';
+    const worktreePath = path.join(process.cwd(), '.worktrees', branch);
+    const targetNodeModules = path.join(worktreePath, 'node_modules');
+    const rootNodeModules = path.join(process.cwd(), 'node_modules');
+
+    const existsSpy = vi.spyOn(fs, 'existsSync').mockImplementation((p) => {
+      const pathStr = p.toString();
+      if (pathStr === targetNodeModules) {
+        return false;
+      }
+      if (pathStr === rootNodeModules) {
+        return true;
+      }
+      return true;
+    });
+
+    const symlinkSpy = vi.spyOn(fs, 'symlinkSync').mockImplementation(() => {});
+
+    try {
+      await manager.allocate('agent-symlink', 'track-symlink');
+      const expectedRel = path.relative(worktreePath, rootNodeModules);
+      expect(symlinkSpy).toHaveBeenCalledWith(expectedRel, targetNodeModules, 'junction');
+    } finally {
+      existsSpy.mockRestore();
+      symlinkSpy.mockRestore();
+      manager.destroy();
+    }
+  });
+
+  it('allocate does not create symlink if worktree node_modules already exists', async () => {
+    const manager = new WorktreeIsolationManager(mockShell);
+    const branch = 'wt/agent-existing-track-existing';
+    const worktreePath = path.join(process.cwd(), '.worktrees', branch);
+    const targetNodeModules = path.join(worktreePath, 'node_modules');
+
+    const existsSpy = vi.spyOn(fs, 'existsSync').mockImplementation((p) => {
+      const pathStr = p.toString();
+      if (pathStr === targetNodeModules) {
+        return true;
+      }
+      return true;
+    });
+
+    const symlinkSpy = vi.spyOn(fs, 'symlinkSync').mockImplementation(() => {});
+
+    try {
+      await manager.allocate('agent-existing', 'track-existing');
+      expect(symlinkSpy).not.toHaveBeenCalled();
+    } finally {
+      existsSpy.mockRestore();
+      symlinkSpy.mockRestore();
+      manager.destroy();
+    }
   });
 
   it('process SIGINT signal invokes releaseAll', async () => {

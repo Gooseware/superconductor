@@ -23,3 +23,5 @@ export {
 } from './micro-swarm-orchestrator.js';
 
 export type { ShellRunner } from './workspace-guard.js';
+export * from './merge-queue-manager.js';
+export * from './multi-track-orchestrator.js';

@@ -98,7 +98,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
     - **Headless Automation (`--headless`):** If the user provided the `--headless` flag:
         1. **Pre-Flight Check:** Even in headless mode, you MUST check if a supervisor model has been configured via the `--supervisor=<model>` argument. If not, and this is NOT a CI environment, you may prompt the user using `ask_user` to select the supervisor model (Pro, Flash, Claude 3.5 Sonnet, Claude 3 Opus) to be used for the final Oracle Code Review. If in CI, default to Pro.
         2. If a specific track was provided, proceed with that track.
-        3. If `--all` was provided or NO track was specified, automatically queue ALL available tracks identified in step 3 for sequential execution. You MUST loop through the full `TRACK IMPLEMENTATION` protocol for each track one by one. In the final `TRACK CLEANUP` step, automatically trigger the Oracle Review using the selected supervisor model.
+        3. If `--all` was provided or NO track was specified, immediately transition directly to `/superconductor:batch-execute --headless` to execute all available tracks in parallel multi-track waves via isolated worktrees rather than looping sequentially.
     - **Interactive Mode (Default):**
         - **If a track name was provided:**
             1.  Perform an exact, case-insensitive match for the provided name against the track descriptions.
@@ -110,7 +110,7 @@ Correctness reviewer will reject your output if 🔍 Intelligence OR 📓 Notebo
                 -   **If an existing track is selected:** Proceed to **3.0 TRACK IMPLEMENTATION**.
                 -   **If "Execute All Available Tracks (Headless)" is selected:**
                     - **Action:** First run `agy models` to fetch available models, then ask the user via `ask_user` (header: "Supervisor Model", question: "Which supervisor model should check the final steps (Oracle Review) for these tracks?", type: "choice", options: models from `agy models`).
-                    - **Execution:** Transition into headless mode and execute all available tracks sequentially without further interaction, using the chosen supervisor model for the final Oracle review of each track.
+                    - **Execution:** Immediately transition directly to `/superconductor:batch-execute --headless` to execute all available tracks in parallel multi-track waves via isolated worktrees rather than looping sequentially.
                 -   **If a new description is entered in the "Other" field:**
                     -   **Action:** Transition to the requirements gathering phase of a new track.
                     -   **Protocol:** Follow the interactive sequence for specification (`spec.md`) and plan (`plan.md`) generation as defined in the **NEW TRACK INITIALIZATION** section of `/superconductor:newTrack`. Use the provided description as the starting point.

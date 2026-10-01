@@ -4,7 +4,7 @@ description: Batch execution of pending tracks in the active phase (or targeted 
 ---
 
 ## 1.0 SYSTEM DIRECTIVE
-You are the Batch Orchestrator for the Superconductor spec-driven development framework. Your task is to execute pending tracks within the targeted milestone phase in `superconductor/tracks.md` sequentially in headless mode (`--headless`).
+You are the Batch Orchestrator for the Superconductor spec-driven development framework. Your task is to execute pending tracks within the targeted milestone phase in `superconductor/tracks.md` in **parallel multi-track waves** using worktree isolation in headless mode (`--headless`). Sequential track execution is strictly an override fallback (`--sequential`).
 
 ### Design Philosophy: Failures Are Presents
 This orchestrator operates under a strict **continue-on-failure** policy (`--phase-policy=continue`). Humans need sleep. When the batch run finishes, every failed track is a **gift** — a well-scoped, well-logged problem waiting in the morning briefing. The swarm works while you rest; you wake to a clean summary of wins and interesting puzzles.
@@ -16,6 +16,7 @@ All execution MUST be completely unprompted and autonomous. Zero human intervent
 - `--phase-policy=<continue|halt>`: Failure handling policy. Defaults to `continue`. On track failure, reverts worktree cleanly, marks track as morning present, and proceeds to next pending track in phase without looping.
 - `--auto-advance`: Automatically advances sliding window upon active phase completion and continues batch execution into the newly activated Phase 1. When omitted, stops and summarizes upon phase completion.
 - `--headless`: Default execution mode. Bypasses all interactive user prompts.
+- `--sequential`: Sequential execution override fallback flag. Runs pending tracks one-by-one sequentially rather than in parallel dependency waves.
 
 ---
 
@@ -28,44 +29,56 @@ All execution MUST be completely unprompted and autonomous. Zero human intervent
    - Parse entries strictly within the resolved target phase section table.
    - **MUST IGNORE** tracks located in upstream completed phases, downstream pending phases, or any other phase sections.
 3. **Filter Pending Tracks:**
-   - Identify all tracks within the target phase having status `[ ]` (Pending), preserved in exact document order.
+   - Identify all tracks within the target phase having status `[ ]` (Pending), preserved in document order.
    - Ignore completed (`[x]`), absorbed/cancelled (`[-]`), and currently running (`[~]`) tracks.
-4. **Announce Queue:**
-   - Record resolved track queue in context and announce:
-     `"Batch execution queue resolved for Phase <N> ('<phase_id>'): [<track_1>, <track_2>, ...]"`
+4. **Partition into Dependency Waves:**
+   - Perform topological analysis on the filtered pending `[ ]` tracks using dependency graphs and declared prerequisites in `spec.md` / `plan.md`.
+   - Partition tracks into **Dependency Waves** (`Wave 1`, `Wave 2`, ...) using topological analysis and worktree allocation:
+     - Mutually independent tracks with no blocking edges execute concurrently within the same wave.
+     - Dependent tracks are deferred to subsequent waves.
+     - If `--sequential` is specified, partition tracks into single-track waves preserving document order.
+5. **Announce Queue:**
+   - Record resolved track queue and wave partitions in context and announce:
+     `"Batch execution queue resolved for Phase <N> ('<phase_id>') into <M> waves: Wave 1: [<tracks>], Wave 2: [<tracks>]..."`
    - If no pending tracks exist in the target phase, report:
      `"No pending tracks in Phase <N> ('<phase_id>')."`
      Proceed to evaluate sliding-window progression (Section 2.5).
 
 ---
 
-## 2.0 BATCH EXECUTION LOOP
+## 2.0 BATCH EXECUTION LOOP (PARALLEL MULTI-TRACK WAVES)
 
-For each track in the resolved queue:
+For each Dependency Wave (`Wave 1`, `Wave 2`, ...) in the resolved queue:
 
-### 2.1 Track Initialization
-1. Update `superconductor/tracks.md` to set track status to `[~]` (In Progress) in the target phase table.
-2. Announce: `"Beginning batch execution for track: <track_id> (Phase <N>: <phase_name>)"`
+### 2.1 Wave Initialization & Worktree Allocation
+1. For each track `<track_id>` in the current wave:
+   - Allocate a dedicated worktree at `.worktrees/wt-track-<track_id>` via `WorktreeIsolationManager` (or `git worktree add`).
+   - Create or check out dedicated branch `track/<track_id>` derived from `main`.
+   - Update `superconductor/tracks.md` to set track status to `[~]` (In Progress) in the target phase table.
+2. Announce: `"Beginning parallel wave execution for tracks: [<wave_tracks>] (Phase <N>: <phase_name>)"`
 
-### 2.2 Execution
-1. Transition to the `/superconductor:implement` skill protocol with arguments:
-   `--headless --track=<track_id>`
-2. Ensure **Pipeline Swarm Mode** (`swarm-orchestrate`) is active.
+### 2.2 Concurrent Wave Execution
+1. Concurrently invoke `swarm-execute` for each track in its assigned worktree:
+   - Transition to `/superconductor:swarm-execute <track_id> --headless` executed within `.worktrees/wt-track-<track_id>`.
+   - Quorum FSM state, review logs, and test artifacts are strictly isolated in scoped quorum paths within `.worktrees/wt-track-<track_id>/.superconductor/quorum/` and `superconductor/tracks/<track_id>/`.
+   - Tracks within the wave execute in parallel without mutual interference or file collisions.
 
-### 2.3 Success Handling
-If the track completes successfully (Oracle verdict: `READY`):
-1. Update `superconductor/tracks.md` status to `[x]` (Completed).
-2. Automatically merge the track branch to `main`.
-3. Record `✅ <track_id>` and Oracle score (e.g. `9/10`) in the batch log buffer.
+### 2.3 Wave Integration & Success Handling
+When tracks in the wave complete:
+1. For each track that completes successfully (Oracle verdict: `READY`):
+   - Pass the verified track branch through the serialized merge gate to safely merge into `main` without race conditions.
+   - Cleanly release and remove the dedicated worktree `.worktrees/wt-track-<track_id>`.
+   - Update `superconductor/tracks.md` status to `[x]` (Completed).
+   - Record `✅ <track_id>` and Oracle score (e.g. `9/10`) in the batch log buffer.
 
 ### 2.4 Failure & Present Handling (Continue-on-Failure: `--phase-policy=continue`)
 Default failure policy is `--phase-policy=continue`.
-If the track fails at any point (Oracle verdict: `NEEDS_FIXES` after iterations, unhandled error, build/type error, or test breakage):
+If a track fails at any point (Oracle verdict: `NEEDS_FIXES` after iterations, unhandled error, build/type error, or test breakage):
 1. **Interactive Continue Policy (`--phase-policy=continue`):**
    - **DO NOT HALT.** Do NOT deadlock or stall the batch runner.
    - If `--phase-policy=halt` was explicitly set, stop batch execution immediately and generate the briefing report.
 2. **Worktree Hygiene:**
-   - Cleanly revert dirty worktree state (`git reset --hard HEAD` / worktree release) to ensure no uncommitted artifacts leak into subsequent tracks.
+   - Cleanly revert worktree state (`git reset --hard HEAD`) and release/remove the allocated worktree `.worktrees/wt-track-<track_id>` to ensure no uncommitted artifacts leak into subsequent tracks or waves.
 3. **Revert Status to Morning Present:**
    - Revert `superconductor/tracks.md` status for `<track_id>` back to `[ ]` (Pending) so it can be retried or inspected.
    - Mark track as a **"morning present"** in batch state. Do NOT retry the failed track in the current batch pass to prevent infinite loops.
@@ -77,7 +90,7 @@ If the track fails at any point (Oracle verdict: `NEEDS_FIXES` after iterations,
 5. **Record in Batch Log Buffer:**
    - Record `🎁 <track_id>` in the batch log buffer with captured diagnostics.
 6. **Advance Queue:**
-   - **Immediately proceed to the next pending track in the active phase queue rather than halting or deadlocking.**
+   - **Immediately proceed to the next pending track in the active phase queue (and next wave) rather than halting or deadlocking.**
 
 ### 2.5 Sliding Window Progression
 When all tracks in the active phase reach `[x]` (Completed):
