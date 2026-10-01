@@ -144,3 +144,38 @@ describe('Minimum Concurrency Gate — batch sizing enforcement', () => {
     expect(violations).toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Suite 4 — REUSES Metadata Extraction
+// Annotated tasks with REUSES tags must populate reuses array on SwarmWorkUnit.
+// ---------------------------------------------------------------------------
+describe('REUSES Metadata Extraction in parseWorkUnits', () => {
+  it('extracts single-line and multi-line REUSES annotations', () => {
+    const plan = `
+## Phase 1
+- [ ] Task: Task with single-line reuses [TIER-2] [AGENT:superconductor-processor] [DOMAIN:frontend]
+    CREATES: src/components/button.tsx
+    REUSES: card.tsx, auth-sso
+
+- [ ] Task: Task with multi-line reuses [TIER-2] [AGENT:superconductor-processor] [DOMAIN:backend]
+    CREATES: src/api/auth.ts
+    REUSES:
+      - token-verifier.ts
+      - @superconductor/kernel:auth
+      - registry_list_blocks
+
+- [ ] Task: Task without reuses [TIER-2] [AGENT:superconductor-processor] [DOMAIN:tests]
+    CREATES: src/tests/auth.test.ts
+`;
+    const units = parseWorkUnits(plan);
+    expect(units).toHaveLength(3);
+    expect(units[0].reuses).toEqual(['card.tsx', 'auth-sso']);
+    expect(units[1].reuses).toEqual([
+      'token-verifier.ts',
+      '@superconductor/kernel:auth',
+      'registry_list_blocks',
+    ]);
+    expect(units[2].reuses).toBeUndefined();
+  });
+});
+

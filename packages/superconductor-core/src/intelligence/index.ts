@@ -22,3 +22,4 @@ export * from './utils/language-profile.js';
 export * from './audit-reporter.js';
 export * from './preflight-check.js';
 export * from './cli-blueprint.js';
+export * from './partitioner.js';

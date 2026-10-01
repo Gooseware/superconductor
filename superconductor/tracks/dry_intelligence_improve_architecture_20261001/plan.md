@@ -1,6 +1,6 @@
 # Implementation Plan: DRY Intelligence & Architecture Refactoring Swarm
 
-**Status:** [ ]
+**Status:** [x]
 **Milestone:** core-foundation
 
 ---
@@ -638,84 +638,84 @@
 ---
 
 ## Phase 0: Swarm Preflight
-- [ ] Task: Preflight Checks [TIER-1:TCS=3] [AGENT:superconductor-orchestrator]
+- [x] Task: Preflight Checks [TIER-1:TCS=3] [AGENT:superconductor-orchestrator]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Dependencies available"
     REUSES: []
-    - [ ] Verify node and dependencies [TIER-1:TCS=3]
+    - [x] Verify node and dependencies [TIER-1:TCS=3]
 
 ## Phase 1: Planning Schema & Component Resolution
-- [ ] Task: Implement REUSES Metadata Tag [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:planning]
+- [x] Task: Implement REUSES Metadata Tag [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:planning]
     CREATES: packages/superconductor-core/src/planning/task-schema.ts, packages/superconductor-core/src/planning/parser.ts
     PROTECTED: packages/superconductor-core/src/planning/index.ts
     INVARIANT_AFTER: "Task parser MUST correctly extract the REUSES tag array."
     REUSES: []
-    - [ ] Update task parsing regex to extract `REUSES: [components]`. [TIER-1:TCS=3]
-    - [ ] Update AST definitions for task cards. [TIER-1:TCS=3]
+    - [x] Update task parsing regex to extract `REUSES: [components]`. [TIER-1:TCS=3]
+    - [x] Update AST definitions for task cards. [TIER-1:TCS=3]
 
-- [ ] Task: Integrate Component Registry Queries in Planner [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:planning]
+- [x] Task: Integrate Component Registry Queries in Planner [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:planning]
     CREATES: packages/superconductor-core/src/planning/registry-resolver.ts
     PROTECTED: packages/superconductor-core/src/agents/dreamer.ts
     INVARIANT_AFTER: "Planner MUST query registry_recommend before generating tasks."
     REUSES: [registry_list_blocks]
-    - [ ] Hook `registry_recommend` and `06_api_surface.toon` ingest into the planning context generation. [TIER-1:TCS=3]
+    - [x] Hook `registry_recommend` and `06_api_surface.toon` ingest into the planning context generation. [TIER-1:TCS=3]
 
 ## Phase 2: Swarm Architecture Scanner
-- [ ] Task: Partition Logic for Multi-Agent Scanning [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:architecture]
+- [x] Task: Partition Logic for Multi-Agent Scanning [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:architecture]
     CREATES: packages/superconductor-core/src/intelligence/partitioner.ts
     PROTECTED: skills/improve-architecture/SKILL.md
     INVARIANT_AFTER: "Partitioner MUST divide codebase strictly by coupling clusters and hotspots without overlap."
     REUSES: []
-    - [ ] Implement chunking based on `08_dependency_surface.json`, `04_coupling.json`, and `03_complexity.json`. [TIER-1:TCS=3]
+    - [x] Implement chunking based on `08_dependency_surface.json`, `04_coupling.json`, and `03_complexity.json`. [TIER-1:TCS=3]
 
-- [ ] Task: Update Improve Architecture Skill [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:architecture]
+- [x] Task: Update Improve Architecture Skill [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:architecture]
     CREATES: skills/improve-architecture/SKILL.md, skills/improve-architecture/scripts/swarm-scan.js
     PROTECTED: skills/improve-architecture/index.js
     INVARIANT_AFTER: "Improve Architecture skill MUST invoke swarm-scan script."
     REUSES: []
-    - [ ] Rewrite SKILL.md to utilize the multi-agent approach. [TIER-1:TCS=5]
-    - [ ] Wire up the dispatcher. [TIER-1:TCS=3]
+    - [x] Rewrite SKILL.md to utilize the multi-agent approach. [TIER-1:TCS=5]
+    - [x] Wire up the dispatcher. [TIER-1:TCS=3]
 
 ## Phase 3: Astryx Interactive Report Application
-- [ ] Task: Scaffold Astryx Report Frontend [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:frontend]
+- [x] Task: Scaffold Astryx Report Frontend [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:frontend]
     CREATES: packages/superconductor-ui/src/apps/architecture-report/App.tsx, packages/superconductor-ui/src/apps/architecture-report/index.tsx
     PROTECTED: packages/superconductor-ui/package.json
     INVARIANT_AFTER: "Architecture report App MUST bootstrap without errors."
     REUSES: [AstryxThemeProvider, AstryxLayout]
-    - [ ] Initialize standard Astryx app shell. [TIER-1:TCS=3]
+    - [x] Initialize standard Astryx app shell. [TIER-1:TCS=3]
 
-- [ ] Task: Implement Candidate Visualization & Track Generation [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:frontend]
+- [x] Task: Implement Candidate Visualization & Track Generation [TIER-3:TCS=3] [AGENT:superconductor-processor] [DOMAIN:frontend]
     CREATES: packages/superconductor-ui/src/apps/architecture-report/components/CandidateList.tsx, packages/superconductor-ui/src/apps/architecture-report/components/TrackGenerator.tsx
     PROTECTED: packages/superconductor-ui/src/apps/architecture-report/App.tsx
     INVARIANT_AFTER: "Track Generator MUST emit valid Superconductor CLI commands."
     REUSES: [AstryxCard, AstryxCheckbox, AstryxButton]
-    - [ ] Render before/after diagrams. [TIER-1:TCS=3]
-    - [ ] Add checkboxes and the "Generate Tracks" CTA. [TIER-1:TCS=3]
+    - [x] Render before/after diagrams. [TIER-1:TCS=3]
+    - [x] Add checkboxes and the "Generate Tracks" CTA. [TIER-1:TCS=3]
 
 ## Phase 4: Quorum DRY Enforcement
-- [ ] Task: Add Shenanigan #9 to Adversarial Reviewer [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:quorum]
+- [x] Task: Add Shenanigan #9 to Adversarial Reviewer [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:quorum]
     CREATES: skills/adversarial-reviewer/shenanigans/09-component-reinvention.ts, skills/adversarial-reviewer/prompts.ts
     PROTECTED: skills/adversarial-reviewer/SKILL.md
     INVARIANT_AFTER: "Adversarial Reviewer MUST flag component reinvention with NEEDS_FIXES."
     REUSES: []
-    - [ ] Implement diff analysis against known component registry payloads. [TIER-1:TCS=3]
-    - [ ] Update prompts to include Shenanigan #9. [TIER-1:TCS=3]
+    - [x] Implement diff analysis against known component registry payloads. [TIER-1:TCS=3]
+    - [x] Update prompts to include Shenanigan #9. [TIER-1:TCS=3]
 
 ## Phase 5: End-to-End Verification & Quorum Gate
-- [ ] Task: Run full test suite and verify cross-subsystem integration [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:verification]
+- [x] Task: Run full test suite and verify cross-subsystem integration [TIER-2:TCS=3] [AGENT:superconductor-processor] [DOMAIN:verification]
     CREATES: 
     PROTECTED: packages/superconductor-core/, packages/superconductor-kernel/, packages/engine/
     INVARIANT_AFTER: "All existing and new test suites pass with 0 regressions."
     REUSES: []
-    - [ ] Run vitest across core, kernel, and ui packages. [TIER-1:TCS=3]
-    - [ ] Verify Quorum DRY Shenanigan #9 triggers correctly on duplicate mock components. [TIER-1:TCS=3]
+    - [x] Run vitest across core, kernel, and ui packages. [TIER-1:TCS=3]
+    - [x] Verify Quorum DRY Shenanigan #9 triggers correctly on duplicate mock components. [TIER-1:TCS=3]
 
 ## Phase 6: Integration & Finalization
-- [ ] Task: Integrate track 'dry_intelligence_improve_architecture_20261001' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor] [DOMAIN:git]
+- [x] Task: Integrate track 'dry_intelligence_improve_architecture_20261001' into main branch [TIER-1:TCS=3] [AGENT:superconductor-processor] [DOMAIN:git]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Track merged to main with Swarm-Authorized commit trailer."
     REUSES: []
-    - [ ] Re-run SwarmAuthorizer trailer generation with 5 reviewer IDs. [TIER-1:TCS=3]
-    - [ ] Merge branch into main. [TIER-1:TCS=3]
+    - [x] Re-run SwarmAuthorizer trailer generation with 5 reviewer IDs. [TIER-1:TCS=3]
+    - [x] Merge branch into main. [TIER-1:TCS=3]

@@ -1,76 +1,129 @@
 ---
 name: improve-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+description: Swarm-based architecture scanner that partitions the codebase via workspace intelligence, dispatches parallel subagents, synthesizes candidates into an interactive Astryx report, and generates refactoring tracks.
 ---
 
 ## 1.0 SYSTEM DIRECTIVE
-You are an AI agent assistant for the Superconductor spec-driven development framework. Your current task is to execute the improve-architecture skill. You MUST follow this protocol precisely.
+You are an AI agent assistant for the Superconductor spec-driven development framework executing the `improve-architecture` skill. You MUST follow this swarm-based multi-agent protocol precisely.
 
-CRITICAL: You must validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
+CRITICAL: You must validate the success of every step. If any tool call or script execution fails, you MUST halt immediately, announce the failure, and await further instructions.
 
-## 2.0 SKILL INSTRUCTIONS
-# Improve Codebase Architecture
+## 2.0 PROTOCOL OVERVIEW
+The modernized Architecture Swarm operates as a high-throughput, parallel multi-agent pipeline designed to surface architectural friction, detect component reinvention, deepen shallow modules, and seal leaky seams.
 
-Surface architectural friction and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
+```mermaid
+flowchart TD
+  P1["Phase 1: Swarm Partitioning\n(ArchitectureScanPartitioner & swarm-scan.js)"] --> P2["Phase 2: Parallel Subagent Scan\n(Concurrent Partition Reviewers)"]
+  P2 --> P3["Phase 3: Astryx Interactive Report\n(Interactive React UI & Candidate Cards)"]
+  P3 --> P4["Phase 4: One-Click Track Generation\n(Spawn Superconductor Tracks)"]
+```
 
-This command is _informed_ by the project's domain model and built on a shared design vocabulary:
+---
 
-- Use standard Superconductor architecture vocabulary (**module**, **interface**, **depth**, **seam**, **adapter**, **leverage**, **locality**) and its principles (the deletion test, "the interface is the test surface", "one adapter = hypothetical seam, two = real"). Use these terms exactly in every suggestion — don't drift into "component," "service," "API," or "boundary."
-- The domain language in `CONTEXT.md` gives names to good seams; ADRs in `docs/adr/` record decisions this command should not re-litigate.
+## 3.0 SWARM EXECUTION PHASES
 
-## Process
+### Phase 1: Swarm Partitioning via Intelligence System
+The swarm begins by analyzing the project's intelligence snapshot to partition the codebase into balanced, non-overlapping clusters without file duplication.
 
-### 1. Explore
+1. **Invoke the Swarm Scanner Manifest Generator**:
+   Run the `swarm-scan.js` script to generate the partition manifest:
+   ```bash
+   node skills/improve-architecture/scripts/swarm-scan.js --manifest-only --output-manifest superconductor/architecture-scan-manifest.json
+   ```
+2. **Intelligence Snapshot Ingestion**:
+   `ArchitectureScanPartitioner` ingests:
+   - `08_dependency_surface.json`: Dependency surface heatmap identifying high fan-in/fan-out modules.
+   - `04_coupling.json`: Coupling graph and churn metrics identifying co-changing clusters.
+   - `03_complexity.json`: Cyclomatic complexity and hotspot scores.
+3. **Partition Invariant Enforcement**:
+   The partitioner guarantees **strict disjointness**: every codebase file belongs to exactly one partition. Workload is balanced using complexity-weighted graph clustering.
+4. **Manifest Emission**:
+   Outputs `architecture-scan-manifest.json` containing:
+   - Partition ID, domain name, and designated agent role.
+   - Exact list of assigned source files.
+   - Complexity score, hotspots, and coupling metrics.
 
-**Scope before you scan — YAGNI.** Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed. Decide *where* to look before you look:
+---
 
-- If the user named a direction — a module, a subsystem, a pain point — take it, and skip the inference below.
-- Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
+### Phase 2: Parallel Subagent Scan Dispatch
+The Orchestrator dispatches parallel Processor subagents across the partitions defined in the scan manifest.
 
-Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
+1. **Concurrent Dispatch**:
+   For each partition in `architecture-scan-manifest.json`, spawn a subagent (`superconductor-processor` or `Explore` subagent):
+   ```bash
+   # Subagents analyze their assigned partition files concurrently
+   ```
+2. **Four Architectural Dimensions to Audit**:
+   Each subagent audits its partition against four core Superconductor architectural criteria:
+   - **Non-DRY Duplicate Logic & Component Reinvention**:
+     Identify logic, UI components, adapters, or helpers that reimplement capabilities already available in the Design OS Kernel Component Registry (`registry_list_blocks`, `registry_recommend`) or golden source packages (`@superconductor/core`).
+   - **Shallow Modules (Deletion Test Candidates)**:
+     Locate modules where interface complexity ≈ implementation complexity (e.g. thin wrappers, pass-through facades, artificial abstractions). Apply the **deletion test**: *would deleting this module concentrate complexity rather than scatter it?*
+   - **Leaky Seams & High Coupling Clusters**:
+     Identify clusters where internal implementation details leak across subsystem boundaries, causing cascading edits across multiple packages.
+   - **Proposed Track Formulation**:
+     For each discovered opportunity, formulate a track proposal with:
+     - `trackId`: A sanitized, timestamped identifier (e.g. `dry_consolidate_cache_manager_20261001`).
+     - `title` & `description`: Clear problem statement and refactoring objective.
+     - `filesAffected`: Exact paths involved.
+     - `benefits`: Concrete improvements in **locality**, **leverage**, and **testability**.
+     - `beforeAfter`: Side-by-side Mermaid diagrams illustrating the architectural shift.
+3. **Subagent Findings Format**:
+   Subagents record their findings in JSON matching the `ArchitectureCandidate` schema.
 
-Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
+---
 
-- Where does understanding one concept require bouncing between many small modules?
-- Where are modules **shallow** — interface nearly as complex as the implementation?
-- Where have pure functions been extracted just for testability, but the real bugs hide in how they're called (no **locality**)?
-- Where do tightly-coupled modules leak across their seams?
-- Which parts of the codebase are untested, or hard to test through their current interface?
+### Phase 3: Synthesis into the Astryx Interactive Report App
+Once subagent partition scans complete, the Orchestrator aggregates all findings into a unified candidate catalog and launches the Astryx interactive report frontend.
 
-Apply the **deletion test** to anything you suspect is shallow: would deleting it concentrate complexity, or just move it? A "yes, concentrates" is the signal you want.
+1. **Aggregate Findings via `swarm-scan.js`**:
+   Run the aggregation command:
+   ```bash
+   node skills/improve-architecture/scripts/swarm-scan.js --aggregate <subagent_findings_files...> --output-candidates superconductor/architecture-candidates.json
+   ```
+   Or run a comprehensive direct scan:
+   ```bash
+   node skills/improve-architecture/scripts/swarm-scan.js --output-candidates superconductor/architecture-candidates.json
+   ```
+2. **Launch Astryx Architecture Report App**:
+   Bootstrap and launch the Astryx interactive report application (`packages/superconductor-ui/src/apps/architecture-report`):
+   ```bash
+   pnpm --filter @superconductor/ui dev:report
+   ```
+3. **Interactive Visualizations**:
+   The report application provides:
+   - **Interactive Before/After Diagrams**: Visual representation of the existing tangled/shallow structure versus the proposed deep architectural seam.
+   - **Recommendation Strength Badges**: Filterable badges (`Strong`, `Worth exploring`, `Speculative`).
+   - **Locality & Leverage Analysis**: Detailed metrics on test surface reduction and maintenance leverage.
+   - **Selectable Checkboxes**: Granular candidate selection for batch track conversion.
 
-### 2. Present candidates as an HTML report
+---
 
-Write a self-contained HTML file to the OS temp directory so nothing lands in the repo. Resolve the temp dir from `$TMPDIR`, falling back to `/tmp` (or `%TEMP%` on Windows), and write to `<tmpdir>/architecture-review-<timestamp>.html` so each run gets a fresh file. Open it for the user — `xdg-open <path>` on Linux, `open <path>` on macOS, `start <path>` on Windows — and tell them the absolute path.
+### Phase 4: One-Click / Checkbox Track Generation
+The Astryx interactive application and CLI enable immediate conversion of architectural recommendations into active Superconductor tracks.
 
-The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
+1. **Candidate Selection**:
+   The user selects one or more candidate checkboxes in the Astryx report interface (or passes candidate IDs via CLI).
+2. **Track Emission**:
+   Clicking **"Generate Tracks"** triggers the Conductor track creation pipeline:
+   ```bash
+   # Generates track directory, spec.md, and plan.md
+   /superconductor:new-track --id <trackId> --title "<title>"
+   ```
+3. **Automated Spec & Plan Hydration**:
+   The generated track is pre-populated with:
+   - `spec.md`: Background, problem analysis, architectural invariants, and acceptance criteria derived from the candidate card.
+   - `plan.md`: Modular task cards with assigned domains, protected files, and `REUSES: [...]` tags to prevent reinventing existing blocks.
+4. **Execution Transition**:
+   The user can immediately invoke `/superconductor:implement` or `/superconductor:swarm-execute` on the newly minted track to execute the refactoring.
 
-For each candidate, render a card with:
+---
 
-- **Files** — which files/modules are involved
-- **Problem** — why the current architecture is causing friction
-- **Solution** — plain English description of what would change
-- **Benefits** — explained in terms of locality and leverage, and how tests would improve
-- **Before / After diagram** — side-by-side, custom-drawn, illustrating the shallowness and the deepening
-- **Recommendation strength** — one of `Strong`, `Worth exploring`, `Speculative`, rendered as a badge
-
-End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
-
-**Use CONTEXT.md vocabulary for the domain, and standard Superconductor vocabulary for the architecture.** If `CONTEXT.md` defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
-
-**ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007 — but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
-
-See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance.
-
-Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
-
-### 3. Grilling loop
-
-Once the user picks a candidate, run the `/superconductor:grill` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
-
-Side effects happen inline as decisions crystallize — update `CONTEXT.md` to keep the domain model current as you go:
-
-- **Naming a deepened module after a concept not in `CONTEXT.md`?** Add the term to `CONTEXT.md`. Create the file lazily if it doesn't exist.
-- **Sharpening a fuzzy term during the conversation?** Update `CONTEXT.md` right there.
-- **User rejects the candidate with a load-bearing reason?** Offer an ADR, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones.
-- **Want to explore alternative interfaces for the deepened module?** Explore multiple designs and use a design-it-twice parallel sub-agent pattern.
+## 4.0 SUMMARY OF CLI USAGE
+| Command | Action |
+|---------|--------|
+| `node skills/improve-architecture/scripts/swarm-scan.js --manifest-only` | Partition codebase and write `architecture-scan-manifest.json` |
+| `node skills/improve-architecture/scripts/swarm-scan.js --aggregate <files...>` | Aggregate parallel subagent findings into `architecture-candidates.json` |
+| `node skills/improve-architecture/scripts/swarm-scan.js` | Full scan: partition, analyze candidates, and generate reports |
+| `node skills/improve-architecture/scripts/swarm-scan.js --json` | Output JSON report to stdout for programmatic ingest |
+| `node skills/improve-architecture/scripts/swarm-scan.js --dry-run` | Print summary diagnostics without mutating filesystem |

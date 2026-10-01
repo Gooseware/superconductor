@@ -108,10 +108,6 @@
     "churnCount": 16
   },
   {
-    "file": "GEMINI.md",
-    "churnCount": 16
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/snapshot-reader.ts",
     "churnCount": 15
   },
@@ -149,10 +145,6 @@
   },
   {
     "file": "superconductor/tracks/autonomous_curator_20260710/plan.md",
-    "churnCount": 13
-  },
-  {
-    "file": "packages/superconductor-core/src/permissions/interceptor.ts",
     "churnCount": 13
   },
   {
@@ -385,14 +377,6 @@
   },
   {
     "file": "packages/superconductor-core/test/permissions/adv.test.ts",
-    "churnCount": 8
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/workspace-guard.ts",
-    "churnCount": 8
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/index.ts",
     "churnCount": 8
   },
   {
@@ -656,19 +640,11 @@
     "churnCount": 6
   },
   {
-    "file": "packages/superconductor-core/test/permissions/interceptor.test.ts",
-    "churnCount": 6
-  },
-  {
     "file": "packages/superconductor-core/src/review/aggregate-coverage.ts",
     "churnCount": 6
   },
   {
     "file": "packages/superconductor-core/src/permissions/track-state.ts",
-    "churnCount": 6
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/workspace-guard.test.ts",
     "churnCount": 6
   },
   {
@@ -1261,10 +1237,6 @@
   },
   {
     "file": "packages/superconductor-core/src/remediation/index.ts",
-    "churnCount": 4
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.test.ts",
     "churnCount": 4
   },
   {
@@ -10148,10 +10120,6 @@
     "churnCount": 3
   },
   {
-    "file": "packages/superconductor-core/src/track/swarm-authorizer.ts",
-    "churnCount": 3
-  },
-  {
     "file": "packages/superconductor-core/src/track/execution-planner.ts",
     "churnCount": 3
   },
@@ -16252,15 +16220,7 @@
     "churnCount": 2
   },
   {
-    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts",
-    "churnCount": 2
-  },
-  {
     "file": "packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/__tests__/swarm-granularity.test.ts",
     "churnCount": 2
   },
   {
@@ -33772,10 +33732,6 @@
     "churnCount": 1
   },
   {
-    "file": "skills/triage/SKILL.md",
-    "churnCount": 1
-  },
-  {
     "file": "skills/to-tickets/skill-rules.json",
     "churnCount": 1
   },
@@ -37309,10 +37265,6 @@
   },
   {
     "file": "packages/superconductor-core/src/orchestration/__tests__/agent-config-model-resolution.test.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/swarm-granularity.ts",
     "churnCount": 1
   },
   {
@@ -50596,10 +50548,6 @@
     "churn": 2
   },
   {
-    "file": "superconductor/tracks.md",
-    "churn": 4
-  },
-  {
     "file": "commands/superconductor/phase.toml",
     "churn": 1
   },
@@ -50744,10 +50692,6 @@
     "churn": 1
   },
   {
-    "file": "packages/superconductor-core/src/__tests__/integration/setup-intelligence-flow.test.ts",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/audit-reporter.test.ts",
     "churn": 1
   },
@@ -50845,10 +50789,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/review/index.ts",
     "churn": 1
   },
   {
@@ -50968,19 +50908,11 @@
     "churn": 1
   },
   {
-    "file": "skills/implement/SKILL.md",
-    "churn": 1
-  },
-  {
     "file": "skills/setup/SKILL.md",
     "churn": 1
   },
   {
     "file": "skills/setup/references/setup-protocol.md",
-    "churn": 1
-  },
-  {
-    "file": "skills/swarm-execute/SKILL.md",
     "churn": 1
   },
   {
@@ -51000,39 +50932,11 @@
     "churn": 1
   },
   {
-    "file": "superconductor/intelligence/00_manifest.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/01_fingerprint.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/03_complexity.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/04_coupling.json",
-    "churn": 1
-  },
-  {
     "file": "superconductor/intelligence/05_sast.json",
     "churn": 1
   },
   {
     "file": "superconductor/intelligence/06_api_surface.toon",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/07_test_gaps.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_dependency_surface.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/08_package_surface.json",
     "churn": 1
   },
   {
@@ -51061,6 +50965,146 @@
   },
   {
     "file": "tests/skills-intelligence-preflight.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks.md",
+    "churn": 3
+  },
+  {
+    "file": "superconductor/tracks/dry_intelligence_improve_architecture_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/dry_intelligence_improve_architecture_20261001/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/dry_intelligence_improve_architecture_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "GEMINI.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/__tests__/integration/setup-intelligence-flow.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/__tests__/swarm-granularity.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/swarm-granularity.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/workspace-guard.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/workspace-guard.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/permissions/interceptor.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/quorum-composition-resolver.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/quorum-composition-resolver.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/track/swarm-authorizer.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/track/swarm-authorizer.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/test/permissions/interceptor.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/swarm-execute/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/triage/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/01_fingerprint.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/03_complexity.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/07_test_gaps.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/08_dependency_surface.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/08_package_surface.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/adhoc_swarm_lifecycle_guardrails_20260930/plan.md",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/tracks/adhoc_swarm_lifecycle_guardrails_20260930/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/adhoc_swarm_lifecycle_guardrails_20260930/spec.md",
     "churn": 1
   }
 ]
