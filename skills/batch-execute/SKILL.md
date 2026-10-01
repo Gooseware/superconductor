@@ -25,23 +25,26 @@ All execution MUST be completely unprompted and autonomous. Zero human intervent
    - If `--phase=<value>` is specified: Resolve target phase matching either dynamic ordinal `<N>` or symbolic identifier `<phase_id>` in `superconductor/tracks.md`.
    - If `--phase` is omitted: Default to the active Phase 1. Identify active phase by locating section heading `## Phase 1: <Name> (Active)` or the first non-completed phase in document order.
    - For legacy unsegmented registries (single `## Active Tracks` table), treat all pending tracks as a single default active phase.
-2. **Phase Boundary Enforcement:**
-   - Parse entries strictly within the resolved target phase section table.
-   - **MUST IGNORE** tracks located in upstream completed phases, downstream pending phases, or any other phase sections.
+   - When targeting a specific phase, the orchestrator MUST IGNORE tracks in other/downstream phases outside the active target phase window.
+2. **Antichain Wave Planning Across Phases:**
+   - Mandate `TaskWavePlanner` topological antichain batching across all phases.
+   - Sequential phase barriers are eradicated: independent tracks across phases are batched into topological antichains to maximize swarm concurrency.
+   - Upstream dependencies are respected strictly via declared dependency graphs and file hazards, never by artificial phase barriers.
 3. **Filter Pending Tracks:**
-   - Identify all tracks within the target phase having status `[ ]` (Pending), preserved in document order.
+   - Identify all pending tracks with status `[ ]` across the target scope, preserved in document order.
    - Ignore completed (`[x]`), absorbed/cancelled (`[-]`), and currently running (`[~]`) tracks.
-4. **Partition into Dependency Waves:**
-   - Perform topological analysis on the filtered pending `[ ]` tracks using dependency graphs and declared prerequisites in `spec.md` / `plan.md`.
-   - Partition tracks into **Dependency Waves** (`Wave 1`, `Wave 2`, ...) using topological analysis and worktree allocation:
-     - Mutually independent tracks with no blocking edges execute concurrently within the same wave.
+4. **Partition into Topological Antichain Waves via TaskWavePlanner:**
+   - Mandate `TaskWavePlanner` topological antichain analysis on pending `[ ]` tracks using dependency graphs and declared prerequisites in `spec.md` / `plan.md`.
+   - Partition tracks into **Topological Antichain Waves** (`Wave 1`, `Wave 2`, ...) using antichain analysis and worktree allocation:
+     - Mutually independent tracks with no blocking edges execute concurrently within the same wave across phases.
      - Dependent tracks are deferred to subsequent waves.
-     - If `--sequential` is specified, partition tracks into single-track waves preserving document order.
+     - Artificial serialization or single-track dispatch when multiple independent tracks exist is a strict protocol violation (`TaskWavePlanner.validateConcurrency`).
+     - If `--sequential` is specified, partition tracks into single-track waves preserving document order as an explicit fallback.
 5. **Announce Queue:**
    - Record resolved track queue and wave partitions in context and announce:
-     `"Batch execution queue resolved for Phase <N> ('<phase_id>') into <M> waves: Wave 1: [<tracks>], Wave 2: [<tracks>]..."`
-   - If no pending tracks exist in the target phase, report:
-     `"No pending tracks in Phase <N> ('<phase_id>')."`
+     `"Batch execution queue resolved across phases into <M> topological antichain waves: Wave 1: [<tracks>], Wave 2: [<tracks>]..."`
+   - If no pending tracks exist in the target scope, report:
+     `"No pending tracks in target scope."`
      Proceed to evaluate sliding-window progression (Section 2.5).
 
 ---

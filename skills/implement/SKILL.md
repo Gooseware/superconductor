@@ -11,10 +11,24 @@ CRITICAL: You must validate the success of every tool call. If any tool call fai
 ### Root Orchestration Dogma (Anti-Hero-Agent Protocol)
 1. **The Root Agent is an Orchestrator and Conductor, not an individual contributor.**
 2. **Direct edits on product code files by the Root Agent are strictly PROHIBITED during Swarm Execution.** The Root Agent coordinates, monitors, and delegates; it never writes or mutates product source code directly.
-3. **Every plan phase MUST be delegated to one or more specialized `superconductor-processor` subagents.**
+3. **The orchestrator MUST immediately flatten all dispatchable tasks across the entire plan and dispatch full parallel batches of maxConcurrent agents (default: 4-5) via TaskWavePlanner topological antichains. Disagreeing with concurrency or dispatching a single subagent when multiple decoupled tasks exist is an explicit protocol violation.**
 4. **Quorum reviews MUST be conducted by parallel `superconductor-reviewer` subagents.**
 5. **Remediation loops triggered by `NEEDS_FIXES` MUST dispatch isolated remediator subagents.** Hero-agenting (root fixing code directly) is a protocol violation.
 6. **Track documentation files (`plan.md`, `spec.md`) MUST NOT be written by the root orchestrator during plan verification.** If the grill or plan-audit phase produces proposed plan changes, the root orchestrator MUST dispatch a `superconductor-dreamer` subagent to apply those changes. Direct writes to `plan.md` or `spec.md` by the root agent during plan verification are Hero-Agenting on track documentation — a protocol violation.
+
+### The Prime Directive: Dynamic Environment & Tool Detection (wt, superpowers, uv)
+Before executing implementation tasks, verify that the required execution environment and CLI tools are available:
+1. **Worktrunk (`wt`)**:
+   - Check: `which wt || command -v wt`
+   - If missing: Prompt user to install via `cargo install worktrunk` or download binary to `~/.local/bin/wt`.
+2. **Superpowers Plugin (`superpowers`)**:
+   - Check: Verify the superpowers plugin directory exists at `/home/gooseware/.gemini/config/plugins/superpowers` or in extension enablement config.
+   - If missing: Prompt user to enable or install the superpowers plugin.
+3. **Python & Package Manager (`uv`)**:
+   - Check: `which uv || command -v uv`
+   - If missing: Prompt user to install via `curl -LsSf https://astral.sh/uv/install.sh | sh` or `pip install uv`.
+
+If any tool is missing: **DO NOT fail silently or guess.** Prompt the user interactively (or in headless mode, auto-install/notify) to install or enable the missing tool.
 
 ### Terminal Focus Notification Gate
 Before pausing for user input, awaiting subagent swarms, or concluding execution turns/tracks:
@@ -463,22 +477,8 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
 ## 7.0 ADVERSARIAL AUDIT DEBRIEF (ABI — Always Be Improving)
 **PROTOCOL: Evolve the adversarial checklist in situ after every Oracle review.**
 **Execution Trigger:** Run this protocol immediately after §6.0 Finalization, before §5.0 Track Cleanup. Takes ~60 seconds if patterns were found; gracefully exits in ~5 seconds if nothing is new.
- **Oracle Self-Reflection:** Ask the Oracle (the same model that ran §6.0) to answer three questions using its completed audit context:
-    - **Q1 — New patterns:** "Did you encounter any shenanigan pattern during this audit that is NOT explicitly listed in `skills/review/SKILL.md §4.5` or `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5`? If yes, describe it as a new checklist row: `| **Pattern Name** | What to look for |`."
-    - **Q2 — False positives:** "Did any existing checklist item fire incorrectly or feel misleading for this type of change? If yes, suggest a refinement."
-    - **Q3 — Severity calibration:** "Were the right severity levels assigned? If any finding was mis-categorized (too harsh or too lenient), suggest the corrected mapping."
- **Skip if nothing new:** If the Oracle answers "No new patterns" and "No refinements" to all three questions, announce: "Adversarial Audit Debrief: no protocol updates needed." and immediately exit to §5.0 Track Cleanup. Do NOT prompt the user.
- **Draft Protocol Updates:** If the Oracle identified new or refined patterns:
-    - **Construct a unified diff** updating both:
-        - `skills/review/SKILL.md §4.5` — append new rows to the Shenanigan Checklist table.
-        - `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5` — append new rows to the Shenanigan Checklist table.
-    - **Rationale:** Include a one-line comment above each new row: `<!-- Inducted: <track_id> — <date> —  <pattern trigger> -->`.
-  **Present and Gate:** Use `ask_user` (header: "Adversarial Audit — Protocol Evolution", question: "The Oracle identified new patterns during this audit. Approve these additions to the adversarial checklist?\n\n---\n\n<Insert proposed diff here>", type: "yesno").
-  - **If yes:**
-      - Apply the diffs to both files.
-      - Commit: `docs(review): Evolve adversarial audit protocol — patterns inducted from track '<track_description>'`
-      - Announce: "Adversarial checklist updated. The Oracle is sharper now than it was before this run."
-  - **If no:** Retain existing adversarial audit protocol without updates.
+ **Oracle Self-Reflection:** Prompt Oracle for new patterns, false positives, or severity calibration. If none, announce "Adversarial Audit Debrief: no protocol updates needed." and proceed to cleanup.
+ **Draft Updates & Gate:** If new patterns found, construct diffs for `skills/review/SKILL.md §4.5` and `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5`. Gate via `ask_user` ("Adversarial Audit — Protocol Evolution"). If approved, apply diffs and commit `docs(review): Evolve adversarial audit protocol`.
  **Proceed to §5.0 Track Cleanup.**
 ## Command Flow Diagram
 ```mermaid

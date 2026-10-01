@@ -10,7 +10,7 @@ CRITICAL: You MUST validate the success of every tool call. If any tool call fai
 
 PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mode, you are explicitly permitted and required to use `write_file`, `replace`, and authorized `run_shell_command` calls to create and modify files within the `superconductor/` directory. **CRITICAL: You MUST use relative paths starting with `superconductor/` (e.g., `superconductor/product.md`) for all file operations. Do NOT use absolute paths, as Plan Mode security policies block absolute paths. REDIRECTION (e.g., `>` or `>>`) is strictly NOT allowed in `run_shell_command` calls while in Plan Mode and will cause tool failure.**
 
-**FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Best Practices Research Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
+**FAST MODE**: If `{{args}}` contains `--fast` or `--lite`, you MUST skip the Hunch to Roundhouse Punch Deep Research Gate / Best Practices Phase (2.0.3) and the Architecture Committee Phase (2.0.5) entirely.
 **GRILL MODE**: If `{{args}}` contains `--grill`, you MUST trigger the Grilling Phase (2.0.4) to enforce standards and extract domain language. If the initial track description is highly ambiguous, you MUST dynamically suggest that the user run with `--grill`.
 **PHASE TARGETING**: If `{{args}}` contains `--phase <id|num>`, target that specific milestone phase (e.g. `--phase 2` or `--phase phase-core-foundation`). Otherwise, default to the currently active phase (Phase 1) or prompt interactively.
 
@@ -55,23 +55,21 @@ PLAN MODE PROTOCOL: Parts of this process run within Plan Mode. While in Plan Mo
         1. Use the provided description as the track description.
         2. Call the `enter_plan_mode` tool with the reason: "Defining new track".
 3.  **Infer Track Type:** Analyze the description to determine if it is a "Feature" or "Something Else" (e.g., Bug, Chore, Refactor). Do NOT ask the user to classify it.
-4.  **User Preference Capture:** When user selects preferences or choices in `ask_user` (e.g. model choices, architecture options), call `NoteWriter.writePreferenceNote`:
-    ```ts
-    NoteWriter.writePreferenceNote(
-      `[PREFERENCE] Track ${track_id} user selected: ${user_choice}`,
-      { track_id, user_confirmed: true }
-    )
-    ```
+4.  **User Preference Capture:** Record user preferences via `NoteWriter.writePreferenceNote` (see §2.0.2a).
 
-### 2.0.3 Best Practices & Anti-Reinvention Research Phase (NEW)
-1. **Trigger:** This phase runs automatically before spec generation for any new track, **unless `--fast` or `--lite` is provided in `{{args}}`, in which case it is BYPASSED.**
-2. **Action:**
-   - Execute `AntiReinventionGate.analyzeTrack(track_id, description)` via the Adaptive Multi-Tier Research Router (DeerFlow / Gemini / Web fallback).
+### 2.0.3 Hunch to Roundhouse Punch Deep Research Gate & Best Practices
+1. **Trigger & Gate Scope:** Runs before finalizing `spec.md` whenever a track touches external packages, new architecture, or unexplored problem spaces (**unless `--fast` or `--lite` is in `{{args}}`, in which case it is BYPASSED**).
+2. **The 4-Stage Deep Research Protocol:**
+   - **Stage 1: The Hunch:** Banter and brainstorm what-ifs with the user. Explore potential architectures, trade-offs, and requirement hypotheses (leveraging `superpowers:brainstorming`).
+   - **Stage 2: The Deep Dive:** Autonomously trigger Deep Research via `gemini-deep-research` (`uv run python /home/gooseware/repos/gemini/extensions/jev-ultrafast/skills/gemini-deep-research/scripts/run_deep_research.py --prompt "<topic>" --vault-dir /home/gooseware/repos/gemini/gemini-obsidian`) or an autonomous `research` subagent to scout SOTA options, benchmarks, and real-world gotchas.
+   - **Stage 3: Obsidian Archival:** Save structured findings to `/home/gooseware/repos/gemini/gemini-obsidian/Research/YYYY-MM-DD - <Topic>.md` and sync to GitLab (`git@gitlab.com:goosewares/gemini-obsidian`).
+   - **Stage 4: The Roundhouse Punch:** Feed proven findings, benchmarks, and authoritative citations directly into `spec.md` (under `## Ecosystem Alignment & Prior Art` and `## Architecture Decision Records (ADRs)`).
+3. **Automated Ecosystem Analysis & Brief:**
+   - Execute `AntiReinventionGate.analyzeTrack(track_id, description)` via Adaptive Multi-Tier Research Router (DeerFlow / Gemini / Web fallback).
    - Formulate targeted queries for package discovery, ecosystem alternatives, and known anti-patterns.
    - Emit structured `ResearchBrief` with `OSS_DISCOVERY` categories (Invariant 1).
    - Ingest generated `## Ecosystem Alignment & Prior Art (Anti-Reinvention)` markdown section directly into `spec.md` and `plan.md`.
-   - Synthesize findings into the "Research Notes" summary to be directly injected into the Specification.
-   - Do NOT prompt the user for confirmation during this research cycle to avoid human-in-the-loop latency.
+   - Synthesize findings into the "Research Notes" summary to be directly injected into the Specification. Do NOT prompt user for confirmation during background research cycle.
 
 ### 2.0.4 Grilling Phase (Optional)
 1. **Trigger:** This phase runs if `--grill` is provided in `{{args}}`. If the user's initial description is highly ambiguous or lacks domain clarity, you MUST dynamically suggest running with `--grill` to clarify requirements.
@@ -204,6 +202,7 @@ During track inception and scaffolding, determine the target milestone phase:
             - **header:** "Confirm Spec"
             - **question:**
                 If neither `--fast` nor `--lite` was used, you MUST render the following literal text at the top of your confirmation question to prove adherence:
+                [✓] Hunch to Roundhouse Punch Deep Research Completed
                 [✓] Best Practices Researched
                 [✓] Architecture Committee Convened
                 If `--grill` was used, you MUST also render:
@@ -450,7 +449,7 @@ graph TD
     A[Start /superconductor:newTrack] --> B{Check Core Context}
     B -->|Missing| C[Ask to run setup]
     B -->|Valid| D[Get Track Description & Resolve Phase]
-    D --> E[Best Practices Research Phase]
+    D --> E[Hunch to Roundhouse Punch Research Phase]
     E --> E2{--grill flag?}
     E2 -->|Yes| E3[Grilling Phase & Update CONTEXT.md]
     E3 --> F

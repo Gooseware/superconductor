@@ -409,4 +409,37 @@ export class TaskWavePlanner {
 
     return waves;
   }
+
+  /**
+   * Validates that an orchestrator does not collapse concurrency when wave 0 has multiple decoupled tasks.
+   * If wave 0 contains 2 or more decoupled tasks, dispatching only 1 agent is a protocol violation.
+   */
+  public static validateConcurrency(
+    waves: TaskPlanUnit[][],
+    actualDispatchedCount: number
+  ): void {
+    validateConcurrency(waves, actualDispatchedCount);
+  }
 }
+
+/**
+ * Validates that an orchestrator does not collapse concurrency when wave 0 has multiple decoupled tasks.
+ * If wave 0 contains 2 or more decoupled tasks, dispatching only 1 agent is a protocol violation.
+ */
+export function validateConcurrency(
+  waves: TaskPlanUnit[][],
+  actualDispatchedCount: number
+): void {
+  if (
+    waves &&
+    waves.length > 0 &&
+    waves[0] &&
+    waves[0].length >= 2 &&
+    actualDispatchedCount === 1
+  ) {
+    throw new Error(
+      '[Superconductor] Concurrency Collapse Detected: Wave 0 contains multiple decoupled tasks, but only 1 agent was dispatched. Antichain swarm requires parallel batching.'
+    );
+  }
+}
+
