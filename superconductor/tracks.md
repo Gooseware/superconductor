@@ -32,7 +32,7 @@
 | `[x]` | `track_phases_and_sliding_window_20260921` | [Track Phase System & Dynamic Sliding-Window Progression](./tracks/track_phases_and_sliding_window_20260921/index.md) | `track/track_phases_and_sliding_window_20260921` (merged to main) |
 | `[x]` | `adhoc_swarm_lifecycle_guardrails_20260930` | [Ad-Hoc Enhancement & Bug Fix Lifecycle Guardrails](./tracks/adhoc_swarm_lifecycle_guardrails_20260930/index.md) | `track/adhoc_swarm_lifecycle_guardrails_20260930` (merged to main) |
 | [x] | dry_intelligence_improve_architecture_20261001 | [DRY Component Intelligence, Multi-Agent Improve-Architecture & Quorum DRY Reviewer](./tracks/dry_intelligence_improve_architecture_20261001/index.md) | track/dry_intelligence_improve_architecture_20261001 (merged to main) |
-| [ ] | dry_consolidate_review_utilities_20261001 | [Consolidate Review Parsing & Block Extraction into Core Pipeline](./tracks/dry_consolidate_review_utilities_20261001/index.md) | track/dry_consolidate_review_utilities_20261001 |
+| [x] | dry_consolidate_review_utilities_20261001 | [Consolidate Review Parsing & Block Extraction into Core Pipeline](./tracks/dry_consolidate_review_utilities_20261001/index.md) | track/dry_consolidate_review_utilities_20261001 (merged to main) |
 | [ ] | deepen_shallow_cli_facades_20261001 | [Deepen or Inline Shallow CLI Wrappers (cli/index.ts, dispatcher.ts, phase-cli.ts)](./tracks/deepen_shallow_cli_facades_20261001/index.md) | track/deepen_shallow_cli_facades_20261001 |
 | [ ] | seal_leaky_seam_core_services_20261001 | [Seal Leaky Boundary Between Notebook Store & Core Services](./tracks/seal_leaky_seam_core_services_20261001/index.md) | track/seal_leaky_seam_core_services_20261001 |
 ## Absorbed / Closed Tracks

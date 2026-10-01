@@ -1,3 +1,4 @@
+export * from './pipeline.js';
 export * from './extract-fenced-block.js';
 export * from './aggregate-coverage.js';
 export * from './aggregate-findings.js';

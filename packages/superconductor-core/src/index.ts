@@ -18,7 +18,14 @@ export * from './phase/index.js';
 export * from './planning/index.js';
 
 export type { ModelTier } from './intelligence/index.js';
-export type { Finding, UxReviewReport, UxReviewInput } from './review/index.js';
+export type {
+  Finding,
+  UxReviewReport,
+  UxReviewInput,
+  ReviewFinding,
+  SeverityBreakdown,
+  AggregatedFindingsResult,
+} from './review/index.js';
 export type {
   LanguagePersona,
   ReviewerRole,
