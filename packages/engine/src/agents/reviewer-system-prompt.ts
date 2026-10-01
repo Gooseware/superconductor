@@ -1,7 +1,7 @@
 /**
  * reviewer-system-prompt.ts
  *
- * Bakes the 8-item Shenanigan Checklist permanently into the
+ * Bakes the Shenanigan Checklist permanently into the
  * superconductor-reviewer agent system prompt so it is ALWAYS present —
  * not injected per-prompt by the orchestrating model.
  *
@@ -25,6 +25,7 @@ export const SHENANIGAN_CHECKLIST: readonly string[] = [
   'Coverage Map Gaming: coverage manifests or reports that claim coverage of areas that were not actually reviewed or executed.',
   'Silent Degradation: error paths, catch blocks, or failure modes that swallow exceptions or failures without surfacing them to the caller.',
   'Dependency Laundering: hidden side effects introduced through transitive imports, monkey-patching, or undeclared global mutations.',
+  'Component Reinvention & Non-DRY Redundancy: hand-rolling custom primitives, components, or helper functions that duplicate existing code in the repository symbol catalog or registered Golden Source components.',
 ] as const;
 
 /**
@@ -68,7 +69,7 @@ You MUST check for ALL of the following before outputting your review findings:
 
 ${numberedItems}
 
-Failure to check all 8 items is itself a Critical finding.
+Failure to check all ${SHENANIGAN_CHECKLIST.length} items is itself a Critical finding.
 `.trim();
 
   // Inject role-specific skill if available

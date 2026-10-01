@@ -8,11 +8,11 @@ import {
 import { loadRoleSkill, getRoleSkillMap, clearSkillCache } from '../../src/agents/skill-loader.js';
 
 describe('SHENANIGAN_CHECKLIST', () => {
-  it('has exactly 8 items', () => {
-    expect(SHENANIGAN_CHECKLIST).toHaveLength(8);
+  it('has exactly 9 items', () => {
+    expect(SHENANIGAN_CHECKLIST).toHaveLength(9);
   });
 
-  it('contains the canonical 8 shenanigan names', () => {
+  it('contains the canonical shenanigan names', () => {
     const names = [
       'Phantom Implementation',
       'Test Theatre',
@@ -22,6 +22,7 @@ describe('SHENANIGAN_CHECKLIST', () => {
       'Coverage Map Gaming',
       'Silent Degradation',
       'Dependency Laundering',
+      'Component Reinvention & Non-DRY Redundancy',
     ];
     for (const name of names) {
       expect(SHENANIGAN_CHECKLIST.some((item) => item.includes(name))).toBe(true);
@@ -43,22 +44,22 @@ describe('buildReviewerSystemPrompt', () => {
     expect(buildReviewerSystemPrompt('any base')).toContain('MANDATORY INSPECTION');
   });
 
-  it('includes ALL 8 checklist items in output', () => {
+  it('includes ALL checklist items in output', () => {
     const output = buildReviewerSystemPrompt('any base');
     for (const item of SHENANIGAN_CHECKLIST) {
       expect(output).toContain(item);
     }
   });
 
-  it('includes "Failure to check all 8 items is itself a Critical finding"', () => {
+  it('includes "Failure to check all 9 items is itself a Critical finding"', () => {
     expect(buildReviewerSystemPrompt('any base')).toContain(
-      'Failure to check all 8 items is itself a Critical finding'
+      'Failure to check all 9 items is itself a Critical finding'
     );
   });
 
-  it('numbers all 8 items (1. through 8.)', () => {
+  it('numbers all 9 items (1. through 9.)', () => {
     const output = buildReviewerSystemPrompt('any base');
-    for (let i = 1; i <= 8; i++) {
+    for (let i = 1; i <= 9; i++) {
       expect(output).toContain(`${i}.`);
     }
   });
@@ -96,7 +97,7 @@ describe('buildReviewerSystemPrompt', () => {
 });
 
 describe('REVIEWER_FULL_SYSTEM_PROMPT', () => {
-  it('contains all 8 checklist items (was built with the checklist)', () => {
+  it('contains all checklist items (was built with the checklist)', () => {
     for (const item of SHENANIGAN_CHECKLIST) {
       expect(REVIEWER_FULL_SYSTEM_PROMPT).toContain(item);
     }
@@ -108,7 +109,7 @@ describe('REVIEWER_FULL_SYSTEM_PROMPT', () => {
 
   it('contains the failure-to-check warning', () => {
     expect(REVIEWER_FULL_SYSTEM_PROMPT).toContain(
-      'Failure to check all 8 items is itself a Critical finding'
+      'Failure to check all 9 items is itself a Critical finding'
     );
   });
 });

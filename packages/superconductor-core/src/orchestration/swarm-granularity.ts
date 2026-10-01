@@ -21,6 +21,7 @@ export interface SwarmWorkUnit {
   agent: string;
   domain: string;
   phase: number;
+  reuses?: string[];
 }
 
 /**
@@ -37,10 +38,13 @@ export function parseWorkUnits(planMarkdown: string): SwarmWorkUnit[] {
   let phase = 0;
   let id = 0;
 
-  for (const line of planMarkdown.split('\n')) {
+  const lines = planMarkdown.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
     // Track current phase heading
-    if (/^## Phase \d+/.test(line)) {
-      const m = line.match(/Phase (\d+)/);
+    if (/^## Phase \d+/i.test(line)) {
+      const m = line.match(/Phase (\d+)/i);
       if (m) phase = parseInt(m[1], 10);
     }
 
@@ -49,14 +53,73 @@ export function parseWorkUnits(planMarkdown: string): SwarmWorkUnit[] {
       /^- \[ \] Task: (.+?) \[TIER-(\d+)(?::[^\]]+)?\] \[AGENT:([^\]]+)\] \[DOMAIN:([^\]]+)\]/
     );
     if (taskMatch) {
-      units.push({
+      const unit: SwarmWorkUnit = {
         id: `wu-${id++}`,
         task: taskMatch[1],
         tier: parseInt(taskMatch[2], 10),
         agent: taskMatch[3],
         domain: taskMatch[4],
         phase,
-      });
+      };
+
+      // Check subsequent lines for optional REUSES tag before next task or phase heading
+      for (let j = i + 1; j < lines.length; j++) {
+        const nextLine = lines[j];
+        if (/^- \[ \] Task:/i.test(nextLine) || /^## Phase/i.test(nextLine)) {
+          break;
+        }
+        if (/^\s*REUSES:\s*(.*)/i.test(nextLine)) {
+          const reusesMatch = nextLine.match(/^\s*REUSES:\s*(.*)/i);
+          const rest = reusesMatch ? reusesMatch[1].trim() : '';
+          const reusesList: string[] = [];
+
+          if (rest) {
+            if (
+              rest !== '[]' &&
+              rest !== '[ ]' &&
+              rest.toLowerCase() !== 'none' &&
+              rest.toLowerCase() !== 'n/a'
+            ) {
+              const stripped = rest.replace(/^\[|\]$/g, '').trim();
+              if (stripped) {
+                reusesList.push(
+                  ...stripped
+                    .split(',')
+                    .map(s => s.trim().replace(/^['"`]|['"`]$/g, ''))
+                    .filter(Boolean)
+                );
+              }
+            }
+          } else {
+            // Multi-line list under REUSES:
+            for (let k = j + 1; k < lines.length; k++) {
+              const mLine = lines[k];
+              if (!mLine.trim()) continue;
+              if (
+                /^\s*[A-Z_]+:\s*/i.test(mLine) ||
+                /^\s*-\s*\[[ xX]\]/i.test(mLine) ||
+                /^##/i.test(mLine)
+              ) {
+                break;
+              }
+              const bulletMatch = mLine.match(/^\s*[-*]\s+(.*)$/);
+              if (bulletMatch) {
+                const cleaned = bulletMatch[1].trim().replace(/^['"`]|['"`]$/g, '');
+                if (cleaned) reusesList.push(cleaned);
+              } else {
+                break;
+              }
+            }
+          }
+
+          if (reusesList.length > 0) {
+            unit.reuses = reusesList;
+          }
+          break;
+        }
+      }
+
+      units.push(unit);
     }
   }
 

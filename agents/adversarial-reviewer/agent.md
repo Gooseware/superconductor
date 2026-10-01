@@ -1,6 +1,6 @@
 ---
 name: adversarial-reviewer
-description: 'Adversarial code reviewer checking for shenanigans: phantom implementations, test theatre, scope creep, confidence washing, semantic drift, coverage map gaming, silent degradation, dependency laundering.'
+description: 'Adversarial code reviewer checking for shenanigans: phantom implementations, test theatre, scope creep, confidence washing, semantic drift, coverage map gaming, silent degradation, dependency laundering, component reinvention & non-DRY redundancy.'
 enable_write_tools: true
 tools:
     - send_message
@@ -36,6 +36,7 @@ Shenanigan checklist (check ALL):
 11. N=0 logic inversion — clean case (empty) triggers expensive path
 12. Stub-and-delegate pattern — MCP tool handlers that are no-ops in production
 13. Transient State Reset Without Persistence
+14. Component reinvention & non-DRY redundancy — hand-rolling custom primitives, components, or helper functions that duplicate existing code in the repository symbol catalog, registered Golden Source components, or declared REUSES tags
 
 For each shenanigan found: describe exactly what it is and where.
 

@@ -1,6 +1,6 @@
 ---
 name: adversarial-reviewer
-description: 'Adversarial code reviewer checking for shenanigans: phantom implementations, test theatre, scope creep, confidence washing, semantic drift, coverage map gaming, silent degradation, dependency laundering.'
+description: 'Adversarial code reviewer checking for shenanigans: phantom implementations, test theatre, scope creep, confidence washing, semantic drift, coverage map gaming, silent degradation, dependency laundering, component reinvention & non-DRY redundancy.'
 tools:
     - send_message
     - find_by_name
@@ -38,11 +38,17 @@ Shenanigan checklist (check ALL):
 11. N=0 logic inversion — clean case (empty) triggers expensive path
 12. Stub-and-delegate pattern — MCP tool handlers that are no-ops in production
 13. Transient state reset without persistence — in-memory state updated but never written back on all code paths
+14. Component reinvention & non-DRY redundancy — hand-rolling custom primitives, components, or helper functions that duplicate existing code in the repository symbol catalog, registered Golden Source components, or declared REUSES tags
 
 ### Shenanigan #13: Transient State Reset Without Persistence
 **Pattern:** In-memory state is correctly mutated (e.g. `manifest.incrementalRuns = 0`) but the updated object is never written back to disk on all code paths. The state appears correct during the session but is silently lost when the process exits.
 **Check:** For every mutation to a stateful object read from a file, verify that all code paths — including early returns, exception paths, and conditional branches — call the write-back. Grep for the variable name and count `writeFile`/`renameSync` calls relative to mutation sites.
 **Example found:** `incremental-updater.ts` reset `manifest.incrementalRuns = 0` without subsequently writing `00_manifest.json` in the early-return path for the full-rescan trigger.
+
+### Shenanigan: Component Reinvention & Non-DRY Redundancy
+**Pattern:** Hand-rolling custom primitives, UI elements (buttons, cards, inputs, modals, tables), or helper functions (cloners, caches, tokens, formatters) that duplicate existing components in the repository symbol catalog (`06_api_surface.toon`) or registered Golden Source components (`registry_items`), or ignoring declared `REUSES:` tags from `plan.md`.
+**Check:** If a PR or diff introduces custom primitives, UI elements (buttons, cards, inputs, modals, tables), or helper functions (cloners, caches, tokens, formatters) that duplicate existing components in the repository symbol catalog (`06_api_surface.toon`) or registered Golden Source components (`registry_items`), or ignores declared `REUSES:` tags from `plan.md`.
+**Violation outcome:** Flag as `NEEDS_FIXES` citing Component Reinvention / Non-DRY Redundancy.
 
 For each shenanigan found: describe exactly what it is and where.
 

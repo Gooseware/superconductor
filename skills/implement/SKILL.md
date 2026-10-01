@@ -248,15 +248,11 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
                 - Apply Systematic Bug Diagnosis (max 2 attempts). If unresolved after 2 attempts: ESCALATE to user.
              2. **On batch success:** Call `task_update({ id: task.id, status: 'completed' })` for each completed task, execute `npx tsx scripts/sync-plan.ts` to flush changes to disk, and immediately advance to dispatch the next batch.
            - **PROHIBITED:** Asking the user "shall I continue to the next batch?", stopping to summarize between batches, or waiting for user re-trigger.
-
 5.  **Finalize Track (HARD GATE ENFORCED):**
-
     **BEFORE touching `tracks.md` or making any finalization commit, you MUST complete ALL of the following in order:**
-
     a. **Assert Quorum Green:** Verify that the full 5-reviewer quorum panel (security-reviewer, correctness-reviewer, adversarial-reviewer, regression-reviewer, ux-reviewer) has reached unanimous `RESOLVED` status.
        - If quorum has NOT been run, or any reviewer returned `NEEDS_FIXES`: HALT. Do NOT proceed. Invoke `swarm-execute` to run the quorum loop first.
        - Enforcement: Run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied.
-    
     b. **Invoke Oracle (Post-Quorum Gate Oracle):** After quorum green, run `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/scripts/quorum-gate.mjs" --gate`. If the CLI returns non-zero exit code, HALT — quorum gate not satisfied. Then invoke the Oracle (§6.0) with full track diff context. This is the ONLY Oracle verdict that unlocks merge.
        - If Oracle returns `Needs Fixes`: trigger domain-split remediation (§swarm-execute remediation protocol), re-run quorum, then invoke Oracle again. Loop until Oracle returns `Ready`.
        - After Oracle issues final Ready verdict, call `NoteWriter.writeDesignNote`:
@@ -266,20 +262,16 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
            { track_id, user_confirmed: true }
          )
          ```
-    
     c. **Generate and Validate Authorization Trailer:**
        1. Call `node "${SUPERCONDUCTOR_DIR:-$HOME/.gemini/config/plugins/superconductor}/packages/superconductor-core/dist/track/swarm-authorizer.js" --generate-trailer <reviewer_conv_id_1> <reviewer_conv_id_2> <reviewer_conv_id_3> <reviewer_conv_id_4> <reviewer_conv_id_5>`
        2. The script validates each conversation ID against the active quorum session. If any ID is not a valid quorum reviewer conversation from this track's quorum run, the script exits non-zero.
        3. **HALT if validation fails.** Do NOT proceed to step 5.d.
        4. The script outputs the trailer string. Use ONLY the output of this script as the authorization trailer — NEVER hand-craft the trailer string.
        5. **CRITICAL:** The reviewer IDs MUST be the actual conversation IDs returned by the quorum run (e.g., the `conversationId` from each reviewer subagent invocation), not placeholder strings.
-    
     d. **Update Tracks Registry:** Change the track status from `[~]` to `[x]` in `superconductor/tracks.md`.
-    
     e. **Finalization Commit:** Stage `tracks.md` and commit with the message produced by the following command:
        `node packages/superconductor-core/dist/track/swarm-authorizer.js --format-commit-message '<track_description>' <reviewer_ids>`
        Do NOT manually write the commit message — use the script output only.
-    
     f. **Announce & Track Completion:** State that the track is complete and the quorum + Oracle verdicts are on record. Upon merging track to target branch, call `NoteWriter.writeProcedureNote`:
        ```ts
        NoteWriter.writeProcedureNote(
@@ -468,10 +460,8 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
         - Proceed to finalization.
  **Finalization:**
     - Once the Oracle gives a "Ready" verdict, proceed to the final `TRACK CLEANUP` step (Archive/Delete/Skip).
-
 ## 7.0 ADVERSARIAL AUDIT DEBRIEF (ABI — Always Be Improving)
 **PROTOCOL: Evolve the adversarial checklist in situ after every Oracle review.**
-
 **Execution Trigger:** Run this protocol immediately after §6.0 Finalization, before §5.0 Track Cleanup. Takes ~60 seconds if patterns were found; gracefully exits in ~5 seconds if nothing is new.
  **Oracle Self-Reflection:** Ask the Oracle (the same model that ran §6.0) to answer three questions using its completed audit context:
     - **Q1 — New patterns:** "Did you encounter any shenanigan pattern during this audit that is NOT explicitly listed in `skills/review/SKILL.md §4.5` or `skills/code-review-skill/reference/cross-cutting/adversarial-audit.md §5`? If yes, describe it as a new checklist row: `| **Pattern Name** | What to look for |`."
@@ -490,9 +480,7 @@ All `invoke_subagent` calls MUST pass the resolved model tier:
       - Announce: "Adversarial checklist updated. The Oracle is sharper now than it was before this run."
   - **If no:** Retain existing adversarial audit protocol without updates.
  **Proceed to §5.0 Track Cleanup.**
-
 ## Command Flow Diagram
-
 ```mermaid
 graph TD
     A[Start /superconductor:implement] --> B{Headless Mode?}
