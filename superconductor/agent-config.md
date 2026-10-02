@@ -100,10 +100,21 @@ For more details on capabilities and the manifest schema, see `docs/permissions.
 
 ## MCP Tool Inventory
 
-The `superconductor-kernel` MCP server exposes several sets of tools:
+The extension provides two dedicated MCP servers configured in `mcp_config.json`:
 
-- **Original Design OS Tools (14 tools):** Provides 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.).
-- **Kernel Tools:** `kernel_graph_get_node`, `kernel_policy_get_mode`, and other low-level orchestration and state management APIs.
+1. **`superconductor-kernel`:**
+   - **Original Design OS Tools (14 tools):** Provides companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.).
+   - **Kernel Tools:** `kernel_graph_get_node`, `kernel_policy_get_mode`, `task_create`, `task_update`, `task_query`, `invariant_query`, `notebook_query`, `notebook_write`, and other low-level orchestration and state management APIs.
+
+2. **`superconductor-browser`:**
+   - **Agent-Driven Browser Automation & Scraping (6 tools):**
+     - `browser_navigate`: Fast URL navigation with stealth profile.
+     - `browser_goal`: Autonomous goal runner powered by Jev snapshot + LLM inference.
+     - `browser_scrape`: Dual scraper (Markdown GFM readability or JSON extraction schema).
+     - `browser_compile_formula`: Derives deterministic, self-healing DOM extraction recipes.
+     - `browser_execute_formula`: Sub-50ms deterministic extraction with pagination & resumable checkpoints.
+     - `browser_inspect_state`: Direct in-memory extraction of `window.__NEXT_DATA__`, Google WIZ data structures, and client hydration state.
+   - **Companion Skill:** `skills/superconductor-browser/SKILL.md` documents formulas, checkpoints, stealth, and zero-DOM extraction best practices.
 
 ---
 

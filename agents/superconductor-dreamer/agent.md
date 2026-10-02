@@ -2,6 +2,7 @@
 name: superconductor-dreamer
 description: Superconductor agent responsible for track planning, architecture design, and creating specifications.
 enable_write_tools: true
+enable_mcp_tools: true
 tools:
     - send_message
     - find_by_name

@@ -42,8 +42,11 @@ To find a file (e.g., "**Product Definition**") within a specific context (Proje
 
 ## Design OS Integration & Agent Configuration
 
-- **MCP Server**: The `superconductor-kernel` MCP server is configured in `mcp_config.json` at the extension root, and runs using node on the local compiled build (`packages/superconductor-kernel/dist/index.js`).
-- **Skills**: When the superconductor plugin is installed, 14 companion Design OS skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, etc.) are automatically registered and available for discovery.
+- **MCP Servers**: Two MCP servers are configured in `mcp_config.json` at the extension root:
+  - `superconductor-kernel`: Runs on `packages/superconductor-kernel/dist/index.js` providing Design OS kernel tools, graph analysis, task invariants, theme management, and component registries.
+  - `superconductor-browser`: Runs on `packages/superconductor-browser/dist/mcp/index.js` providing agent-driven browser automation, self-healing scraper formulas, resumable checkpoints, stealth execution, and hydration state inspection (`browser_navigate`, `browser_goal`, `browser_scrape`, `browser_compile_formula`, `browser_execute_formula`, `browser_inspect_state`).
+- **Skills**: When the superconductor plugin is installed, companion Design OS and browser skills (including orchestrator, vision, roadmap, theming, design-system, i18n, app-shell, component-adapter, superconductor-browser, etc.) are automatically registered and available for discovery.
+
 
 ## SWARM GUARDRAILS & PLANNING/DISPATCH DOGMA
 

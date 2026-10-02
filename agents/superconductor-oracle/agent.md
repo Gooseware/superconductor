@@ -3,6 +3,7 @@ name: superconductor-oracle
 description: Superconductor agent responsible for high-tier analysis, complex system debugging, multi-modal context, and architectural conflict resolution.
 enable_write_tools: true
 enable_subagent_tools: true
+enable_mcp_tools: true
 tools:
     - send_message
     - find_by_name

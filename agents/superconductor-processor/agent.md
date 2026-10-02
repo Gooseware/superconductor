@@ -2,6 +2,7 @@
 name: superconductor-processor
 description: Superconductor agent responsible for implementation, coding, and executing tasks defined in the plan.
 enable_write_tools: true
+enable_mcp_tools: true
 tools:
     - send_message
     - find_by_name
