@@ -1,43 +1,46 @@
-# Specification: Remote Human Auth Profile Setup & Native TypeScript Jev Autonomous Goal Runner
+# The Ultimate Agent-Driven Browser: Specification
 
 ## Overview
-This track implements a seamless bridge for human interactive authentication on headless/remote environments (such as cloud runners or SSH port-forwarded sessions) via a zero-dependency CDP screencast WebSocket server. It captures authenticated session state (`context.storageState()`) into securely stored auth profiles. Furthermore, it introduces a native TypeScript implementation of the Jev autonomous goal runner directly into `@superconductor/core`, allowing structured, LLM-driven multi-step scenario execution over authenticated applications, complete with continuous synchronized video recording and milestone tracking in the visual wireframe board.
+This specification outlines the architecture and requirements for "The Ultimate Agent-Driven Browser," an advanced web automation, scraping, and testing platform. The system introduces a native TypeScript Jev Autonomous Goal Runner, a Remote Human Auth Bridge with CDP Screencast VNC, a Dual Data Scraper for Markdown and Schema-driven JSON extraction, a Design Cue Cloner & Theme Distiller, and a dedicated React Router 7 based Superconductor Studio.
 
 ## Architecture Committee Recommendations
-- **Zero-Dependency Auth Server**: Do not require X11, VNC, or external libraries. Rely purely on Playwright's Chrome DevTools Protocol (CDP) `Page.startScreencast` and `screencastFrameAck`.
-- **Security First**: Implement cryptographically secure one-time tokens, loopback origin checks, and CSWSH prevention for the remote auth web client. Auth profiles must be stored with `0600` permissions and be added to `.gitignore`.
-- **Native Jev Runner**: Port the Python Jev autonomous loop to pure TypeScript. Use the WAI-ARIA accessible DOM snapshotting (`takeJevSnapshot`) with WeakMap identity caching to prevent stale references.
-- **Unified Visual Output**: The existing wireframe visual board should render the autonomous goals as milestone cards, with video snippets playable via `#t=start,end` URL fragments.
+- **Zero-Dependency Core**: The Remote Human Auth bridge must be a zero-dependency Node.js HTTP/WebSocket server.
+- **Native Implementation**: The autonomous goal runner should be purely implemented in TypeScript within `@superconductor/core`, minimizing reliance on external orchestrators.
+- **Security & Integrity**: Prevent Cross-Site WebSocket Hijacking (CSWSH) and ensure strict one-time cryptographic tokens for auth. Use SHA-256 fingerprinting for loop detection in the autonomous runner.
 
-## Research Notes
-- Playwright CDP sessions allow direct DOM event dispatch (`Input.dispatchMouseEvent`, etc.) which bypasses OS-level input requirements, making it perfect for headless remote control.
-- Gemini and OpenRouter JSON schema tools can accurately emit discrete actions (`click`, `fill`, `press`, `scroll`, `wait`, `done`, `fail`) based on a minimized accessibility tree snapshot.
-- SHA-256 fingerprinting of the accessible tree state provides a robust mechanism to detect infinite loops in the LLM execution planner.
+## Research & Prior Art Notes
+- **agent-browser CDP Mappings**: Reviewed mappings to ensure consistent translation between agent actions and Chrome DevTools Protocol commands.
+- **jev-ultrafast**: Inspired the fast action-space snapshotting. `takeJevSnapshot(page)` will use WAI-ARIA accessible naming combined with a WeakMap DOM identity cache for robust element targeting.
 
 ## Functional Requirements
-- **FR-1**: Expose a local HTTP/WS server (port 4455) delivering a lightweight HTML5 canvas client for remote VNC-like control of a Playwright page.
-- **FR-2**: Translate HTML canvas mouse/keyboard events into CDP `Input.*` commands.
-- **FR-3**: Save and load Playwright `storageState` to/from `.superconductor/auth-profiles/`.
-- **FR-4**: Implement `jevRunner.ts` in `@superconductor/core` using a loop of `takeJevSnapshot(page)` -> LLM Planning -> CDP Action Execution.
-- **FR-5**: Orchestrate dual crawl pipelines: static AST route crawl + dynamic Jev scenario runner using `scenarios.json`.
-- **FR-6**: Record continuous video during crawls and emit milestone events with start/end timestamps.
-- **FR-7**: Update the Visual Board renderer (`renderer.ts`) to display scenario milestone cards with violet glowing borders, LLM thought callouts, and video snippet integration.
+- **FR-1: Remote Human Auth Bridge**: Implement a Node.js HTTP/WebSocket server (port 4455) streaming CDP screencast to an HTML5 canvas client.
+- **FR-2: Bi-directional Input Dispatch**: Support `Input.dispatchMouseEvent`, `Input.dispatchKeyEvent`, and `Input.insertText`.
+- **FR-3: Auth State Management**: Save `context.storageState()` to `.superconductor/auth-profiles/<name>.json` securely (mode 0600).
+- **FR-4: Native Jev Autonomous Goal Runner**: Implement a pure TS autonomous goal execution loop with LLM integration (Gemini/OpenRouter).
+- **FR-5: State Snapshotting**: `takeJevSnapshot(page)` must accurately capture actionable DOM elements with ARIA naming.
+- **FR-6: Continuous Video Recording**: Runner must synchronize continuous video recording with millisecond route & step markers.
+- **FR-7: Dual Data Scraper**: Implement Markdown reader mode (stripping boilerplate) and Schema-driven JSON table extractor (`scrape` mode).
+- **FR-8: Design Cue Cloner & Theme Distiller**: Extract CSS color palettes, typography scales, spacing scales, and design tokens, saving them to Superconductor Design OS formats.
+- **FR-9: Superconductor Studio**: Build a React Router 7 + Astryx web application featuring Live Takeover Viewport, DAG Explorer, Auth Vault, Scenario Goal Studio, Theme Distiller Studio, and Data Scraper Table Studio.
+- **FR-10: CLI Commands & MCP Tools**: Provide CLI wrappers (`auth`, `studio`, `crawl`, `scrape`, `distill-theme`) and MCP Server Tools (`auth_create_profile`, `wireframe_crawl_project`, etc.).
 
 ## Non-Functional Requirements
-- **Security**: WebSocket endpoints must validate one-time tokens. Profiles must be `0600`.
-- **Performance**: The screencast client must maintain at least 15 FPS with low latency. DOM snapshotting should take < 50ms.
-- **Resilience**: The Jev runner must detect loops and self-correct or abort with a clear error trace.
+- **Performance**: Screencast streaming must maintain low latency (under 100ms) over WebSocket.
+- **Security**: Strict origin checks on WebSockets; Auth profiles stored with mode 0600.
+- **Stability**: SHA-256 fingerprinting must accurately detect and halt runner loops.
 
 ## Acceptance Criteria
-- **AC-1**: Running `superconductor auth login --profile dev` opens a terminal URL, which when visited locally, shows the browser screen and allows clicking/typing to log in.
-- **AC-2**: The logged-in state is saved to `.superconductor/auth-profiles/dev.json`.
-- **AC-3**: Running `superconductor crawl --profile dev --scenarios scenarios.json` successfully hydrates the session and executes the multi-step goals.
-- **AC-4**: The visual board (`index.html`) renders the executed scenarios as milestone cards.
-- **AC-5**: Video playbacks on the milestone cards correctly seek to the start of the relevant action.
-- **AC-6**: MCP tools `auth_create_profile` and `auth_list_profiles` function as specified.
-- **AC-7**: All newly introduced code achieves >85% test coverage.
+- **AC-1**: User can log in manually via the Remote Auth Bridge on port 4455 and save their session.
+- **AC-2**: CDP screencast accurately reflects the browser state on the HTML5 canvas client.
+- **AC-3**: Input events (clicks, typing) from the canvas are correctly dispatched to the headless browser.
+- **AC-4**: Jev Runner can parse a user goal, interact with the snapshot, and complete the goal autonomously.
+- **AC-5**: Runner successfully halts upon detecting a loop via SHA-256 state fingerprinting.
+- **AC-6**: Scraper successfully transforms a target page into clean Markdown and structured JSON based on a provided schema.
+- **AC-7**: Theme Distiller correctly identifies WCAG-compliant color palettes and extracts tokens into `theme.json` and `tailwind.extend.json`.
+- **AC-8**: Superconductor Studio launches successfully and can preview live distillations and data scrapes.
+- **AC-9**: CLI commands correctly execute the core features from the terminal.
+- **AC-10**: MCP Tools register successfully and are callable via the MCP protocol.
 
 ## Out of Scope
-- Supporting browsers other than Chromium via CDP for the screencast feature.
-- Multi-user concurrent auth sessions on a single agent instance.
-- Fully autonomous CAPTCHA solving (human-in-the-loop auth solves this).
+- Distributed cloud clustering for browser instances.
+- Support for browsers other than Chromium (e.g., Firefox/WebKit are out of scope for the CDP-specific screencast).
