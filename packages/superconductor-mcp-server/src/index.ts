@@ -260,7 +260,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       return handleGetDependencySurface(projectRoot, args ?? {});
 
     case "wireframe_crawl_project": {
-      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const targetProjectRoot = validateProjectRoot(typeof args?.projectRoot === 'string' ? args.projectRoot : undefined);
       const result = await handleWireframeCrawlProject({
         projectRoot: targetProjectRoot,
         baseUrl: typeof args?.baseUrl === 'string' ? args.baseUrl : undefined,
@@ -273,7 +273,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     }
 
     case "auth_create_profile": {
-      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const targetProjectRoot = validateProjectRoot(typeof args?.projectRoot === 'string' ? args.projectRoot : undefined);
       const result = await handleAuthCreateProfile({
         url: String(args?.url || ''),
         profileName: String(args?.profileName || 'default'),
@@ -284,7 +284,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     }
 
     case "auth_list_profiles": {
-      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const targetProjectRoot = validateProjectRoot(typeof args?.projectRoot === 'string' ? args.projectRoot : undefined);
       const result = await handleAuthListProfiles({
         projectRoot: targetProjectRoot,
       });
@@ -292,7 +292,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     }
 
     case "browser_scrape_data": {
-      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const targetProjectRoot = validateProjectRoot(typeof args?.projectRoot === 'string' ? args.projectRoot : undefined);
       const result = await handleBrowserScrapeData({
         url: String(args?.url || ''),
         mode: args?.mode as any,
@@ -304,7 +304,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     }
 
     case "browser_distill_theme": {
-      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const targetProjectRoot = validateProjectRoot(typeof args?.projectRoot === 'string' ? args.projectRoot : undefined);
       const result = await handleBrowserDistillTheme({
         url: String(args?.url || ''),
         name: typeof args?.name === 'string' ? args.name : undefined,

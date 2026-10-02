@@ -321,4 +321,38 @@ describe('CLI & MCP Crawler Interface Tests', () => {
       expect(parsed.authUrl).toBeDefined();
     });
   });
+
+  describe('SSRF & Protocol Guard (SEC-4)', () => {
+    it('rejects file:///etc/hosts with security error in scrapePage and MCP tool', async () => {
+      const { scrapePage } = await import('../../src/crawler/browserAdapter.js');
+      const { handleBrowserScrapeData } = await import('../../src/crawler/mcpTool.js');
+
+      await expect(scrapePage({ url: 'file:///etc/hosts' })).rejects.toThrow(/SSRF|protocol|Invalid target URL/i);
+
+      const mcpRes = await handleBrowserScrapeData({ url: 'file:///etc/hosts' });
+      expect(mcpRes.isError).toBe(true);
+      expect(mcpRes.content[0].text).toMatch(/SSRF|protocol|Invalid target URL/i);
+    });
+
+    it('rejects http://169.254.169.254/latest/meta-data in scrapePage and distillPageTheme', async () => {
+      const { scrapePage, distillPageTheme } = await import('../../src/crawler/browserAdapter.js');
+
+      await expect(scrapePage({ url: 'http://169.254.169.254/latest/meta-data' })).rejects.toThrow(/SSRF|metadata|Invalid target URL/i);
+      await expect(distillPageTheme({ url: 'http://169.254.169.254/latest/meta-data' })).rejects.toThrow(/SSRF|metadata|Invalid target URL/i);
+    });
+
+    it('rejects cloud metadata hosts metadata.google.internal and instance-data', async () => {
+      const { scrapePage } = await import('../../src/crawler/browserAdapter.js');
+
+      await expect(scrapePage({ url: 'http://metadata.google.internal/computeMetadata/v1/' })).rejects.toThrow(/SSRF|metadata|Invalid target URL/i);
+      await expect(scrapePage({ url: 'http://instance-data/latest/meta-data' })).rejects.toThrow(/SSRF|metadata|Invalid target URL/i);
+    });
+
+    it('rejects disallowed non-http protocols like javascript: and data:', async () => {
+      const { scrapePage } = await import('../../src/crawler/browserAdapter.js');
+
+      await expect(scrapePage({ url: 'javascript:alert(1)' })).rejects.toThrow(/protocol|Invalid target URL/i);
+      await expect(scrapePage({ url: 'data:text/html,<h1>bad</h1>' })).rejects.toThrow(/protocol|Invalid target URL/i);
+    });
+  });
 });

@@ -37,11 +37,55 @@ export interface AuthSessionHandle {
 }
 
 /**
+ * Validates target URL against SSRF and unsupported protocols (SEC-4).
+ * Enforces http/https and blocks cloud metadata IPs/hosts.
+ */
+export function validateTargetUrl(rawUrl: string): URL {
+  if (typeof rawUrl !== 'string' || !rawUrl.trim()) {
+    throw new Error('Invalid target URL: URL must be a non-empty string.');
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl.trim());
+  } catch (e: any) {
+    throw new Error(`Invalid target URL "${rawUrl}": ${e?.message || 'malformed URL'}`);
+  }
+
+  // Enforce http: or https:
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(
+      `SSRF protocol violation: Unsupported protocol "${parsed.protocol}". Only "http:" and "https:" are permitted.`
+    );
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // Cloud metadata hosts & IP
+  const blockedHosts = [
+    '169.254.169.254',
+    'metadata.google.internal',
+    'metadata',
+    'instance-data',
+  ];
+
+  if (blockedHosts.includes(hostname) || hostname.endsWith('.metadata.google.internal')) {
+    throw new Error(
+      `SSRF security violation: Access to cloud metadata service at "${hostname}" is blocked.`
+    );
+  }
+
+  return parsed;
+}
+
+/**
  * Creates and starts a Remote Human Auth Bridge session for human authentication.
  */
 export async function createAuthSession(
   options: CreateAuthSessionOptions
 ): Promise<AuthSessionHandle> {
+  validateTargetUrl(options.url);
+
   const bridge = new RemoteAuthBridge({
     port: options.port !== undefined ? options.port : 4455,
   });
@@ -61,10 +105,14 @@ export async function createAuthSession(
     });
     const context = await browserInstance.newContext();
     pageInstance = await context.newPage();
-    await pageInstance.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
-    await bridge.attach(pageInstance).catch(() => {});
-  } catch {
-    // In headless test environments or when display is unavailable, bridge runs standalone
+    await pageInstance.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch((err) => {
+      console.error('[superconductor] Navigation failed in createAuthSession:', err?.message || err);
+    });
+    await bridge.attach(pageInstance).catch((err) => {
+      console.error('[superconductor] Bridge attach failed in createAuthSession:', err?.message || err);
+    });
+  } catch (err: any) {
+    console.error('[superconductor] Browser launch failed in createAuthSession:', err?.message || err);
   }
 
   // Auto-persist profile state to AuthManager on finish
@@ -75,12 +123,18 @@ export async function createAuthSession(
         await authManager.saveProfile(options.profileName, state);
       }
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.error('[superconductor] Error persisting auth profile:', err?.message || err);
+    });
 
   const stop = async () => {
-    await bridge.stop().catch(() => {});
+    await bridge.stop().catch((err) => {
+      console.error('[superconductor] Error stopping bridge in createAuthSession:', err?.message || err);
+    });
     if (browserInstance) {
-      await browserInstance.close().catch(() => {});
+      await browserInstance.close().catch((err) => {
+        console.error('[superconductor] Error closing browser in createAuthSession:', err?.message || err);
+      });
     }
   };
 
@@ -132,6 +186,7 @@ export interface ScrapePageOptions {
 export async function scrapePage(
   options: ScrapePageOptions
 ): Promise<MarkdownReadResult | StructuredScrapeResult | any> {
+  validateTargetUrl(options.url);
   const scraper = new DualScraper();
   const mode = options.mode || 'read';
 
@@ -164,6 +219,7 @@ export async function scrapePage(
       return await scraper.read(page);
     }
   } catch (err: any) {
+    console.error('[superconductor] Error in scrapePage:', err?.message || err);
     if (mode === 'scrape') {
       return {
         url: options.url,
@@ -187,7 +243,9 @@ export async function scrapePage(
     }
   } finally {
     if (browser) {
-      await browser.close().catch(() => {});
+      await browser.close().catch((err) => {
+        console.error('[superconductor] Error closing browser in scrapePage:', err?.message || err);
+      });
     }
   }
 }
@@ -205,6 +263,7 @@ export interface DistillPageThemeOptions {
 export async function distillPageTheme(
   options: DistillPageThemeOptions
 ): Promise<any> {
+  validateTargetUrl(options.url);
   const distiller = new ThemeDistiller();
   let browser: Browser | null = null;
 
@@ -225,11 +284,14 @@ export async function distillPageTheme(
     await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     return await distiller.distillTheme(page, { name: options.name });
-  } catch {
+  } catch (err: any) {
+    console.error('[superconductor] Error in distillPageTheme:', err?.message || err);
     return await distiller.extractTheme(options.url);
   } finally {
     if (browser) {
-      await browser.close().catch(() => {});
+      await browser.close().catch((err) => {
+        console.error('[superconductor] Error closing browser in distillPageTheme:', err?.message || err);
+      });
     }
   }
 }
