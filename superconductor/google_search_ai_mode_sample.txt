@@ -1,0 +1,62 @@
+Skip to main content
+Accessibility help
+AI Mode
+All
+News
+Images
+Videos
+More
+New thread
+Search threads
+Notebooks
+Add notebook
+The Famous Surry Hills
+The Famous
+Algorithmic Enigma: Music Marketing's Capital Equalizer
+Show more
+Recent
+Gemini 4 Release Date
+Gemini 4.0 Release and Rollout
+Best Single-Board Computers
+Sharjah Court Rent Payment Fees
+just wanted to quickly nut something through with you ... I want to quickly classify videos and images ..... and I was thinking to do it with jev ... do you think this would be a very cost effective way to do it over detr for object detection within each frame etc ... and then using something like omni to for key frames to classify the objects and then track them across the video to understand what they are doing over time ?? or would it be better to split the movie up into .5s segments of frames ... then send that as a single image ... and have jev understand that this is a {N] frame video and it should draw bounding boxes and attempt to understand what is going on in each frame over time ... ?
+I am running a tiktok style system on cloudflare using a mix of r2 and wasabi ... i was wondering if i use wasabi for the 3 month old content and retire the r2 content will i still be within the guidelines as most of the video content will be coming from r2 and only some of it will come from cached wasabi
+can you please find me some third party multi usbc output devices for the framework
+where can i purchase excellent ultrasone 750 ear pad replacements
+I am looking for a way to create a round sticker which when on a turn table creates the illusion of a 3d object in the center ... much like the collectors edition of star wars lp
+when is framework batch 16 going to be shipped ?
+Settings
+AI Mode conversation: when is gemini 4 coming to ultra users
+when is gemini 4 coming to ultra users
+Google has not announced an official release date for when Gemini 4 Argon will be available to Google AI Ultra subscribers. 
+The Rundown AI
+The new flagship frontier model was officially unveiled on 30 September 2026. Google is taking a highly restricted rollout approach due to the model's advanced capabilities: 
+Instagram
+·CNBC TV
+ +1
+Current Access: Only trusted cybersecurity teams and select partners have immediate access through Google's Fairwind Program. This version is being tested for cyber defense and is temporarily operating without standard cyber guardrails. 
+CellCog
+ +3
+Next in Line: Google stated in their official Google Gemini Blog Announcement that after this initial evaluation phase, the wider rollout will begin with paid API customers and Google AI Ultra subscribers. 
+blog.google
+ +1
+While reports note it will arrive "shortly" or "soon" following the government and cybersecurity pre-release safety checks, a specific calendar date has not been promised. 
+Ars Technica
+ +3
+Would you like to know more about the benchmarks Google released for Gemini 4 Argon, or the new pricing and features for the upcoming API?
+AI can make mistakes, so double-check responses
+blog.google
+Gemini 4 Argon: our next era of frontier intelligence
+1 Oct 2026 — Gemini 4 Argon with frontier-level capabilities on coding, knowledge work, cybersecurity defense, and creative writing … tackle th...
+Instagram
+·
+CNBC TV
+Alphabet unveiled Gemini 4 Argon on Wednesday, its most ...
+30 Sept 2026 — First access goes to trusted cyber defenders through Google's Fairwind program — who get the model's full cyber capabilities witho...
+1:16
+Instagram
+Google has launched Gemini 4 Argon - Instagram
+Benchmarks are Google's; No BS hasn't tested the model. trusted cyber defenders, through Google's Fairwind Program. Argon without ...
+Show all
+Skip to previous prompt
+AI Mode response is ready

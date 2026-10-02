@@ -282,6 +282,11 @@ Interviews, architectural refactoring, ticket generation, and worktree isolation
 - **Path**: `skills/worktrunk/SKILL.md`
 - **Keywords**: `worktrunk`, `worktree`, `git worktree`, `isolated workspace`
 
+### superconductor-browser
+- **Description**: Master companion skill for the Superconductor Browser: self-healing scrape formulas, multi-page resumable checkpoints, client-side JS state inspection, and anti-bot human stealth.
+- **Path**: `skills/superconductor-browser/SKILL.md`
+- **Keywords**: `superconductor-browser`, `browser automation`, `scrape formula`, `self-healing`, `checkpoint`, `hydration state`, `human stealth`, `Next.js data`, `crawler`
+
 ---
 
 ## 6. Ecosystem & Cloud Extensions

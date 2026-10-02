@@ -9,6 +9,16 @@
         "PROJECT_ROOT": "${WORKSPACE_ROOT}",
         "SUPERCONDUCTOR_DIR": "${EXTENSION_DIR}"
       }
+    },
+    "superconductor-browser": {
+      "command": "node",
+      "args": [
+        "./packages/superconductor-browser/dist/mcp/index.js"
+      ],
+      "env": {
+        "PROJECT_ROOT": "${WORKSPACE_ROOT}",
+        "SUPERCONDUCTOR_DIR": "${EXTENSION_DIR}"
+      }
     }
   }
 }

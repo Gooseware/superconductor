@@ -119,6 +119,9 @@ importers:
 
   packages/superconductor-browser:
     dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(zod@3.25.76)
       playwright:
         specifier: ^1.40.0
         version: 1.62.0
