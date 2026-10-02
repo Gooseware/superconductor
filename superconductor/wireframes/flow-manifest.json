@@ -1,0 +1,292 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-10-01T23:38:19.137Z",
+  "appRoot": "/home/gooseware/.gemini/antigravity-cli/brain/73dcd308-cb8b-4edd-b9ba-17a42db9a1b3/scratch/demo-app",
+  "framework": "vite",
+  "routes": [
+    {
+      "path": "/analytics",
+      "rawPath": "analytics",
+      "filePath": "src/pages/analytics.tsx",
+      "isIndex": false,
+      "dynamicParams": [],
+      "authRequired": false,
+      "authGuards": [],
+      "sourceLocation": {
+        "filePath": "src/pages/analytics.tsx",
+        "line": 3
+      }
+    },
+    {
+      "path": "/",
+      "rawPath": "index",
+      "filePath": "src/pages/index.tsx",
+      "isIndex": true,
+      "dynamicParams": [],
+      "authRequired": false,
+      "authGuards": [],
+      "sourceLocation": {
+        "filePath": "src/pages/index.tsx",
+        "line": 3
+      }
+    },
+    {
+      "path": "/settings",
+      "rawPath": "settings",
+      "filePath": "src/pages/settings.tsx",
+      "isIndex": false,
+      "dynamicParams": [],
+      "authRequired": false,
+      "authGuards": [],
+      "sourceLocation": {
+        "filePath": "src/pages/settings.tsx",
+        "line": 3
+      }
+    }
+  ],
+  "screens": [
+    {
+      "screenId": "screen_analytics",
+      "route": "/analytics",
+      "screenshots": {
+        "desktop": "screenshots/desktop_analytics.webp",
+        "tablet": "screenshots/tablet_analytics.webp",
+        "mobile": "screenshots/mobile_analytics.webp"
+      },
+      "interactions": [],
+      "videoMarker": {
+        "screenId": "screen_analytics",
+        "route": "/analytics",
+        "action": "navigate",
+        "viewport": "desktop",
+        "startTimeMs": 1790897895562,
+        "endTimeMs": 1790897896561,
+        "relativeStartSec": 0.401,
+        "relativeEndSec": 1.4
+      },
+      "astMetadata": {
+        "path": "/analytics",
+        "rawPath": "analytics",
+        "filePath": "src/pages/analytics.tsx",
+        "isIndex": false,
+        "dynamicParams": [],
+        "authRequired": false,
+        "authGuards": [],
+        "sourceLocation": {
+          "filePath": "src/pages/analytics.tsx",
+          "line": 3
+        }
+      }
+    },
+    {
+      "screenId": "screen_root",
+      "route": "/",
+      "screenshots": {
+        "desktop": "screenshots/desktop_root.webp",
+        "tablet": "screenshots/tablet_root.webp",
+        "mobile": "screenshots/mobile_root.webp"
+      },
+      "interactions": [],
+      "videoMarker": {
+        "screenId": "screen_root",
+        "route": "/",
+        "action": "navigate",
+        "viewport": "desktop",
+        "startTimeMs": 1790897896574,
+        "endTimeMs": 1790897897560,
+        "relativeStartSec": 1.413,
+        "relativeEndSec": 2.399
+      },
+      "astMetadata": {
+        "path": "/",
+        "rawPath": "index",
+        "filePath": "src/pages/index.tsx",
+        "isIndex": true,
+        "dynamicParams": [],
+        "authRequired": false,
+        "authGuards": [],
+        "sourceLocation": {
+          "filePath": "src/pages/index.tsx",
+          "line": 3
+        }
+      }
+    },
+    {
+      "screenId": "screen_settings",
+      "route": "/settings",
+      "screenshots": {
+        "desktop": "screenshots/desktop_settings.webp",
+        "tablet": "screenshots/tablet_settings.webp",
+        "mobile": "screenshots/mobile_settings.webp"
+      },
+      "interactions": [],
+      "videoMarker": {
+        "screenId": "screen_settings",
+        "route": "/settings",
+        "action": "navigate",
+        "viewport": "desktop",
+        "startTimeMs": 1790897897845,
+        "endTimeMs": 1790897898798,
+        "relativeStartSec": 2.684,
+        "relativeEndSec": 3.637
+      },
+      "astMetadata": {
+        "path": "/settings",
+        "rawPath": "settings",
+        "filePath": "src/pages/settings.tsx",
+        "isIndex": false,
+        "dynamicParams": [],
+        "authRequired": false,
+        "authGuards": [],
+        "sourceLocation": {
+          "filePath": "src/pages/settings.tsx",
+          "line": 3
+        }
+      }
+    }
+  ],
+  "videoMarkers": [
+    {
+      "screenId": "screen_analytics",
+      "route": "/analytics",
+      "action": "navigate",
+      "viewport": "desktop",
+      "startTimeMs": 1790897895562,
+      "endTimeMs": 1790897896561,
+      "relativeStartSec": 0.401,
+      "relativeEndSec": 1.4
+    },
+    {
+      "screenId": "screen_root",
+      "route": "/",
+      "action": "navigate",
+      "viewport": "desktop",
+      "startTimeMs": 1790897896574,
+      "endTimeMs": 1790897897560,
+      "relativeStartSec": 1.413,
+      "relativeEndSec": 2.399
+    },
+    {
+      "screenId": "screen_settings",
+      "route": "/settings",
+      "action": "navigate",
+      "viewport": "desktop",
+      "startTimeMs": 1790897897845,
+      "endTimeMs": 1790897898798,
+      "relativeStartSec": 2.684,
+      "relativeEndSec": 3.637
+    }
+  ],
+  "screenshots": [
+    {
+      "screenId": "screen_analytics",
+      "route": "/analytics",
+      "viewport": "desktop",
+      "filePath": "screenshots/desktop_analytics.webp",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "screenId": "screen_analytics",
+      "route": "/analytics",
+      "viewport": "tablet",
+      "filePath": "screenshots/tablet_analytics.webp",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "screenId": "screen_analytics",
+      "route": "/analytics",
+      "viewport": "mobile",
+      "filePath": "screenshots/mobile_analytics.webp",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "screenId": "screen_root",
+      "route": "/",
+      "viewport": "desktop",
+      "filePath": "screenshots/desktop_root.webp",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "screenId": "screen_root",
+      "route": "/",
+      "viewport": "tablet",
+      "filePath": "screenshots/tablet_root.webp",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "screenId": "screen_root",
+      "route": "/",
+      "viewport": "mobile",
+      "filePath": "screenshots/mobile_root.webp",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "screenId": "screen_settings",
+      "route": "/settings",
+      "viewport": "desktop",
+      "filePath": "screenshots/desktop_settings.webp",
+      "width": 1280,
+      "height": 800
+    },
+    {
+      "screenId": "screen_settings",
+      "route": "/settings",
+      "viewport": "tablet",
+      "filePath": "screenshots/tablet_settings.webp",
+      "width": 768,
+      "height": 1024
+    },
+    {
+      "screenId": "screen_settings",
+      "route": "/settings",
+      "viewport": "mobile",
+      "filePath": "screenshots/mobile_settings.webp",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "interactions": [],
+  "video": {
+    "filePath": "journey.webm",
+    "fileName": "journey.webm",
+    "markers": [
+      {
+        "screenId": "screen_analytics",
+        "route": "/analytics",
+        "action": "navigate",
+        "viewport": "desktop",
+        "startTimeMs": 1790897895562,
+        "endTimeMs": 1790897896561,
+        "relativeStartSec": 0.401,
+        "relativeEndSec": 1.4
+      },
+      {
+        "screenId": "screen_root",
+        "route": "/",
+        "action": "navigate",
+        "viewport": "desktop",
+        "startTimeMs": 1790897896574,
+        "endTimeMs": 1790897897560,
+        "relativeStartSec": 1.413,
+        "relativeEndSec": 2.399
+      },
+      {
+        "screenId": "screen_settings",
+        "route": "/settings",
+        "action": "navigate",
+        "viewport": "desktop",
+        "startTimeMs": 1790897897845,
+        "endTimeMs": 1790897898798,
+        "relativeStartSec": 2.684,
+        "relativeEndSec": 3.637
+      }
+    ],
+    "durationMs": 3976
+  }
+}

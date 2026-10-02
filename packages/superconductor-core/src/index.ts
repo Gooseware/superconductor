@@ -95,3 +95,10 @@ export type {
   TrackCompilerOptions,
   CompiledTrackResult,
 } from './visual/index.js';
+
+export type {
+  CreateAuthSessionOptions,
+  AuthSessionHandle,
+  ScrapePageOptions,
+  DistillPageThemeOptions,
+} from './crawler/index.js';

@@ -1,3 +1,6 @@
 [submodule "packages/superconductor-kernel"]
 	path = packages/superconductor-kernel
 	url = git@gitlab.com:goosewares/superconductor-kernel.git
+[submodule "packages/superconductor-browser"]
+	path = packages/superconductor-browser
+	url = git@gitlab.com:goosewares/superconductor-browser.git

@@ -153,12 +153,100 @@ export const SUPERCONDUCTOR_MCP_TOOLS: McpToolDeclaration[] = [
           type: 'string',
           description: 'Optional directory path where wireframe board and manifest will be emitted'
         },
+        profile: {
+          type: 'string',
+          description: 'Optional stored auth profile name to hydrate browser context'
+        },
+        scenarios: {
+          type: 'string',
+          description: 'Optional scenario file path defining dynamic goal execution'
+        },
         recordVideo: {
           type: 'boolean',
           description: 'Whether to record continuous journey video (default: true)'
         }
       },
       required: ['projectRoot']
+    }
+  },
+  {
+    name: 'auth_create_profile',
+    description: 'Starts a Remote Human Auth Bridge session streaming screencast VNC to capture authentication cookies & state for a profile.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Login target URL requiring authentication'
+        },
+        profileName: {
+          type: 'string',
+          description: 'Name of the authentication profile to create or update'
+        },
+        port: {
+          type: 'number',
+          description: 'Optional port for the Screencast Web VNC server (default: 4455)'
+        }
+      },
+      required: ['url', 'profileName']
+    }
+  },
+  {
+    name: 'auth_list_profiles',
+    description: 'Lists all stored browser authentication profiles available in the workspace.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectRoot: {
+          type: 'string',
+          description: 'Optional project root directory'
+        }
+      }
+    }
+  },
+  {
+    name: 'browser_scrape_data',
+    description: 'Scrapes web content using DualScraper: cleans HTML into high-density Markdown or extracts structured records using schema.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Target page URL to scrape'
+        },
+        mode: {
+          type: 'string',
+          enum: ['read', 'scrape'],
+          description: 'Scrape mode: read for clean markdown, scrape for schema-validated structured data'
+        },
+        schema: {
+          type: 'object',
+          description: 'Optional structured schema definition for extraction'
+        },
+        selector: {
+          type: 'string',
+          description: 'Optional container CSS selector'
+        }
+      },
+      required: ['url']
+    }
+  },
+  {
+    name: 'browser_distill_theme',
+    description: 'Distills design cues, WCAG-contrast palettes, typography scales, radii, and shadows from a URL into Design OS theme tokens.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Target URL to extract theme cues from'
+        },
+        name: {
+          type: 'string',
+          description: 'Optional theme name identifier'
+        }
+      },
+      required: ['url']
     }
   }
 ];

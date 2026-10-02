@@ -1063,11 +1063,14 @@ Options:
     // 15. crawl
     this.registerCommand('crawl', {
       description: 'Automated App Wireframe & Route Flow Crawler',
-      usage: 'crawl [--dir <path>] [--base-url <url>] [--output <dir>] [--no-video] [--standalone]',
+      usage: 'crawl [--dir <path>] [--base-url <url>] [--output <dir>] [--routes-file <file>] [--profile <name>] [--scenarios <file>] [--no-video] [--standalone]',
       options: [
         { flag: '--dir <path>', description: 'Target project root directory' },
         { flag: '--base-url <url>', description: 'Explicit running dev server base URL' },
         { flag: '--output <dir>', description: 'Output directory for wireframes & manifest' },
+        { flag: '--routes-file <file>', description: 'Explicit routes definition file' },
+        { flag: '--profile <name>', description: 'Hydrate browser context with stored authentication profile' },
+        { flag: '--scenarios <file>', description: 'Execute dynamic goal scenarios alongside static route crawl' },
         { flag: '--no-video', description: 'Disable continuous journey video recording' },
         { flag: '--standalone', description: 'Emit standalone HTML board artifact' },
       ],
@@ -1080,6 +1083,236 @@ Options:
         });
       },
     });
+
+    // 16. auth
+    this.registerCommand('auth', {
+      description: 'Remote Human Auth Bridge & Session Vault',
+      usage: 'auth <login|list|delete> [--name <name>] [--url <url>] [--port <port>]',
+      options: [
+        { flag: '<action>', description: 'Action: login, list, or delete' },
+        { flag: '--name <name>', description: 'Authentication profile name' },
+        { flag: '--url <url>', description: 'Target authentication URL (for login)' },
+        { flag: '--port <port>', description: 'Port for screencast Web VNC bridge' },
+      ],
+      execute: async (subArgs, ctx) => {
+        const { listAuthProfiles, deleteAuthProfile, createAuthSession } = await import('../crawler/browserAdapter.js');
+
+        if (subArgs.includes('--help') || subArgs.includes('-h') || subArgs.length === 0) {
+          ctx.stdout('Usage: superconductor auth <login|list|delete> [--name <name>] [--url <url>] [--port <port>]');
+          return;
+        }
+
+        const action = subArgs[0].toLowerCase();
+        let name: string | undefined;
+        let url: string | undefined;
+        let port: number | undefined;
+
+        for (let i = 1; i < subArgs.length; i++) {
+          const arg = subArgs[i];
+          if (arg === '--name' && subArgs[i + 1]) name = subArgs[++i];
+          else if (arg.startsWith('--name=')) name = arg.slice('--name='.length);
+          else if (arg === '--url' && subArgs[i + 1]) url = subArgs[++i];
+          else if (arg.startsWith('--url=')) url = arg.slice('--url='.length);
+          else if (arg === '--port' && subArgs[i + 1]) port = parseInt(subArgs[++i], 10);
+          else if (arg.startsWith('--port=')) port = parseInt(arg.slice('--port='.length), 10);
+          else if (!name && !arg.startsWith('-')) name = arg;
+        }
+
+        if (action === 'list') {
+          const profiles = await listAuthProfiles(ctx.cwd);
+          if (profiles.length === 0) {
+            ctx.stdout('No stored auth profiles found.');
+          } else {
+            ctx.stdout(`Found ${profiles.length} auth profile(s):`);
+            for (const p of profiles) {
+              ctx.stdout(`  - ${p.name} (cookies: ${p.cookiesCount}, origins: ${p.origins.join(', ') || 'none'}, created: ${p.createdAt})`);
+            }
+          }
+          return profiles;
+        }
+
+        if (action === 'delete') {
+          if (!name) {
+            throw new CliError('Usage: superconductor auth delete --name <name>', 1);
+          }
+          const success = await deleteAuthProfile(name, ctx.cwd);
+          if (success) {
+            ctx.stdout(`Deleted auth profile "${name}".`);
+          } else {
+            ctx.stdout(`Auth profile "${name}" not found.`);
+          }
+          return { name, success };
+        }
+
+        if (action === 'login') {
+          if (!url) {
+            throw new CliError('Usage: superconductor auth login --url <url> [--name <name>] [--port <port>]', 1);
+          }
+          const profileName = name || 'default';
+          const session = await createAuthSession({
+            url,
+            profileName,
+            port,
+            projectRoot: ctx.cwd,
+          });
+          ctx.stdout(`Remote Auth Bridge running at: ${session.authUrl}`);
+          ctx.stdout(`Open the URL above in your browser to complete human authentication.`);
+          return session;
+        }
+
+        throw new CliError(`Unknown auth action: "${action}". Valid actions: login, list, delete.`, 1);
+      },
+    });
+
+    // 17. studio
+    this.registerCommand('studio', {
+      description: 'Superconductor Studio (4-tab multi-tab browser observation & control dashboard)',
+      usage: 'studio [--port <port>]',
+      options: [
+        { flag: '--port <port>', description: 'Port for Studio server (default: 4456)' },
+      ],
+      execute: async (subArgs, ctx) => {
+        if (subArgs.includes('--help') || subArgs.includes('-h')) {
+          ctx.stdout('Usage: superconductor studio [--port <port>]');
+          return;
+        }
+
+        let port: number | undefined;
+        for (let i = 0; i < subArgs.length; i++) {
+          const arg = subArgs[i];
+          if (arg === '--port' && subArgs[i + 1]) port = parseInt(subArgs[++i], 10);
+          else if (arg.startsWith('--port=')) port = parseInt(arg.slice('--port='.length), 10);
+        }
+
+        const { runBrowserStudio } = await import('../crawler/browserAdapter.js');
+        const studio = await runBrowserStudio({ port });
+        ctx.stdout(`Superconductor Studio listening at ${studio.url}`);
+        return studio;
+      },
+    });
+
+    // 18. scrape
+    this.registerCommand('scrape', {
+      description: 'Scrape markdown or schema-extracted data from URL',
+      usage: 'scrape [--url <url>] [--mode <read|scrape>] [--schema <file>] [--out <file>]',
+      options: [
+        { flag: '--url <url>', description: 'Target URL to scrape' },
+        { flag: '--mode <read|scrape>', description: 'Scrape mode: read (markdown) or scrape (structured data)' },
+        { flag: '--schema <file>', description: 'Path to JSON schema file for structured data' },
+        { flag: '--out <file>', description: 'Output destination file' },
+      ],
+      execute: async (subArgs, ctx) => {
+        if (subArgs.includes('--help') || subArgs.includes('-h')) {
+          ctx.stdout('Usage: superconductor scrape [--url <url>] [--mode <read|scrape>] [--schema <file>] [--out <file>]');
+          return;
+        }
+
+        let url: string | undefined;
+        let mode: 'read' | 'scrape' = 'read';
+        let schemaPath: string | undefined;
+        let outPath: string | undefined;
+
+        for (let i = 0; i < subArgs.length; i++) {
+          const arg = subArgs[i];
+          if (arg === '--url' && subArgs[i + 1]) url = subArgs[++i];
+          else if (arg.startsWith('--url=')) url = arg.slice('--url='.length);
+          else if (arg === '--mode' && subArgs[i + 1]) mode = subArgs[++i] as any;
+          else if (arg.startsWith('--mode=')) mode = arg.slice('--mode='.length) as any;
+          else if (arg === '--schema' && subArgs[i + 1]) schemaPath = subArgs[++i];
+          else if (arg.startsWith('--schema=')) schemaPath = arg.slice('--schema='.length);
+          else if (arg === '--out' && subArgs[i + 1]) outPath = subArgs[++i];
+          else if (arg.startsWith('--out=')) outPath = arg.slice('--out='.length);
+          else if (!url && !arg.startsWith('-')) url = arg;
+        }
+
+        if (!url) {
+          throw new CliError('Usage: superconductor scrape [--url <url>] [--mode <read|scrape>] [--schema <file>] [--out <file>]', 1);
+        }
+
+        let schema: any;
+        if (schemaPath) {
+          const absSchema = path.resolve(ctx.cwd, schemaPath);
+          if (fs.existsSync(absSchema)) {
+            schema = JSON.parse(fs.readFileSync(absSchema, 'utf-8'));
+          }
+        }
+
+        const { scrapePage } = await import('../crawler/browserAdapter.js');
+        const result = await scrapePage({
+          url,
+          mode,
+          schema,
+          projectRoot: ctx.cwd,
+        });
+
+        const outputStr = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+        if (outPath) {
+          const absOut = path.resolve(ctx.cwd, outPath);
+          fs.writeFileSync(absOut, outputStr, 'utf-8');
+          ctx.stdout(`Scraped output written to ${absOut}`);
+        } else {
+          ctx.stdout(outputStr);
+        }
+        return result;
+      },
+    });
+
+    // 19. distill-theme
+    this.registerCommand('distill-theme', {
+      description: 'Extract and clone design tokens and themes from URL',
+      usage: 'distill-theme [--url <url>] [--name <name>] [--out <dir>]',
+      options: [
+        { flag: '--url <url>', description: 'Target URL to extract theme tokens from' },
+        { flag: '--name <name>', description: 'Theme name override' },
+        { flag: '--out <dir>', description: 'Directory to emit tokens.json and css files' },
+      ],
+      execute: async (subArgs, ctx) => {
+        if (subArgs.includes('--help') || subArgs.includes('-h')) {
+          ctx.stdout('Usage: superconductor distill-theme [--url <url>] [--name <name>] [--out <dir>]');
+          return;
+        }
+
+        let url: string | undefined;
+        let name: string | undefined;
+        let outDir: string | undefined;
+
+        for (let i = 0; i < subArgs.length; i++) {
+          const arg = subArgs[i];
+          if (arg === '--url' && subArgs[i + 1]) url = subArgs[++i];
+          else if (arg.startsWith('--url=')) url = arg.slice('--url='.length);
+          else if (arg === '--name' && subArgs[i + 1]) name = subArgs[++i];
+          else if (arg.startsWith('--name=')) name = arg.slice('--name='.length);
+          else if (arg === '--out' && subArgs[i + 1]) outDir = subArgs[++i];
+          else if (arg.startsWith('--out=')) outDir = arg.slice('--out='.length);
+          else if (!url && !arg.startsWith('-')) url = arg;
+        }
+
+        if (!url) {
+          throw new CliError('Usage: superconductor distill-theme [--url <url>] [--name <name>] [--out <dir>]', 1);
+        }
+
+        const { distillPageTheme } = await import('../crawler/browserAdapter.js');
+        const result = await distillPageTheme({
+          url,
+          name,
+          projectRoot: ctx.cwd,
+        });
+
+        if (outDir) {
+          const absDir = path.resolve(ctx.cwd, outDir);
+          fs.mkdirSync(absDir, { recursive: true });
+          fs.writeFileSync(path.join(absDir, 'theme.json'), JSON.stringify(result, null, 2), 'utf-8');
+          ctx.stdout(`Distilled theme exported to ${absDir}`);
+        } else {
+          ctx.stdout(JSON.stringify(result, null, 2));
+        }
+        return result;
+      },
+    });
+  }
+
+  public registerDefaultCommands(): void {
+    this.registerBuiltinCommands();
   }
 
   public static async dispatch(

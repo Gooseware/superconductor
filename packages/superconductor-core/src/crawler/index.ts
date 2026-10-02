@@ -12,3 +12,4 @@ export * from './orchestrator.js';
 export * from './mcpTool.js';
 export * from './jevSnapshot.js';
 export * from './jevAdapter.js';
+export * from './browserAdapter.js';
