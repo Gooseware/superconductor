@@ -726,49 +726,49 @@
     INVARIANT_AFTER: "Phase 5 User Manual verification complete."
 
 ## Phase 6: Superconductor Studio (React Router 7 + Astryx)
-- [ ] Task: Bootstrap Superconductor Studio [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Bootstrap Superconductor Studio [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-browser/studio/package.json, packages/superconductor-browser/studio/vite.config.ts, packages/superconductor-browser/studio/src/main.tsx
     PROTECTED: packages/superconductor-browser/package.json
     INVARIANT_AFTER: "Studio MUST build successfully with Vite and React Router 7."
-    - [ ] Initialize React Router 7 + Vite app inside submodule `studio/` [TIER-1:TCS=3]
-    - [ ] Build Astryx Design OS chrome and shell layout [TIER-1:TCS=3]
-- [ ] Task: Implement Studio Feature Modules [TIER-2:TCS=3] [AGENT:superconductor-processor]
+    - [x] Initialize React Router 7 + Vite app inside submodule `studio/` [TIER-1:TCS=3]
+    - [x] Build Astryx Design OS chrome and shell layout [TIER-1:TCS=3]
+- [x] Task: Implement Studio Feature Modules [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-browser/studio/src/routes/*.tsx, packages/superconductor-browser/studio/src/components/*.tsx
     PROTECTED: packages/superconductor-browser/studio/src/main.tsx
     INVARIANT_AFTER: "All studio feature modules MUST load without crashing."
-    - [ ] Live Takeover Viewport (WebSocket to port 4455 / CDP screencast) [TIER-1:TCS=3]
-    - [ ] Wireframe route DAG explorer (SVG splines, route inspect, video replay) [TIER-1:TCS=3]
-    - [ ] Auth Vault UI (inspect, create, test, clean) [TIER-1:TCS=3]
-    - [ ] Scenario Goal Studio (visual editor, runner, thought stream, loop visualizer) [TIER-1:TCS=3]
-    - [ ] Theme Distiller Studio (live visual preview, export) [TIER-1:TCS=3]
-    - [ ] Data Scraper Table Studio (schema builder, preview table, downloads) [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Superconductor Studio (React Router 7 + Astryx)' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+    - [x] Live Takeover Viewport (WebSocket to port 4455 / CDP screencast) [TIER-1:TCS=3]
+    - [x] Wireframe route DAG explorer (SVG splines, route inspect, video replay) [TIER-1:TCS=3]
+    - [x] Auth Vault UI (inspect, create, test, clean) [TIER-1:TCS=3]
+    - [x] Scenario Goal Studio (visual editor, runner, thought stream, loop visualizer) [TIER-1:TCS=3]
+    - [x] Theme Distiller Studio (live visual preview, export) [TIER-1:TCS=3]
+    - [x] Data Scraper Table Studio (schema builder, preview table, downloads) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Superconductor Studio (React Router 7 + Astryx)' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 6 User Manual verification complete."
 
 ## Phase 7: Core Integration & Monorepo Wiring
-- [ ] Task: Wire @superconductor/browser into Core and Monorepo [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Wire @superconductor/browser into Core and Monorepo [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-core/src/crawler/browserAdapter.ts
     PROTECTED: packages/superconductor-core/package.json, packages/superconductor-core/src/cli/cli-dispatcher.ts
     INVARIANT_AFTER: "@superconductor/core MUST delegate browser tasks to @superconductor/browser."
-    - [ ] Add `@superconductor/browser: "workspace:*"` dependency to `@superconductor/core` [TIER-1:TCS=3]
-    - [ ] Wire `superconductor auth`, `studio`, `crawl`, `scrape`, `distill-theme` CLI commands [TIER-1:TCS=3]
-    - [ ] Wire MCP tools in `@superconductor/mcp-server` to delegate to `@superconductor/browser` [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Core Integration & Monorepo Wiring' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+    - [x] Add `@superconductor/browser: "workspace:*"` dependency to `@superconductor/core` [TIER-1:TCS=3]
+    - [x] Wire `superconductor auth`, `studio`, `crawl`, `scrape`, `distill-theme` CLI commands [TIER-1:TCS=3]
+    - [x] Wire MCP tools in `@superconductor/mcp-server` to delegate to `@superconductor/browser` [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Core Integration & Monorepo Wiring' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 7 User Manual verification complete."
 
 ## Phase 8: End-to-End Integration Tests & Verification
-- [ ] Task: Write E2E Tests and Verify [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Write E2E Tests and Verify [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-browser/tests/auth.test.ts, packages/superconductor-browser/tests/runner.test.ts, packages/superconductor-browser/tests/scraper.test.ts, packages/superconductor-browser/tests/theme.test.ts
     PROTECTED: packages/superconductor-browser/src/index.ts
     INVARIANT_AFTER: "All browser submodule tests MUST pass cleanly."
-    - [ ] Write tests for Remote Auth Bridge and Jev Runner [TIER-1:TCS=3]
-    - [ ] Write tests for Theme Distiller and Scraper [TIER-1:TCS=3]
-    - [ ] Run complete monorepo verification across all packages [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 8: End-to-End Integration Tests & Verification' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+    - [x] Write tests for Remote Auth Bridge and Jev Runner [TIER-1:TCS=3]
+    - [x] Write tests for Theme Distiller and Scraper [TIER-1:TCS=3]
+    - [x] Run complete monorepo verification across all packages [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 8: End-to-End Integration Tests & Verification' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 8 User Manual verification complete."

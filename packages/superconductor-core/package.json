@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
+    "@superconductor/browser": "workspace:*",
     "@superconductor/engine": "workspace:*",
     "fast-glob": "^3.3.3",
     "js-yaml": "^4.3.0",

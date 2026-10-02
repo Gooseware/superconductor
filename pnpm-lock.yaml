@@ -150,6 +150,9 @@ importers:
       '@libsql/client':
         specifier: ^0.17.0
         version: 0.17.4
+      '@superconductor/browser':
+        specifier: workspace:*
+        version: link:../superconductor-browser
       '@superconductor/engine':
         specifier: workspace:*
         version: link:../engine

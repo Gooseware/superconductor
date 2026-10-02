@@ -41,6 +41,8 @@ export interface CrawlProjectOptions {
   devServerArgs?: string[];
   viewports?: ViewportPreset[];
   headless?: boolean;
+  profile?: string;
+  scenarios?: string;
   onProgress?: (message: string) => void;
 }
 
@@ -316,6 +318,46 @@ export async function crawlProject(options: CrawlProjectOptions): Promise<CrawlP
 
     // Attach strict non-GET interception
     await prober.attachNetworkInterceptor(page, baseUrl);
+
+    // Hydrate browser context with auth profile if specified
+    if (options.profile) {
+      try {
+        const { AuthManager } = await import('@superconductor/browser');
+        const authMgr = new AuthManager(projectRoot);
+        await authMgr.hydrateContext(page.context(), options.profile);
+        options.onProgress?.(`Hydrated browser context with auth profile '${options.profile}'`);
+      } catch (err: any) {
+        options.onProgress?.(`Warning: failed to hydrate auth profile '${options.profile}': ${err.message}`);
+      }
+    }
+
+    // Execute dynamic goal scenarios if provided
+    if (options.scenarios) {
+      const scenarioPath = path.resolve(projectRoot, options.scenarios);
+      if (fs.existsSync(scenarioPath)) {
+        try {
+          options.onProgress?.(`Executing dynamic scenarios from ${scenarioPath}...`);
+          const raw = fs.readFileSync(scenarioPath, 'utf-8');
+          const scenarioData = JSON.parse(raw);
+          const scenarioList = Array.isArray(scenarioData) ? scenarioData : [scenarioData];
+          const { JevGoalRunner } = await import('@superconductor/browser');
+          for (const s of scenarioList) {
+            const goal = s.goal || s.description || s.name;
+            if (goal) {
+              options.onProgress?.(`Running dynamic goal scenario: ${goal}`);
+              if (s.startUrl) {
+                const targetUrl = s.startUrl.startsWith('http') ? s.startUrl : `${baseUrl}${s.startUrl}`;
+                await page.goto(targetUrl, { waitUntil: 'domcontentloaded' }).catch(() => {});
+              }
+              const runner = new JevGoalRunner({ goal });
+              await runner.run(page).catch(() => {});
+            }
+          }
+        } catch (err: any) {
+          options.onProgress?.(`Warning: scenario execution encountered error: ${err.message}`);
+        }
+      }
+    }
 
     // 4. Route Crawl Loop
     options.onProgress?.(`Beginning route crawl across ${routeManifest.routes.length} route(s)...`);

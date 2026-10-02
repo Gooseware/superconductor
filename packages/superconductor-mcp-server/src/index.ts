@@ -23,7 +23,11 @@ import {
   TokenUsageReport,
   getDependencySurface,
   IntelligenceSnapshotReader,
-  handleWireframeCrawlProject
+  handleWireframeCrawlProject,
+  handleAuthCreateProfile,
+  handleAuthListProfiles,
+  handleBrowserScrapeData,
+  handleBrowserDistillTheme
 } from "@superconductor/core";
 
 class TelemetrySession {
@@ -261,7 +265,50 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
         projectRoot: targetProjectRoot,
         baseUrl: typeof args?.baseUrl === 'string' ? args.baseUrl : undefined,
         outputDir: typeof args?.outputDir === 'string' ? args.outputDir : undefined,
+        profile: typeof args?.profile === 'string' ? args.profile : undefined,
+        scenarios: typeof args?.scenarios === 'string' ? args.scenarios : undefined,
         recordVideo: typeof args?.recordVideo === 'boolean' ? args.recordVideo : undefined,
+      });
+      return result;
+    }
+
+    case "auth_create_profile": {
+      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const result = await handleAuthCreateProfile({
+        url: String(args?.url || ''),
+        profileName: String(args?.profileName || 'default'),
+        port: typeof args?.port === 'number' ? args.port : undefined,
+        projectRoot: targetProjectRoot,
+      });
+      return result;
+    }
+
+    case "auth_list_profiles": {
+      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const result = await handleAuthListProfiles({
+        projectRoot: targetProjectRoot,
+      });
+      return result;
+    }
+
+    case "browser_scrape_data": {
+      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const result = await handleBrowserScrapeData({
+        url: String(args?.url || ''),
+        mode: args?.mode as any,
+        schema: args?.schema,
+        selector: typeof args?.selector === 'string' ? args.selector : undefined,
+        projectRoot: targetProjectRoot,
+      });
+      return result;
+    }
+
+    case "browser_distill_theme": {
+      const targetProjectRoot = typeof args?.projectRoot === 'string' && args.projectRoot.trim() ? args.projectRoot.trim() : projectRoot;
+      const result = await handleBrowserDistillTheme({
+        url: String(args?.url || ''),
+        name: typeof args?.name === 'string' ? args.name : undefined,
+        projectRoot: targetProjectRoot,
       });
       return result;
     }

@@ -10,6 +10,8 @@ export interface ParsedCrawlArgs {
   standalone: boolean;
   isHelp: boolean;
   json: boolean;
+  profile?: string;
+  scenarios?: string;
 }
 
 export function parseCrawlArgs(args: string[] = []): ParsedCrawlArgs {
@@ -78,6 +80,24 @@ export function parseCrawlArgs(args: string[] = []): ParsedCrawlArgs {
       result.routesFile = arg.slice('--routes-file='.length);
       continue;
     }
+
+    if (arg === '--profile') {
+      result.profile = args[++i];
+      continue;
+    }
+    if (arg.startsWith('--profile=')) {
+      result.profile = arg.slice('--profile='.length);
+      continue;
+    }
+
+    if (arg === '--scenarios') {
+      result.scenarios = args[++i];
+      continue;
+    }
+    if (arg.startsWith('--scenarios=')) {
+      result.scenarios = arg.slice('--scenarios='.length);
+      continue;
+    }
   }
 
   return result;
@@ -97,6 +117,8 @@ Options:
   --base-url, -u <url>     Explicit running dev server base URL (e.g. http://localhost:3000)
   --output, -o <dir>       Output directory for board, manifest & recordings (default: superconductor/wireframes)
   --routes-file <file>     Explicit routes definition file
+  --profile <name>         Hydrate browser context with stored authentication profile
+  --scenarios <file>       Execute dynamic goal scenarios alongside static route crawl
   --no-video               Disable continuous journey video recording
   --standalone             Emit standalone HTML board artifact (default: true)
   --json                   Output machine-readable JSON result to stdout
@@ -245,6 +267,8 @@ export async function runCrawlCli(
       routesFile: parsed.routesFile,
       recordVideo: parsed.recordVideo,
       standalone: parsed.standalone,
+      profile: parsed.profile,
+      scenarios: parsed.scenarios,
       onProgress,
     });
 
