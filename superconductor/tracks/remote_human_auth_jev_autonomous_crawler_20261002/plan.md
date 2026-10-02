@@ -9,8 +9,8 @@
 
 **Mode:** pipeline (phases sequential, tasks within phase parallel)
 **Max Concurrent Agents:** 6
-**Oracle Cadence:** adaptive (every 14 tasks)
-**Estimated Track Token Budget:** ~0.5M tokens · ~$0.04 at Flash-Lite rates
+**Oracle Cadence:** adaptive (every 15 tasks)
+**Estimated Track Token Budget:** ~0.6M tokens · ~$0.04 at Flash-Lite rates
 
 ### Adapter Suggestions
 
@@ -627,19 +627,19 @@
 | Wave | Tasks | Models | Est. Tokens | Est. Duration |
 |---|---|---|---|---|
 | 1 | Task: Preflight Checks and Env Setup [TIER-4:TC... | flash_lite | 28K | ~9 min |
-| 2 | Task: Implement Remote Human Auth Bridge & Web ... | flash_lite | 56K | ~18 min |
+| 2 | Task: Scaffold and Initialize Git Submodule [TI... | flash_lite | 56K | ~18 min |
 | 3 | Task: Superconductor - User Manual Verification... | flash_lite | 9K | ~3 min |
-| 4 | Task: Implement Native Jev Autonomous Goal Runn... | flash_lite | 56K | ~18 min |
+| 4 | Task: Implement Remote Human Auth Bridge & Web ... | flash_lite | 56K | ~18 min |
 | 5 | Task: Superconductor - User Manual Verification... | flash_lite | 9K | ~3 min |
-| 6 | Task: Implement Dual Data Scraper [TIER-3:TCS=3... | flash_lite | 38K | ~12 min |
-| 7 | Task: Implement Design Cue Cloner [TIER-3:TCS=3... | flash_lite | 47K | ~15 min |
-| 8 | Task: Bootstrap Superconductor Studio [TIER-3:T... | flash_lite | 38K | ~12 min |
-| 9 | Task: Implement Studio Feature Modules [TIER-2:... | flash_lite | 56K | ~18 min |
-| 10 | Data Scraper Table Studio (schema builder, prev... | flash_lite | 19K | ~6 min |
-| 11 | Task: Implement Crawl Orchestration [TIER-2:TCS... | flash_lite | 38K | ~12 min |
-| 12 | Task: Add CLI Commands and MCP Tools [TIER-2:TC... | flash_lite | 38K | ~12 min |
+| 6 | Task: Implement Native Jev Autonomous Goal Runn... | flash_lite | 56K | ~18 min |
+| 7 | Task: Superconductor - User Manual Verification... | flash_lite | 9K | ~3 min |
+| 8 | Task: Implement Dual Data Scraper [TIER-3:TCS=3... | flash_lite | 38K | ~12 min |
+| 9 | Task: Implement Design Cue Cloner [TIER-3:TCS=3... | flash_lite | 47K | ~15 min |
+| 10 | Task: Bootstrap Superconductor Studio [TIER-3:T... | flash_lite | 56K | ~18 min |
+| 11 | Auth Vault UI (inspect, create, test, clean) [T... | flash_lite | 47K | ~15 min |
+| 12 | Task: Wire @superconductor/browser into Core an... | flash_lite | 47K | ~15 min |
 | 13 | Task: Write E2E Tests and Verify [TIER-2:TCS=3]... | flash_lite | 47K | ~15 min |
-| 14 | Task: Polish, Audit, and Merge [TIER-1:TCS=3] [... | flash_lite | 47K | ~15 min |
+| 14 | Task: Polish, Audit, Push Submodule and Merge [... | flash_lite | 47K | ~15 min |
 
 
 ---
@@ -655,77 +655,86 @@
     PROTECTED: 
     INVARIANT_AFTER: "Phase 0 User Manual verification complete."
 
-## Phase 1: Remote Human Auth Bridge & Screencast Web VNC
+## Phase 1: Git Submodule Initialization & GitLab Upstream Sync
+- [ ] Task: Scaffold and Initialize Git Submodule [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-browser/package.json, packages/superconductor-browser/tsconfig.json, packages/superconductor-browser/README.md, .gitmodules
+    PROTECTED: package.json, pnpm-workspace.yaml
+    INVARIANT_AFTER: "The submodule MUST be initialized with remote git@gitlab.com:goosewares/superconductor-browser.git and pushed to GitLab."
+    - [ ] Create `packages/superconductor-browser/package.json` for `@superconductor/browser` [TIER-1:TCS=3]
+    - [ ] Initialize git repo in `packages/superconductor-browser` and commit baseline [TIER-1:TCS=3]
+    - [ ] Add remote origin `git@gitlab.com:goosewares/superconductor-browser.git` and push `main` [TIER-1:TCS=3]
+    - [ ] Add submodule entry to `.gitmodules` in root repository [TIER-1:TCS=3]
+    - [ ] Verify `git submodule status` reports submodule cleanly [TIER-1:TCS=3]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Git Submodule Initialization & GitLab Upstream Sync' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+    CREATES: 
+    PROTECTED: 
+    INVARIANT_AFTER: "Phase 1 User Manual verification complete."
+
+## Phase 2: Remote Human Auth Bridge & Screencast Web VNC
 - [ ] Task: Implement Remote Human Auth Bridge & Web VNC [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/src/crawler/remoteAuth.ts, packages/superconductor-core/src/crawler/authManager.ts
-    PROTECTED: packages/superconductor-core/src/index.ts
+    CREATES: packages/superconductor-browser/src/auth/remoteAuth.ts, packages/superconductor-browser/src/auth/authManager.ts
+    PROTECTED: packages/superconductor-browser/src/index.ts
     INVARIANT_AFTER: "The session validator MUST never bypass token signature checks and CSWSH prevention."
     - [ ] Implement zero-dependency HTTP/WS server on port 4455 [TIER-1:TCS=3]
     - [ ] Implement CDP Screencast streaming (`Page.startScreencast`, `Page.screencastFrameAck`) to canvas [TIER-1:TCS=3]
     - [ ] Implement bi-directional input dispatch (`Input.dispatchMouseEvent`, `Input.dispatchKeyEvent`, `Input.insertText`) [TIER-1:TCS=3]
     - [ ] Ensure one-time crypto tokens, loopback origin checks, CSWSH prevention [TIER-1:TCS=3]
     - [ ] Save `context.storageState()` to `.superconductor/auth-profiles/<name>.json` (mode 0600) [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Remote Human Auth Bridge & Screencast Web VNC' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Remote Human Auth Bridge & Screencast Web VNC' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
-    INVARIANT_AFTER: "Phase 1 User Manual verification complete."
+    INVARIANT_AFTER: "Phase 2 User Manual verification complete."
 
-## Phase 2: Native TypeScript Jev Goal Runner
+## Phase 3: Native TypeScript Jev Goal Runner
 - [ ] Task: Implement Native Jev Autonomous Goal Runner [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/src/crawler/jevRunner.ts, packages/superconductor-core/src/crawler/jevSnapshot.ts
-    PROTECTED: 
+    CREATES: packages/superconductor-browser/src/runner/jevRunner.ts, packages/superconductor-browser/src/runner/jevSnapshot.ts
+    PROTECTED: packages/superconductor-browser/src/index.ts
     INVARIANT_AFTER: "Goal runner MUST detect duplicate DOM fingerprints via SHA-256 to prevent infinite loops."
     - [ ] Build pure TypeScript autonomous goal execution loop with LLM (Gemini/OpenRouter) integration [TIER-1:TCS=3]
     - [ ] Implement `takeJevSnapshot(page)` with ARIA naming + WeakMap DOM cache [TIER-1:TCS=3]
     - [ ] Build JSON decision planning loop (actions: click, fill, press, scroll, wait, done, fail) [TIER-1:TCS=3]
     - [ ] Add SHA-256 fingerprint loop detection and guard freshness verification [TIER-1:TCS=3]
     - [ ] Synchronize continuous video recording with millisecond route & step markers [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 2: Native TypeScript Jev Goal Runner' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
-    CREATES: 
-    PROTECTED: 
-    INVARIANT_AFTER: "Phase 2 User Manual verification complete."
-
-## Phase 3: Dual Data Scraper: Markdown Reader & Schema-Driven JSON Extractor
-- [ ] Task: Implement Dual Data Scraper [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/src/crawler/scraper.ts
-    PROTECTED: 
-    INVARIANT_AFTER: "Scraper MUST respect schema types during JSON extraction."
-    - [ ] Implement Markdown reader (`read` mode) stripping chrome, ads, and boilerplate [TIER-1:TCS=3]
-    - [ ] Implement schema-driven JSON table extractor (`scrape` mode) for structured records [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Dual Data Scraper' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 3: Native TypeScript Jev Goal Runner' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 3 User Manual verification complete."
 
-## Phase 4: Design Cue Cloner & Theme Distiller
-- [ ] Task: Implement Design Cue Cloner [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/src/crawler/themeCloner.ts
-    PROTECTED: 
-    INVARIANT_AFTER: "Tokens extracted MUST output in valid Design OS formats (theme.json, tokens.css, tailwind.extend.json)."
-    - [ ] Extract CSS color palettes, typography, spacing, border radii, shadows, glassmorphic blurs [TIER-1:TCS=3]
-    - [ ] Verify WCAG contrast for extracted palettes [TIER-1:TCS=3]
-    - [ ] Distill tokens into `theme.json`, `tokens.css`, and `tailwind.extend.json` [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Design Cue Cloner & Theme Distiller' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+## Phase 4: Dual Data Scraper: Markdown Reader & Schema-Driven JSON Extractor
+- [ ] Task: Implement Dual Data Scraper [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-browser/src/scraper/scraper.ts
+    PROTECTED: packages/superconductor-browser/src/index.ts
+    INVARIANT_AFTER: "Scraper MUST respect schema types during JSON extraction."
+    - [ ] Implement Markdown reader (`read` mode) stripping chrome, ads, and boilerplate [TIER-1:TCS=3]
+    - [ ] Implement schema-driven JSON table extractor (`scrape` mode) for structured records [TIER-1:TCS=3]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 4: Dual Data Scraper' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 4 User Manual verification complete."
 
-## Phase 5: Superconductor Studio Package Setup & Astryx Shell
-- [ ] Task: Bootstrap Superconductor Studio [TIER-3:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-studio/package.json, packages/superconductor-studio/vite.config.ts, packages/superconductor-studio/src/main.tsx
-    PROTECTED: packages/package.json
-    INVARIANT_AFTER: "Studio MUST build successfully with Vite and React Router 7."
-    - [ ] Initialize React Router 7 + Vite app [TIER-1:TCS=3]
-    - [ ] Replace Next.js dashboard with Astryx styling shell [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Superconductor Studio Package Setup & Astryx Shell' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+## Phase 5: Design Cue Cloner & Theme Distiller
+- [ ] Task: Implement Design Cue Cloner [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-browser/src/theme/themeCloner.ts
+    PROTECTED: packages/superconductor-browser/src/index.ts
+    INVARIANT_AFTER: "Tokens extracted MUST output in valid Design OS formats (theme.json, tokens.css, tailwind.extend.json)."
+    - [ ] Extract CSS color palettes, typography, spacing, border radii, shadows, glassmorphic blurs [TIER-1:TCS=3]
+    - [ ] Verify WCAG contrast for extracted palettes [TIER-1:TCS=3]
+    - [ ] Distill tokens into `theme.json`, `tokens.css`, and `tailwind.extend.json` [TIER-1:TCS=3]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 5: Design Cue Cloner & Theme Distiller' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 5 User Manual verification complete."
 
-## Phase 6: Superconductor Studio Feature Modules
+## Phase 6: Superconductor Studio (React Router 7 + Astryx)
+- [ ] Task: Bootstrap Superconductor Studio [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-browser/studio/package.json, packages/superconductor-browser/studio/vite.config.ts, packages/superconductor-browser/studio/src/main.tsx
+    PROTECTED: packages/superconductor-browser/package.json
+    INVARIANT_AFTER: "Studio MUST build successfully with Vite and React Router 7."
+    - [ ] Initialize React Router 7 + Vite app inside submodule `studio/` [TIER-1:TCS=3]
+    - [ ] Build Astryx Design OS chrome and shell layout [TIER-1:TCS=3]
 - [ ] Task: Implement Studio Feature Modules [TIER-2:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-studio/src/routes/*.tsx, packages/superconductor-studio/src/components/*.tsx
-    PROTECTED: packages/superconductor-studio/src/main.tsx
+    CREATES: packages/superconductor-browser/studio/src/routes/*.tsx, packages/superconductor-browser/studio/src/components/*.tsx
+    PROTECTED: packages/superconductor-browser/studio/src/main.tsx
     INVARIANT_AFTER: "All studio feature modules MUST load without crashing."
     - [ ] Live Takeover Viewport (WebSocket to port 4455 / CDP screencast) [TIER-1:TCS=3]
     - [ ] Wireframe route DAG explorer (SVG splines, route inspect, video replay) [TIER-1:TCS=3]
@@ -733,57 +742,46 @@
     - [ ] Scenario Goal Studio (visual editor, runner, thought stream, loop visualizer) [TIER-1:TCS=3]
     - [ ] Theme Distiller Studio (live visual preview, export) [TIER-1:TCS=3]
     - [ ] Data Scraper Table Studio (schema builder, preview table, downloads) [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Superconductor Studio Feature Modules' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Superconductor Studio (React Router 7 + Astryx)' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 6 User Manual verification complete."
 
-## Phase 7: Dual Crawl Orchestration & Wireframe Board Integration
-- [ ] Task: Implement Crawl Orchestration [TIER-2:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/src/crawler/orchestrator.ts, packages/superconductor-core/src/crawler/renderer.ts
-    PROTECTED: 
-    INVARIANT_AFTER: "Crawler MUST aggregate outputs to the Wireframe Board seamlessly."
-    - [ ] Orchestrate crawl workflows utilizing Jev runner and Scraper [TIER-1:TCS=3]
-    - [ ] Integrate generated models into the Wireframe Board structure [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Dual Crawl Orchestration & Wireframe Board Integration' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+## Phase 7: Core Integration & Monorepo Wiring
+- [ ] Task: Wire @superconductor/browser into Core and Monorepo [TIER-2:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-core/src/crawler/browserAdapter.ts
+    PROTECTED: packages/superconductor-core/package.json, packages/superconductor-core/src/cli/cli-dispatcher.ts
+    INVARIANT_AFTER: "@superconductor/core MUST delegate browser tasks to @superconductor/browser."
+    - [ ] Add `@superconductor/browser: "workspace:*"` dependency to `@superconductor/core` [TIER-1:TCS=3]
+    - [ ] Wire `superconductor auth`, `studio`, `crawl`, `scrape`, `distill-theme` CLI commands [TIER-1:TCS=3]
+    - [ ] Wire MCP tools in `@superconductor/mcp-server` to delegate to `@superconductor/browser` [TIER-1:TCS=3]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Core Integration & Monorepo Wiring' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 7 User Manual verification complete."
 
-## Phase 8: CLI Commands & MCP Server Tools
-- [ ] Task: Add CLI Commands and MCP Tools [TIER-2:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/src/cli/auth.ts, packages/superconductor-core/src/cli/studio.ts, packages/superconductor-core/src/cli/scrape.ts, packages/superconductor-core/src/cli/distill-theme.ts, packages/superconductor-core/src/crawler/mcpTool.ts
-    PROTECTED: packages/superconductor-core/src/cli/cli-dispatcher.ts, packages/superconductor-core/src/cli/index.ts, packages/superconductor-mcp-server/src/index.ts
-    INVARIANT_AFTER: "CLI commands and MCP tools MUST execute without unhandled exceptions."
-    - [ ] Implement CLI: `superconductor auth`, `studio`, `crawl`, `scrape`, `distill-theme` [TIER-1:TCS=3]
-    - [ ] Register MCP Tools: `auth_create_profile`, `auth_list_profiles`, `wireframe_crawl_project`, `browser_scrape_data`, `browser_distill_theme` [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 8: CLI Commands & MCP Server Tools' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+## Phase 8: End-to-End Integration Tests & Verification
+- [ ] Task: Write E2E Tests and Verify [TIER-2:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-browser/tests/auth.test.ts, packages/superconductor-browser/tests/runner.test.ts, packages/superconductor-browser/tests/scraper.test.ts, packages/superconductor-browser/tests/theme.test.ts
+    PROTECTED: packages/superconductor-browser/src/index.ts
+    INVARIANT_AFTER: "All browser submodule tests MUST pass cleanly."
+    - [ ] Write tests for Remote Auth Bridge and Jev Runner [TIER-1:TCS=3]
+    - [ ] Write tests for Theme Distiller and Scraper [TIER-1:TCS=3]
+    - [ ] Run complete monorepo verification across all packages [TIER-1:TCS=3]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 8: End-to-End Integration Tests & Verification' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 8 User Manual verification complete."
 
-## Phase 9: End-to-End Integration Tests & Monorepo Verification
-- [ ] Task: Write E2E Tests and Verify [TIER-2:TCS=3] [AGENT:superconductor-processor]
-    CREATES: packages/superconductor-core/tests/crawler/remote-auth.test.ts, packages/superconductor-core/tests/crawler/jev-runner.test.ts, packages/superconductor-core/tests/crawler/scraper.test.ts, packages/superconductor-core/tests/crawler/theme-cloner.test.ts, packages/superconductor-core/tests/crawler/studio-integration.test.ts
-    PROTECTED: packages/superconductor-core/src/index.ts
-    INVARIANT_AFTER: "All crawler, auth, runner, and studio tests MUST pass cleanly."
-    - [ ] Write integration tests for Remote Auth Bridge and Jev Runner [TIER-1:TCS=3]
-    - [ ] Write tests for Theme Distiller, Scraper, and CLI commands [TIER-1:TCS=3]
-    - [ ] Run complete monorepo verification across all packages [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 9: End-to-End Integration Tests & Monorepo Verification' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+## Phase 9: Final Polish, Security Audit, Submodule Git Push & Mainline Merge
+- [ ] Task: Polish, Audit, Push Submodule and Merge [TIER-1:TCS=3] [AGENT:superconductor-processor]
+    CREATES: 
+    PROTECTED: 
+    INVARIANT_AFTER: "Submodule MUST be pushed to GitLab upstream and parent repo committed."
+    - [ ] Conduct final security audit on port 4455 WS endpoint and token handling [TIER-1:TCS=3]
+    - [ ] Push submodule commits to `git@gitlab.com:goosewares/superconductor-browser.git` [TIER-1:TCS=3]
+    - [ ] Commit parent repository submodule pointer and merge track [TIER-1:TCS=3]
+- [ ] Task: Superconductor - User Manual Verification 'Phase 9: Final Polish, Security Audit, Submodule Git Push & Mainline Merge' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 9 User Manual verification complete."
-
-## Phase 10: Final System Polish, Security Audit & Mainline Integration
-- [ ] Task: Polish, Audit, and Merge [TIER-1:TCS=3] [AGENT:superconductor-processor]
-    CREATES: 
-    PROTECTED: 
-    INVARIANT_AFTER: "Security audit findings MUST be 0 critical before merge."
-    - [ ] Conduct final security audit on port 4455 WS endpoint and token handling [TIER-1:TCS=3]
-    - [ ] Polish Studio UI components [TIER-1:TCS=3]
-    - [ ] Finalize mainline integration [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 10: Final System Polish, Security Audit & Mainline Integration' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
-    CREATES: 
-    PROTECTED: 
-    INVARIANT_AFTER: "Phase 10 User Manual verification complete."
