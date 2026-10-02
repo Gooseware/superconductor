@@ -101,7 +101,7 @@ export async function createAuthSession(
     const { chromium } = await import('playwright');
     browserInstance = await chromium.launch({
       headless: options.headless ?? true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
     });
     const context = await browserInstance.newContext();
     pageInstance = await context.newPage();
@@ -195,7 +195,7 @@ export async function scrapePage(
     const { chromium } = await import('playwright');
     browser = await chromium.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
     });
     const context = await browser.newContext();
 
@@ -271,7 +271,7 @@ export async function distillPageTheme(
     const { chromium } = await import('playwright');
     browser = await chromium.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
     });
     const context = await browser.newContext();
 
