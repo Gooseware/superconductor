@@ -4,10 +4,11 @@ import type { CrawlerConfig, ViewportPreset } from './types.js';
 
 export function findSystemChromium(): string | undefined {
   const candidates = [
-    '/home/gooseware/.local/bin/chromium',
+    '/usr/local/bin/google-chrome-stable',
+    '/usr/bin/google-chrome',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
-    '/usr/bin/google-chrome',
+    '/home/gooseware/.local/bin/chromium',
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) {
@@ -18,9 +19,16 @@ export function findSystemChromium(): string | undefined {
 }
 
 export function resolveChromiumPath(): string {
+  if (process.env.CHROMIUM_PATH) {
+    return process.env.CHROMIUM_PATH;
+  }
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  if (fs.existsSync('/usr/local/bin/google-chrome-stable')) {
+    return '/usr/local/bin/google-chrome-stable';
+  }
   return (
-    process.env.CHROMIUM_PATH ||
-    process.env.PUPPETEER_EXECUTABLE_PATH ||
     findSystemChromium() ||
     '/home/gooseware/.local/bin/chromium'
   );

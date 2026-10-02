@@ -103,9 +103,34 @@ export async function createAuthSession(
     browserInstance = await chromium.launch({
       executablePath: resolveChromiumPath(),
       headless: options.headless ?? true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
+      ignoreDefaultArgs: ['--enable-automation'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-infobars',
+        '--window-size=1280,800',
+        '--lang=en-US,en',
+      ],
     });
-    const context = await browserInstance.newContext();
+    const context = await browserInstance.newContext({
+      userAgent:
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      viewport: { width: 1280, height: 800 },
+      locale: 'en-US',
+      timezoneId: 'America/New_York',
+    });
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined,
+      });
+      // @ts-ignore
+      delete (window as any).cdc_adoQpoasnfa76pfcZLmcfl_Array;
+      // @ts-ignore
+      delete (window as any).cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+      // @ts-ignore
+      delete (window as any).cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+    });
     pageInstance = await context.newPage();
     await pageInstance.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch((err) => {
       console.error('[superconductor] Navigation failed in createAuthSession:', err?.message || err);
