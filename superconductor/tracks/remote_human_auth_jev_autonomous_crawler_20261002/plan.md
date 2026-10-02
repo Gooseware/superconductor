@@ -656,16 +656,16 @@
     INVARIANT_AFTER: "Phase 0 User Manual verification complete."
 
 ## Phase 1: Git Submodule Initialization & GitLab Upstream Sync
-- [ ] Task: Scaffold and Initialize Git Submodule [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Scaffold and Initialize Git Submodule [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES: packages/superconductor-browser/package.json, packages/superconductor-browser/tsconfig.json, packages/superconductor-browser/README.md, .gitmodules
     PROTECTED: package.json, pnpm-workspace.yaml
     INVARIANT_AFTER: "The submodule MUST be initialized with remote git@gitlab.com:goosewares/superconductor-browser.git and pushed to GitLab."
-    - [ ] Create `packages/superconductor-browser/package.json` for `@superconductor/browser` [TIER-1:TCS=3]
-    - [ ] Initialize git repo in `packages/superconductor-browser` and commit baseline [TIER-1:TCS=3]
-    - [ ] Add remote origin `git@gitlab.com:goosewares/superconductor-browser.git` and push `main` [TIER-1:TCS=3]
-    - [ ] Add submodule entry to `.gitmodules` in root repository [TIER-1:TCS=3]
-    - [ ] Verify `git submodule status` reports submodule cleanly [TIER-1:TCS=3]
-- [ ] Task: Superconductor - User Manual Verification 'Phase 1: Git Submodule Initialization & GitLab Upstream Sync' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
+    - [x] Create `packages/superconductor-browser/package.json` for `@superconductor/browser` [TIER-1:TCS=3]
+    - [x] Initialize git repo in `packages/superconductor-browser` and commit baseline [TIER-1:TCS=3]
+    - [x] Add remote origin `git@gitlab.com:goosewares/superconductor-browser.git` and push `main` [TIER-1:TCS=3]
+    - [x] Add submodule entry to `.gitmodules` in root repository [TIER-1:TCS=3]
+    - [x] Verify `git submodule status` reports submodule cleanly [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 1: Git Submodule Initialization & GitLab Upstream Sync' (Protocol in workflow.md) [TIER-4:TCS=3] [AGENT:superconductor-processor]
     CREATES: 
     PROTECTED: 
     INVARIANT_AFTER: "Phase 1 User Manual verification complete."
