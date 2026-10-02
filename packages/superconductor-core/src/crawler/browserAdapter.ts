@@ -14,6 +14,7 @@ import {
   type StudioServerInstance,
 } from '@superconductor/browser';
 import type { Browser, Page } from 'playwright';
+import { resolveChromiumPath } from './config.js';
 
 export interface CreateAuthSessionOptions {
   url: string;
@@ -100,6 +101,7 @@ export async function createAuthSession(
   try {
     const { chromium } = await import('playwright');
     browserInstance = await chromium.launch({
+      executablePath: resolveChromiumPath(),
       headless: options.headless ?? true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
     });
@@ -194,6 +196,7 @@ export async function scrapePage(
   try {
     const { chromium } = await import('playwright');
     browser = await chromium.launch({
+      executablePath: resolveChromiumPath(),
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
     });
@@ -270,6 +273,7 @@ export async function distillPageTheme(
   try {
     const { chromium } = await import('playwright');
     browser = await chromium.launch({
+      executablePath: resolveChromiumPath(),
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
     });
