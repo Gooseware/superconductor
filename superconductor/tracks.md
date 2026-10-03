@@ -41,7 +41,7 @@
 | [x] | automated_app_wireframe_route_crawler_20261001 | [Automated App Wireframe & Route Flow Crawler with Journey Video Recording](./tracks/automated_app_wireframe_route_crawler_20261001/index.md) | track/automated_app_wireframe_route_crawler_20261001 (merged to main) |
 | [x] | remote_human_auth_jev_autonomous_crawler_20261002 | [The Ultimate Agent-Driven Browser: Remote Auth, Jev Runner, Scraper, Theme Distiller & Studio](./tracks/remote_human_auth_jev_autonomous_crawler_20261002/index.md) | track/remote_human_auth_jev_autonomous_crawler_20261002 (merged to main) |
 | [x] | self_healing_formulas_stealth_browser_20261002 | [Self-Healing Scraper Formulas, Resumable Checkpoints, JS State Inspection, Human Stealth & JEV MCP Replacement](./tracks/self_healing_formulas_stealth_browser_20261002/index.md) | track/self_healing_formulas_stealth_browser_20261002 (merged to main) |
-| [~] | browser_formulas_async_deep_research_google_ai_20261003 | [Browser Formulas & Async Push Engine for Gemini Deep Research and Google AI Search](./tracks/browser_formulas_async_deep_research_google_ai_20261003/index.md) | track/browser_formulas_async_deep_research_google_ai_20261003 |
+| [x] | browser_formulas_async_deep_research_google_ai_20261003 | [Browser Formulas & Async Push Engine for Gemini Deep Research and Google AI Search](./tracks/browser_formulas_async_deep_research_google_ai_20261003/index.md) | track/browser_formulas_async_deep_research_google_ai_20261003 (merged to main) |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |
