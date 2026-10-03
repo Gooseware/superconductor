@@ -1,0 +1,54 @@
+{
+  "id": "google_ai_search_overview",
+  "domain": "google.com",
+  "name": "Google AI Search Overview",
+  "version": 1,
+  "targetUrlPattern": "https?://www\\.google\\.com/search\\?.*udm=50.*",
+  "itemSelector": "body",
+  "fields": {
+    "overview": {
+      "name": "overview",
+      "selector": "div[data-attrid='wa:/description'], div.YzSd6, .MjjYud div[role='region'], .ai-overview-text",
+      "type": "markdown",
+      "required": true
+    },
+    "sources": {
+      "name": "sources",
+      "selector": "a[data-ved], .show-more-chips a, div.V3FYCf a, .source-chip",
+      "type": "text",
+      "attribute": "href",
+      "required": true
+    },
+    "follow_ups": {
+      "name": "follow_ups",
+      "selector": ".related-question-pair, .follow-up-query, div[data-q]",
+      "type": "text",
+      "required": false
+    },
+    "query": {
+      "name": "query",
+      "selector": "input[name='q'], textarea[name='q']",
+      "type": "attribute",
+      "attribute": "value",
+      "required": false
+    }
+  },
+  "invariants": {
+    "minItems": 1,
+    "maxItems": 20,
+    "requiredFields": [
+      "overview",
+      "sources"
+    ]
+  },
+  "driftRules": {
+    "minItemThreshold": 1,
+    "requiredFieldSelectors": [
+      "overview",
+      "sources"
+    ]
+  },
+  "createdAt": "2026-10-03T00:00:00.000Z",
+  "updatedAt": "2026-10-03T00:00:00.000Z",
+  "checksum": "a3232e4d2a4e8c6dc9f55d9882acfb31aab169b0ff661200b7bae4a6fc29c134"
+}

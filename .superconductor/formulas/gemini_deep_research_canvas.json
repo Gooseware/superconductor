@@ -1,0 +1,59 @@
+{
+  "id": "gemini_deep_research_canvas",
+  "domain": "gemini.google.com",
+  "name": "Gemini Deep Research Canvas",
+  "version": 1,
+  "targetUrlPattern": "https?://gemini\\.google\\.com/app.*",
+  "itemSelector": "body",
+  "fields": {
+    "title": {
+      "name": "title",
+      "selector": "h1, .canvas-title, div[role='heading']",
+      "type": "text",
+      "required": true
+    },
+    "content": {
+      "name": "content",
+      "selector": ".canvas-content, .markdown-body, article",
+      "type": "markdown",
+      "required": true
+    },
+    "citations": {
+      "name": "citations",
+      "selector": "a[data-citation], a.citation, .source-citation a",
+      "type": "url",
+      "attribute": "href",
+      "required": false
+    },
+    "thinking_steps": {
+      "name": "thinking_steps",
+      "selector": ".thinking-steps, .research-thought",
+      "type": "text",
+      "required": false
+    },
+    "outline": {
+      "name": "outline",
+      "selector": ".research-outline, .toc-item",
+      "type": "text",
+      "required": false
+    }
+  },
+  "invariants": {
+    "minItems": 1,
+    "maxItems": 10,
+    "requiredFields": [
+      "title",
+      "content"
+    ]
+  },
+  "driftRules": {
+    "minItemThreshold": 1,
+    "requiredFieldSelectors": [
+      "title",
+      "content"
+    ]
+  },
+  "createdAt": "2026-10-03T00:00:00.000Z",
+  "updatedAt": "2026-10-03T00:00:00.000Z",
+  "checksum": "88619e6d87620f1f8db55a4104c3ec8ff15ba83d1023411a3e6865762ce3e1df"
+}

@@ -287,6 +287,16 @@ Interviews, architectural refactoring, ticket generation, and worktree isolation
 - **Path**: `skills/superconductor-browser/SKILL.md`
 - **Keywords**: `superconductor-browser`, `browser automation`, `scrape formula`, `self-healing`, `checkpoint`, `hydration state`, `human stealth`, `Next.js data`, `crawler`
 
+### gemini-deep-research
+- **Description**: Autonomous in-depth web research via Google Gemini Deep Research using superconductor-browser stealth automation, golden formulas, and universal push notifications (Herdr/Hermes).
+- **Path**: `skills/gemini-deep-research/SKILL.md`
+- **Keywords**: `gemini-deep-research`, `deep research`, `canvas`, `obsidian`, `push notification`, `herdr`, `hermes`, `mercurial`, `superconductor-browser`
+
+### google-ai-mode
+- **Description**: Autonomous Google Search AI Mode (udm=50) research, multi-turn conversational search, WIZ state inspection, and source citation extraction via superconductor-browser.
+- **Path**: `skills/google-ai-mode/SKILL.md`
+- **Keywords**: `google-ai-mode`, `google search ai`, `udm=50`, `ai overview`, `wiz inspection`, `conversational search`, `citations`, `obsidian`
+
 ---
 
 ## 6. Ecosystem & Cloud Extensions

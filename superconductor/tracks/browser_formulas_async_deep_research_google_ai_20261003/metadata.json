@@ -1,0 +1,24 @@
+{
+  "track_id": "browser_formulas_async_deep_research_google_ai_20261003",
+  "goal": "Browser Formulas & Async Push Engine for Gemini Deep Research and Google AI Search",
+  "type": "feature",
+  "description": "Pre-crafted golden formulas for Gemini Deep Research Canvas and Google AI Search with FormulaHealer drift recovery, an async research job runner with dual push notifications (Hermes Webhook + Herdr agent prompt), reformulated gemini-deep-research skill, new google-ai-mode skill, and dynamic Obsidian vault Git sync.",
+  "created_at": "2026-10-03T09:30:00+10:00",
+  "target_branch": "main",
+  "track_branch": "track/browser_formulas_async_deep_research_google_ai_20261003",
+  "status": "pending",
+  "outcome": "pending",
+  "author": "root-orchestrator",
+  "session_id": "9a104b6f-493a-4672-9595-150b5fd698c3",
+  "phases": 5,
+  "max_concurrent_agents": 2,
+  "domains": [
+    "browser-formula",
+    "async-push-dispatcher",
+    "hermes-webhook",
+    "herdr-prompt-injection",
+    "deep-research-skill",
+    "google-ai-mode-skill",
+    "obsidian-git-sync"
+  ]
+}
