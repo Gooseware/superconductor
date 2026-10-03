@@ -165,6 +165,200 @@ export async function runDailySync(options = {}) {
 
   for (const id of existingIds) geminiCheckpoint.markCompleted(id);
 
+  const authProfilePath = path.resolve(rootDir, '.superconductor/auth-profiles/google.json');
+  let liveSucceeded = false;
+
+  if (fs.existsSync(authProfilePath)) {
+    console.log(`[*] Connecting to live Gemini session via auth profile...`);
+    try {
+      const { chromium } = await import('../packages/superconductor-browser/node_modules/playwright/index.mjs');
+      const browser = await chromium.launch({
+        executablePath: '/usr/local/bin/google-chrome',
+        headless: true,
+        args: ['--no-sandbox', '--disable-blink-features=AutomationControlled'],
+      });
+
+      const context = await browser.newContext({
+        storageState: authProfilePath,
+        viewport: { width: 1440, height: 900 },
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+      });
+
+      const page = await context.newPage();
+      await page.goto('https://gemini.google.com/app', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForTimeout(4000);
+
+      const liveList = await page.evaluate(async () => {
+        const at = window.WIZ_global_data?.SNlM0e;
+        const fsid = window.WIZ_global_data?.FdrFJe;
+        const bl = window.WIZ_global_data?.cfb2h;
+        if (!at) return [];
+
+        async function callRpc(rpcId, payloadJson, reqId) {
+          const fReq = JSON.stringify([[[rpcId, payloadJson, null, "generic"]]]);
+          const body = new URLSearchParams();
+          body.append('f.req', fReq);
+          body.append('at', at);
+
+          const url = '/_/BardChatUi/data/batchexecute?rpcids=' + rpcId + '&source-path=' +
+            encodeURIComponent(window.location.pathname) +
+            '&bl=' + encodeURIComponent(bl || '') +
+            '&f.sid=' + encodeURIComponent(fsid || '') +
+            '&hl=en&_reqid=' + reqId + '&rt=c';
+
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+            body: body.toString()
+          });
+          const raw = await r.text();
+
+          for (const line of raw.split('\n')) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith(")]}'")) continue;
+            try {
+              const d = JSON.parse(trimmed);
+              for (const item of d) {
+                if (Array.isArray(item) && item.length > 2 && item[0] === 'wrb.fr') {
+                  return JSON.parse(item[2]);
+                }
+              }
+            } catch (e) {}
+          }
+          return null;
+        }
+
+        const listData = await callRpc('MaZiqc', JSON.stringify([50, null, [0, null, 1]]), 300001);
+        const searchData = await callRpc('unqWSc', JSON.stringify([""]), 300002);
+
+        const tsMap = {};
+        if (searchData && Array.isArray(searchData[0])) {
+          for (const sitem of searchData[0]) {
+            const cid = sitem[0]?.[0]?.replace('c_', '');
+            let ts = null;
+            if (sitem[2] && sitem[2][0] && sitem[2][0][2]) ts = sitem[2][0][2][0];
+            if (cid && ts) tsMap[cid] = ts;
+          }
+        }
+
+        const items = [];
+        if (listData && Array.isArray(listData[2])) {
+          for (const item of listData[2]) {
+            const cid = item[0]?.replace('c_', '');
+            const title = item[1] || 'Untitled';
+            const ts = tsMap[cid] || (item[2] && Array.isArray(item[2]) ? item[2][0] : null);
+            items.push({ id: cid, title, timestamp: ts });
+          }
+        }
+        return items;
+      });
+
+      console.log(`[*] Live Gemini: Retrieved ${liveList.length} conversations.`);
+
+      for (const item of liveList) {
+        const cid = item.id;
+        if (geminiCheckpoint.isCompleted(cid) || existingIds.has(cid)) {
+          totalSkipped++;
+          continue;
+        }
+
+        const url = `https://gemini.google.com/app/${cid}`;
+        console.log(`  [INGEST LIVE] Gemini: '${item.title}' (${cid})`);
+
+        try {
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await page.waitForTimeout(3000);
+
+          const convData = await page.evaluate(() => {
+            const turns = [];
+            const queries = Array.from(document.querySelectorAll('user-query'));
+            const responses = Array.from(document.querySelectorAll('model-response'));
+            const count = Math.max(queries.length, responses.length);
+            for (let j = 0; j < count; j++) {
+              let uText = '';
+              if (j < queries.length) {
+                const u = queries[j];
+                const textEl = u.querySelector('.query-text, [data-test-id="user-query-text"], .text-content') || u;
+                uText = textEl.innerText.trim().replace(/^You said\s*/i, '').trim();
+              }
+              let mText = '';
+              if (j < responses.length) {
+                const m = responses[j];
+                const textEl = m.querySelector('message-content, markdown, .model-response-text') || m;
+                mText = textEl.innerText.trim();
+              }
+              if (uText || mText) turns.push({ user: uText, model: mText });
+            }
+            return {
+              title: document.title.replace(/ - Google Gemini.*$/i, '').trim(),
+              turns,
+            };
+          });
+
+          const title = convData.title || item.title || 'Untitled Conversation';
+          const turns = convData.turns || [];
+          const dateStr = item.timestamp ? new Date(item.timestamp * 1000).toISOString().slice(0, 10) : '2026-10-02';
+          const yearStr = dateStr.slice(0, 4);
+
+          let bodyLines = [
+            `# ${title}`,
+            '',
+            `> [!info]+ Metadata`,
+            `> 🔗 **Original Link**: [Open in Gemini](${url})  `,
+            `> 📅 **Date**: ${dateStr} · 💬 **Turns**: ${turns.length || 1} · 🆔 \`${cid}\``,
+            '',
+            '---',
+            '',
+          ];
+
+          for (let t = 0; t < turns.length; t++) {
+            const turn = turns[t];
+            bodyLines.push(`## Turn ${t + 1}\n`);
+            if (turn.user) bodyLines.push(`> [!user] You\n> ${turn.user.replace(/\n/g, '\n> ')}\n`);
+            if (turn.model) bodyLines.push(`> [!gemini] Gemini\n> ${turn.model.replace(/\n/g, '\n> ')}\n`);
+            bodyLines.push('---\n');
+          }
+
+          const res = await vaultSyncManager.saveNoteAndSync({
+            subDir: 'Conversations',
+            nestedDateDirs: true,
+            title,
+            content: bodyLines.join('\n'),
+            metadata: {
+              title,
+              date: dateStr,
+              timestamp: item.timestamp || Math.floor(new Date(dateStr).getTime() / 1000),
+              id: cid,
+              url,
+              source: 'google-gemini',
+              turns: turns.length || 1,
+              importance: title.toLowerCase().includes('i ching') ? 'esoteric-fun' : 'medium',
+              category: title.toLowerCase().includes('i ching')
+                ? '06 - Esoteric, Philosophy & I Ching'
+                : '03 - Software Development & Automation',
+              topics: ['gemini-chat', 'research'],
+              tags: ['type/gemini-chat', `year/${yearStr}`, 'importance/medium'],
+            },
+            gitSync: false,
+          });
+
+          geminiCheckpoint.markCompleted(cid);
+          existingIds.add(cid);
+          totalNewAdded++;
+          console.log(`    -> Created: ${res.filePath}`);
+        } catch (scrapeErr) {
+          console.error(`    [!] Error scraping live conversation '${item.title}':`, scrapeErr.message);
+        }
+      }
+
+      await browser.close();
+      liveSucceeded = true;
+    } catch (browserErr) {
+      console.warn(`[!] Live browser extraction warning: ${browserErr.message}. Falling back to static JSON.`);
+    }
+  }
+
+  // Fallback to static JSON if live extraction didn't run or found nothing
   const geminiJsonPath = path.resolve(rootDir, '../jev-ultrafast/gemini_conversations.json');
   if (fs.existsSync(geminiJsonPath)) {
     const geminiItems = JSON.parse(fs.readFileSync(geminiJsonPath, 'utf8'));
@@ -204,7 +398,7 @@ export async function runDailySync(options = {}) {
 > *[Full conversational transcript archived. For interactive exploration or Canvas artifacts, visit the [Gemini Link](https://gemini.google.com/app/${cid}).]*
 `.trim();
 
-      console.log(`  [INGEST] Gemini: '${cleanTitle}' (${cid})`);
+      console.log(`  [INGEST FALLBACK] Gemini: '${cleanTitle}' (${cid})`);
       try {
         const res = await vaultSyncManager.saveNoteAndSync({
           subDir: 'Conversations',
@@ -220,9 +414,7 @@ export async function runDailySync(options = {}) {
             source: 'google-gemini',
             turns: 1,
             importance: cleanTitle.includes('Blueprint') ? 'high' : 'medium',
-            category: cleanTitle.includes('Blueprint') || cleanTitle.includes('FPV')
-              ? '05 - Hardware, Embedded & Robotics'
-              : '03 - Software Development & Automation',
+            category: '03 - Software Development & Automation',
             topics: ['gemini-chat', 'research'],
             tags: ['type/gemini-chat', `year/${yearStr}`, 'importance/medium'],
           },
