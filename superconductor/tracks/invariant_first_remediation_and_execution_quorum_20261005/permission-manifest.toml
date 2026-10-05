@@ -1,0 +1,16 @@
+[meta]
+track_id = "invariant_first_remediation_and_execution_quorum_20261005"
+generated_at = "2026-10-05T13:00:00.000Z"
+inferred_by = "auto"
+
+[capabilities]
+usb_access = false
+arbitrary_shell = true
+network_unrestricted = false
+fs_outside_root = true
+persistent = false
+
+[allowlist]
+shell_prefixes = []
+domains = []
+paths = []
