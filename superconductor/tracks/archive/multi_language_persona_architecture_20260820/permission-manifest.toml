@@ -1,0 +1,29 @@
+# Auto-generated permission manifest
+# Track: multi_language_persona_architecture_20260820
+version = "1.0"
+
+[permissions]
+read_paths = [
+    "superconductor/**",
+    "GEMINI.md",
+    "skills/**",
+    "commands/**",
+    "packages/**",
+    "package.json"
+]
+write_paths = [
+    "GEMINI.md",
+    "superconductor/**",
+    "skills/**",
+    "packages/**",
+    "commands/**"
+]
+execute_commands = [
+    "git *",
+    "npm *",
+    "pnpm *",
+    "cargo *",
+    "go *",
+    "pytest *",
+    "python *"
+]
