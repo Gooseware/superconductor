@@ -4,9 +4,19 @@ import * as child_process from 'node:child_process';
 import prompts from 'prompts';
 import { ArchiveManager } from '../track/archive-manager.js';
 import { SignOffGate } from './sign-off-gate.js';
+import {
+  BlastRadiusAnalyzer,
+  BlastRadiusReport,
+} from '../planning/blast-radius-analyzer.js';
 
 export type ExecutionMode = 'interactive' | 'headless';
 export type FinalizationAction = 'oracle-review' | 'user-approval' | 'merge' | 'archive' | 'delete' | 'skip';
+
+export interface BlastRadiusSectionResult {
+  markdown: string;
+  report: BlastRadiusReport;
+  planTasks: string[];
+}
 
 export interface TrackLifecycleWizardOptions {
   projectRoot?: string;
@@ -354,4 +364,90 @@ export class TrackLifecycleWizard {
       message: `Unknown action: ${action}`,
     };
   }
+
+  /**
+   * Generates blast radius impact analysis markdown section and extracts upgrade tasks for plan.md.
+   */
+  public async generateBlastRadiusSection(params: {
+    targetSymbols?: string[];
+    changedFiles?: string[];
+    featureKeywords?: string[];
+    projectRoot?: string;
+  }): Promise<BlastRadiusSectionResult> {
+    const analyzer = new BlastRadiusAnalyzer({
+      projectRoot: params.projectRoot || this.projectRoot,
+    });
+    const report = await analyzer.analyze({
+      targetSymbols: params.targetSymbols,
+      changedFiles: params.changedFiles,
+      featureKeywords: params.featureKeywords,
+    });
+    const markdown = report.formatMarkdown();
+    const planTasks = this.extractUpgradePlanTasks(report);
+
+    return {
+      markdown,
+      report,
+      planTasks,
+    };
+  }
+
+  /**
+   * Automatically extracts upgrade candidate tasks and formats them as plan tasks with UPGRADES: and PROTECTED: tags.
+   */
+  public extractUpgradePlanTasks(report: BlastRadiusReport): string[] {
+    if (!report.upgradeCandidates || report.upgradeCandidates.length === 0) {
+      return [];
+    }
+
+    const protectedFiles: string[] = [];
+    if (report.directImpactedFiles && report.directImpactedFiles.length > 0) {
+      for (const d of report.directImpactedFiles) {
+        if (!protectedFiles.includes(d.file)) {
+          protectedFiles.push(d.file);
+        }
+      }
+    }
+    if (report.downstreamConsumers && report.downstreamConsumers.length > 0) {
+      for (const c of report.downstreamConsumers) {
+        if (!protectedFiles.includes(c.file)) {
+          protectedFiles.push(c.file);
+        }
+      }
+    }
+
+    const tasks: string[] = [];
+    for (const candidate of report.upgradeCandidates) {
+      const taskLines = [
+        `- [ ] Task: Upgrade ${candidate.file} to adopt ${candidate.suggestion} [TIER-2] [AGENT:superconductor-processor]`,
+        `    UPGRADES: ${candidate.file}`,
+      ];
+
+      if (protectedFiles.length > 0) {
+        taskLines.push(`    PROTECTED: ${protectedFiles.join(', ')}`);
+      }
+
+      taskLines.push(
+        `    INVARIANT_AFTER: "Refactored call-sites preserve contract compatibility."`,
+        `    - [ ] Refactor pattern \`${candidate.pattern}\` -> \`${candidate.suggestion}\``,
+        `    - [ ] Verify regression tests pass for ${candidate.file}`
+      );
+
+      tasks.push(taskLines.join('\n'));
+    }
+
+    return tasks;
+  }
+
+  /**
+   * Formats the extracted upgrade candidate tasks into a markdown section for plan.md.
+   */
+  public formatUpgradePlanSection(report: BlastRadiusReport): string {
+    const tasks = this.extractUpgradePlanTasks(report);
+    if (tasks.length === 0) {
+      return '';
+    }
+    return `### Upgrade Candidate Tasks (Blast Radius)\n\n${tasks.join('\n\n')}`;
+  }
 }
+

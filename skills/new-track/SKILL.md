@@ -171,6 +171,37 @@ During track inception and scaffolding, determine the target milestone phase:
    - The agents debate in the background until consensus is achieved, producing an "Architecture Committee Report".
    - This report and its recommendations are integrated directly into the spec drafting phase without asking the user.
 
+### 2.0.6 Blast Radius & Knock-On Upgrade Analysis Phase (NEW)
+1. **Trigger & Timing:**
+   - Runs before finalizing `spec.md` and `plan.md`.
+   - Evaluates proposed components, target symbols, and changed files across the repository dependency graph.
+2. **Analysis Protocol:**
+   - Instantiate `BlastRadiusAnalyzer` or call `wizard.generateBlastRadiusSection(...)`:
+     ```ts
+     const wizard = new TrackLifecycleWizard({ projectRoot });
+     const { markdown, report, planTasks } = await wizard.generateBlastRadiusSection({
+       targetSymbols: extractedSymbols,
+       changedFiles: targetFiles,
+       featureKeywords: trackKeywords,
+     });
+     ```
+   - Analyzes direct impacts, downstream consumers, and upgrade opportunities across existing modules.
+3. **Specification Injection (`spec.md`):**
+   - Injects the generated `## Impacted Downstream & Upgrade Opportunities` section directly into `spec.md`:
+     - Lists all `PROTECTED: Downstream Consumers` with risk levels and referenced symbols.
+     - Lists all `UPGRADES: Upgrade Candidates` with legacy patterns and suggested replacements.
+4. **Plan Task Generation (`plan.md`):**
+   - Automatically generates corresponding tasks for each upgrade candidate:
+     ```markdown
+     - [ ] Task: Upgrade <candidate.file> to adopt <candidate.suggestion> [TIER-2] [AGENT:superconductor-processor]
+         UPGRADES: <candidate.file>
+         PROTECTED: <downstream / direct impacted files>
+         INVARIANT_AFTER: "Refactored call-sites preserve contract compatibility."
+         - [ ] Refactor pattern `<candidate.pattern>` -> `<candidate.suggestion>`
+         - [ ] Verify regression tests pass for <candidate.file>
+     ```
+   - Injects these tasks into `plan.md` under the appropriate implementation phase, ensuring knock-on upgrade beneficiaries and protected interfaces are verified prior to track completion.
+
 ### 2.2 Specification Generation (`spec.md`)
 
 1.  **State Your Goal:** Announce:

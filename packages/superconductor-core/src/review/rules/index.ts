@@ -7,6 +7,7 @@ export * from './cognitive-load.js';
 export * from './schema-ergonomics.js';
 export * from './emoji-usage.js';
 export * from './simplification.js';
+export * from './invariant-rules.js';
 
 import { UxRule } from './types.js';
 import { outputMessageQualityRules } from './output-message-quality.js';

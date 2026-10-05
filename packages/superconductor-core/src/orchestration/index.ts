@@ -26,3 +26,5 @@ export type { ShellRunner } from './workspace-guard.js';
 export * from './merge-queue-manager.js';
 export * from './multi-track-orchestrator.js';
 export * from './task-wave-planner.js';
+export * from './headless-reporter.js';
+export * from './headless-watchdog.js';

@@ -16,19 +16,11 @@
     "churnCount": 34
   },
   {
-    "file": "superconductor/workflow.md",
-    "churnCount": 27
-  },
-  {
     "file": "packages/engine/node_modules/.vite/vitest/results.json",
     "churnCount": 27
   },
   {
     "file": "scripts/quorum-review.ts",
-    "churnCount": 22
-  },
-  {
-    "file": "pnpm-lock.yaml",
     "churnCount": 22
   },
   {
@@ -80,15 +72,7 @@
     "churnCount": 19
   },
   {
-    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
-    "churnCount": 17
-  },
-  {
     "file": "superconductor/tracks/sandboxing_resilience_20260710/plan.md",
-    "churnCount": 16
-  },
-  {
-    "file": "packages/superconductor-mcp-server/src/index.ts",
     "churnCount": 16
   },
   {
@@ -125,10 +109,6 @@
   },
   {
     "file": "superconductor/tracks/self-improvement_20260402/plan.md",
-    "churnCount": 14
-  },
-  {
-    "file": "packages/superconductor-core/package.json",
     "churnCount": 14
   },
   {
@@ -181,14 +161,6 @@
   },
   {
     "file": "superconductor/tech-stack.md",
-    "churnCount": 12
-  },
-  {
-    "file": "superconductor/agent-config.md",
-    "churnCount": 12
-  },
-  {
-    "file": "skills/catalog.md",
     "churnCount": 12
   },
   {
@@ -297,10 +269,6 @@
   },
   {
     "file": "packages/notebook-store/src/validation/notebook-validator.ts",
-    "churnCount": 9
-  },
-  {
-    "file": "packages/notebook-store/src/providers/lancedb-notebook-provider.ts",
     "churnCount": 9
   },
   {
@@ -445,10 +413,6 @@
   },
   {
     "file": "packages/superconductor-core/test/permissions/e2e.test.ts",
-    "churnCount": 7
-  },
-  {
-    "file": "packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts",
     "churnCount": 7
   },
   {
@@ -840,10 +804,6 @@
     "churnCount": 5
   },
   {
-    "file": "packages/notebook-store/src/index.ts",
-    "churnCount": 5
-  },
-  {
     "file": "packages/engine/tests/research/brief-synthesizer.test.ts",
     "churnCount": 5
   },
@@ -1164,15 +1124,7 @@
     "churnCount": 4
   },
   {
-    "file": "scripts/extract-fenced-block.ts",
-    "churnCount": 4
-  },
-  {
     "file": "scripts/deterministic-preflight.ts",
-    "churnCount": 4
-  },
-  {
-    "file": "scripts/aggregate-findings.ts",
     "churnCount": 4
   },
   {
@@ -1205,10 +1157,6 @@
   },
   {
     "file": "packages/superconductor-core/tests/track/archive-manager.test.ts",
-    "churnCount": 4
-  },
-  {
-    "file": "packages/superconductor-core/tests/swarm/RemediatorPromptBuilder.test.ts",
     "churnCount": 4
   },
   {
@@ -4061,10 +4009,6 @@
   },
   {
     "file": "agents/superconductor-reviewer/agent.md",
-    "churnCount": 4
-  },
-  {
-    "file": "agents/superconductor-oracle/agent.md",
     "churnCount": 4
   },
   {
@@ -10120,10 +10064,6 @@
     "churnCount": 3
   },
   {
-    "file": "packages/superconductor-core/src/track/execution-planner.ts",
-    "churnCount": 3
-  },
-  {
     "file": "packages/superconductor-core/src/telemetry/quality-notes.ts",
     "churnCount": 3
   },
@@ -10133,10 +10073,6 @@
   },
   {
     "file": "packages/superconductor-core/src/schema/track-manifest.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "packages/superconductor-core/src/review/extract-fenced-block.ts",
     "churnCount": 3
   },
   {
@@ -10305,10 +10241,6 @@
   },
   {
     "file": "packages/engine/tests/cli/orchestrate-quorum.test.ts",
-    "churnCount": 3
-  },
-  {
-    "file": "packages/engine/tests/agents/reviewer-system-prompt.test.ts",
     "churnCount": 3
   },
   {
@@ -15444,10 +15376,6 @@
     "churnCount": 3
   },
   {
-    "file": "agents/superconductor-dreamer/agent.md",
-    "churnCount": 3
-  },
-  {
     "file": "agents/remediation-processor/agent.md",
     "churnCount": 3
   },
@@ -15904,10 +15832,6 @@
     "churnCount": 2
   },
   {
-    "file": "skills/improve-architecture/SKILL.md",
-    "churnCount": 2
-  },
-  {
     "file": "skills/improve-architecture/HTML-REPORT.md",
     "churnCount": 2
   },
@@ -15917,10 +15841,6 @@
   },
   {
     "file": "skills/design-heuristics/SKILL.md",
-    "churnCount": 2
-  },
-  {
-    "file": "skills/adversarial-reviewer/SKILL.md",
     "churnCount": 2
   },
   {
@@ -16041,10 +15961,6 @@
   },
   {
     "file": "packages/superconductor-core/tests/utils/input-sanitizer.test.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/superconductor-core/tests/track/execution-planner.test.ts",
     "churnCount": 2
   },
   {
@@ -16212,10 +16128,6 @@
     "churnCount": 2
   },
   {
-    "file": "packages/superconductor-core/src/protocol/mcp-schema.ts",
-    "churnCount": 2
-  },
-  {
     "file": "packages/superconductor-core/src/permissions/keyword-inferrer.ts",
     "churnCount": 2
   },
@@ -16317,10 +16229,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/dag-resolver.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/dispatcher.ts",
     "churnCount": 2
   },
   {
@@ -16436,10 +16344,6 @@
     "churnCount": 2
   },
   {
-    "file": "packages/notebook-store/vitest.config.ts",
-    "churnCount": 2
-  },
-  {
     "file": "packages/notebook-store/tests/validation/notebook-validator.test.ts",
     "churnCount": 2
   },
@@ -16461,10 +16365,6 @@
   },
   {
     "file": "packages/notebook-store/test-db/superconductor/notebook/notebook.lance/data/637fa3a0-2b6f-474c-9cd0-86517bc24092.lance",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/notebook-store/src/search/rrf-search.ts",
     "churnCount": 2
   },
   {
@@ -16825,10 +16725,6 @@
   },
   {
     "file": "packages/engine/src/agents/skill-loader.ts",
-    "churnCount": 2
-  },
-  {
-    "file": "packages/engine/src/agents/reviewer-system-prompt.ts",
     "churnCount": 2
   },
   {
@@ -31000,10 +30896,6 @@
     "churnCount": 2
   },
   {
-    "file": "agents/superconductor-processor/agent.md",
-    "churnCount": 2
-  },
-  {
     "file": "agents/superconductor-invariant-discovery/agent.md",
     "churnCount": 2
   },
@@ -31013,10 +30905,6 @@
   },
   {
     "file": "agents/correctness-reviewer/agent.md",
-    "churnCount": 2
-  },
-  {
-    "file": "agents/adversarial-reviewer/agent.md",
     "churnCount": 2
   },
   {
@@ -33340,10 +33228,6 @@
     "churnCount": 1
   },
   {
-    "file": "superconductor/CONTEXT.md",
-    "churnCount": 1
-  },
-  {
     "file": "superconductor/component_payload.test.js",
     "churnCount": 1
   },
@@ -33725,10 +33609,6 @@
   },
   {
     "file": "skills/yolo/SKILL.md",
-    "churnCount": 1
-  },
-  {
-    "file": "skills/worktrunk/SKILL.md",
     "churnCount": 1
   },
   {
@@ -34153,10 +34033,6 @@
   },
   {
     "file": "packages/superconductor-mcp-server/tsconfig.json",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/superconductor-mcp-server/package.json",
     "churnCount": 1
   },
   {
@@ -36992,10 +36868,6 @@
     "churnCount": 1
   },
   {
-    "file": "packages/superconductor-core/tests/track/swarm-authorizer.test.ts",
-    "churnCount": 1
-  },
-  {
     "file": "packages/superconductor-core/tests/track/canonical-archive-manager.test.ts",
     "churnCount": 1
   },
@@ -37408,19 +37280,11 @@
     "churnCount": 1
   },
   {
-    "file": "packages/notebook-store/tests/search/rrf-search.test.ts",
-    "churnCount": 1
-  },
-  {
     "file": "packages/notebook-store/tests/mocks/empty-mock.js",
     "churnCount": 1
   },
   {
     "file": "packages/notebook-store/src/providers/notebook-provider-factory.ts",
-    "churnCount": 1
-  },
-  {
-    "file": "packages/engine/vitest.config.ts",
     "churnCount": 1
   },
   {
@@ -43637,10 +43501,6 @@
   },
   {
     "file": "skills/superconductor-kernel-setup/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": ".gitmodules",
     "churn": 1
   },
   {
@@ -50564,20 +50424,8 @@
     "churn": 1
   },
   {
-    "file": "packages/superconductor-core/src/cli/index.ts",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/src/cli/phase-cli.test.ts",
     "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/cli/phase-cli.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/index.ts",
-    "churn": 2
   },
   {
     "file": "packages/superconductor-core/src/phase/index.ts",
@@ -50648,14 +50496,6 @@
     "churn": 1
   },
   {
-    "file": "skills/batch-execute/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "skills/new-track/SKILL.md",
-    "churn": 2
-  },
-  {
     "file": "skills/status/SKILL.md",
     "churn": 1
   },
@@ -50688,10 +50528,6 @@
     "churn": 1
   },
   {
-    "file": "mcp_config.json",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/src/intelligence/audit-reporter.test.ts",
     "churn": 1
   },
@@ -50717,10 +50553,6 @@
   },
   {
     "file": "packages/superconductor-core/src/intelligence/drift-monitor.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/intelligence/index.ts",
     "churn": 1
   },
   {
@@ -50908,10 +50740,6 @@
     "churn": 1
   },
   {
-    "file": "skills/setup/SKILL.md",
-    "churn": 1
-  },
-  {
     "file": "skills/setup/references/setup-protocol.md",
     "churn": 1
   },
@@ -50968,15 +50796,7 @@
     "churn": 1
   },
   {
-    "file": "superconductor/tracks.md",
-    "churn": 3
-  },
-  {
     "file": "superconductor/tracks/dry_intelligence_improve_architecture_20261001/index.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/tracks/dry_intelligence_improve_architecture_20261001/plan.md",
     "churn": 1
   },
   {
@@ -50984,19 +50804,7 @@
     "churn": 1
   },
   {
-    "file": "GEMINI.md",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/src/__tests__/integration/setup-intelligence-flow.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/__tests__/swarm-granularity.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/index.ts",
     "churn": 1
   },
   {
@@ -51008,10 +50816,6 @@
     "churn": 1
   },
   {
-    "file": "packages/superconductor-core/src/orchestration/swarm-granularity.ts",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/src/orchestration/workspace-guard.test.ts",
     "churn": 1
   },
@@ -51020,19 +50824,7 @@
     "churn": 1
   },
   {
-    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.test.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/src/permissions/interceptor.ts",
-    "churn": 1
-  },
-  {
-    "file": "packages/superconductor-core/src/review/index.ts",
     "churn": 1
   },
   {
@@ -51048,27 +50840,11 @@
     "churn": 1
   },
   {
-    "file": "packages/superconductor-core/src/track/swarm-authorizer.ts",
-    "churn": 1
-  },
-  {
     "file": "packages/superconductor-core/test/permissions/interceptor.test.ts",
     "churn": 1
   },
   {
-    "file": "skills/implement/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "skills/swarm-execute/SKILL.md",
-    "churn": 1
-  },
-  {
     "file": "skills/triage/SKILL.md",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/00_manifest.json",
     "churn": 1
   },
   {
@@ -51077,10 +50853,6 @@
   },
   {
     "file": "superconductor/intelligence/03_complexity.json",
-    "churn": 1
-  },
-  {
-    "file": "superconductor/intelligence/04_coupling.json",
     "churn": 1
   },
   {
@@ -51105,6 +50877,1046 @@
   },
   {
     "file": "superconductor/tracks/adhoc_swarm_lifecycle_guardrails_20260930/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks.md",
+    "churn": 18
+  },
+  {
+    "file": "superconductor/tracks/invariant_first_remediation_and_execution_quorum_20261005/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/invariant_first_remediation_and_execution_quorum_20261005/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/invariant_first_remediation_and_execution_quorum_20261005/permission-manifest.toml",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/invariant_first_remediation_and_execution_quorum_20261005/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/invariant_first_remediation_and_execution_quorum_20261005/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "scripts/sync-vault-conversations.mjs",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-browser",
+    "churn": 12
+  },
+  {
+    "file": "superconductor/tracks/browser_formulas_async_deep_research_google_ai_20261003/plan.md",
+    "churn": 2
+  },
+  {
+    "file": ".superconductor/formulas/gemini_deep_research_canvas.json",
+    "churn": 1
+  },
+  {
+    "file": ".superconductor/formulas/google_ai_search_overview.json",
+    "churn": 1
+  },
+  {
+    "file": "skills/catalog.md",
+    "churn": 2
+  },
+  {
+    "file": "skills/gemini-deep-research/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/google-ai-mode/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/browser_formulas_async_deep_research_google_ai_20261003/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/browser_formulas_async_deep_research_google_ai_20261003/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/browser_formulas_async_deep_research_google_ai_20261003/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "new_track_suggestion.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/agent_config_model_resolution_20260902/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/agent_config_model_resolution_20260902/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/agent_config_model_resolution_20260902/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multi_language_persona_architecture_20260820/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multi_language_persona_architecture_20260820/metadata.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multi_language_persona_architecture_20260820/permission-manifest.toml",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multi_language_persona_architecture_20260820/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/archive/multi_language_persona_architecture_20260820/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "GEMINI.md",
+    "churn": 1
+  },
+  {
+    "file": "agents/superconductor-dreamer/agent.md",
+    "churn": 1
+  },
+  {
+    "file": "agents/superconductor-oracle/agent.md",
+    "churn": 1
+  },
+  {
+    "file": "agents/superconductor-processor/agent.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/agent-config.md",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/tracks/self_healing_formulas_stealth_browser_20261002/plan.md",
+    "churn": 2
+  },
+  {
+    "file": "mcp_config.json",
+    "churn": 1
+  },
+  {
+    "file": "pnpm-lock.yaml",
+    "churn": 6
+  },
+  {
+    "file": "skills/superconductor-browser/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/01-gemini-4-release-date.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/02-gemini-4-0-release-and-rollout.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/03-best-single-board-computers.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/04-sharjah-court-rent-payment-fees.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/05-just-wanted-to-quickly-nut-something-through-with-.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/06-i-am-running-a-tiktok-style-system-on-cloudflare.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/07-can-you-please-find-me-some-third-party-multi-usbc.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/conversations/google-search-ai/08-where-can-i-purchase-excellent-ultrasone-750.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/google_search_ai_conversations.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/google_search_ai_conversations.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/google_search_ai_mode_sample.txt",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/self_healing_formulas_stealth_browser_20261002/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/self_healing_formulas_stealth_browser_20261002/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/browserAdapter.ts",
+    "churn": 5
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/config.ts",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/tracks/remote_human_auth_jev_autonomous_crawler_20261002/plan.md",
+    "churn": 7
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/cli-mcp.test.ts",
+    "churn": 3
+  },
+  {
+    "file": "packages/superconductor-mcp-server/src/index.ts",
+    "churn": 3
+  },
+  {
+    "file": "packages/superconductor-core/package.json",
+    "churn": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/cli-dispatcher.ts",
+    "churn": 3
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/crawl.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/index.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/mcpTool.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/orchestrator.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/index.ts",
+    "churn": 6
+  },
+  {
+    "file": "packages/superconductor-core/src/protocol/mcp-schema.ts",
+    "churn": 2
+  },
+  {
+    "file": ".gitmodules",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/remote_human_auth_jev_autonomous_crawler_20261002/spec.md",
+    "churn": 3
+  },
+  {
+    "file": "superconductor/tracks/remote_human_auth_jev_autonomous_crawler_20261002/index.md",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/wireframes/flow-graph.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/flow-manifest.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/index.html",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/journey.webm",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/recordings/page@1e12fd46dcc1d6efbae4fbd921d123aa.webm",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/desktop_analytics.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/desktop_root.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/desktop_settings.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/mobile_analytics.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/mobile_root.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/mobile_settings.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/tablet_analytics.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/tablet_root.webp",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/wireframes/screenshots/tablet_settings.webp",
+    "churn": 1
+  },
+  {
+    "file": "docs/crawler.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/index.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/assets/board.html",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/authInspector.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/frameworks/nextjs.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/frameworks/reactRouter.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/frameworks/remix.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/frameworks/vite.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/graph.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/hydration.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/jevAdapter.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/jevSnapshot.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/manifest.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/parser.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/prober.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/renderer.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/runner.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/serverManager.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/types.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/crawler/video.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/dev-server-manager.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/flow-graph-builder.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/headless-crawler-engine.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/jev-integration.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/journey-video-recorder.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/orchestrator.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/route-manifest-parser.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/wireframe-board-emitter.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/crawler/wireframe-crawler-integration.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-mcp-server/package.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/automated_app_wireframe_route_crawler_20261001/plan.md",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/tracks/automated_app_wireframe_route_crawler_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/automated_app_wireframe_route_crawler_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "track_suggestions.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/task-wave-planner.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/task-wave-planner.test.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/tests/swarm/RemediatorPromptBuilder.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "skills/batch-execute/SKILL.md",
+    "churn": 2
+  },
+  {
+    "file": "skills/implement/SKILL.md",
+    "churn": 3
+  },
+  {
+    "file": "skills/new-track/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/setup/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/swarm-execute/SKILL.md",
+    "churn": 2
+  },
+  {
+    "file": "skills/worktrunk/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/prime_directive_superpowers_vibe_antichain_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/prime_directive_superpowers_vibe_antichain_20261001/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/prime_directive_superpowers_vibe_antichain_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/workflow.md",
+    "churn": 2
+  },
+  {
+    "file": "tests/deep-research-gate-and-superpowers-bridge.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "docs/surface-adapters.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/index.ts",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/ast-scanner.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/layered-assembly.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/locale-mirror-harness.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/mock-scenario-adapter.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/mock-story-envelope.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/proposal-injector.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/surface-adapter.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/token-synthesizer.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/track-compiler.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/vite-harness.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/visual/websocket-bridge.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/ast-scanner.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/layered-assembly.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/locale-mirror-harness.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/mock-story-envelope.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/proposal-injector.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/surface-adapter.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/token-synthesizer.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/track-compiler.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/visual-feedback-integration.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/vite-harness.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/visual/websocket-bridge.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/visual-studio/animation-scrubber.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/visual-studio/copilot-sidecar.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/visual-studio/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/visual-studio/pinning-overlay.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/visual-studio/visual-studio.test.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/index.ts",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/tracks/living_wireframe_visual_feedback_to_tracks_20261001/plan.md",
+    "churn": 3
+  },
+  {
+    "file": "superconductor/tracks/living_wireframe_visual_feedback_to_tracks_20261001/spec.md",
+    "churn": 3
+  },
+  {
+    "file": "superconductor/CONTEXT.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/adrs/0001-autonomous-mock-story-envelopes.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/adrs/0002-synthesized-tokens-and-upfront-i18n.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/adrs/0003-layered-assembly-partitioning.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/adrs/0004-web-first-core-with-pluggable-surface-adapters.md",
+    "churn": 1
+  },
+  {
+    "file": ".config/wt.toml",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/merge-queue-manager.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/multi-track-orchestrator.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/track/execution-planner.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/track/swarm-authorizer.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/multi-track-orchestration.spec.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/merge-queue-manager.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/orchestration/multi-track-orchestrator.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/track/execution-planner.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/track/swarm-authorizer.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/living_wireframe_visual_feedback_to_tracks_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/parallel_multi_track_swarm_orchestration_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/parallel_multi_track_swarm_orchestration_20261001/plan.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/parallel_multi_track_swarm_orchestration_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/cli-dispatcher.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/dispatcher.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/cli/phase-cli.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/cli/cli.integration.spec.ts",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/deepen_shallow_cli_facades_20261001/plan.md",
+    "churn": 2
+  },
+  {
+    "file": "packages/notebook-store/src/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/src/ports/adapters/in-memory-query-adapter.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/src/ports/adapters/lancedb-query-adapter.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/src/ports/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/src/ports/notebook-query-port.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/src/providers/lancedb-notebook-provider.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/src/search/rrf-search.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/tests/ports/adapters.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/tests/ports/notebook-query-port.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/tests/search/rrf-search.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/notebook-store/vitest.config.ts",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/seal_leaky_seam_core_services_20261001/plan.md",
+    "churn": 2
+  },
+  {
+    "file": "packages/superconductor-core/src/review/aggregate-findings.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/extract-fenced-block.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/pipeline.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/review/pipeline.ts",
+    "churn": 1
+  },
+  {
+    "file": "scripts/aggregate-findings.ts",
+    "churn": 1
+  },
+  {
+    "file": "scripts/extract-fenced-block.ts",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/dry_consolidate_review_utilities_20261001/plan.md",
+    "churn": 2
+  },
+  {
+    "file": "superconductor/architecture-candidates.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/architecture-scan-manifest.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/deepen_shallow_cli_facades_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/deepen_shallow_cli_facades_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/dry_consolidate_review_utilities_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/dry_consolidate_review_utilities_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/seal_leaky_seam_core_services_20261001/index.md",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/seal_leaky_seam_core_services_20261001/spec.md",
+    "churn": 1
+  },
+  {
+    "file": "agents/adversarial-reviewer/agent.md",
+    "churn": 1
+  },
+  {
+    "file": "packages/engine/src/agents/reviewer-system-prompt.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/engine/tests/agents/reviewer-system-prompt.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/engine/tests/verification/component-reinvention-shenanigan.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/engine/vitest.config.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/partitioner.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/intelligence/partitioner.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/__tests__/swarm-granularity.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/orchestration/swarm-granularity.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/planning/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/planning/parser.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/planning/parser.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/planning/registry-resolver.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/planning/registry-resolver.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/src/planning/task-schema.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-core/tests/skills/swarm-scan.test.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/package.json",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/App.test.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/App.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/components/CandidateList.test.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/components/CandidateList.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/components/TrackGenerator.test.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/components/TrackGenerator.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/components/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/index.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/apps/architecture-report/types.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxBadge.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxButton.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxCard.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxCheckbox.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxComponents.test.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxLayout.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/AstryxThemeProvider.tsx",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/components/astryx/index.ts",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/src/styles/astryx.css",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/tsconfig.json",
+    "churn": 1
+  },
+  {
+    "file": "packages/superconductor-ui/vitest.config.ts",
+    "churn": 1
+  },
+  {
+    "file": "skills/adversarial-reviewer/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/adversarial-reviewer/prompts.ts",
+    "churn": 1
+  },
+  {
+    "file": "skills/adversarial-reviewer/shenanigans/09-component-reinvention.ts",
+    "churn": 1
+  },
+  {
+    "file": "skills/improve-architecture/SKILL.md",
+    "churn": 1
+  },
+  {
+    "file": "skills/improve-architecture/scripts/swarm-scan.js",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/00_manifest.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/intelligence/04_coupling.json",
+    "churn": 1
+  },
+  {
+    "file": "superconductor/tracks/dry_intelligence_improve_architecture_20261001/plan.md",
     "churn": 1
   }
 ]

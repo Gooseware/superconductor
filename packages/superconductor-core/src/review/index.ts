@@ -18,3 +18,4 @@ export * from './ux-rule-engine.js';
 export * from './ux-rule-engine-cli.js';
 export * from './rules/index.js';
 export * from './quorum-composition-resolver.js';
+export * from './worktree-repro-harness.js';

@@ -13,19 +13,51 @@ triggers:
   - "run remediation"
 ---
 
+## Authoritative Remediation Dogma
+
+All remediation agents and workflows MUST strictly adhere to [`packages/superconductor-core/prompts/remediation_dogma.md`](file:///home/gooseware/repos/gemini/extensions/superconductor/packages/superconductor-core/prompts/remediation_dogma.md) as the authoritative remediation dogma.
+
+Shallow call-site patches (such as appending `?? 0`, `|| []`, or empty `catch {}` blocks) are strictly prohibited. Remediation must cure the root disease at its origin, not merely suppress immediate symptoms.
+
+### The 5 Core Remediator Mandates
+
+All remediators dispatched during remediation loops MUST strictly follow these 5 core mandates:
+
+1. **Root-Cause Inception Mandate (No Defensive Nulling):**
+   - Strictly prohibit call-site fallbacks masking missing or uninitialized state (`?? 0`, `|| []`, `catch {}`).
+   - Remediators must trace errors backward to the state origin or lifecycle initializer (factory function, constructor, migration script, or ingestion pipeline). If state is missing or malformed at the call site, the bug MUST be fixed at the point of inception.
+
+2. **Atomic Single Source of Truth / Dual-Write Invariant:**
+   - If data must exist in two representations (e.g. cache and database, or dual ledger tables), mutations MUST be executed within an atomic database transaction, or refactored into a single store with on-demand computation.
+   - Logging a divergence warning while continuing execution is strictly classified as a fatal defect.
+
+3. **Production Schema Fidelity & Execution Environment Mandate:**
+   - Mandatory verification against real production SQLite schema migrations (including `CHECK` constraints, foreign keys, and indexes) rather than legacy, simplified, or synthetic test schemas.
+   - For Cloudflare Workers and Durable Objects: asynchronous operations (caching, telemetry, metrics, alerts) must always receive and invoke execution context (`ctx.waitUntil`). Passing a bare `env` and dropping promises across isolate boundaries is strictly prohibited.
+
+4. **Strict Monotonicity & Sequence Rules:**
+   - Polling, synchronization, and CRDT handlers must enforce strict monotonicity (`headSeq > current.lastSeq`).
+   - Stale asynchronous network responses must never overwrite newer real-time state.
+
+5. **Zero Test-Fixture Weakening:**
+   - Strictly forbid auto-generating test fixtures or snapshots inside test assertions (e.g., calling `fs.writeFileSync` in tests to bypass validation).
+   - Replace flaky wall-clock assertions (`toBeLessThan(Xms)`) with deterministic algorithmic operation counters or logical state assertions.
+
+---
+
 ## 1.0 Input Resolution Protocol
 
 - Accept review report path as argument: `/superconductor:remediate [path-to-review-report.md]`
 - If no path provided: scan for most recent review report in project root (glob: `*review-report*.md`, `*findings*.md`)
 - Validate: file must contain `json:review-findings` fenced block
 - Extract findings from the `json:review-findings` block
-- Parse severity, ruleId, file, description per finding
+- Parse severity, ruleId, file, description, repro_script, and execution_proof per finding
 - Emit: `✓ Found <N> findings in <report-file> (<CRITICAL: X, HIGH: Y, MEDIUM: Z>)`
 
 ## 2.0 Findings Parser & Domain Grouping
 
 - Parse the `json:review-findings` block from the review report
-- Map each finding to `FindingFingerprint: { id, severity, ruleId, file, domain }`
+- Map each finding to `FindingFingerprint: { id, severity, ruleId, file, domain, repro_script, execution_proof }`
 - Filter by severity if `--severity=<level>` flag provided (e.g. `--severity=CRITICAL,HIGH`)
 - Group by domain using `DomainClassifier` across standard domains:
   - `security`: `auth/`, `security/`, `middleware/`, `session/`, `jwt/`, `credentials/`
@@ -40,8 +72,12 @@ triggers:
 - The Swarm Remediation Engine operates in a continuous automated loop:
   1. **Check findings:** If zero findings or status is `RESOLVED`, stop immediately (all green).
   2. **Domain-split dispatch:** If findings exist (`NEEDS_FIXES`), dispatch parallel remediator subagents in isolated git worktrees using `DomainSplitRemediationDispatcher`.
-  3. **Zero-bias re-review:** Re-run fresh Quorum review on updated diff.
-  4. **Loop:** Repeat until 100% green or circuit breaker trips.
+     - Each remediator is instructed with `packages/superconductor-core/prompts/remediation_dogma.md` and the 5 core mandates.
+     - Remediators receive the finding's `repro_script` and `execution_proof` to reproduce the failure before applying fixes.
+     - Remediators must verify the fix against the repro script and complete the Pre-Submission Invariant Checklist from `remediation_dogma.md`.
+  3. **Diff-on-diff validation:** Audit fix commits (`git diff HEAD~1..HEAD`) to ensure no secondary regressions or swallowed errors were introduced.
+  4. **Zero-bias re-review:** Re-run fresh Quorum review on updated diff.
+  5. **Loop:** Repeat until 100% green or circuit breaker trips.
 - **Circuit breaker:** Hard cap of 3–5 cycles or instant halt on `STAGNANT_DIFF`.
 - **Deep Research Escalation:** Triggered when circuit breaker is reached.
 - In `--headless` mode: suppress interactive prompts, auto-choose defaults.

@@ -283,4 +283,51 @@ describe('TrackLifecycleWizard', () => {
       expect(registry).toContain('test_track_1');
     });
   });
+
+  describe('Blast Radius & Upgrade Opportunity Integration', () => {
+    it('generates blast radius markdown section and report for planned track', async () => {
+      const wizard = new TrackLifecycleWizard({ projectRoot: tmpDir });
+      const result = await wizard.generateBlastRadiusSection({
+        changedFiles: ['src/core/auth.ts'],
+      });
+
+      expect(result.markdown).toContain('## Impacted Downstream & Upgrade Opportunities');
+      expect(result.markdown).toContain('### PROTECTED: Downstream Consumers');
+      expect(result.markdown).toContain('### UPGRADES: Upgrade Candidates');
+      expect(result.markdown).toContain('src/api/routes.ts');
+      expect(result.markdown).toContain('src/legacy/old-auth.ts');
+      expect(result.report.summary.totalDirect).toBe(1);
+      expect(result.report.summary.totalDownstream).toBe(1);
+      expect(result.report.summary.totalUpgradeCandidates).toBe(1);
+    });
+
+    it('extracts upgrade candidate tasks formatted with UPGRADES: and PROTECTED: tags', async () => {
+      const wizard = new TrackLifecycleWizard({ projectRoot: tmpDir });
+      const result = await wizard.generateBlastRadiusSection({
+        changedFiles: ['src/core/auth.ts'],
+      });
+
+      expect(result.planTasks).toBeDefined();
+      expect(result.planTasks.length).toBe(1);
+
+      const task = result.planTasks[0];
+      expect(task).toContain('- [ ] Task: Upgrade src/legacy/old-auth.ts');
+      expect(task).toContain('UPGRADES: src/legacy/old-auth.ts');
+      expect(task).toContain('PROTECTED:');
+      expect(task).toContain('src/core/auth.ts');
+      expect(task).toContain('src/api/routes.ts');
+      expect(task).toContain('INVARIANT_AFTER:');
+    });
+
+    it('extractUpgradePlanTasks returns empty list when no upgrade candidates found', async () => {
+      const wizard = new TrackLifecycleWizard({ projectRoot: tmpDir });
+      const result = await wizard.generateBlastRadiusSection({
+        changedFiles: ['src/unknown/file.ts'],
+      });
+
+      expect(result.planTasks).toEqual([]);
+      expect(wizard.extractUpgradePlanTasks(result.report)).toEqual([]);
+    });
+  });
 });
+

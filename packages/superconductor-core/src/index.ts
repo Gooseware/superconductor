@@ -27,6 +27,9 @@ export type {
   ReviewFinding,
   SeverityBreakdown,
   AggregatedFindingsResult,
+  ReproExecutionResult,
+  ReproHarnessOptions,
+  RunScriptOptions,
 } from './review/index.js';
 export type {
   LanguagePersona,
@@ -49,6 +52,7 @@ export type {
   BatchExecutionResult,
   TaskPlanUnit,
   TaskWavePlannerOptions,
+  HeadlessReportData,
 } from './orchestration/index.js';
 export type {
   DiscoveredModel,

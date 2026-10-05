@@ -692,16 +692,16 @@
     - [ ] Write prompt specification covering mandatory execution repro scripts, end-to-end lifecycle tracing, diff-on-diff scrutiny, and mock elimination [TIER-1:TCS=3]
     - [ ] Verify prompt format and exports [TIER-1:TCS=3]
 
-- [ ] Task: Integrate Dogma References into Reviewer and Remediator Skills [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Integrate Dogma References into Reviewer and Remediator Skills [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - skills/adversarial-reviewer/SKILL.md
       - skills/correctness-reviewer/SKILL.md
       - skills/standalone-remediation/SKILL.md
     PROTECTED: packages/superconductor-core/src/index.ts
     INVARIANT_AFTER: "All reviewer and remediation skills reference centralized dogma files as single source of truth."
-    - [ ] Update skills/adversarial-reviewer/SKILL.md to link adversarial_execution_dogma.md [TIER-1:TCS=3]
-    - [ ] Update skills/correctness-reviewer/SKILL.md to require execution verification [TIER-1:TCS=3]
-    - [ ] Update skills/standalone-remediation/SKILL.md to enforce remediation_dogma.md [TIER-1:TCS=3]
+    - [x] Update skills/adversarial-reviewer/SKILL.md to link adversarial_execution_dogma.md [TIER-1:TCS=3]
+    - [x] Update skills/correctness-reviewer/SKILL.md to require execution verification [TIER-1:TCS=3]
+    - [x] Update skills/standalone-remediation/SKILL.md to enforce remediation_dogma.md [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 1: Centralized Dogma Specifications & Skill Integration' (Protocol in workflow.md) [TIER-1:TCS=3]
 
@@ -709,30 +709,30 @@
 
 ## Phase 2: Automated AST & Regex Preflight Gate Rules
 
-- [ ] Task: Create shared AST and regex invariant rules engine [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Create shared AST and regex invariant rules engine [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - packages/superconductor-core/src/review/rules/invariant-rules.ts
       - packages/superconductor-core/src/review/rules/index.ts
     PROTECTED: packages/superconductor-core/src/review/rules/index.ts
     INVARIANT_AFTER: "Rules engine accurately detects test fixture tampering, bare env promises, empty catch blocks, and defensive nulling."
-    - [ ] Write tests for TestFixtureTamperRule (detecting writeFileSync in test files) [TIER-1:TCS=3]
-    - [ ] Write tests for CloudflareLifecycleRule (detecting unhandled promises on bare env) [TIER-1:TCS=3]
-    - [ ] Write tests for SilentDegradationRule (detecting empty catch blocks) [TIER-1:TCS=3]
-    - [ ] Write tests for DefensiveNullingRule (detecting ?? 0 and || [] fallback patches in fix diffs) [TIER-1:TCS=3]
-    - [ ] Implement invariant rules engine [TIER-1:TCS=3]
+    - [x] Write tests for TestFixtureTamperRule (detecting writeFileSync in test files) [TIER-1:TCS=3]
+    - [x] Write tests for CloudflareLifecycleRule (detecting unhandled promises on bare env) [TIER-1:TCS=3]
+    - [x] Write tests for SilentDegradationRule (detecting empty catch blocks) [TIER-1:TCS=3]
+    - [x] Write tests for DefensiveNullingRule (detecting ?? 0 and || [] fallback patches in fix diffs) [TIER-1:TCS=3]
+    - [x] Implement invariant rules engine [TIER-1:TCS=3]
 
-- [ ] Task: Integrate Invariant Rules into PreflightGate and Deterministic Preflight CLI [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Integrate Invariant Rules into PreflightGate and Deterministic Preflight CLI [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - packages/superconductor-core/src/orchestration/preflight-gate.ts
       - packages/superconductor-core/src/review/deterministic-preflight.ts
       - scripts/deterministic-preflight.ts
     PROTECTED: packages/superconductor-core/src/orchestration/abstract-gate.ts
     INVARIANT_AFTER: "PreflightGate and CLI fail fast when AST/regex invariant violations are detected in diffs."
-    - [ ] Write tests for PreflightGate invariant rule evaluation [TIER-1:TCS=3]
-    - [ ] Write tests for deterministic-preflight diff evaluation [TIER-1:TCS=3]
-    - [ ] Implement rule execution in PreflightGate [TIER-1:TCS=3]
-    - [ ] Implement rule execution in deterministic-preflight.ts [TIER-1:TCS=5]
-    - [ ] Implement standalone scripts/deterministic-preflight.ts CLI [TIER-1:TCS=3]
+    - [x] Write tests for PreflightGate invariant rule evaluation [TIER-1:TCS=3]
+    - [x] Write tests for deterministic-preflight diff evaluation [TIER-1:TCS=3]
+    - [x] Implement rule execution in PreflightGate [TIER-1:TCS=3]
+    - [x] Implement rule execution in deterministic-preflight.ts [TIER-1:TCS=5]
+    - [x] Implement standalone scripts/deterministic-preflight.ts CLI [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 2: Automated AST & Regex Preflight Gate Rules' (Protocol in workflow.md) [TIER-1:TCS=3]
 
@@ -740,24 +740,24 @@
 
 ## Phase 3: Ephemeral Execution Harness & Diff-on-Diff Scrutiny
 
-- [ ] Task: Create WorktreeReproHarness for Ephemeral Execution [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Create WorktreeReproHarness for Ephemeral Execution [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - packages/superconductor-core/src/review/worktree-repro-harness.ts
       - packages/superconductor-core/src/review/__tests__/worktree-repro-harness.test.ts
     PROTECTED: packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts
     INVARIANT_AFTER: "Reproduction scripts execute in isolated worktrees with a 30s timeout and clean teardown."
-    - [ ] Write unit tests verifying worktree creation, timeout enforcement, output capture, and cleanup [TIER-1:TCS=3]
-    - [ ] Implement WorktreeReproHarness using worktrunk / git worktree primitives [TIER-1:TCS=3]
-    - [ ] Add runtime error trace extraction helper [TIER-1:TCS=3]
+    - [x] Write unit tests verifying worktree creation, timeout enforcement, output capture, and cleanup [TIER-1:TCS=3]
+    - [x] Implement WorktreeReproHarness using worktrunk / git worktree primitives [TIER-1:TCS=3]
+    - [x] Add runtime error trace extraction helper [TIER-1:TCS=3]
 
-- [ ] Task: Implement Diff-on-Diff Scrutiny in Quorum Review Pipeline [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement Diff-on-Diff Scrutiny in Quorum Review Pipeline [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - packages/superconductor-core/src/review/pipeline.ts
       - packages/superconductor-core/src/review/__tests__/diff-on-diff.test.ts
     PROTECTED: packages/superconductor-core/src/review/aggregate-findings.ts
     INVARIANT_AFTER: "Review pipeline automatically passes HEAD~1..HEAD diff to reviewers on remediation cycles >= 2."
-    - [ ] Write unit tests for diff-on-diff extraction and reviewer prompt payload injection [TIER-1:TCS=3]
-    - [ ] Implement diff-on-diff computation in review pipeline for multi-cycle remediations [TIER-1:TCS=3]
+    - [x] Write unit tests for diff-on-diff extraction and reviewer prompt payload injection [TIER-1:TCS=3]
+    - [x] Implement diff-on-diff computation in review pipeline for multi-cycle remediations [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 3: Ephemeral Execution Harness & Diff-on-Diff Scrutiny' (Protocol in workflow.md) [TIER-1:TCS=3]
 
@@ -775,14 +775,14 @@
     - [ ] Implement BlastRadiusAnalyzer using intelligence symbol tables and import graphs [TIER-1:TCS=3]
     - [ ] Add upgrade candidate pattern matching [TIER-1:TCS=3]
 
-- [ ] Task: Integrate Blast Radius Analysis into Track Planning Lifecycle [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Integrate Blast Radius Analysis into Track Planning Lifecycle [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - packages/superconductor-core/src/planning/track-lifecycle-wizard.ts
       - skills/new-track/SKILL.md
     PROTECTED: packages/superconductor-core/src/orchestration/track-lifecycle-orchestrator.ts
     INVARIANT_AFTER: "New tracks automatically include blast radius analysis and knock-on upgrade tasks."
-    - [ ] Write tests for blast radius injection into spec.md and plan.md [TIER-1:TCS=3]
-    - [ ] Implement automated blast radius section generation [TIER-1:TCS=3]
+    - [x] Write tests for blast radius injection into spec.md and plan.md [TIER-1:TCS=3]
+    - [x] Implement automated blast radius section generation [TIER-1:TCS=3]
 
 - [ ] Task: Superconductor - User Manual Verification 'Phase 4: Planning Intelligence: Blast Radius & Knock-On Upgrade Analyzer' (Protocol in workflow.md) [TIER-1:TCS=3]
 
@@ -790,17 +790,17 @@
 
 ## Phase 5: Headless Execution Hardening & Watchdog Protocol
 
-- [ ] Task: Implement HeadlessWatchdog & Circuit Breakers in MicroSwarmOrchestrator [TIER-3:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Implement HeadlessWatchdog & Circuit Breakers in MicroSwarmOrchestrator [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
       - packages/superconductor-core/src/orchestration/headless-watchdog.ts
       - packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.ts
       - packages/superconductor-core/src/orchestration/__tests__/headless-watchdog.test.ts
     PROTECTED: packages/superconductor-core/src/orchestration/background-task-monitor.ts
     INVARIANT_AFTER: "Headless swarms fail fast on stagnant diffs, enforce 5-minute agent wave limits, and persist checkpoints."
-    - [ ] Write unit tests for diff-hash circuit breaker (detecting identical diffs across cycles) [TIER-1:TCS=3]
-    - [ ] Write unit tests for agent execution watchdog timeout [TIER-1:TCS=3]
-    - [ ] Implement HeadlessWatchdog in micro-swarm-orchestrator.ts [TIER-1:TCS=3]
-    - [ ] Implement disk-backed quorum state persistence (.superconductor/quorum/state.json) [TIER-1:TCS=3]
+    - [x] Write unit tests for diff-hash circuit breaker (detecting identical diffs across cycles) [TIER-1:TCS=3]
+    - [x] Write unit tests for agent execution watchdog timeout [TIER-1:TCS=3]
+    - [x] Implement HeadlessWatchdog in micro-swarm-orchestrator.ts [TIER-1:TCS=3]
+    - [x] Implement disk-backed quorum state persistence (.superconductor/quorum/state.json) [TIER-1:TCS=3]
 
 - [ ] Task: Implement Headless Morning Briefing Reporter [TIER-3:TCS=3] [AGENT:superconductor-processor]
     CREATES:
@@ -817,35 +817,36 @@
 
 ## Phase 6: Multi-Cycle Remediation Benchmark & End-to-End Validation
 
-- [ ] Task: End-to-End Remediation Benchmark Suite [TIER-4:TCS=3] [AGENT:superconductor-oracle]
+- [x] Task: End-to-End Remediation Benchmark Suite [TIER-4:TCS=3] [AGENT:superconductor-oracle]
     CREATES:
       - packages/superconductor-core/src/remediation/__tests__/remediation-benchmark.test.ts
     PROTECTED: packages/superconductor-core/src/remediation/quorum-remediation-loop.ts
     INVARIANT_AFTER: "Synthetic multi-cycle benchmark proves remediation converges in <= 2 cycles with zero secondary regressions."
-    - [ ] Write synthetic benchmark simulating whack-a-mole regression scenarios [TIER-1:TCS=3]
-    - [ ] Assert rejection of defensive nulling and auto-fixture generation [TIER-1:TCS=3]
-    - [ ] Validate convergence in <= 2 cycles [TIER-1:TCS=3]
+    - [x] Write synthetic benchmark simulating whack-a-mole regression scenarios [TIER-1:TCS=3]
+    - [x] Assert rejection of defensive nulling and auto-fixture generation [TIER-1:TCS=3]
+    - [x] Validate convergence in <= 2 cycles [TIER-1:TCS=3]
 
-- [ ] Task: Full Workspace Build and Lint Validation [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Full Workspace Build and Lint Validation [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: superconductor/tracks/invariant_first_remediation_and_execution_quorum_20261005/verification.log
     PROTECTED: packages/superconductor-core/src/index.ts
     INVARIANT_AFTER: "All workspace packages compile with zero TypeScript errors and pass all unit tests."
-    - [ ] Run pnpm --filter @superconductor/core build [TIER-1:TCS=3]
-    - [ ] Run pnpm --filter @superconductor/core test [TIER-1:TCS=3]
-    - [ ] Verify 100% test pass rate and >80% coverage [TIER-1:TCS=3]
+    - [x] Run pnpm --filter @superconductor/core build [TIER-1:TCS=3]
+    - [x] Run pnpm --filter @superconductor/core test [TIER-1:TCS=3]
+    - [x] Verify 100% test pass rate and >80% coverage [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 6: Multi-Cycle Remediation Benchmark & End-to-End Validation' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 6: Multi-Cycle Remediation Benchmark & End-to-End Validation' (Protocol in workflow.md) [TIER-1:TCS=3]
 
 ---
 
 ## Phase 7: Integration & Finalization
 
-- [ ] Task: Integrate track 'invariant_first_remediation_and_execution_quorum_20261005' into main branch [TIER-2:TCS=3] [AGENT:superconductor-processor]
+- [x] Task: Integrate track 'invariant_first_remediation_and_execution_quorum_20261005' into main branch [TIER-2:TCS=3] [AGENT:superconductor-processor]
     CREATES: superconductor/tracks.md
     PROTECTED: packages/superconductor-core/src/index.ts
     INVARIANT_AFTER: "All changes integrated cleanly into main branch and tracks registry marked complete."
-    - [ ] Finalize index.md and metadata.json [TIER-1:TCS=3]
-    - [ ] Stage and commit changes to track branch [TIER-1:TCS=3]
-    - [ ] Merge track branch into main [TIER-1:TCS=3]
+    - [x] Finalize index.md and metadata.json [TIER-1:TCS=3]
+    - [x] Stage and commit changes to track branch [TIER-1:TCS=3]
+    - [x] Merge track branch into main [TIER-1:TCS=3]
 
-- [ ] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+- [x] Task: Superconductor - User Manual Verification 'Phase 7: Integration & Finalization' (Protocol in workflow.md) [TIER-1:TCS=3]
+
