@@ -1,10 +1,14 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import {
   MicroSwarmOrchestrator,
   type WorktreeManagerLike,
   type MicroSwarmTaskInfo,
   type MicroSwarmProcessorResult,
 } from './micro-swarm-orchestrator.js';
+import { HeadlessWatchdog } from './headless-watchdog.js';
 import { QuorumCompositionResolver } from '../review/quorum-composition-resolver.js';
 
 describe('MicroSwarmOrchestrator', () => {
@@ -302,6 +306,136 @@ diff --git a/src/ui/Button.tsx b/src/ui/Button.tsx
 
       await orchestrator.dispatch('Fix token verification in auth');
       expect(resolveSpy).toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // 6. HeadlessWatchdog & Circuit Breakers Integration (§3.4)
+  // ---------------------------------------------------------------------------
+  describe('HeadlessWatchdog & Circuit Breakers Integration (§3.4)', () => {
+    let tempDir: string;
+    let statePath: string;
+
+    beforeEach(() => {
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'micro-swarm-watchdog-'));
+      statePath = path.join(tempDir, '.superconductor', 'quorum', 'state.json');
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    const sampleDiff = `
+diff --git a/src/auth.ts b/src/auth.ts
+--- a/src/auth.ts
++++ b/src/auth.ts
+@@ -1,2 +1,2 @@
+-const token = null;
++const token = "verified";
+`;
+
+    it('persists quorum checkpoint state to disk after execution and review pass', async () => {
+      const watchdog = new HeadlessWatchdog({ statePath });
+      const orchestrator = new MicroSwarmOrchestrator({ watchdog });
+
+      const result = await orchestrator.dispatch(sampleDiff, {
+        trackId: 'track-inv-test',
+        cycle: 1,
+      });
+
+      expect(result.status).toBe('COMPLETED');
+      expect(fs.existsSync(statePath)).toBe(true);
+
+      const persisted = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
+      expect(persisted.trackId).toBe('track-inv-test');
+      expect(persisted.cycle).toBe(1);
+      expect(persisted.status).toBe('passed');
+      expect(persisted.lastDiffHash).toBe(result.diffHash);
+    });
+
+    it('trips STAGNANT_DIFF circuit breaker immediately when diff is identical to previous cycle', async () => {
+      const watchdog = new HeadlessWatchdog({ statePath });
+      const orchestrator = new MicroSwarmOrchestrator({ watchdog });
+
+      // First cycle: records diff, completes successfully
+      const resultCycle1 = await orchestrator.dispatch(sampleDiff, {
+        trackId: 'track-stagnant',
+        cycle: 1,
+      });
+      expect(resultCycle1.status).toBe('COMPLETED');
+
+      // Second cycle: same diff passed -> trips STAGNANT_DIFF
+      const resultCycle2 = await orchestrator.dispatch(sampleDiff, {
+        trackId: 'track-stagnant',
+        cycle: 2,
+      });
+
+      expect(resultCycle2.status).toBe('CIRCUIT_BROKEN');
+      expect(resultCycle2.circuitBreakerReason).toBe('STAGNANT_DIFF');
+
+      // Verify persisted state reflects circuit breaker trip
+      const savedState = await watchdog.loadState();
+      expect(savedState?.status).toBe('circuit_broken');
+      expect(savedState?.metadata?.reason).toBe('STAGNANT_DIFF');
+    });
+
+    it('trips MAX_CYCLES_EXCEEDED circuit breaker when cycle limit is reached', async () => {
+      const watchdog = new HeadlessWatchdog({ statePath, maxCycles: 3 });
+      const orchestrator = new MicroSwarmOrchestrator({ watchdog });
+
+      const result = await orchestrator.dispatch('Fix calculation logic', {
+        trackId: 'track-max-cycles',
+        cycle: 3,
+      });
+
+      expect(result.status).toBe('CIRCUIT_BROKEN');
+      expect(result.circuitBreakerReason).toBe('MAX_CYCLES_EXCEEDED');
+
+      const savedState = await watchdog.loadState();
+      expect(savedState?.status).toBe('circuit_broken');
+      expect(savedState?.metadata?.reason).toBe('MAX_CYCLES_EXCEEDED');
+    });
+
+    it('trips WAVE_TIMEOUT circuit breaker when processor wave execution exceeds timeout', async () => {
+      const watchdog = new HeadlessWatchdog({ statePath, waveTimeoutMs: 25 });
+      const orchestrator = new MicroSwarmOrchestrator({ watchdog });
+
+      // Spawner that exceeds wave timeout
+      const slowSpawner = vi.fn(async (task: MicroSwarmTaskInfo): Promise<MicroSwarmProcessorResult> => {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        return {
+          agentId: task.agentId,
+          domain: task.domain,
+          success: true,
+        };
+      });
+
+      const result = await orchestrator.dispatch('Fix slow operations in backend service', {
+        trackId: 'track-wave-timeout',
+        spawner: slowSpawner,
+        cycle: 1,
+      });
+
+      expect(result.status).toBe('CIRCUIT_BROKEN');
+      expect(result.circuitBreakerReason).toBe('WAVE_TIMEOUT');
+
+      const savedState = await watchdog.loadState();
+      expect(savedState?.status).toBe('circuit_broken');
+      expect(savedState?.metadata?.reason).toBe('WAVE_TIMEOUT');
+    });
+
+    it('automatically instantiates HeadlessWatchdog when headless: true option is passed', async () => {
+      const orchestrator = new MicroSwarmOrchestrator();
+      const result = await orchestrator.dispatch('Refactor payment gateway', {
+        headless: true,
+        watchdogOptions: { statePath, maxCycles: 2 },
+        cycle: 2,
+      });
+
+      expect(result.status).toBe('CIRCUIT_BROKEN');
+      expect(result.circuitBreakerReason).toBe('MAX_CYCLES_EXCEEDED');
     });
   });
 });
