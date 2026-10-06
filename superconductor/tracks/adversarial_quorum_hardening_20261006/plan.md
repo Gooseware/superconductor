@@ -1,0 +1,986 @@
+# Implementation Plan: Adversarial Quorum Hardening & Production Seam Remediation
+
+**Track Identifier:** `adversarial_quorum_hardening_20261006`  
+**Target Milestone Phase:** `Phase 1: Active Tracks (Active)`  
+**Target Branch:** `main`
+
+---
+
+## Known Fragile Areas (Prior Quorum Findings)
+
+- `REV-1`: Speculative findings lacking verified execution proofs were not filtered in production; tests used mock array filtering inside the test body.
+- `REV-2`: Plan gap protocol violations where manual verification tasks in `superconductor/workflow.md` were checked off without updating the document.
+- `REV-3`: `npm run check:preflight` executed only AST checks, missing heuristic invariant rules (defensive nulling `?? 0`, `|| []`).
+- `REV-4`, `REV-5`: `DiffOnDiffAuditor` permitted catch blocks returning fallbacks (`return null`) and missed multi-line split nulling (`??\n 0`).
+- `REV-6`: Hardcoded Chromium paths caused crawler tests to fail when `/home/gooseware/.local/bin/chromium` was missing.
+
+---
+
+## Swarm Blueprint
+
+**Mode:** pipeline (phases sequential, tasks within phase parallel)
+**Max Concurrent Agents:** 6
+**Oracle Cadence:** adaptive (every 10 tasks)
+**Estimated Track Token Budget:** ~0.4M tokens · ~$0.03 at Flash-Lite rates
+
+### Adapter Suggestions
+
+- **dag.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for types/dag.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **schedulerAdapter**: Favorable token economics (dependency surface size 1 < 50 for scheduler/scheduler.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcherAdapter**: Favorable token economics (dependency surface size 1 < 50 for dispatcher/dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **stormAdapter**: Favorable token economics (dependency surface size 1 < 50 for concurrency/storm.ts) allows generating an Adapter to encapsulate this functionality.
+- **builderAdapter**: Favorable token economics (dependency surface size 1 < 50 for context/builder.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcher.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for types/dispatcher.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **reviewer-system-promptAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/agents/reviewer-system-prompt.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-loaderAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/agents/skill-loader.ts) allows generating an Adapter to encapsulate this functionality.
+- **CacheManagerAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/engine/dist/cache/CacheManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **errorsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/cache/errors.ts) allows generating an Adapter to encapsulate this functionality.
+- **ModelFetcherAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/cache/ModelFetcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **ModelPromptAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/cache/ModelPrompt.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-spawnerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/cli/agent-spawner.ts) allows generating an Adapter to encapsulate this functionality.
+- **spawner-configAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/cli/spawner-config.ts) allows generating an Adapter to encapsulate this functionality.
+- **lifecycle-managerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/cli/lifecycle-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-storeAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/cli/quorum-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **retrospective-generatorAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/telemetry/retrospective-generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **reviewer-response-brokerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/verification/reviewer-response-broker.ts) allows generating an Adapter to encapsulate this functionality.
+- **parallel-dispatcherAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/dispatcher/parallel-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-permission-evaluatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/cli/swarm-permission-evaluator.ts) allows generating an Adapter to encapsulate this functionality.
+- **execution-modeAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/engine/dist/guard/execution-mode.ts) allows generating an Adapter to encapsulate this functionality.
+- **headless-mode-guardAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/guard/headless-mode-guard.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-review-loopAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/verification/quorum-review-loop.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-enforcerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/verification/quorum-enforcer.ts) allows generating an Adapter to encapsulate this functionality.
+- **reviewer-findings-schemaAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/verification/reviewer-findings-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **agy-agent-spawnerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/cli/agy-agent-spawner.ts) allows generating an Adapter to encapsulate this functionality.
+- **attention-notifierAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/cli/attention-notifier.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-test-runnerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/verification/preflight-test-runner.ts) allows generating an Adapter to encapsulate this functionality.
+- **rogue-write-guardAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/guard/rogue-write-guard.ts) allows generating an Adapter to encapsulate this functionality.
+- **engineAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **parserAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/dag/parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **stormAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/concurrency/storm.ts) allows generating an Adapter to encapsulate this functionality.
+- **lock-managerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/engine/dist/concurrency/lock-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **worker-poolAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/concurrency/worker-pool.ts) allows generating an Adapter to encapsulate this functionality.
+- **daemon-heartbeatAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/concurrency/daemon-heartbeat.ts) allows generating an Adapter to encapsulate this functionality.
+- **concurrency.typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/types/concurrency.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/types/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **builderAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/context/builder.ts) allows generating an Adapter to encapsulate this functionality.
+- **shared-schemaAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/types/shared-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **event-storeAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/state/event-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **synthesizer.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/curator/synthesizer.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **telemetry.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/curator/telemetry.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **validatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/dag/validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **utilsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/dag/utils.ts) allows generating an Adapter to encapsulate this functionality.
+- **dag.typesAdapter**: Favorable token economics (dependency surface size 12 < 50 for packages/engine/dist/types/dag.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcher.typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/types/dispatcher.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-surface-filterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/dispatcher/tool-surface-filter.ts) allows generating an Adapter to encapsulate this functionality.
+- **backlog-parserAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/dispatcher/backlog-parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcherAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/dispatcher/dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **implementor-registryAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/dispatcher/implementor-registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **schedulerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/scheduler/scheduler.ts) allows generating an Adapter to encapsulate this functionality.
+- **escalation-routerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/routing/escalation-router.ts) allows generating an Adapter to encapsulate this functionality.
+- **cache-managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/routing/cache-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **engine.typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/types/engine.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **git-checkpoint-managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/safety/git-checkpoint-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **SmartModelResolverAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/routing/SmartModelResolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-trigger-engineAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/skills/skill-trigger-engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **dod-classifierAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/verification/dod-classifier.ts) allows generating an Adapter to encapsulate this functionality.
+- **generatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/generator/generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/context/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **SuperconductorEventEmitterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/events/SuperconductorEventEmitter.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/generator/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **ComponentStagingWriterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/curator/ComponentStagingWriter.ts) allows generating an Adapter to encapsulate this functionality.
+- **orchestrateAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/cli/orchestrate.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/agents/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/research/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **adaptive-research-routerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/research/adaptive-research-router.ts) allows generating an Adapter to encapsulate this functionality.
+- **fallback-failed-errorAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/engine/dist/research/errors/fallback-failed-error.ts) allows generating an Adapter to encapsulate this functionality.
+- **provider-registryAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/engine/dist/research/provider-registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-config-readerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/research/agent-config-reader.ts) allows generating an Adapter to encapsulate this functionality.
+- **anti-reinvention-gateAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/research/anti-reinvention-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **circuit-breakerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/research/circuit-breaker.ts) allows generating an Adapter to encapsulate this functionality.
+- **deerflow-research-providerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/engine/dist/research/providers/deerflow-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **google-deep-research-providerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/research/providers/google-deep-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **gemini-api-deep-research-providerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/research/providers/gemini-api-deep-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **vertex-ai-deep-research-providerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/research/providers/vertex-ai-deep-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 13 < 50 for packages/engine/dist/research/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **brief-synthesizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/research/brief-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **research-budget-exceeded-errorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/research/errors/research-budget-exceeded-error.ts) allows generating an Adapter to encapsulate this functionality.
+- **research-provider-unavailable-errorAdapter**: Favorable token economics (dependency surface size 12 < 50 for packages/engine/dist/research/errors/research-provider-unavailable-error.ts) allows generating an Adapter to encapsulate this functionality.
+- **errorsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/research/errors.ts) allows generating an Adapter to encapsulate this functionality.
+- **research-executorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/research/research-executor.ts) allows generating an Adapter to encapsulate this functionality.
+- **query-formulatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/research/query-formulator.ts) allows generating an Adapter to encapsulate this functionality.
+- **gemini-interactions-clientAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/research/providers/gemini-interactions-client.ts) allows generating an Adapter to encapsulate this functionality.
+- **async-long-pollerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/research/providers/async-long-poller.ts) allows generating an Adapter to encapsulate this functionality.
+- **source-quality-gateAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/research/source-quality-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **cache.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/routing/cache.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **escalation.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/routing/escalation.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **eventsAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/dist/types/events.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-analyzer.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/routing/tool-analyzer.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **scheduler.typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/dist/types/scheduler.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **event-store.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/state/event-store.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **secret-redactorAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/telemetry/secret-redactor.ts) allows generating an Adapter to encapsulate this functionality.
+- **gcc.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/safety/gcc.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **risk.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/safety/risk.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **vlm-auditor.typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/dist/verification/vlm-auditor.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **pbt.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/verification/pbt.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **mutation.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/verification/mutation.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **test-reportAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/dist/verification/test-report.ts) allows generating an Adapter to encapsulate this functionality.
+- **vlm-auditorAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/verification/vlm-auditor.ts) allows generating an Adapter to encapsulate this functionality.
+- **mutation-analyzerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/verification/mutation-analyzer.ts) allows generating an Adapter to encapsulate this functionality.
+- **pbt-validatorAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/dist/verification/pbt-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **reviewer-system-promptAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/agents/reviewer-system-prompt.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-loaderAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/agents/skill-loader.ts) allows generating an Adapter to encapsulate this functionality.
+- **CacheManagerAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/engine/src/cache/CacheManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **shared-schemaAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/engine/src/types/shared-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **ModelFetcherAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/cache/ModelFetcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **errorsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/cache/errors.ts) allows generating an Adapter to encapsulate this functionality.
+- **ModelPromptAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/cache/ModelPrompt.ts) allows generating an Adapter to encapsulate this functionality.
+- **spawner-configAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/cli/spawner-config.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-spawnerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/cli/agent-spawner.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-storeAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/engine/src/cli/quorum-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **lifecycle-managerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/cli/lifecycle-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **retrospective-generatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/telemetry/retrospective-generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-permission-evaluatorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/cli/swarm-permission-evaluator.ts) allows generating an Adapter to encapsulate this functionality.
+- **execution-modeAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/engine/src/guard/execution-mode.ts) allows generating an Adapter to encapsulate this functionality.
+- **headless-mode-guardAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/guard/headless-mode-guard.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-review-loopAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/verification/quorum-review-loop.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-enforcerAdapter**: Favorable token economics (dependency surface size 13 < 50 for packages/engine/src/verification/quorum-enforcer.ts) allows generating an Adapter to encapsulate this functionality.
+- **reviewer-response-brokerAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/engine/src/verification/reviewer-response-broker.ts) allows generating an Adapter to encapsulate this functionality.
+- **reviewer-findings-schemaAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/verification/reviewer-findings-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **parallel-dispatcherAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/dispatcher/parallel-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **dag.typesAdapter**: Favorable token economics (dependency surface size 21 < 50 for packages/engine/src/types/dag.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **agy-agent-spawnerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/cli/agy-agent-spawner.ts) allows generating an Adapter to encapsulate this functionality.
+- **attention-notifierAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/cli/attention-notifier.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-test-runnerAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/engine/src/verification/preflight-test-runner.ts) allows generating an Adapter to encapsulate this functionality.
+- **rogue-write-guardAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/guard/rogue-write-guard.ts) allows generating an Adapter to encapsulate this functionality.
+- **engineAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/engine/src/engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **parserAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/dag/parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **stormAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/concurrency/storm.ts) allows generating an Adapter to encapsulate this functionality.
+- **lock-managerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/concurrency/lock-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **worker-poolAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/concurrency/worker-pool.ts) allows generating an Adapter to encapsulate this functionality.
+- **daemon-heartbeatAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/concurrency/daemon-heartbeat.ts) allows generating an Adapter to encapsulate this functionality.
+- **concurrency.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/types/concurrency.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/engine/src/types/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **builderAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/context/builder.ts) allows generating an Adapter to encapsulate this functionality.
+- **event-storeAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/engine/src/state/event-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **synthesizer.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/curator/synthesizer.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **eventsAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/engine/src/types/events.ts) allows generating an Adapter to encapsulate this functionality.
+- **telemetry.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/curator/telemetry.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **validatorAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/dag/validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **utilsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/dag/utils.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcher.typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/types/dispatcher.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-surface-filterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/dispatcher/tool-surface-filter.ts) allows generating an Adapter to encapsulate this functionality.
+- **backlog-parserAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/dispatcher/backlog-parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcherAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/dispatcher/dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **implementor-registryAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/dispatcher/implementor-registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **schedulerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/scheduler/scheduler.ts) allows generating an Adapter to encapsulate this functionality.
+- **escalation-routerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/routing/escalation-router.ts) allows generating an Adapter to encapsulate this functionality.
+- **cache-managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/routing/cache-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **engine.typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/types/engine.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **git-checkpoint-managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/safety/git-checkpoint-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **dod-classifierAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/verification/dod-classifier.ts) allows generating an Adapter to encapsulate this functionality.
+- **SmartModelResolverAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/routing/SmartModelResolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-trigger-engineAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/skills/skill-trigger-engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **generatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/generator/generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/context/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **SuperconductorEventEmitterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/events/SuperconductorEventEmitter.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/generator/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **ComponentStagingWriterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/curator/ComponentStagingWriter.ts) allows generating an Adapter to encapsulate this functionality.
+- **orchestrateAdapter**: Favorable token economics (dependency surface size 11 < 50 for packages/engine/src/cli/orchestrate.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/agents/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/research/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **adaptive-research-routerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/adaptive-research-router.ts) allows generating an Adapter to encapsulate this functionality.
+- **circuit-breakerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/circuit-breaker.ts) allows generating an Adapter to encapsulate this functionality.
+- **fallback-failed-errorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/research/errors/fallback-failed-error.ts) allows generating an Adapter to encapsulate this functionality.
+- **provider-registryAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/engine/src/research/provider-registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 16 < 50 for packages/engine/src/research/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-config-readerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/agent-config-reader.ts) allows generating an Adapter to encapsulate this functionality.
+- **anti-reinvention-gateAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/research/anti-reinvention-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **deerflow-research-providerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/providers/deerflow-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **google-deep-research-providerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/providers/google-deep-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **gemini-api-deep-research-providerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/research/providers/gemini-api-deep-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **vertex-ai-deep-research-providerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/providers/vertex-ai-deep-research-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **brief-synthesizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/brief-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **research-budget-exceeded-errorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/research/errors/research-budget-exceeded-error.ts) allows generating an Adapter to encapsulate this functionality.
+- **research-provider-unavailable-errorAdapter**: Favorable token economics (dependency surface size 13 < 50 for packages/engine/src/research/errors/research-provider-unavailable-error.ts) allows generating an Adapter to encapsulate this functionality.
+- **errorsAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/research/errors.ts) allows generating an Adapter to encapsulate this functionality.
+- **research-executorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/research/research-executor.ts) allows generating an Adapter to encapsulate this functionality.
+- **query-formulatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/research/query-formulator.ts) allows generating an Adapter to encapsulate this functionality.
+- **gemini-interactions-clientAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/research/providers/gemini-interactions-client.ts) allows generating an Adapter to encapsulate this functionality.
+- **async-long-pollerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/research/providers/async-long-poller.ts) allows generating an Adapter to encapsulate this functionality.
+- **source-quality-gateAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/research/source-quality-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **cache.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/routing/cache.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **escalation.typesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/routing/escalation.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-analyzer.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/routing/tool-analyzer.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **scheduler.typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/types/scheduler.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **event-store.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/state/event-store.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **secret-redactorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/telemetry/secret-redactor.ts) allows generating an Adapter to encapsulate this functionality.
+- **gcc.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/safety/gcc.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **risk.typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/safety/risk.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **vlm-auditor.typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/engine/src/verification/vlm-auditor.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **pbt.typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/verification/pbt.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **mutation.typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/verification/mutation.types.ts) allows generating an Adapter to encapsulate this functionality.
+- **test-reportAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/verification/test-report.ts) allows generating an Adapter to encapsulate this functionality.
+- **vlm-auditorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/verification/vlm-auditor.ts) allows generating an Adapter to encapsulate this functionality.
+- **mutation-analyzerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/engine/src/verification/mutation-analyzer.ts) allows generating an Adapter to encapsulate this functionality.
+- **pbt-validatorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/engine/src/verification/pbt-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **aggregate-findingsAdapter**: Favorable token economics (dependency surface size 13 < 50 for packages/superconductor-core/src/review/aggregate-findings.ts) allows generating an Adapter to encapsulate this functionality.
+- **SkillPortingEngineAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/skills/SkillPortingEngine.ts) allows generating an Adapter to encapsulate this functionality.
+- **ast-mergerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/concurrency/ast-merger.ts) allows generating an Adapter to encapsulate this functionality.
+- **cleanup-commandAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/cli/cleanup-command.ts) allows generating an Adapter to encapsulate this functionality.
+- **mock-agent-spawnerAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/engine/src/cli/mock-agent-spawner.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **telemetry-ingesterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/curator/telemetry-ingester.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-synthesizerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/curator/skill-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **design-schemaAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/verification/design-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **gccAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/safety/gcc.ts) allows generating an Adapter to encapsulate this functionality.
+- **verification-pipelineAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/verification/verification-pipeline.ts) allows generating an Adapter to encapsulate this functionality.
+- **job-dispatcherAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/dispatcher/job-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **gemini-api-providerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/research/providers/gemini-api-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **risk-middlewareAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/engine/src/safety/risk-middleware.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-analyzerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/engine/src/routing/tool-analyzer.ts) allows generating an Adapter to encapsulate this functionality.
+- **09-component-reinventionAdapter**: Favorable token economics (dependency surface size 2 < 50 for skills/adversarial-reviewer/shenanigans/09-component-reinvention.ts) allows generating an Adapter to encapsulate this functionality.
+- **promptsAdapter**: Favorable token economics (dependency surface size 1 < 50 for skills/adversarial-reviewer/prompts.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 13 < 50 for packages/notebook-store/dist/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **notebook-validatorAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/notebook-store/dist/validation/notebook-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **lancedb-notebook-providerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/notebook-store/dist/providers/lancedb-notebook-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **libsql-notebook-providerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/notebook-store/dist/providers/libsql-notebook-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **notebook-provider-factoryAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/notebook-store/dist/providers/notebook-provider-factory.ts) allows generating an Adapter to encapsulate this functionality.
+- **rrf-searchAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/notebook-store/dist/search/rrf-search.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/notebook-store/dist/ports/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **notebook-query-portAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/notebook-store/dist/ports/notebook-query-port.ts) allows generating an Adapter to encapsulate this functionality.
+- **in-memory-query-adapterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/notebook-store/dist/ports/adapters/in-memory-query-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **lancedb-query-adapterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/notebook-store/dist/ports/adapters/lancedb-query-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 12 < 50 for packages/notebook-store/src/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **notebook-validatorAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/notebook-store/src/validation/notebook-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **lancedb-notebook-providerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/notebook-store/src/providers/lancedb-notebook-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **libsql-notebook-providerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/notebook-store/src/providers/libsql-notebook-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **notebook-provider-factoryAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/notebook-store/src/providers/notebook-provider-factory.ts) allows generating an Adapter to encapsulate this functionality.
+- **rrf-searchAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/notebook-store/src/search/rrf-search.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/notebook-store/src/ports/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **notebook-query-portAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/notebook-store/src/ports/notebook-query-port.ts) allows generating an Adapter to encapsulate this functionality.
+- **in-memory-query-adapterAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/notebook-store/src/ports/adapters/in-memory-query-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **lancedb-query-adapterAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/notebook-store/src/ports/adapters/lancedb-query-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **NotebookServiceAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-kernel/src/services/NotebookService.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/notebook-store/src/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-fsmAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/quorum-fsm/dist/fsm/quorum-fsm.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-state-storeAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/quorum-fsm/dist/persistence/quorum-state-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **stagnant-diff-detectorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/quorum-fsm/dist/circuit-breaker/stagnant-diff-detector.ts) allows generating an Adapter to encapsulate this functionality.
+- **zero-bias-context-builderAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/quorum-fsm/dist/zero-bias/zero-bias-context-builder.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-fsmAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/quorum-fsm/src/fsm/quorum-fsm.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-state-storeAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/quorum-fsm/src/persistence/quorum-state-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **stagnant-diff-detectorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/quorum-fsm/src/circuit-breaker/stagnant-diff-detector.ts) allows generating an Adapter to encapsulate this functionality.
+- **zero-bias-context-builderAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/quorum-fsm/src/zero-bias/zero-bias-context-builder.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-scorerAdapter**: Favorable token economics (dependency surface size 2 < 50 for scripts/domain-scorer.ts) allows generating an Adapter to encapsulate this functionality.
+- **codebase-review-orchestratorAdapter**: Favorable token economics (dependency surface size 1 < 50 for scripts/codebase-review-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-reviewAdapter**: Favorable token economics (dependency surface size 4 < 50 for scripts/quorum-review.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/dist/auth/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **remoteAuthAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/auth/remoteAuth.ts) allows generating an Adapter to encapsulate this functionality.
+- **authManagerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/auth/authManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **serverAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/studio/server.ts) allows generating an Adapter to encapsulate this functionality.
+- **deepResearchRunnerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-browser/dist/runner/deepResearchRunner.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/crawler/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **checkpointAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/crawler/checkpoint.ts) allows generating an Adapter to encapsulate this functionality.
+- **traverserAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/crawler/traverser.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-browser/dist/formula/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **compilerAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-browser/dist/formula/compiler.ts) allows generating an Adapter to encapsulate this functionality.
+- **executorAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-browser/dist/formula/executor.ts) allows generating an Adapter to encapsulate this functionality.
+- **storeAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-browser/dist/formula/store.ts) allows generating an Adapter to encapsulate this functionality.
+- **healerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/formula/healer.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/auth/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/runner/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/scraper/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/theme/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/studio/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/formula/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/inspector/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/crawler/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/stealth/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/mcp/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/vault/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/dist/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/inspector/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **stateInspectorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/dist/inspector/stateInspector.ts) allows generating an Adapter to encapsulate this functionality.
+- **networkInterceptorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/inspector/networkInterceptor.ts) allows generating an Adapter to encapsulate this functionality.
+- **serverAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/mcp/server.ts) allows generating an Adapter to encapsulate this functionality.
+- **toolsAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/mcp/tools.ts) allows generating an Adapter to encapsulate this functionality.
+- **scraperAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/scraper/scraper.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/dist/runner/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevRunnerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/runner/jevRunner.ts) allows generating an Adapter to encapsulate this functionality.
+- **fingerprintAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/stealth/fingerprint.ts) allows generating an Adapter to encapsulate this functionality.
+- **pushDispatcherAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/dist/runner/pushDispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **vaultSyncAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/dist/vault/vaultSync.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevSnapshotAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/runner/jevSnapshot.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/dist/scraper/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **markdownReaderAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/scraper/markdownReader.ts) allows generating an Adapter to encapsulate this functionality.
+- **jsonExtractorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/dist/scraper/jsonExtractor.ts) allows generating an Adapter to encapsulate this functionality.
+- **mousePhysicsAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/stealth/mousePhysics.ts) allows generating an Adapter to encapsulate this functionality.
+- **humanInputAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/stealth/humanInput.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-browser/dist/theme/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **paletteExtractorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/theme/paletteExtractor.ts) allows generating an Adapter to encapsulate this functionality.
+- **typographyExtractorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/theme/typographyExtractor.ts) allows generating an Adapter to encapsulate this functionality.
+- **tokenEmitterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/dist/theme/tokenEmitter.ts) allows generating an Adapter to encapsulate this functionality.
+- **themeClonerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/dist/theme/themeCloner.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/auth/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **remoteAuthAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/auth/remoteAuth.ts) allows generating an Adapter to encapsulate this functionality.
+- **authManagerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/auth/authManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **serverAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/studio/server.ts) allows generating an Adapter to encapsulate this functionality.
+- **deepResearchRunnerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/runner/deepResearchRunner.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/crawler/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **checkpointAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/crawler/checkpoint.ts) allows generating an Adapter to encapsulate this functionality.
+- **traverserAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/crawler/traverser.ts) allows generating an Adapter to encapsulate this functionality.
+- **compilerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/formula/compiler.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-browser/src/formula/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **executorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/formula/executor.ts) allows generating an Adapter to encapsulate this functionality.
+- **storeAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/formula/store.ts) allows generating an Adapter to encapsulate this functionality.
+- **healerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/formula/healer.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/auth/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/runner/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/scraper/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/theme/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/studio/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/formula/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/inspector/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/crawler/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/stealth/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/mcp/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/vault/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/inspector/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **stateInspectorAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-browser/src/inspector/stateInspector.ts) allows generating an Adapter to encapsulate this functionality.
+- **networkInterceptorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/inspector/networkInterceptor.ts) allows generating an Adapter to encapsulate this functionality.
+- **serverAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/mcp/server.ts) allows generating an Adapter to encapsulate this functionality.
+- **toolsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/mcp/tools.ts) allows generating an Adapter to encapsulate this functionality.
+- **scraperAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/scraper/scraper.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevRunnerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/runner/jevRunner.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/runner/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **fingerprintAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/stealth/fingerprint.ts) allows generating an Adapter to encapsulate this functionality.
+- **pushDispatcherAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/runner/pushDispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **vaultSyncAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-browser/src/vault/vaultSync.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevSnapshotAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/runner/jevSnapshot.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/scraper/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **markdownReaderAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/scraper/markdownReader.ts) allows generating an Adapter to encapsulate this functionality.
+- **jsonExtractorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/scraper/jsonExtractor.ts) allows generating an Adapter to encapsulate this functionality.
+- **mousePhysicsAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-browser/src/stealth/mousePhysics.ts) allows generating an Adapter to encapsulate this functionality.
+- **humanInputAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/stealth/humanInput.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-browser/src/theme/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **paletteExtractorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/theme/paletteExtractor.ts) allows generating an Adapter to encapsulate this functionality.
+- **typographyExtractorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/theme/typographyExtractor.ts) allows generating an Adapter to encapsulate this functionality.
+- **tokenEmitterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-browser/src/theme/tokenEmitter.ts) allows generating an Adapter to encapsulate this functionality.
+- **themeClonerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/theme/themeCloner.ts) allows generating an Adapter to encapsulate this functionality.
+- **LiveViewportAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/routes/LiveViewport.ts) allows generating an Adapter to encapsulate this functionality.
+- **RouteDagExplorerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/routes/RouteDagExplorer.ts) allows generating an Adapter to encapsulate this functionality.
+- **AuthVaultAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/routes/AuthVault.ts) allows generating an Adapter to encapsulate this functionality.
+- **GoalStudioAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/routes/GoalStudio.ts) allows generating an Adapter to encapsulate this functionality.
+- **ThemeStudioAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/routes/ThemeStudio.ts) allows generating an Adapter to encapsulate this functionality.
+- **ScraperStudioAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/routes/ScraperStudio.ts) allows generating an Adapter to encapsulate this functionality.
+- **AppAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/App.ts) allows generating an Adapter to encapsulate this functionality.
+- **styles.cssAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/studio/src/styles.css.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-browser/src/cli/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **archive-managerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/track/archive-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/phase/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-cliAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/cli/phase-cli.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 11 < 50 for packages/superconductor-core/dist/intelligence/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **package-surfaceAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/intelligence/runners/package-surface.ts) allows generating an Adapter to encapsulate this functionality.
+- **complexityAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/runners/complexity.ts) allows generating an Adapter to encapsulate this functionality.
+- **fingerprintAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/intelligence/runners/fingerprint.ts) allows generating an Adapter to encapsulate this functionality.
+- **learnAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/cli/learn.ts) allows generating an Adapter to encapsulate this functionality.
+- **incubation-managerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/learning/incubation-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **canary-harnessAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/learning/canary-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **dogma-validatorAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/learning/dogma-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/cli/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-manifestAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/dist/phase/phase-manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-transition-serviceAdapter**: Favorable token economics (dependency surface size 12 < 50 for packages/superconductor-core/dist/phase/phase-transition-service.ts) allows generating an Adapter to encapsulate this functionality.
+- **headlessAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/cli/headless.ts) allows generating an Adapter to encapsulate this functionality.
+- **interactiveAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/cli/interactive.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-state-storeAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/dist/phase/phase-state-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-contextAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/protocol/agent-context.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/track/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **execution-plannerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/track/execution-planner.ts) allows generating an Adapter to encapsulate this functionality.
+- **splicerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/context/splicer.ts) allows generating an Adapter to encapsulate this functionality.
+- **input-resolutionAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/review/input-resolution.ts) allows generating an Adapter to encapsulate this functionality.
+- **deterministic-preflightAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/review/deterministic-preflight.ts) allows generating an Adapter to encapsulate this functionality.
+- **merge-trackAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/cli/merge-track.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-stateAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/permissions/track-state.ts) allows generating an Adapter to encapsulate this functionality.
+- **keyword-inferrerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/permissions/keyword-inferrer.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-chooser-dialogAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/models/model-chooser-dialog.ts) allows generating an Adapter to encapsulate this functionality.
+- **crawlAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/cli/crawl.ts) allows generating an Adapter to encapsulate this functionality.
+- **browserAdapterAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/dist/crawler/browserAdapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **cli-dispatcherAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/cli/cli-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **orchestratorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/crawler/orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **dag-resolverAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/dag-resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-manifestAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/schema/track-manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **snapshot-readerAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/intelligence/snapshot-reader.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcherAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/cli/dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/learning/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **workspace-guardAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/orchestration/workspace-guard.ts) allows generating an Adapter to encapsulate this functionality.
+- **sign-off-gateAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/orchestration/sign-off-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 15 < 50 for packages/superconductor-core/dist/crawler/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **configAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/crawler/config.ts) allows generating an Adapter to encapsulate this functionality.
+- **authInspectorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/crawler/authInspector.ts) allows generating an Adapter to encapsulate this functionality.
+- **serverManagerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/serverManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **hydrationAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/hydration.ts) allows generating an Adapter to encapsulate this functionality.
+- **runnerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/crawler/runner.ts) allows generating an Adapter to encapsulate this functionality.
+- **videoAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/video.ts) allows generating an Adapter to encapsulate this functionality.
+- **manifestAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **rendererAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/renderer.ts) allows generating an Adapter to encapsulate this functionality.
+- **graphAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/crawler/graph.ts) allows generating an Adapter to encapsulate this functionality.
+- **proberAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/prober.ts) allows generating an Adapter to encapsulate this functionality.
+- **mcpToolAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/crawler/mcpTool.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevSnapshotAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/jevSnapshot.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevAdapterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/crawler/jevAdapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **parserAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/crawler/parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **reactRouterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/crawler/frameworks/reactRouter.ts) allows generating an Adapter to encapsulate this functionality.
+- **remixAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/crawler/frameworks/remix.ts) allows generating an Adapter to encapsulate this functionality.
+- **nextjsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/crawler/frameworks/nextjs.ts) allows generating an Adapter to encapsulate this functionality.
+- **viteAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/crawler/frameworks/vite.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/types/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/review/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/protocol/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/telemetry/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/schema/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/utils/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/orchestration/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/remediation/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **libsql-database-managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/shared/libsql-database-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/models/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/swarm/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **note-writerAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/dist/notebook/note-writer.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/planning/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/visual/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/crawler/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **drift-monitorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/intelligence/drift-monitor.ts) allows generating an Adapter to encapsulate this functionality.
+- **resolve-project-rootAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/dist/intelligence/utils/resolve-project-root.ts) allows generating an Adapter to encapsulate this functionality.
+- **audit-reporterAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/audit-reporter.ts) allows generating an Adapter to encapsulate this functionality.
+- **incremental-updaterAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/incremental-updater.ts) allows generating an Adapter to encapsulate this functionality.
+- **pipelineAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/pipeline.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-blueprint-generatorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/intelligence/swarm-blueprint-generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-checkAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/intelligence/preflight-check.ts) allows generating an Adapter to encapsulate this functionality.
+- **cli-blueprintAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/cli-blueprint.ts) allows generating an Adapter to encapsulate this functionality.
+- **cli-updateAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/intelligence/cli-update.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-analyzerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/dependency-analyzer.ts) allows generating an Adapter to encapsulate this functionality.
+- **topography-mapAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/topography-map.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-graphAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/runners/dependency-graph.ts) allows generating an Adapter to encapsulate this functionality.
+- **sastAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/runners/sast.ts) allows generating an Adapter to encapsulate this functionality.
+- **symbol-extractionAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/runners/symbol-extraction.ts) allows generating an Adapter to encapsulate this functionality.
+- **test-gapsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/runners/test-gaps.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-surfaceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/runners/dependency-surface.ts) allows generating an Adapter to encapsulate this functionality.
+- **graphifyAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/runners/graphify.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-registryAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/dist/intelligence/tool-registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflightAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/preflight.ts) allows generating an Adapter to encapsulate this functionality.
+- **reportAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/report.ts) allows generating an Adapter to encapsulate this functionality.
+- **prompt-generatorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/prompt-generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **pair-programmingAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/pair-programming.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-complexity-scorerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/task-complexity-scorer.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-tier-routerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/intelligence/model-tier-router.ts) allows generating an Adapter to encapsulate this functionality.
+- **parallelism-optimiserAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/intelligence/parallelism-optimiser.ts) allows generating an Adapter to encapsulate this functionality.
+- **oracle-cadence-optimiserAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/oracle-cadence-optimiser.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-surface-toolAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/dependency-surface-tool.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-partitionerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/domain-partitioner.ts) allows generating an Adapter to encapsulate this functionality.
+- **auto-sync-engineAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/auto-sync-engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **language-profileAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/intelligence/utils/language-profile.ts) allows generating an Adapter to encapsulate this functionality.
+- **partitionerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/intelligence/partitioner.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-phase-gateAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/review/swarm-phase-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **couplingAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/intelligence/runners/coupling.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-contextAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/intelligence/dependency-context.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/dist/intelligence/runners/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **token-budget-estimatorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/telemetry/token-budget-estimator.ts) allows generating an Adapter to encapsulate this functionality.
+- **templatesAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/learning/templates.ts) allows generating an Adapter to encapsulate this functionality.
+- **deduplicatorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/learning/deduplicator.ts) allows generating an Adapter to encapsulate this functionality.
+- **harvesterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/learning/harvester.ts) allows generating an Adapter to encapsulate this functionality.
+- **invariant-synthesizerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/learning/invariant-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **promoterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/learning/promoter.ts) allows generating an Adapter to encapsulate this functionality.
+- **sanitizerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/learning/sanitizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-distillerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/learning/skill-distiller.ts) allows generating an Adapter to encapsulate this functionality.
+- **transcript-parserAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/learning/transcript-parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/dist/learning/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-catalog-serviceAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/models/model-catalog-service.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-config-writerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/models/agent-config-writer.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-config-model-resolutionAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/orchestration/agent-config-model-resolution.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-granularityAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/orchestration/swarm-granularity.ts) allows generating an Adapter to encapsulate this functionality.
+- **background-task-monitorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/orchestration/background-task-monitor.ts) allows generating an Adapter to encapsulate this functionality.
+- **checkpoint-orchestratorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/orchestration/checkpoint-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **abstract-gateAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/dist/orchestration/abstract-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-gateAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/orchestration/preflight-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-validatorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/orchestration/quorum-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **worktree-isolation-managerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/orchestration/worktree-isolation-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-routing-enforcerAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/dist/orchestration/model-routing-enforcer.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-lifecycle-wizardAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/orchestration/track-lifecycle-wizard.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-lifecycle-orchestratorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/orchestration/track-lifecycle-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **micro-swarm-orchestratorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/orchestration/micro-swarm-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **merge-queue-managerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/orchestration/merge-queue-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **multi-track-orchestratorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/orchestration/multi-track-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-wave-plannerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/orchestration/task-wave-planner.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-split-remediation-dispatcherAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/dist/remediation/domain-split-remediation-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-authorizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/track/swarm-authorizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-composition-resolverAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/review/quorum-composition-resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **archive-managerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/track/archive-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **sign-off-gateAdapter**: Favorable token economics (dependency surface size 17 < 50 for packages/superconductor-core/src/orchestration/sign-off-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **schemasAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/permissions/schemas.ts) allows generating an Adapter to encapsulate this functionality.
+- **engineAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/permissions/engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **prompterAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/permissions/prompter.ts) allows generating an Adapter to encapsulate this functionality.
+- **toml-providerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/permissions/providers/toml-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **auditAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/permissions/audit.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-registry-parserAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/phase/phase-registry-parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-managerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/phase/phase-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-schemaAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/planning/task-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **parserAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/planning/parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **registry-resolverAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/planning/registry-resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-readerAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/dist/track/track-reader.ts) allows generating an Adapter to encapsulate this functionality.
+- **mcp-schemaAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/protocol/mcp-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **deep-research-escalation-handlerAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/remediation/deep-research-escalation-handler.ts) allows generating an Adapter to encapsulate this functionality.
+- **bias-isolated-review-gateAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/remediation/bias-isolated-review-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-classifierAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/dist/remediation/domain-classifier.ts) allows generating an Adapter to encapsulate this functionality.
+- **standalone-remediationAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/remediation/standalone-remediation.ts) allows generating an Adapter to encapsulate this functionality.
+- **remediation-orchestratorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/remediation/remediation-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **remediation-stateAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/dist/remediation/remediation-state.ts) allows generating an Adapter to encapsulate this functionality.
+- **remediation-log-writerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/remediation/remediation-log-writer.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-remediation-loopAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/remediation/quorum-remediation-loop.ts) allows generating an Adapter to encapsulate this functionality.
+- **extract-fenced-blockAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/review/extract-fenced-block.ts) allows generating an Adapter to encapsulate this functionality.
+- **input-sanitizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/utils/input-sanitizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **aggregate-findingsAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/dist/review/aggregate-findings.ts) allows generating an Adapter to encapsulate this functionality.
+- **serialize-topographyAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/serialize-topography.ts) allows generating an Adapter to encapsulate this functionality.
+- **pipelineAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/pipeline.ts) allows generating an Adapter to encapsulate this functionality.
+- **aggregate-coverageAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/aggregate-coverage.ts) allows generating an Adapter to encapsulate this functionality.
+- **cascade-deferral-gateAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/cascade-deferral-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **generate-token-reportAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/generate-token-report.ts) allows generating an Adapter to encapsulate this functionality.
+- **abiAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/review/abi.ts) allows generating an Adapter to encapsulate this functionality.
+- **streaming-clientAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/review/streaming-client.ts) allows generating an Adapter to encapsulate this functionality.
+- **playwright-harnessAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/review/playwright-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **vision-oracleAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/review/vision-oracle.ts) allows generating an Adapter to encapsulate this functionality.
+- **test-theatre-detectorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/test-theatre-detector.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-test-runnerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/review/preflight-test-runner.ts) allows generating an Adapter to encapsulate this functionality.
+- **ux-rule-engineAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/review/ux-rule-engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **ux-rule-engine-cliAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/ux-rule-engine-cli.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/dist/review/rules/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/dist/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 11 < 50 for packages/superconductor-core/dist/review/rules/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **output-message-qualityAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/output-message-quality.ts) allows generating an Adapter to encapsulate this functionality.
+- **terminology-consistencyAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/terminology-consistency.ts) allows generating an Adapter to encapsulate this functionality.
+- **instruction-clarityAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/instruction-clarity.ts) allows generating an Adapter to encapsulate this functionality.
+- **visual-hierarchyAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/visual-hierarchy.ts) allows generating an Adapter to encapsulate this functionality.
+- **cognitive-loadAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/cognitive-load.ts) allows generating an Adapter to encapsulate this functionality.
+- **schema-ergonomicsAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/schema-ergonomics.ts) allows generating an Adapter to encapsulate this functionality.
+- **emoji-usageAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/emoji-usage.ts) allows generating an Adapter to encapsulate this functionality.
+- **simplificationAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/review/rules/simplification.ts) allows generating an Adapter to encapsulate this functionality.
+- **LanguagePersonaResolverAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/swarm/LanguagePersonaResolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **LanguageAdapterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/swarm/LanguageAdapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **anti-patternsAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/swarm/anti-patterns.ts) allows generating an Adapter to encapsulate this functionality.
+- **RemediatorPromptBuilderAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/swarm/RemediatorPromptBuilder.ts) allows generating an Adapter to encapsulate this functionality.
+- **DynamicQuorumContextSplicerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/swarm/DynamicQuorumContextSplicer.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-stateAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/track/track-state.ts) allows generating an Adapter to encapsulate this functionality.
+- **plan-gap-checkerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/track/plan-gap-checker.ts) allows generating an Adapter to encapsulate this functionality.
+- **surface-adapterAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/dist/visual/surface-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **vite-harnessAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/visual/vite-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **ast-scannerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/visual/ast-scanner.ts) allows generating an Adapter to encapsulate this functionality.
+- **mock-story-envelopeAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/visual/mock-story-envelope.ts) allows generating an Adapter to encapsulate this functionality.
+- **mock-scenario-adapterAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/visual/mock-scenario-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **token-synthesizerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/visual/token-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **locale-mirror-harnessAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/visual/locale-mirror-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **proposal-injectorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/visual/proposal-injector.ts) allows generating an Adapter to encapsulate this functionality.
+- **websocket-bridgeAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/dist/visual/websocket-bridge.ts) allows generating an Adapter to encapsulate this functionality.
+- **layered-assemblyAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/dist/visual/layered-assembly.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-compilerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/dist/visual/track-compiler.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-manifestAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/src/schema/track-manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/phase/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-cliAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/cli/phase-cli.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/src/intelligence/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **package-surfaceAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/intelligence/runners/package-surface.ts) allows generating an Adapter to encapsulate this functionality.
+- **symbol-extractionAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/intelligence/runners/symbol-extraction.ts) allows generating an Adapter to encapsulate this functionality.
+- **complexityAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/runners/complexity.ts) allows generating an Adapter to encapsulate this functionality.
+- **fingerprintAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/runners/fingerprint.ts) allows generating an Adapter to encapsulate this functionality.
+- **test-gapsAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/runners/test-gaps.ts) allows generating an Adapter to encapsulate this functionality.
+- **learnAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/cli/learn.ts) allows generating an Adapter to encapsulate this functionality.
+- **incubation-managerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/learning/incubation-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **canary-harnessAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/learning/canary-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **dogma-validatorAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/learning/dogma-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/cli/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **cli-dispatcherAdapter**: Favorable token economics (dependency surface size 12 < 50 for packages/superconductor-core/src/cli/cli-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-manifestAdapter**: Favorable token economics (dependency surface size 13 < 50 for packages/superconductor-core/src/phase/phase-manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-transition-serviceAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/src/phase/phase-transition-service.ts) allows generating an Adapter to encapsulate this functionality.
+- **headlessAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/cli/headless.ts) allows generating an Adapter to encapsulate this functionality.
+- **interactiveAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/cli/interactive.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-state-storeAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/src/phase/phase-state-store.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-contextAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/protocol/agent-context.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/track/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **execution-plannerAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/track/execution-planner.ts) allows generating an Adapter to encapsulate this functionality.
+- **splicerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/context/splicer.ts) allows generating an Adapter to encapsulate this functionality.
+- **input-resolutionAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/review/input-resolution.ts) allows generating an Adapter to encapsulate this functionality.
+- **deterministic-preflightAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/review/deterministic-preflight.ts) allows generating an Adapter to encapsulate this functionality.
+- **merge-trackAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/cli/merge-track.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-stateAdapter**: Favorable token economics (dependency surface size 11 < 50 for packages/superconductor-core/src/permissions/track-state.ts) allows generating an Adapter to encapsulate this functionality.
+- **keyword-inferrerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/permissions/keyword-inferrer.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-chooser-dialogAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/models/model-chooser-dialog.ts) allows generating an Adapter to encapsulate this functionality.
+- **crawlAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/cli/crawl.ts) allows generating an Adapter to encapsulate this functionality.
+- **browserAdapterAdapter**: Favorable token economics (dependency surface size 19 < 50 for packages/superconductor-core/src/crawler/browserAdapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **orchestratorAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/src/crawler/orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **snapshot-readerAdapter**: Favorable token economics (dependency surface size 14 < 50 for packages/superconductor-core/src/intelligence/snapshot-reader.ts) allows generating an Adapter to encapsulate this functionality.
+- **dag-resolverAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/intelligence/dag-resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **dispatcherAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/cli/dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/learning/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **workspace-guardAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/orchestration/workspace-guard.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 17 < 50 for packages/superconductor-core/src/crawler/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **configAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/crawler/config.ts) allows generating an Adapter to encapsulate this functionality.
+- **authInspectorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/crawler/authInspector.ts) allows generating an Adapter to encapsulate this functionality.
+- **serverManagerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/crawler/serverManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **hydrationAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/crawler/hydration.ts) allows generating an Adapter to encapsulate this functionality.
+- **runnerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/crawler/runner.ts) allows generating an Adapter to encapsulate this functionality.
+- **videoAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/crawler/video.ts) allows generating an Adapter to encapsulate this functionality.
+- **manifestAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/crawler/manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **rendererAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/crawler/renderer.ts) allows generating an Adapter to encapsulate this functionality.
+- **graphAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/crawler/graph.ts) allows generating an Adapter to encapsulate this functionality.
+- **proberAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/crawler/prober.ts) allows generating an Adapter to encapsulate this functionality.
+- **mcpToolAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/crawler/mcpTool.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevSnapshotAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/crawler/jevSnapshot.ts) allows generating an Adapter to encapsulate this functionality.
+- **jevAdapterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/crawler/jevAdapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **parserAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/crawler/parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **reactRouterAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/crawler/frameworks/reactRouter.ts) allows generating an Adapter to encapsulate this functionality.
+- **remixAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/crawler/frameworks/remix.ts) allows generating an Adapter to encapsulate this functionality.
+- **nextjsAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/crawler/frameworks/nextjs.ts) allows generating an Adapter to encapsulate this functionality.
+- **viteAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/crawler/frameworks/vite.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/types/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/review/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/protocol/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/telemetry/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/schema/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/utils/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/orchestration/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/remediation/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **libsql-database-managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/shared/libsql-database-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/models/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/swarm/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **note-writerAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/src/notebook/note-writer.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/planning/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/visual/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/crawler/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **audit-reporterAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/audit-reporter.ts) allows generating an Adapter to encapsulate this functionality.
+- **drift-monitorAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/intelligence/drift-monitor.ts) allows generating an Adapter to encapsulate this functionality.
+- **resolve-project-rootAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/src/intelligence/utils/resolve-project-root.ts) allows generating an Adapter to encapsulate this functionality.
+- **incremental-updaterAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/intelligence/incremental-updater.ts) allows generating an Adapter to encapsulate this functionality.
+- **pipelineAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/intelligence/pipeline.ts) allows generating an Adapter to encapsulate this functionality.
+- **cli-blueprintAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/intelligence/cli-blueprint.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-checkAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/preflight-check.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-blueprint-generatorAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/swarm-blueprint-generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **cli-updateAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/intelligence/cli-update.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-analyzerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/intelligence/dependency-analyzer.ts) allows generating an Adapter to encapsulate this functionality.
+- **topography-mapAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/topography-map.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-graphAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/intelligence/runners/dependency-graph.ts) allows generating an Adapter to encapsulate this functionality.
+- **sastAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/intelligence/runners/sast.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-surfaceAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/runners/dependency-surface.ts) allows generating an Adapter to encapsulate this functionality.
+- **graphifyAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/runners/graphify.ts) allows generating an Adapter to encapsulate this functionality.
+- **tool-registryAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/src/intelligence/tool-registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflightAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/intelligence/preflight.ts) allows generating an Adapter to encapsulate this functionality.
+- **reportAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/intelligence/report.ts) allows generating an Adapter to encapsulate this functionality.
+- **prompt-generatorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/prompt-generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **pair-programmingAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/pair-programming.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-complexity-scorerAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/src/intelligence/task-complexity-scorer.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-tier-routerAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/intelligence/model-tier-router.ts) allows generating an Adapter to encapsulate this functionality.
+- **parallelism-optimiserAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/parallelism-optimiser.ts) allows generating an Adapter to encapsulate this functionality.
+- **oracle-cadence-optimiserAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/oracle-cadence-optimiser.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-surface-toolAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/intelligence/dependency-surface-tool.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-partitionerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/intelligence/domain-partitioner.ts) allows generating an Adapter to encapsulate this functionality.
+- **auto-sync-engineAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/intelligence/auto-sync-engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **language-profileAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/intelligence/utils/language-profile.ts) allows generating an Adapter to encapsulate this functionality.
+- **partitionerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/partitioner.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-phase-gateAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/review/swarm-phase-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **couplingAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/intelligence/runners/coupling.ts) allows generating an Adapter to encapsulate this functionality.
+- **dependency-contextAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/intelligence/dependency-context.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/intelligence/runners/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **token-budget-estimatorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/telemetry/token-budget-estimator.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 17 < 50 for packages/superconductor-core/src/learning/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **templatesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/learning/templates.ts) allows generating an Adapter to encapsulate this functionality.
+- **deduplicatorAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/learning/deduplicator.ts) allows generating an Adapter to encapsulate this functionality.
+- **harvesterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/learning/harvester.ts) allows generating an Adapter to encapsulate this functionality.
+- **invariant-synthesizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/learning/invariant-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **promoterAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/learning/promoter.ts) allows generating an Adapter to encapsulate this functionality.
+- **sanitizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/learning/sanitizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **skill-distillerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/learning/skill-distiller.ts) allows generating an Adapter to encapsulate this functionality.
+- **transcript-parserAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/learning/transcript-parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-config-writerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/models/agent-config-writer.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-catalog-serviceAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/models/model-catalog-service.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent-config-model-resolutionAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/orchestration/agent-config-model-resolution.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-granularityAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/orchestration/swarm-granularity.ts) allows generating an Adapter to encapsulate this functionality.
+- **background-task-monitorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/orchestration/background-task-monitor.ts) allows generating an Adapter to encapsulate this functionality.
+- **checkpoint-orchestratorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/orchestration/checkpoint-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **abstract-gateAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-core/src/orchestration/abstract-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-gateAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/orchestration/preflight-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-validatorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/orchestration/quorum-validator.ts) allows generating an Adapter to encapsulate this functionality.
+- **worktree-isolation-managerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/orchestration/worktree-isolation-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **model-routing-enforcerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/orchestration/model-routing-enforcer.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-lifecycle-wizardAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/orchestration/track-lifecycle-wizard.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-lifecycle-orchestratorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/orchestration/track-lifecycle-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **micro-swarm-orchestratorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/orchestration/micro-swarm-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **merge-queue-managerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/orchestration/merge-queue-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **multi-track-orchestratorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/orchestration/multi-track-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-wave-plannerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/orchestration/task-wave-planner.ts) allows generating an Adapter to encapsulate this functionality.
+- **swarm-authorizerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/track/swarm-authorizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-split-remediation-dispatcherAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/remediation/domain-split-remediation-dispatcher.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-composition-resolverAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/review/quorum-composition-resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **schemasAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/src/permissions/schemas.ts) allows generating an Adapter to encapsulate this functionality.
+- **engineAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/permissions/engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **toml-providerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/permissions/providers/toml-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **prompterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/permissions/prompter.ts) allows generating an Adapter to encapsulate this functionality.
+- **auditAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/permissions/audit.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-registry-parserAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/phase/phase-registry-parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase-managerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/phase/phase-manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-schemaAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/planning/task-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **parserAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/planning/parser.ts) allows generating an Adapter to encapsulate this functionality.
+- **registry-resolverAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/planning/registry-resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-readerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/track/track-reader.ts) allows generating an Adapter to encapsulate this functionality.
+- **mcp-schemaAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/protocol/mcp-schema.ts) allows generating an Adapter to encapsulate this functionality.
+- **deep-research-escalation-handlerAdapter**: Favorable token economics (dependency surface size 7 < 50 for packages/superconductor-core/src/remediation/deep-research-escalation-handler.ts) allows generating an Adapter to encapsulate this functionality.
+- **bias-isolated-review-gateAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/remediation/bias-isolated-review-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **domain-classifierAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-core/src/remediation/domain-classifier.ts) allows generating an Adapter to encapsulate this functionality.
+- **standalone-remediationAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/remediation/standalone-remediation.ts) allows generating an Adapter to encapsulate this functionality.
+- **remediation-orchestratorAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/remediation/remediation-orchestrator.ts) allows generating an Adapter to encapsulate this functionality.
+- **remediation-stateAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/remediation/remediation-state.ts) allows generating an Adapter to encapsulate this functionality.
+- **remediation-log-writerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/remediation/remediation-log-writer.ts) allows generating an Adapter to encapsulate this functionality.
+- **quorum-remediation-loopAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/remediation/quorum-remediation-loop.ts) allows generating an Adapter to encapsulate this functionality.
+- **extract-fenced-blockAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-core/src/review/extract-fenced-block.ts) allows generating an Adapter to encapsulate this functionality.
+- **input-sanitizerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/utils/input-sanitizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **serialize-topographyAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/serialize-topography.ts) allows generating an Adapter to encapsulate this functionality.
+- **pipelineAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/pipeline.ts) allows generating an Adapter to encapsulate this functionality.
+- **aggregate-coverageAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/aggregate-coverage.ts) allows generating an Adapter to encapsulate this functionality.
+- **cascade-deferral-gateAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/cascade-deferral-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **generate-token-reportAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/generate-token-report.ts) allows generating an Adapter to encapsulate this functionality.
+- **abiAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/review/abi.ts) allows generating an Adapter to encapsulate this functionality.
+- **streaming-clientAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/streaming-client.ts) allows generating an Adapter to encapsulate this functionality.
+- **playwright-harnessAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/playwright-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **vision-oracleAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/vision-oracle.ts) allows generating an Adapter to encapsulate this functionality.
+- **test-theatre-detectorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/test-theatre-detector.ts) allows generating an Adapter to encapsulate this functionality.
+- **preflight-test-runnerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/preflight-test-runner.ts) allows generating an Adapter to encapsulate this functionality.
+- **ux-rule-engineAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/review/ux-rule-engine.ts) allows generating an Adapter to encapsulate this functionality.
+- **ux-rule-engine-cliAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/ux-rule-engine-cli.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/review/rules/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/src/review/rules/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **output-message-qualityAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/output-message-quality.ts) allows generating an Adapter to encapsulate this functionality.
+- **terminology-consistencyAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/terminology-consistency.ts) allows generating an Adapter to encapsulate this functionality.
+- **instruction-clarityAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/instruction-clarity.ts) allows generating an Adapter to encapsulate this functionality.
+- **visual-hierarchyAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/visual-hierarchy.ts) allows generating an Adapter to encapsulate this functionality.
+- **cognitive-loadAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/cognitive-load.ts) allows generating an Adapter to encapsulate this functionality.
+- **schema-ergonomicsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/schema-ergonomics.ts) allows generating an Adapter to encapsulate this functionality.
+- **emoji-usageAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/emoji-usage.ts) allows generating an Adapter to encapsulate this functionality.
+- **simplificationAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/review/rules/simplification.ts) allows generating an Adapter to encapsulate this functionality.
+- **LanguagePersonaResolverAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/swarm/LanguagePersonaResolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **LanguageAdapterAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-core/src/swarm/LanguageAdapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **anti-patternsAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/swarm/anti-patterns.ts) allows generating an Adapter to encapsulate this functionality.
+- **RemediatorPromptBuilderAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/swarm/RemediatorPromptBuilder.ts) allows generating an Adapter to encapsulate this functionality.
+- **DynamicQuorumContextSplicerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/swarm/DynamicQuorumContextSplicer.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-stateAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/track/track-state.ts) allows generating an Adapter to encapsulate this functionality.
+- **plan-gap-checkerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/track/plan-gap-checker.ts) allows generating an Adapter to encapsulate this functionality.
+- **surface-adapterAdapter**: Favorable token economics (dependency surface size 12 < 50 for packages/superconductor-core/src/visual/surface-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **vite-harnessAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/visual/vite-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **ast-scannerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/visual/ast-scanner.ts) allows generating an Adapter to encapsulate this functionality.
+- **mock-story-envelopeAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/visual/mock-story-envelope.ts) allows generating an Adapter to encapsulate this functionality.
+- **mock-scenario-adapterAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/visual/mock-scenario-adapter.ts) allows generating an Adapter to encapsulate this functionality.
+- **token-synthesizerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/visual/token-synthesizer.ts) allows generating an Adapter to encapsulate this functionality.
+- **locale-mirror-harnessAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/visual/locale-mirror-harness.ts) allows generating an Adapter to encapsulate this functionality.
+- **proposal-injectorAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/visual/proposal-injector.ts) allows generating an Adapter to encapsulate this functionality.
+- **websocket-bridgeAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/visual/websocket-bridge.ts) allows generating an Adapter to encapsulate this functionality.
+- **layered-assemblyAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-core/src/visual/layered-assembly.ts) allows generating an Adapter to encapsulate this functionality.
+- **track-compilerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-core/src/visual/track-compiler.ts) allows generating an Adapter to encapsulate this functionality.
+- **interceptorAdapter**: Favorable token economics (dependency surface size 10 < 50 for packages/superconductor-core/src/permissions/interceptor.ts) allows generating an Adapter to encapsulate this functionality.
+- **session-providerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/permissions/providers/session-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **work-unitAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/track/work-unit.ts) allows generating an Adapter to encapsulate this functionality.
+- **semantic-cacheAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/cache/semantic-cache.ts) allows generating an Adapter to encapsulate this functionality.
+- **quality-notesAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/telemetry/quality-notes.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/quorum-fsm/src/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **codebase-chunkerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-core/src/intelligence/codebase-chunker.ts) allows generating an Adapter to encapsulate this functionality.
+- **audit-swarm-complianceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/scripts/audit-swarm-compliance.ts) allows generating an Adapter to encapsulate this functionality.
+- **migrate-tracksAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/scripts/migrate-tracks.ts) allows generating an Adapter to encapsulate this functionality.
+- **in-memory-libsql-clientAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-core/src/test-utils/in-memory-libsql-client.ts) allows generating an Adapter to encapsulate this functionality.
+- **ConfigServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/dist/services/ConfigService.ts) allows generating an Adapter to encapsulate this functionality.
+- **SyncManagerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/services/SyncManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **GraphCacheAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/services/GraphCache.ts) allows generating an Adapter to encapsulate this functionality.
+- **TrackStateManagerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/dist/services/TrackStateManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **GitServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/dist/services/GitService.ts) allows generating an Adapter to encapsulate this functionality.
+- **RegistryServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/dist/services/RegistryService.ts) allows generating an Adapter to encapsulate this functionality.
+- **InstallerServiceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/services/InstallerService.ts) allows generating an Adapter to encapsulate this functionality.
+- **DogmaServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/dist/services/DogmaService.ts) allows generating an Adapter to encapsulate this functionality.
+- **PublishServiceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/services/PublishService.ts) allows generating an Adapter to encapsulate this functionality.
+- **CentralizedPublishServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/dist/services/CentralizedPublishService.ts) allows generating an Adapter to encapsulate this functionality.
+- **NotebookServiceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/services/NotebookService.ts) allows generating an Adapter to encapsulate this functionality.
+- **IntelligenceStatusServiceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/services/IntelligenceStatusService.ts) allows generating an Adapter to encapsulate this functionality.
+- **AtomicGitServiceAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-kernel/dist/services/AtomicGitService.ts) allows generating an Adapter to encapsulate this functionality.
+- **skeleton-primitivesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/dist/templates/skeleton-primitives.ts) allows generating an Adapter to encapsulate this functionality.
+- **ConfigServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/ConfigService.ts) allows generating an Adapter to encapsulate this functionality.
+- **SyncManagerAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/src/services/SyncManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **GraphCacheAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-kernel/src/services/GraphCache.ts) allows generating an Adapter to encapsulate this functionality.
+- **TrackStateManagerAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/TrackStateManager.ts) allows generating an Adapter to encapsulate this functionality.
+- **GitServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/GitService.ts) allows generating an Adapter to encapsulate this functionality.
+- **RegistryServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/RegistryService.ts) allows generating an Adapter to encapsulate this functionality.
+- **InstallerServiceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/src/services/InstallerService.ts) allows generating an Adapter to encapsulate this functionality.
+- **DogmaServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/DogmaService.ts) allows generating an Adapter to encapsulate this functionality.
+- **PublishServiceAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/src/services/PublishService.ts) allows generating an Adapter to encapsulate this functionality.
+- **CentralizedPublishServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/CentralizedPublishService.ts) allows generating an Adapter to encapsulate this functionality.
+- **IntelligenceStatusServiceAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-kernel/src/services/IntelligenceStatusService.ts) allows generating an Adapter to encapsulate this functionality.
+- **AtomicGitServiceAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-kernel/src/services/AtomicGitService.ts) allows generating an Adapter to encapsulate this functionality.
+- **skeleton-primitivesAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-kernel/src/templates/skeleton-primitives.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 11 < 50 for packages/superconductor-ui/dist/components/astryx/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-ui/dist/apps/architecture-report/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **CandidateListAdapter**: Favorable token economics (dependency surface size 9 < 50 for packages/superconductor-ui/dist/apps/architecture-report/components/CandidateList.ts) allows generating an Adapter to encapsulate this functionality.
+- **TrackGeneratorAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-ui/dist/apps/architecture-report/components/TrackGenerator.ts) allows generating an Adapter to encapsulate this functionality.
+- **AppAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/superconductor-ui/dist/apps/architecture-report/App.ts) allows generating an Adapter to encapsulate this functionality.
+- **pinning-overlayAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/dist/apps/visual-studio/pinning-overlay.ts) allows generating an Adapter to encapsulate this functionality.
+- **animation-scrubberAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/dist/apps/visual-studio/animation-scrubber.ts) allows generating an Adapter to encapsulate this functionality.
+- **copilot-sidecarAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/dist/apps/visual-studio/copilot-sidecar.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-ui/dist/apps/visual-studio/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxThemeProviderAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-ui/dist/components/astryx/AstryxThemeProvider.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxButtonAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-ui/dist/components/astryx/AstryxButton.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxBadgeAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-ui/dist/components/astryx/AstryxBadge.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxLayoutAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/dist/components/astryx/AstryxLayout.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxCardAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-ui/dist/components/astryx/AstryxCard.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxCheckboxAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-ui/dist/components/astryx/AstryxCheckbox.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/dist/apps/architecture-report/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **AppAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-ui/src/apps/architecture-report/App.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-ui/src/components/astryx/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **CandidateListAdapter**: Favorable token economics (dependency surface size 8 < 50 for packages/superconductor-ui/src/apps/architecture-report/components/CandidateList.ts) allows generating an Adapter to encapsulate this functionality.
+- **TrackGeneratorAdapter**: Favorable token economics (dependency surface size 6 < 50 for packages/superconductor-ui/src/apps/architecture-report/components/TrackGenerator.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/superconductor-ui/src/apps/architecture-report/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **pinning-overlayAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-ui/src/apps/visual-studio/pinning-overlay.ts) allows generating an Adapter to encapsulate this functionality.
+- **animation-scrubberAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-ui/src/apps/visual-studio/animation-scrubber.ts) allows generating an Adapter to encapsulate this functionality.
+- **copilot-sidecarAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-ui/src/apps/visual-studio/copilot-sidecar.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/src/apps/visual-studio/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxThemeProviderAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/src/components/astryx/AstryxThemeProvider.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxButtonAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/superconductor-ui/src/components/astryx/AstryxButton.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxBadgeAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/src/components/astryx/AstryxBadge.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxLayoutAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-ui/src/components/astryx/AstryxLayout.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxCardAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/src/components/astryx/AstryxCard.ts) allows generating an Adapter to encapsulate this functionality.
+- **AstryxCheckboxAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/superconductor-ui/src/components/astryx/AstryxCheckbox.ts) allows generating an Adapter to encapsulate this functionality.
+- **indexAdapter**: Favorable token economics (dependency surface size 1 < 50 for packages/superconductor-ui/src/apps/architecture-report/index.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/task-store/dist/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **libsql-task-providerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/task-store/dist/providers/libsql-task-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **lancedb-task-providerAdapter**: Favorable token economics (dependency surface size 3 < 50 for packages/task-store/dist/providers/lancedb-task-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-provider-factoryAdapter**: Favorable token economics (dependency surface size 2 < 50 for packages/task-store/dist/providers/task-provider-factory.ts) allows generating an Adapter to encapsulate this functionality.
+- **typesAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/task-store/src/types.ts) allows generating an Adapter to encapsulate this functionality.
+- **libsql-task-providerAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/task-store/src/providers/libsql-task-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **lancedb-task-providerAdapter**: Favorable token economics (dependency surface size 4 < 50 for packages/task-store/src/providers/lancedb-task-provider.ts) allows generating an Adapter to encapsulate this functionality.
+- **task-provider-factoryAdapter**: Favorable token economics (dependency surface size 5 < 50 for packages/task-store/src/providers/task-provider-factory.ts) allows generating an Adapter to encapsulate this functionality.
+- **sync-planAdapter**: Favorable token economics (dependency surface size 1 < 50 for scripts/sync-plan.ts) allows generating an Adapter to encapsulate this functionality.
+- **aggregate-findingsAdapter**: Favorable token economics (dependency surface size 5 < 50 for scripts/aggregate-findings.ts) allows generating an Adapter to encapsulate this functionality.
+- **cascade-deferral-gateAdapter**: Favorable token economics (dependency surface size 4 < 50 for scripts/cascade-deferral-gate.ts) allows generating an Adapter to encapsulate this functionality.
+- **MockButtonAdapter**: Favorable token economics (dependency surface size 1 < 50 for src/components/MockButton.ts) allows generating an Adapter to encapsulate this functionality.
+- **agent_config_resolverAdapter**: Favorable token economics (dependency surface size 1 < 50 for superconductor/agent_config_resolver.ts) allows generating an Adapter to encapsulate this functionality.
+- **review_approval_stateAdapter**: Favorable token economics (dependency surface size 3 < 50 for superconductor/review_approval_state.ts) allows generating an Adapter to encapsulate this functionality.
+- **git_workflow_managerAdapter**: Favorable token economics (dependency surface size 2 < 50 for superconductor/git_workflow_manager.ts) allows generating an Adapter to encapsulate this functionality.
+- **caduceus_registry_clientAdapter**: Favorable token economics (dependency surface size 2 < 50 for superconductor/caduceus_registry_client.ts) allows generating an Adapter to encapsulate this functionality.
+- **registry_client_routerAdapter**: Favorable token economics (dependency surface size 4 < 50 for superconductor/registry_client_router.ts) allows generating an Adapter to encapsulate this functionality.
+- **component_payloadAdapter**: Favorable token economics (dependency surface size 1 < 50 for superconductor/component_payload.ts) allows generating an Adapter to encapsulate this functionality.
+- **project_config_analyzerAdapter**: Favorable token economics (dependency surface size 2 < 50 for superconductor/project_config_analyzer.ts) allows generating an Adapter to encapsulate this functionality.
+- **design_os_registry_clientAdapter**: Favorable token economics (dependency surface size 2 < 50 for superconductor/design_os_registry_client.ts) allows generating an Adapter to encapsulate this functionality.
+- **migrate_local_registryAdapter**: Favorable token economics (dependency surface size 2 < 50 for superconductor/migrate_local_registry.ts) allows generating an Adapter to encapsulate this functionality.
+- **phase_generatorAdapter**: Favorable token economics (dependency surface size 3 < 50 for superconductor/phase_generator.ts) allows generating an Adapter to encapsulate this functionality.
+- **review_trigger_detectorAdapter**: Favorable token economics (dependency surface size 3 < 50 for superconductor/review_trigger_detector.ts) allows generating an Adapter to encapsulate this functionality.
+- **abi-retrospectiveAdapter**: Favorable token economics (dependency surface size 1 < 50 for scripts/abi-retrospective.ts) allows generating an Adapter to encapsulate this functionality.
+- **deterministic-preflightAdapter**: Favorable token economics (dependency surface size 3 < 50 for scripts/deterministic-preflight.ts) allows generating an Adapter to encapsulate this functionality.
+- **aggregate-coverage-manifestAdapter**: Favorable token economics (dependency surface size 3 < 50 for scripts/aggregate-coverage-manifest.ts) allows generating an Adapter to encapsulate this functionality.
+- **generate-token-reportAdapter**: Favorable token economics (dependency surface size 3 < 50 for scripts/generate-token-report.ts) allows generating an Adapter to encapsulate this functionality.
+- **extract-fenced-blockAdapter**: Favorable token economics (dependency surface size 1 < 50 for scripts/extract-fenced-block.ts) allows generating an Adapter to encapsulate this functionality.
+- **review-self-checkAdapter**: Favorable token economics (dependency surface size 1 < 50 for scripts/review-self-check.ts) allows generating an Adapter to encapsulate this functionality.
+- **input-resolutionAdapter**: Favorable token economics (dependency surface size 1 < 50 for scripts/input-resolution.ts) allows generating an Adapter to encapsulate this functionality.
+
+### Wave Schedule
+
+| Wave | Tasks | Models | Est. Tokens | Est. Duration |
+|---|---|---|---|---|
+| 1 | Task: Verify Swarm Execution Environment & Skil... | flash_lite | 28K | ~9 min |
+| 2 | Task: Implement Execution Proof Validation in a... | flash_lite | 57K | ~18 min |
+| 3 | Task: Integrate evaluateInvariantRules into CLI... | flash_lite | 57K | ~18 min |
+| 4 | Task: Harden DiffOnDiffAuditor Catch Body & Mul... | flash_lite | 57K | ~18 min |
+| 5 | Task: Document Quorum Protocols in superconduct... | flash_lite | 57K | ~18 min |
+| 6 | Task: Dynamically Resolve Chromium Path & Fix T... | flash_lite | 57K | ~18 min |
+| 7 | Task: Integrate track 'adversarial_quorum_harde... | flash_lite | 56K | ~18 min |
+
+---
+
+## Phase 0: Swarm Preflight
+
+- [ ] Task: Verify Swarm Execution Environment & Skill Availability [TIER-1:TCS=3] [AGENT:superconductor-processor]
+    - [ ] Verify `swarm-execute`, `standalone-review`, and `standalone-remediation` skills are registered. [TIER-1:TCS=3]
+    - [ ] Verify node environment, pnpm workspace, and vitest test runner are operational. [TIER-1:TCS=3]
+
+---
+
+## Phase 1: Production Execution Proof Gating in Review Aggregator
+
+- [ ] Task: Implement Execution Proof Validation in aggregateFindings [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-core/src/review/aggregate-findings.ts
+    PROTECTED: packages/superconductor-core/src/schema/review-findings.ts
+    INVARIANT_AFTER: "Any critical or high finding lacking a verified execution_proof MUST be downgraded to info severity with an unverified tag."
+    - [ ] Write unit tests in `packages/superconductor-core/src/review/aggregate-findings.test.ts` verifying unverified findings are downgraded to `info` with `[UNVERIFIED SPECULATIVE FINDING - DOWNGRADED]`. [TIER-1:TCS=3]
+    - [ ] Implement `execution_proof?.verified === true` check for `critical` and `high` findings from reviewer agents in `aggregateFindings()`. [TIER-1:TCS=3]
+    - [ ] Ensure non-blocking behavior (`is_blocking: false`) for unverified downgraded findings so they cannot stall the quorum FSM. [TIER-1:TCS=3]
+    - [ ] Update `packages/superconductor-core/tests/remediation/invariant-first-integration.test.ts` to call production `aggregateFindings()` directly, eliminating the in-test mock array filter. [TIER-1:TCS=3]
+
+- [ ] Task: Superconductor - User Manual Verification 'Production Execution Proof Gating' (Protocol in workflow.md) [TIER-1:TCS=4]
+
+---
+
+## Phase 2: Dual-Tier Preflight CLI Runner
+
+- [ ] Task: Integrate evaluateInvariantRules into CLI Preflight Script [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-core/src/cli/check-preflight.ts
+    PROTECTED: packages/superconductor-core/src/review/rules/invariant-rules.ts, packages/superconductor-core/src/review/preflight-ast-checker.ts
+    INVARIANT_AFTER: "npm run check:preflight MUST reject any diff containing defensive nulling (?? 0, || []) or fixture tampering."
+    - [ ] Write unit tests for `check-preflight` verifying exit code 1 when diff contains `?? 0` or `|| []`. [TIER-1:TCS=3]
+    - [ ] Update `packages/superconductor-core/src/cli/check-preflight.ts` to run both `PreflightASTChecker` and `evaluateInvariantRules`. [TIER-1:TCS=3]
+    - [ ] Aggregate and format violations from both engines with clear file and line coordinates. [TIER-1:TCS=3]
+    - [ ] Verify `npm run check:preflight` passes cleanly on compliant commits. [TIER-1:TCS=3]
+
+- [ ] Task: Superconductor - User Manual Verification 'Dual-Tier Preflight CLI Runner' (Protocol in workflow.md) [TIER-1:TCS=4]
+
+---
+
+## Phase 3: Diff-on-Diff Auditor Hardening & Silent Degradation Elimination
+
+- [ ] Task: Harden DiffOnDiffAuditor Catch Body & Multi-line Parsing [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-core/src/remediation/diff-on-diff-auditor.ts
+    PROTECTED: packages/superconductor-core/src/remediation/quorum-remediation-loop.ts
+    INVARIANT_AFTER: "DiffOnDiffAuditor MUST flag catch blocks returning fallbacks and multi-line split nulling operators."
+    - [ ] Write unit tests verifying detection of catch blocks returning fallbacks (`return null`, `return []`, `return {}`, `return false`, `return ""`). [TIER-1:TCS=3]
+    - [ ] Implement detection for `catch` bodies that return primitive or collection fallbacks without throwing or wrapping an error result. [TIER-1:TCS=3]
+    - [ ] Implement hunk-level multi-line regex scanning for split nulling operators (`??\n 0`, `||\n []`). [TIER-1:TCS=3]
+    - [ ] Enable `DiffOnDiffAuditor` scrutiny on Cycle 1 when comparing against merge base. [TIER-1:TCS=3]
+
+- [ ] Task: Superconductor - User Manual Verification 'Diff-on-Diff Auditor Hardening' (Protocol in workflow.md) [TIER-1:TCS=4]
+
+---
+
+## Phase 4: Workflow Manual Protocol Documentation
+
+- [ ] Task: Document Quorum Protocols in superconductor/workflow.md [TIER-2:TCS=4] [AGENT:superconductor-processor]
+    CREATES: superconductor/workflow.md
+    PROTECTED: superconductor/workflow.md
+    INVARIANT_AFTER: "superconductor/workflow.md MUST contain authoritative protocol sections for Adversarial Execution, Diff-on-Diff, Preflight, and Retrospectives."
+    - [ ] Add Section 7.5: Adversarial Execution Reviewer Protocol & Ephemeral Reproduction Harness. [TIER-1:TCS=3]
+    - [ ] Add Section 7.6: Diff-on-Diff Scrutiny Engine & Secondary Regression Protection. [TIER-1:TCS=3]
+    - [ ] Add Section 7.7: Automated Quorum Preflight Gate (`check:preflight`). [TIER-1:TCS=3]
+    - [ ] Add Section 7.8: Closed-Loop Post-Run Retrospective Engine & Dual-Taxonomy Track Inception. [TIER-1:TCS=3]
+
+- [ ] Task: Superconductor - User Manual Verification 'Workflow Manual Protocol Documentation' (Protocol in workflow.md) [TIER-1:TCS=4]
+
+---
+
+## Phase 5: Core Test Suite Greening & Crawler Binary Dynamic Resolution
+
+- [ ] Task: Dynamically Resolve Chromium Path & Fix Test Suites [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    CREATES: packages/superconductor-core/src/crawler/config.ts, packages/superconductor-core/src/crawler/runner.ts
+    PROTECTED: packages/superconductor-core/src/crawler/index.ts
+    INVARIANT_AFTER: "npm test -w packages/superconductor-core MUST exit with 0 failed test suites."
+    - [ ] Update `src/crawler/config.ts` to dynamically resolve chromium binary via `process.env.CHROMIUM_PATH`, `which chromium`, or standard system paths (`/usr/bin/chromium`). [TIER-1:TCS=3]
+    - [ ] Mock `chromium.launch` in unit tests (`tests/crawler/headless-crawler-engine.test.ts`, `tests/crawler/flow-graph-builder.test.ts`, `tests/crawler/jev-integration.test.ts`, and `tests/crawler/route-manifest-parser.test.ts`) so tests pass without requiring a physical chromium binary. [TIER-1:TCS=3]
+    - [ ] Fix assertion in `src/cli/__tests__/learn.test.ts` and timeout in `tests/multi-track-orchestration.spec.ts`. [TIER-1:TCS=3]
+    - [ ] Run `npm test -w packages/superconductor-core` and verify all 208 test suites pass cleanly. [TIER-1:TCS=3]
+
+- [ ] Task: Superconductor - User Manual Verification 'Core Test Suite Greening' (Protocol in workflow.md) [TIER-1:TCS=4]
+
+---
+
+## Phase 6: Integration & Finalization
+
+- [ ] Task: Integrate track 'adversarial_quorum_hardening_20261006' into main branch [TIER-3:TCS=3] [AGENT:superconductor-processor]
+    - [ ] Run full project build (`npm run build`). [TIER-1:TCS=3]
+    - [ ] Run preflight gate check (`npm run check:preflight`). [TIER-1:TCS=3]
+    - [ ] Run core test suites (`npm test -w packages/superconductor-core`). [TIER-1:TCS=3]
+    - [ ] Update `superconductor/tracks.md` marking track completed. [TIER-1:TCS=3]
+    - [ ] Create pull request or merge commit into `main`. [TIER-1:TCS=3]

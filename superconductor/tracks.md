@@ -45,6 +45,7 @@
 | [x] | invariant_first_remediation_and_execution_quorum_20261005 | [Invariant-First Remediation & Adversarial Execution Quorum Protocols](./tracks/invariant_first_remediation_and_execution_quorum_20261005/index.md) | track/invariant_first_remediation_and_execution_quorum_20261005 (merged to main) |
 | [x] | invariant_first_remediation_and_execution_quorum_20261006 | [Invariant-First Remediation, Adversarial Execution Quorum & Post-Run Retrospective Protocols](./tracks/invariant_first_remediation_and_execution_quorum_20261006/index.md) | track/invariant_first_remediation_and_execution_quorum_20261006 (merged to main) |
 | [ ] | remote_auth_mcp_profile_hydration_20261006 | [Remote Human Auth Web VNC & Profile Hydration in MCP Tools](./tracks/remote_auth_mcp_profile_hydration_20261006/index.md) | track/remote_auth_mcp_profile_hydration_20261006 |
+| `[ ]` | `adversarial_quorum_hardening_20261006` | [Adversarial Quorum Hardening & Production Seam Remediation](./tracks/adversarial_quorum_hardening_20261006/index.md) | `track/adversarial_quorum_hardening_20261006` |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |
