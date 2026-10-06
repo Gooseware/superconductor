@@ -45,4 +45,43 @@ describe('PreflightGate', () => {
     };
     await expect(gate.assert(context)).rejects.toThrow(PreflightSkippedError);
   });
+
+  it('fails when diff contains forbidden AST patterns', async () => {
+    const context: GateContext = {
+      trackId: 'test-track',
+      sessionId: 'test-session',
+      metadata: {
+        intelligenceStatusChecked: true,
+        notebookQueried: true,
+        diff: `--- a/src/test.test.ts
++++ b/src/test.test.ts
+@@ -1,1 +1,2 @@
++fs.writeFileSync('fixture.json', '{}');
+`,
+      },
+    };
+    const result = await gate.check(context);
+    expect(result.passed).toBe(false);
+    expect(result.reason).toContain('Preflight AST check failed');
+    expect(result.reason).toContain('forbidden-test-fixture-generation');
+  });
+
+  it('passes when diff is clean and metadata flags are present', async () => {
+    const context: GateContext = {
+      trackId: 'test-track',
+      sessionId: 'test-session',
+      metadata: {
+        intelligenceStatusChecked: true,
+        notebookQueried: true,
+        diff: `--- a/src/calc.ts
++++ b/src/calc.ts
+@@ -1,1 +1,2 @@
++export const add = (a, b) => a + b;
+`,
+      },
+    };
+    const result = await gate.check(context);
+    expect(result.passed).toBe(true);
+  });
 });
+

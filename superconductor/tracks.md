@@ -42,6 +42,7 @@
 | [x] | remote_human_auth_jev_autonomous_crawler_20261002 | [The Ultimate Agent-Driven Browser: Remote Auth, Jev Runner, Scraper, Theme Distiller & Studio](./tracks/remote_human_auth_jev_autonomous_crawler_20261002/index.md) | track/remote_human_auth_jev_autonomous_crawler_20261002 (merged to main) |
 | [x] | self_healing_formulas_stealth_browser_20261002 | [Self-Healing Scraper Formulas, Resumable Checkpoints, JS State Inspection, Human Stealth & JEV MCP Replacement](./tracks/self_healing_formulas_stealth_browser_20261002/index.md) | track/self_healing_formulas_stealth_browser_20261002 (merged to main) |
 | [x] | browser_formulas_async_deep_research_google_ai_20261003 | [Browser Formulas & Async Push Engine for Gemini Deep Research and Google AI Search](./tracks/browser_formulas_async_deep_research_google_ai_20261003/index.md) | track/browser_formulas_async_deep_research_google_ai_20261003 (merged to main) |
+| [x] | invariant_first_remediation_and_execution_quorum_20261006 | [Invariant-First Remediation, Adversarial Execution Quorum & Post-Run Retrospective Protocols](./tracks/invariant_first_remediation_and_execution_quorum_20261006/index.md) | track/invariant_first_remediation_and_execution_quorum_20261006 (merged to main) |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |

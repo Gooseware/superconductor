@@ -47,6 +47,34 @@ triggers:
 - In `--headless` mode: suppress interactive prompts, auto-choose defaults.
 - Hard-block: if any CRITICAL finding reaches HUMAN_REQUIRED, halt and present `Acknowledge & Abort` | `Acknowledge & Revert`.
 
+### 3.1 Invariant-First Remediator Protocol
+
+All remediators dispatched by `DomainSplitRemediationDispatcher` MUST strictly enforce the **Invariant-First Remediation Protocol** and reject local-patch pathologies:
+
+1. **Inception Mandate (No Call-Site Defensive Nulling):**
+   - Strictly FORBID defensive null fallbacks (`?? 0`, `|| []`, `?? ''`, `?.`, empty `catch {}`) at consumer sites to mask unhydrated data.
+   - Trace backward to data lifecycle inception (store initializer, migration script, ingestion pipeline) and persist valid state at origin.
+   - Missing data is an upstream contract breach, not an optional value to gloss over.
+
+2. **Atomic Dual-Write & Single Source of Truth (SSOT):**
+   - Dual-store representations MUST be updated atomically within a single transaction/action, or the redundant store eliminated.
+   - Emitting warning logs (`console.warn`) on store divergence while proceeding is strictly classified as a fatal defect.
+
+3. **Execution Fidelity:**
+   - Execute all verification against real production database migrations, SQLite `CHECK` constraints, foreign keys, and indexes.
+   - Cloudflare Workers and Durable Objects handlers MUST pass all async background tasks to `ctx.waitUntil` (never drop promises on bare `env`).
+
+4. **Strict Sequence Monotonicity:**
+   - State synchronization, event streams, and CRDT handlers must enforce strict sequence monotonicity (`headSeq > current.lastSeq`).
+   - Out-of-order or stale network responses must never overwrite newer state.
+
+5. **Zero Test Weakening (Anti-Test-Theatre):**
+   - NEVER auto-generate test fixtures or snapshots on the fly (`writeFileSync` in assertions). Missing fixtures must fail immediately.
+   - Replace wall-clock assertions (`toBeLessThan(Xms)`) with deterministic algorithmic operation counters (step counts, iterations).
+   - Never raise timeout limits to mask race conditions or unhandled locks.
+
+`DomainSplitRemediationDispatcher` dynamically injects `INVARIANT_REMEDIATION_DOGMA` and domain-specific inception guidance into every spawned processor subagent prompt on every dispatch.
+
 ## 4.0 Output Protocol
 
 - Write `remediation_log.md` alongside the input review report

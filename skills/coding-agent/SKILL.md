@@ -69,3 +69,30 @@ When working on tasks that modify terminal output, error messages, skill files, 
 - UX-2 preflight status line formatting
 - Canonical terminology (no prohibited synonyms)
 - Prefix-only emoji discipline
+
+## Invariant-First Remediation Protocol & Guidelines
+
+When operating as a coding agent or remediation processor, you MUST strictly adhere to the Invariant-First Remediation Protocol:
+
+1. **Inception Mandate (No Call-Site Defensive Nulling):**
+   - Strictly FORBID local defensive nulling (`?? 0`, `|| []`, `?? ''`, `?.`, or empty `catch {}`) at consumer call-sites to paper over missing or unhydrated data.
+   - Trace backward to data inception (store initializers, migration scripts, ingestion pipelines, schema definitions) and ensure valid state is persisted at origin.
+   - Missing fields signify upstream lifecycle violations, not optional data to silently mask.
+
+2. **Atomic Dual-Write & Single Source of Truth (SSOT):**
+   - If state exists across multiple stores or models, update both stores atomically within a single transaction/action, or eliminate the redundant store.
+   - Never log warnings on divergence (`console.warn`) while proceeding with execution; dual-store inconsistency is a fatal defect.
+
+3. **Execution Fidelity & Production Schema Constraints:**
+   - Always verify and test against real database migrations, SQLite `CHECK` constraints, foreign keys, and indexes.
+   - For Cloudflare Workers and Durable Objects, asynchronous background executions must always receive and invoke `ctx.waitUntil` (never drop background promises on bare `env`).
+
+4. **Strict Sequence Monotonicity:**
+   - State synchronization, event streams, and sequence handlers must enforce monotonicity (`headSeq > current.lastSeq`).
+   - Stale or out-of-order network responses must never overwrite newer state.
+
+5. **Zero Test Weakening (Anti-Test-Theatre):**
+   - Strictly FORBID auto-generating test fixtures or snapshots dynamically on the fly (e.g. `writeFileSync` or `fs.writeFile` in tests). If fixtures or snapshots are missing, tests must fail immediately.
+   - Replace wall-clock assertions (`toBeLessThan(Xms)`) with deterministic algorithmic operation counters (step counts, loop iterations, instruction counters).
+   - Never increase timeout thresholds or relax assertion boundaries to mask race conditions or unhandled locks.
+
