@@ -44,6 +44,7 @@
 | [x] | browser_formulas_async_deep_research_google_ai_20261003 | [Browser Formulas & Async Push Engine for Gemini Deep Research and Google AI Search](./tracks/browser_formulas_async_deep_research_google_ai_20261003/index.md) | track/browser_formulas_async_deep_research_google_ai_20261003 (merged to main) |
 | [x] | invariant_first_remediation_and_execution_quorum_20261005 | [Invariant-First Remediation & Adversarial Execution Quorum Protocols](./tracks/invariant_first_remediation_and_execution_quorum_20261005/index.md) | track/invariant_first_remediation_and_execution_quorum_20261005 (merged to main) |
 | [x] | invariant_first_remediation_and_execution_quorum_20261006 | [Invariant-First Remediation, Adversarial Execution Quorum & Post-Run Retrospective Protocols](./tracks/invariant_first_remediation_and_execution_quorum_20261006/index.md) | track/invariant_first_remediation_and_execution_quorum_20261006 (merged to main) |
+| `[ ]` | `adversarial_quorum_hardening_20261006` | [Adversarial Quorum Hardening & Production Seam Remediation](./tracks/adversarial_quorum_hardening_20261006/index.md) | `track/adversarial_quorum_hardening_20261006` |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |
