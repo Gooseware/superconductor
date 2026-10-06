@@ -1,11 +1,14 @@
 import * as fs from 'node:fs';
 import { AbstractGate, GateContext, GateResult, GateError } from './abstract-gate.js';
+import { PreflightASTChecker } from '../review/preflight-ast-checker.js';
 import { evaluateInvariantRules, RuleViolation } from '../review/rules/index.js';
 
 export interface PreflightGateContext extends GateContext {
   files?: Array<{ path: string; content: string; diff?: string }>;
   diff?: string;
   changedFiles?: string[];
+  checkGitPreflight?: boolean;
+  projectDir?: string;
 }
 
 export interface PreflightGateResult extends GateResult {
@@ -90,9 +93,11 @@ function resolveEvaluationFiles(context: PreflightGateContext): Array<{ path: st
 
 export class PreflightGate extends AbstractGate {
   public readonly gateName = 'PreflightGate';
+  public readonly astChecker: PreflightASTChecker;
 
-  constructor(protected stateStore?: any) {
+  constructor(protected stateStore?: any, astChecker?: PreflightASTChecker) {
     super();
+    this.astChecker = astChecker || new PreflightASTChecker();
   }
 
   protected createError(message: string): GateError {
@@ -123,6 +128,33 @@ export class PreflightGate extends AbstractGate {
     }
     if (!metadata.notebookQueried) {
       return { passed: false, reason: 'Notebook query MCP call not recorded in quorum state' };
+    }
+
+    // AST Preflight Check
+    const diff = (context as any).diff || (metadata && metadata.diff);
+    if (diff && typeof diff === 'string') {
+      const astResult = this.astChecker.scanDiff(diff);
+      if (!astResult.valid) {
+        const errorSummary = astResult.violations
+          .map(v => `${v.file}:${v.line} [${v.rule}] ${v.message}`)
+          .join('; ');
+        return {
+          passed: false,
+          reason: `Preflight AST check failed with ${astResult.violations.length} violation(s): ${errorSummary}`,
+        };
+      }
+    } else if (metadata && (metadata.checkGitPreflight || (context as any).checkGitPreflight)) {
+      const projectDir = metadata.projectDir || (context as any).projectDir;
+      const astResult = this.astChecker.scanGitDiff({ projectDir });
+      if (!astResult.valid) {
+        const errorSummary = astResult.violations
+          .map(v => `${v.file}:${v.line} [${v.rule}] ${v.message}`)
+          .join('; ');
+        return {
+          passed: false,
+          reason: `Preflight AST check failed with ${astResult.violations.length} violation(s): ${errorSummary}`,
+        };
+      }
     }
 
     const filesToEvaluate = resolveEvaluationFiles(context);

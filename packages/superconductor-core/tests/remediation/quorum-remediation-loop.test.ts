@@ -1,6 +1,10 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   AutonomousQuorumRemediationLoop,
+  QuorumRemediationLoop,
   QuorumReviewResult,
 } from '../../src/remediation/quorum-remediation-loop.js';
 import { DomainSplitRemediationDispatcher } from '../../src/remediation/domain-split-remediation-dispatcher.js';
@@ -207,4 +211,107 @@ describe('Autonomous Quorum Remediation Loop (Core Integration)', () => {
     expect(result.state).toBe('HALTED');
     expect(result.stagnantDiffDetected).toBe(true);
   });
+
+  it('aborts loop and transitions to HALTED when DiffOnDiffAuditor detects secondary regression in cycle 2', async () => {
+    const tmpLogDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-remed-log-'));
+    const logFilePath = path.join(tmpLogDir, 'remediation_log.md');
+
+    let cycleCount = 0;
+    // Cycle 1: initial diff
+    // Cycle 2: remediator introduces defensive nulling and swallowed exception
+    const getDiffFn = vi.fn().mockImplementation(() => {
+      cycleCount++;
+      if (cycleCount === 1) {
+        return 'diff --git a/src/logic/order.ts b/src/logic/order.ts\n+const x = 1;';
+      }
+      return `diff --git a/src/logic/order.ts b/src/logic/order.ts
+--- a/src/logic/order.ts
++++ b/src/logic/order.ts
+@@ -10,3 +10,6 @@
++    const fallback = order.items ?? [];
++    try { run(); } catch (e) {}
+`;
+    });
+
+    const reviewerFn = vi.fn().mockImplementation(async (cycle: number) => {
+      if (cycle === 1) {
+        return {
+          status: 'NEEDS_FIXES' as const,
+          findings: [
+            { id: 'f1', file: 'src/logic/order.ts', severity: 'HIGH', description: 'Order logic bug' },
+          ],
+        };
+      }
+      return {
+        status: 'RESOLVED' as const,
+        findings: [],
+      };
+    });
+
+    const dispatcher = new DomainSplitRemediationDispatcher({
+      worktreeManager: mockWorktreeManager,
+      spawner: mockSpawner,
+    });
+
+    const loop = new QuorumRemediationLoop({
+      trackId: 'track-secondary-regression',
+      reviewerFn,
+      getDiffFn,
+      dispatcher,
+      remediationLogPath: logFilePath,
+      maxCycles: 5,
+    });
+
+    const result = await loop.run();
+
+    // Loop aborted early on cycle 2 without running re-review
+    expect(result.allGreen).toBe(false);
+    expect(result.state).toBe('HALTED');
+    expect(result.secondaryRegressionDetected).toBe(true);
+    expect(result.cycles).toBe(2);
+    expect(reviewerFn).toHaveBeenCalledTimes(1); // Reviewer was NOT called for cycle 2!
+
+    // Verify secondary findings contain DIFF_REGRESSION
+    expect(result.unresolvedFindings.length).toBeGreaterThan(0);
+    expect(result.unresolvedFindings.every((f) => f.ruleId === 'DIFF_REGRESSION')).toBe(true);
+
+    // Verify remediation_log.md contains the audit entry
+    expect(fs.existsSync(logFilePath)).toBe(true);
+    const logContent = fs.readFileSync(logFilePath, 'utf8');
+    expect(logContent).toContain('Diff-on-Diff Scrutiny Report (Cycle 2)');
+    expect(logContent).toContain('Status: FAILED');
+    expect(logContent).toContain('DIFF_REGRESSION');
+
+    fs.rmSync(tmpLogDir, { recursive: true, force: true });
+  });
+
+  it('allows direct invocation of runCycle with DiffOnDiffAuditor scrutiny', async () => {
+    const loop = new QuorumRemediationLoop({
+      trackId: 'track-runcycle-direct',
+      reviewerFn: async () => ({ status: 'RESOLVED', findings: [] }),
+      getDiffFn: () => 'clean diff',
+    });
+
+    // Cycle 1: passes clean
+    const res1 = await loop.runCycle(1, 'diff --git a/a.ts b/a.ts\n+const x = 1;', []);
+    expect(res1.status).toBe('ALL_PASSED');
+
+    // Cycle 2: passes clean if diff is clean
+    const res2 = await loop.runCycle(2, 'diff --git a/a.ts b/a.ts\n+const x = 2;', [
+      { id: 'f1', file: 'a.ts' },
+    ]);
+    expect(res2.status).toBe('ALL_PASSED');
+
+    // Cycle 2: returns SECONDARY_REGRESSION if defensive nulling is introduced
+    const dirtyDiff = `diff --git a/a.ts b/a.ts
+--- a/a.ts
++++ b/a.ts
+@@ -1,2 +1,3 @@
++const y = x ?? 0;
+`;
+    const resReg = await loop.runCycle(2, dirtyDiff, [{ id: 'f1', file: 'a.ts' }]);
+    expect(resReg.status).toBe('SECONDARY_REGRESSION');
+    expect(resReg.findings[0].category).toBe('defensive_nulling');
+  });
 });
+

@@ -143,6 +143,78 @@ describe('TrackLifecycleWizard', () => {
       );
     });
 
+    it('triggers retrospective engine and invokes onTrackFinalized on successful merge', async () => {
+      const mockRetroRun = vi.fn().mockResolvedValue({
+        trackId: 'test_track_1',
+        proposalsGenerated: [
+          {
+            proposalId: 'suggest_1',
+            filename: 'suggest_1.md',
+            relativeFilePath: 'superconductor/suggestions/suggest_1.md',
+            data: { category: 'process', title: 'Improve Reviewer Prompts' },
+          },
+        ],
+        savedProposalPaths: ['/tmp/suggestions/suggest_1.md'],
+        confidence: 0.85,
+        skippedDueToLowConfidence: false,
+      });
+
+      const mockOnTrackFinalized = vi.fn().mockResolvedValue(undefined);
+
+      const wizard = new TrackLifecycleWizard({
+        projectRoot: tmpDir,
+        tracksRegistryPath,
+        archiveRegistryPath,
+        tracksDir,
+        archiveDir,
+        gitExecFn: mockGitExec,
+        retrospectiveEngine: { run: mockRetroRun } as any,
+        onTrackFinalized: mockOnTrackFinalized,
+      });
+
+      const result = await wizard.finalizeTrack({
+        trackId: 'test_track_1',
+        action: 'merge',
+        targetBranch: 'main',
+        oracleSignOff: true,
+        touchedFiles: ['src/core/parser.ts'],
+        remediationCycles: 2,
+        errorCount: 1,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockRetroRun).toHaveBeenCalledWith({
+        trackId: 'test_track_1',
+        targetBranch: 'main',
+        touchedFiles: ['src/core/parser.ts'],
+        remediationCycles: 2,
+        errorCount: 1,
+      });
+      expect(result.retrospective).toBeDefined();
+      expect(result.suggestions).toEqual(['/tmp/suggestions/suggest_1.md']);
+      expect(mockOnTrackFinalized).toHaveBeenCalledWith(result);
+    });
+
+    it('skips retrospective when skipRetrospective is true', async () => {
+      const mockRetroRun = vi.fn();
+      const wizard = new TrackLifecycleWizard({
+        projectRoot: tmpDir,
+        gitExecFn: mockGitExec,
+        retrospectiveEngine: { run: mockRetroRun } as any,
+      });
+
+      const result = await wizard.finalizeTrack({
+        trackId: 'test_track_1',
+        action: 'merge',
+        oracleSignOff: true,
+        skipRetrospective: true,
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockRetroRun).not.toHaveBeenCalled();
+      expect(result.retrospective).toBeUndefined();
+    });
+
     it('archives completed track to superconductor/tracks/archive/<track_id> and updates registry', async () => {
       const trackFolderPath = path.join(tracksDir, 'test_track_1');
       fs.mkdirSync(trackFolderPath, { recursive: true });

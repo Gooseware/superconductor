@@ -50,6 +50,7 @@ Reviewers must actively detect and reject test suites that engage in test theatr
   If EITHER line is absent: Verdict: NEEDS_FIXES (blocking, not advisory), Finding: "Agent skipped mandatory preflight MCP calls. Missing: [Intelligence|Notebook] header line.", Severity: high
 - Plan AC alignment: are all acceptance criteria actually met?
 - TypeScript compilation: Verify that `npm run build` succeeds. Do NOT rely solely on `npm test` as Vite/Vitest ignores static type errors.
+- Mandatory Execution Proofs for Blocking Logic/Nulling Findings: Any finding graded as blocking (`severity: critical` or `severity: high`) regarding logic errors, null dereferences, broken invariants, or missing branch handling **MUST** provide concrete execution reproduction output (`repro_script` and non-empty `execution_proof` trace). Unverified theoretical concerns without reproduction traces must be graded as `advisory`.
 - No phantom/stub implementations (code that looks complete but is a no-op)
 - Silent error paths (catch blocks that swallow errors)
 - Logic inversions and boundary value errors
@@ -64,6 +65,7 @@ Reviewers must actively detect and reject test suites that engage in test theatr
 Output your findings as:
 1. A markdown summary section detailing verification results (including build and test execution evidence)
 2. A JSON code block tagged ```json:review-findings containing an array of findings with this schema:
+```json:review-findings
 [
   {
     "finding_id": "COR-N",
@@ -79,14 +81,17 @@ Output your findings as:
     "execution_proof": "REQUIRED for BLOCKING findings: actual runtime error trace or terminal failure output"
   }
 ]
+```
 
 *(Note: For non-blocking findings (medium/low/advisory), `repro_script` and `execution_proof` are optional. For any blocking finding (critical/high), both `repro_script` and `execution_proof` are STRICTLY REQUIRED).*
 
 3. A ```json:coverage-manifest block:
+```json:coverage-manifest
 {
   "examined": ["file1", "file2"],
   "skimmed": ["file3"],
   "not_examined": []
 }
+```
 
 Execute boundary tests on any numeric functions. Do NOT declare a clean pass without running at least N=0 and N=1 on numeric parameters.

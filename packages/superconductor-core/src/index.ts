@@ -18,8 +18,11 @@ export * from './phase/index.js';
 export * from './planning/index.js';
 export * from './visual/index.js';
 export * from './crawler/index.js';
+export * from './retrospective/index.js';
+
 
 export type { ModelTier } from './intelligence/index.js';
+export type { PreflightCheckResult } from './review/index.js';
 export type {
   Finding,
   UxReviewReport,
@@ -106,3 +109,24 @@ export type {
   ScrapePageOptions,
   DistillPageThemeOptions,
 } from './crawler/index.js';
+
+export type {
+  TrackProposalInput,
+  BuildProposalResult,
+  TrackProposalBuilderOptions,
+  NoteLike,
+  CycleMetrics,
+  FrictionClassifierInput,
+  FrictionCluster,
+  FrictionClassificationResult,
+  FileDebtFinding,
+  RunRetrospectiveInput,
+  RetrospectiveResult,
+  RunRetrospectiveEngineOptions,
+} from './retrospective/index.js';
+
+export type {
+  TrackBatchItem,
+  BatchRunResult,
+  BatchRunnerOptions,
+} from './orchestration/index.js';

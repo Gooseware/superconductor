@@ -73,6 +73,12 @@ export class DomainClassifier {
         }
       } else if (filePath.includes(pattern)) {
         return domain;
+      } else if (pattern.endsWith('/')) {
+        const base = pattern.slice(0, -1);
+        const parsed = path.parse(filePath);
+        if (parsed.name === base || parsed.name.startsWith(base + '.') || filePath.startsWith(base + '.')) {
+          return domain;
+        }
       }
     }
 
