@@ -43,6 +43,7 @@
 | [x] | self_healing_formulas_stealth_browser_20261002 | [Self-Healing Scraper Formulas, Resumable Checkpoints, JS State Inspection, Human Stealth & JEV MCP Replacement](./tracks/self_healing_formulas_stealth_browser_20261002/index.md) | track/self_healing_formulas_stealth_browser_20261002 (merged to main) |
 | [x] | browser_formulas_async_deep_research_google_ai_20261003 | [Browser Formulas & Async Push Engine for Gemini Deep Research and Google AI Search](./tracks/browser_formulas_async_deep_research_google_ai_20261003/index.md) | track/browser_formulas_async_deep_research_google_ai_20261003 (merged to main) |
 | [x] | invariant_first_remediation_and_execution_quorum_20261005 | [Invariant-First Remediation & Adversarial Execution Quorum Protocols](./tracks/invariant_first_remediation_and_execution_quorum_20261005/index.md) | track/invariant_first_remediation_and_execution_quorum_20261005 (merged to main) |
+| [ ] | remote_auth_mcp_profile_hydration_20261006 | [Remote Human Auth Web VNC & Profile Hydration in MCP Tools](./tracks/remote_auth_mcp_profile_hydration_20261006/index.md) | track/remote_auth_mcp_profile_hydration_20261006 |
 ## Absorbed / Closed Tracks
 
 | Track ID | Absorbed By | Reason |
