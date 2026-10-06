@@ -4,6 +4,10 @@ import * as child_process from 'node:child_process';
 import prompts from 'prompts';
 import { ArchiveManager } from '../track/archive-manager.js';
 import { SignOffGate } from './sign-off-gate.js';
+import {
+  RunRetrospectiveEngine,
+  type RetrospectiveResult,
+} from '../retrospective/run-retrospective-engine.js';
 
 export type ExecutionMode = 'interactive' | 'headless';
 export type FinalizationAction = 'oracle-review' | 'user-approval' | 'merge' | 'archive' | 'delete' | 'skip';
@@ -19,6 +23,9 @@ export interface TrackLifecycleWizardOptions {
   archiveManager?: ArchiveManager;
   stateStore?: any;
   logger?: { log: (msg: string) => void; error: (msg: string) => void; warn: (msg: string) => void };
+  retrospectiveEngine?: RunRetrospectiveEngine;
+  enableRetrospective?: boolean;
+  onTrackFinalized?: (result: FinalizationResult) => Promise<void> | void;
 }
 
 export interface FinalizationOptions {
@@ -31,6 +38,10 @@ export interface FinalizationOptions {
   executionMode?: ExecutionMode;
   reviewerConvIds?: string[];
   force?: boolean;
+  skipRetrospective?: boolean;
+  touchedFiles?: string[];
+  remediationCycles?: number;
+  errorCount?: number;
 }
 
 export interface FinalizationResult {
@@ -41,6 +52,8 @@ export interface FinalizationResult {
   mergedCommitSha?: string;
   archivedPath?: string;
   deleted?: boolean;
+  retrospective?: RetrospectiveResult;
+  suggestions?: string[];
 }
 
 export class TrackLifecycleWizard {
@@ -54,6 +67,9 @@ export class TrackLifecycleWizard {
   private archiveManager?: ArchiveManager;
   private stateStore?: any;
   private logger: { log: (msg: string) => void; error: (msg: string) => void; warn: (msg: string) => void };
+  private retrospectiveEngine: RunRetrospectiveEngine;
+  private enableRetrospective: boolean;
+  private onTrackFinalized?: (result: FinalizationResult) => Promise<void> | void;
 
   constructor(options: TrackLifecycleWizardOptions = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
@@ -74,6 +90,14 @@ export class TrackLifecycleWizard {
       new ArchiveManager({ projectRoot: this.projectRoot });
     this.stateStore = options.stateStore;
     this.logger = options.logger || console;
+    this.enableRetrospective = options.enableRetrospective ?? true;
+    this.retrospectiveEngine =
+      options.retrospectiveEngine ||
+      new RunRetrospectiveEngine({
+        projectRoot: this.projectRoot,
+        logger: this.logger,
+      });
+    this.onTrackFinalized = options.onTrackFinalized;
   }
 
   /**
@@ -202,12 +226,12 @@ export class TrackLifecycleWizard {
 
     if (action === 'merge') {
       if (!hasOracleSignOff && !force) {
-        return {
+        return this.notifyTrackFinalized({
           trackId,
           action,
           success: false,
           message: `Oracle sign-off required before merge. Quorum and Oracle verification must pass.`,
-        };
+        });
       }
 
       this.logger.log(`[TrackLifecycleWizard] Merging ${trackBranch} into ${targetBranch}...`);
@@ -221,31 +245,57 @@ export class TrackLifecycleWizard {
         this.gitExecFn('git', ['merge', '--no-ff', trackBranch, '-m', mergeMsg]);
         const mergeCommitSha = this.gitExecFn('git', ['rev-parse', '--short', 'HEAD']).trim();
 
-        return {
+        const mergeResult: FinalizationResult = {
           trackId,
           action,
           success: true,
           message: `Successfully merged ${trackBranch} into ${targetBranch}`,
           mergedCommitSha: mergeCommitSha || 'merged',
         };
+
+        if (this.enableRetrospective && !options.skipRetrospective) {
+          try {
+            const retroResult = await this.retrospectiveEngine.run({
+              trackId,
+              targetBranch,
+              touchedFiles: options.touchedFiles,
+              remediationCycles: options.remediationCycles,
+              errorCount: options.errorCount,
+            });
+            mergeResult.retrospective = retroResult;
+            mergeResult.suggestions = retroResult.savedProposalPaths;
+            if (retroResult.proposalsGenerated.length > 0) {
+              this.logger.log(
+                `[TrackLifecycleWizard] Post-run retrospective produced ${retroResult.proposalsGenerated.length} track suggestion(s):`
+              );
+              for (const p of retroResult.proposalsGenerated) {
+                this.logger.log(`  - [${p.data.category}] ${p.data.title} (${p.relativeFilePath})`);
+              }
+            }
+          } catch (retroErr: any) {
+            this.logger.warn(`[TrackLifecycleWizard] Retrospective run failed: ${retroErr.message}`);
+          }
+        }
+
+        return this.notifyTrackFinalized(mergeResult);
       } catch (err: any) {
-        return {
+        return this.notifyTrackFinalized({
           trackId,
           action,
           success: false,
           message: `Merge failed: ${err.message}`,
-        };
+        });
       }
     }
 
     if (action === 'archive') {
       if (!hasOracleSignOff && !force) {
-        return {
+        return this.notifyTrackFinalized({
           trackId,
           action,
           success: false,
           message: `Oracle sign-off required before archiving track ${trackId}.`,
-        };
+        });
       }
 
       const archiveDirPath = path.join(this.archiveDir, trackId);
@@ -271,31 +321,31 @@ export class TrackLifecycleWizard {
           }
         }
 
-        return {
+        return this.notifyTrackFinalized({
           trackId,
           action,
           success: true,
           message: `Track ${trackId} successfully archived`,
           archivedPath: archiveDirPath,
-        };
+        });
       } catch (err: any) {
-        return {
+        return this.notifyTrackFinalized({
           trackId,
           action,
           success: false,
           message: `Archival failed: ${err.message}`,
-        };
+        });
       }
     }
 
     if (action === 'delete') {
       if (!hasOracleSignOff && !force) {
-        return {
+        return this.notifyTrackFinalized({
           trackId,
           action,
           success: false,
           message: `Oracle sign-off required before deleting track ${trackId}.`,
-        };
+        });
       }
 
       if (options.executionMode === 'interactive' && !force) {
@@ -307,12 +357,12 @@ export class TrackLifecycleWizard {
         });
 
         if (!confirmAnswer || !confirmAnswer.confirmDelete) {
-          return {
+          return this.notifyTrackFinalized({
             trackId,
             action,
             success: false,
             message: `Deletion cancelled by user`,
-          };
+          });
         }
       }
 
@@ -329,29 +379,40 @@ export class TrackLifecycleWizard {
         fs.writeFileSync(this.tracksRegistryPath, filteredLines.join('\n'), 'utf8');
       }
 
-      return {
+      return this.notifyTrackFinalized({
         trackId,
         action,
         success: true,
         message: `Track ${trackId} permanently deleted`,
         deleted: true,
-      };
+      });
     }
 
     if (action === 'skip') {
-      return {
+      return this.notifyTrackFinalized({
         trackId,
         action,
         success: true,
         message: `Finalization skipped for track ${trackId}`,
-      };
+      });
     }
 
-    return {
+    return this.notifyTrackFinalized({
       trackId,
       action,
       success: false,
       message: `Unknown action: ${action}`,
-    };
+    });
+  }
+
+  private async notifyTrackFinalized(result: FinalizationResult): Promise<FinalizationResult> {
+    if (this.onTrackFinalized) {
+      try {
+        await this.onTrackFinalized(result);
+      } catch (err: any) {
+        this.logger.warn(`[TrackLifecycleWizard] onTrackFinalized callback error: ${err.message}`);
+      }
+    }
+    return result;
   }
 }

@@ -188,4 +188,98 @@ describe('DomainSplitRemediationDispatcher', () => {
       })
     );
   });
+
+  it('injects INVARIANT_REMEDIATION_DOGMA into subagent prompts on dispatch', async () => {
+    const dispatcher = new DomainSplitRemediationDispatcher({
+      spawner: mockSpawner,
+    });
+
+    const findings: Finding[] = [
+      { file: 'src/logic/processor.ts', description: 'Null pointer in loop' },
+    ];
+
+    const result = await dispatcher.dispatch(findings, { trackId: 'track1' });
+
+    expect(result.spawned.length).toBe(1);
+    const agent = result.spawned[0];
+    expect(agent.prompt).toBeDefined();
+    expect(agent.systemPrompt).toBeDefined();
+
+    for (const promptText of [agent.prompt!, agent.systemPrompt!]) {
+      expect(promptText).toContain('INCEPTION MANDATE');
+      expect(promptText).toContain('?? 0');
+      expect(promptText).toContain('|| []');
+      expect(promptText).toContain('empty catch {}');
+      expect(promptText).toContain('inception point');
+
+      expect(promptText).toContain('ATOMIC DUAL-WRITE');
+      expect(promptText).toContain('SINGLE SOURCE OF TRUTH');
+
+      expect(promptText).toContain('EXECUTION FIDELITY');
+      expect(promptText).toContain('SQLite CHECK constraints');
+      expect(promptText).toContain('foreign keys');
+      expect(promptText).toContain('ctx.waitUntil');
+
+      expect(promptText).toContain('STRICT SEQUENCE MONOTONICITY');
+      expect(promptText).toContain('headSeq > current.lastSeq');
+
+      expect(promptText).toContain('ZERO TEST WEAKENING');
+      expect(promptText).toContain('algorithmic operation counters');
+    }
+
+    expect(mockSpawner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: expect.stringContaining('INCEPTION MANDATE'),
+        systemPrompt: expect.stringContaining('INCEPTION MANDATE'),
+      })
+    );
+  });
+
+  it('injects domain-specific inception hints for data and logic domains', async () => {
+    const customMap = {
+      'db/': 'schema-remediator',
+      'services/': 'logic-remediator',
+    };
+    const dispatcher = new DomainSplitRemediationDispatcher({
+      spawner: mockSpawner,
+      domainMap: customMap,
+    });
+
+    const findings: Finding[] = [
+      { file: 'db/schema.sql', description: 'Missing index' },
+      { file: 'services/order.ts', description: 'Order state uninitialized' },
+    ];
+
+    const result = await dispatcher.dispatch(findings, { trackId: 'track1' });
+
+    const schemaAgent = result.spawned.find((s) => s.domain === 'schema-remediator');
+    const logicAgent = result.spawned.find((s) => s.domain === 'logic-remediator');
+
+    expect(schemaAgent?.prompt).toContain('Domain Inception Guidance (schema-remediator)');
+    expect(schemaAgent?.prompt).toContain('production DDL migrations');
+
+    expect(logicAgent?.prompt).toContain('Domain Inception Guidance (logic-remediator)');
+    expect(logicAgent?.prompt).toContain('lifecycle initializers');
+  });
+
+  it('preserves custom basePrompt and systemPrompt while injecting dogma', async () => {
+    const dispatcher = new DomainSplitRemediationDispatcher({
+      spawner: mockSpawner,
+      basePrompt: 'Custom constructor base prompt',
+    });
+
+    const findings: Finding[] = [
+      { file: 'src/api/auth.ts', description: 'Auth token missing' },
+    ];
+
+    const result = await dispatcher.dispatch(findings, {
+      trackId: 'track1',
+      systemPrompt: 'Custom dispatch override prompt',
+    });
+
+    const agent = result.spawned[0];
+    expect(agent.prompt).toContain('Custom dispatch override prompt');
+    expect(agent.prompt).toContain('INVARIANT-FIRST REMEDIATION PROTOCOL & DOGMA');
+  });
 });
+

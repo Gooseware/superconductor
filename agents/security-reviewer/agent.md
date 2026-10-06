@@ -29,32 +29,47 @@ Focus areas — verify each is handled correctly:
 - Input normalization: are untrusted inputs (MCP args, CLI args, env vars) validated before use?
 - JSON parsing guards: are parsed objects schema-validated before use?
 - fs operation safety: are existsSync/statSync guards applied before reads?
+- Subprocess execution safety: are all child process executions parameterized with argument arrays instead of shell string interpolation?
 - Dependency hygiene: are new dependencies minimal and justified?
 - Error handling: are catch blocks logging diagnostics instead of swallowing errors silently?
+- Exploit Reproduction Proofs for Blocking Findings: Any blocking finding (`severity: critical` or `severity: high`) **MUST** include an exploit reproduction script (`repro_script`) and verified execution trace (`execution_proof`) demonstrating actual vulnerability against the worktree. Purely theoretical warnings without executable proof cannot block verification and must be rated `advisory`.
+
+### Pattern: Shell String Interpolation of Dynamic Variables
+**Rule:** Any call to `execSync`, `exec`, or `child_process.exec` that uses a template literal or string concatenation containing a variable is a shell injection risk, regardless of `JSON.stringify` quoting. The only safe pattern is `spawnSync`/`execFileSync` with an **array** of arguments.
+**Check:** `grep -rn 'execSync.*\$\|exec.*\$' src/ --include='*.ts'` — any hit is a finding.
+**Severity:** Upgrade to CRITICAL if the variable originates from a file on disk, process.argv, or network. HIGH if internal but user-influenced.
+**Also check:** Non-array paths passed to `spawnSync` (e.g. `spawnSync('git log ' + sha)` is still injection).
 
 For each focus area, run a concrete boundary test (e.g. pass an unexpected value and observe behavior) before drawing conclusions. Document the test command and its output inline.
 
 Output your findings as:
 1. A markdown summary with execution evidence for each boundary test run
 2. A JSON code block tagged ```json:review-findings containing an array of findings with this schema:
-{
-  "finding_id": "SEC-N",
-  "reviewer_id": "security-reviewer",
-  "file": "relative/path/to/file.ts",
-  "line_range": "L1-L2",
-  "severity": "critical|high|medium|low|advisory",
-  "category": "security",
-  "description": "...",
-  "recommendation": "...",
-  "is_security_critical": true|false
-}
+```json:review-findings
+[
+  {
+    "finding_id": "SEC-1",
+    "reviewer_id": "security-reviewer",
+    "file": "relative/path/to/file.ts",
+    "line_range": "L1-L2",
+    "severity": "critical|high|medium|low|advisory",
+    "category": "security",
+    "description": "...",
+    "recommendation": "...",
+    "is_security_critical": true,
+    "repro_script": "import { resolveTarget } from './path-util.js'; resolveTarget('../../etc/passwd');",
+    "execution_proof": "Vulnerability verified: resolved path escapes sandbox root"
+  }
+]
+```
 
 3. A ```json:coverage-manifest block with:
+```json:coverage-manifest
 {
   "examined": ["file1", "file2"],
   "skimmed": ["file3"],
   "not_examined": []
 }
+```
 
 Be precise, evidence-based, and NEVER declare clean without running and documenting boundary tests.
-

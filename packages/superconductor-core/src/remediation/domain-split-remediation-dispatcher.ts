@@ -1,5 +1,10 @@
 import { DomainClassifier, type Finding } from './domain-classifier.js';
 import { ModelRoutingEnforcer, type ModelTier } from '../orchestration/model-routing-enforcer.js';
+import {
+  INVARIANT_REMEDIATION_DOGMA,
+  buildRemediationSystemPrompt,
+  getDomainInceptionHint,
+} from './prompts/invariant-remediation-dogma.js';
 
 export interface WorktreeManagerLike {
   allocate(agentId: string, trackId: string): Promise<string>;
@@ -15,11 +20,15 @@ export interface DomainSplitDispatcherOptions {
   domainMap?: Record<string, string>;
   domainClassifier?: DomainClassifier;
   modelRouter?: ModelRoutingEnforcer;
+  basePrompt?: string;
+  systemPrompt?: string;
 }
 
 export interface DispatchOptions {
   trackId?: string;
   maxParallel?: number;
+  basePrompt?: string;
+  systemPrompt?: string;
 }
 
 export interface SpawnedAgentInfo {
@@ -29,6 +38,8 @@ export interface SpawnedAgentInfo {
   branch?: string;
   worktreePath?: string;
   model: ModelTier;
+  prompt?: string;
+  systemPrompt?: string;
 }
 
 export interface DispatchResult {
@@ -79,12 +90,26 @@ export class DomainSplitRemediationDispatcher {
           branch = await this.options.worktreeManager.allocate(agentId, trackId);
         }
 
+        const basePrompt =
+          options.systemPrompt ||
+          options.basePrompt ||
+          this.options.systemPrompt ||
+          this.options.basePrompt ||
+          `You are a Superconductor Remediator Subagent (${domain}). Your mission is to remediate ${domainFindings.length} findings in the '${domain}' domain.`;
+
+        const generatedPrompt = buildRemediationSystemPrompt(basePrompt, {
+          domain,
+          findings: domainFindings,
+        });
+
         const info: SpawnedAgentInfo = {
           agentId,
           domain,
           findings: domainFindings,
           branch,
           model,
+          prompt: generatedPrompt,
+          systemPrompt: generatedPrompt,
         };
 
         if (this.options.spawner) {

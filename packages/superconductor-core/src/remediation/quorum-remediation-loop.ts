@@ -1,6 +1,8 @@
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 import { DomainSplitRemediationDispatcher } from './domain-split-remediation-dispatcher.js';
 import { DeepResearchEscalationHandler } from './deep-research-escalation-handler.js';
+import { DiffOnDiffAuditor, type DiffAuditResult } from './diff-on-diff-auditor.js';
 import type { Finding } from './domain-classifier.js';
 
 export type QuorumState =
@@ -24,7 +26,8 @@ export type QuorumEvent =
   | 'MAX_CYCLES_EXCEEDED'
   | 'STAGNANT_DIFF'
   | 'ESCALATE'
-  | 'DEEP_RESEARCH';
+  | 'DEEP_RESEARCH'
+  | 'SECONDARY_REGRESSION';
 
 export interface QuorumFSMLike {
   transition(currentState: QuorumState, event: QuorumEvent): { newState: QuorumState };
@@ -37,7 +40,8 @@ export class DefaultQuorumFSM implements QuorumFSMLike {
       event === 'MAX_CYCLES_EXCEEDED' ||
       event === 'STAGNANT_DIFF' ||
       event === 'ESCALATE' ||
-      event === 'DEEP_RESEARCH'
+      event === 'DEEP_RESEARCH' ||
+      event === 'SECONDARY_REGRESSION'
     ) {
       return { newState: 'HALTED' };
     }
@@ -90,6 +94,12 @@ export type ReviewerFunction = (
   zeroBiasContext?: any
 ) => Promise<QuorumReviewResult | QuorumReviewResult[]>;
 
+export interface CycleExecutionResult {
+  status: 'ALL_PASSED' | 'NEEDS_FIXES' | 'SECONDARY_REGRESSION';
+  findings: Finding[];
+  auditResult?: DiffAuditResult;
+}
+
 export interface QuorumRemediationLoopOptions {
   trackId?: string;
   sessionId?: string;
@@ -100,6 +110,12 @@ export interface QuorumRemediationLoopOptions {
   escalationHandler?: DeepResearchEscalationHandler;
   reviewerFn: ReviewerFunction;
   getDiffFn?: (branchOrTrack?: string) => string;
+  getDiffRangeFn?: (range: string) => string;
+  getRemediationDiffFn?: (cycle: number) => string;
+  diffAuditor?: DiffOnDiffAuditor;
+  expectedFiles?: string[];
+  remediationLogPath?: string;
+  secondaryRegressionPolicy?: 'abort' | 'block';
   onCycleComplete?: (cycle: number, state: QuorumState, findings: Finding[]) => void;
   logger?: { log: (msg: string) => void; error: (msg: string) => void };
 }
@@ -112,6 +128,7 @@ export interface QuorumRemediationLoopResult {
   resolvedFindings: Finding[];
   deepResearchEscalated: boolean;
   stagnantDiffDetected: boolean;
+  secondaryRegressionDetected: boolean;
 }
 
 function hashDiff(diff: string): string {
@@ -130,6 +147,12 @@ export class AutonomousQuorumRemediationLoop {
   private escalationHandler?: DeepResearchEscalationHandler;
   private reviewerFn: ReviewerFunction;
   private getDiffFn: (branchOrTrack?: string) => string;
+  private getDiffRangeFn?: (range: string) => string;
+  private getRemediationDiffFn?: (cycle: number) => string;
+  private diffAuditor: DiffOnDiffAuditor;
+  private expectedFiles?: string[];
+  private remediationLogPath?: string;
+  private secondaryRegressionPolicy: 'abort' | 'block';
   private trackId: string;
   private sessionId: string;
   private maxCycles: number;
@@ -143,6 +166,12 @@ export class AutonomousQuorumRemediationLoop {
     this.escalationHandler = options.escalationHandler;
     this.reviewerFn = options.reviewerFn;
     this.getDiffFn = options.getDiffFn || (() => '');
+    this.getDiffRangeFn = options.getDiffRangeFn;
+    this.getRemediationDiffFn = options.getRemediationDiffFn;
+    this.diffAuditor = options.diffAuditor || new DiffOnDiffAuditor();
+    this.expectedFiles = options.expectedFiles;
+    this.remediationLogPath = options.remediationLogPath;
+    this.secondaryRegressionPolicy = options.secondaryRegressionPolicy || 'abort';
     this.trackId = options.trackId || 'remediation-track';
     this.sessionId = options.sessionId || Date.now().toString();
     this.maxCycles = options.maxCycles ?? 5;
@@ -157,6 +186,109 @@ export class AutonomousQuorumRemediationLoop {
     return state === 'PASSED' || state === 'HALTED' || state === 'ESCALATED';
   }
 
+  /**
+   * Runs a single cycle of the quorum review & remediation loop.
+   * Invokes DiffOnDiffAuditor on all multi-cycle remediations (cycle > 1) before re-review.
+   */
+  public async runCycle(
+    cycleCount: number,
+    currentDiff: string,
+    unresolvedFindings: Finding[]
+  ): Promise<CycleExecutionResult> {
+    // Diff-on-diff scrutiny on multi-cycle remediations before re-review
+    if (cycleCount > 1) {
+      this.logger.log(
+        `[QuorumRemediationLoop] Cycle ${cycleCount}: Running Diff-on-Diff scrutiny before re-review...`
+      );
+
+      let remediationDiff: string | undefined;
+      if (this.getRemediationDiffFn) {
+        remediationDiff = this.getRemediationDiffFn(cycleCount);
+      } else if (this.getDiffRangeFn) {
+        remediationDiff = this.getDiffRangeFn('HEAD~1..HEAD');
+      } else if (currentDiff) {
+        remediationDiff = currentDiff;
+      } else if (this.getDiffFn) {
+        remediationDiff = this.getDiffFn(this.trackId);
+      }
+
+      const auditResult = await this.diffAuditor.audit({
+        rawDiff: remediationDiff,
+        diffRange: 'HEAD~1..HEAD',
+        targetFindings: unresolvedFindings,
+        expectedFiles: this.expectedFiles,
+      });
+
+      // Emit diff-on-diff audit logs to remediation_log.md
+      if (this.remediationLogPath) {
+        try {
+          const logContent = this.diffAuditor.formatLog(auditResult, cycleCount);
+          await fs.promises.appendFile(this.remediationLogPath, '\n' + logContent + '\n', 'utf8');
+        } catch (e: any) {
+          this.logger.error(
+            `[QuorumRemediationLoop] Failed to write remediation log to ${this.remediationLogPath}: ${e.message}`
+          );
+        }
+      }
+
+      if (!auditResult.passed) {
+        this.logger.error(
+          `[QuorumRemediationLoop] Diff-on-diff scrutiny FAILED in cycle ${cycleCount}: ${auditResult.secondaryFindings.length} secondary regression(s) detected.`
+        );
+        return {
+          status: 'SECONDARY_REGRESSION',
+          findings: auditResult.secondaryFindings,
+          auditResult,
+        };
+      } else {
+        this.logger.log(
+          `[QuorumRemediationLoop] Diff-on-diff scrutiny passed for cycle ${cycleCount}. Proceeding to re-review.`
+        );
+      }
+    }
+
+    // Execute standard review
+    const zbContext = {
+      diff: currentDiff,
+      preflight_output: '',
+      prior_findings: unresolvedFindings.map((f) => (typeof f === 'string' ? f : JSON.stringify(f))),
+      cycle: cycleCount,
+    };
+
+    this.logger.log(
+      `[QuorumRemediationLoop] Cycle ${cycleCount}/${this.maxCycles}: Running Quorum review...`
+    );
+
+    const reviewOutput = await this.reviewerFn(cycleCount, zbContext);
+    const reviewArray = Array.isArray(reviewOutput) ? reviewOutput : [reviewOutput];
+
+    const currentCycleFindings: Finding[] = [];
+    let anyNeedsFixes = false;
+
+    for (const res of reviewArray) {
+      if (res.status === 'NEEDS_FIXES') {
+        anyNeedsFixes = true;
+      }
+      if (res.findings && res.findings.length > 0) {
+        for (const f of res.findings) {
+          currentCycleFindings.push(f);
+        }
+      }
+    }
+
+    if (!anyNeedsFixes && currentCycleFindings.length === 0) {
+      return {
+        status: 'ALL_PASSED',
+        findings: [],
+      };
+    }
+
+    return {
+      status: 'NEEDS_FIXES',
+      findings: currentCycleFindings,
+    };
+  }
+
   public async run(): Promise<QuorumRemediationLoopResult> {
     let state: QuorumState = 'INIT';
     let cycleCount = 0;
@@ -165,6 +297,7 @@ export class AutonomousQuorumRemediationLoop {
     const resolvedFindings: Finding[] = [];
     let deepResearchEscalated = false;
     let stagnantDiffDetected = false;
+    let secondaryRegressionDetected = false;
 
     // Load persisted state if store is available
     if (this.store && typeof this.store.load === 'function') {
@@ -201,38 +334,40 @@ export class AutonomousQuorumRemediationLoop {
       lastDiffHash = diffHash;
       cycleCount++;
 
-      const zbContext = {
-        diff: currentDiff,
-        preflight_output: '',
-        prior_findings: unresolvedFindings.map((f) => (typeof f === 'string' ? f : JSON.stringify(f))),
-        cycle: cycleCount,
-      };
+      // Run cycle (includes diff-on-diff scrutiny on cycle > 1)
+      const cycleResult = await this.runCycle(cycleCount, currentDiff, unresolvedFindings);
 
-      this.logger.log(
-        `[QuorumRemediationLoop] Cycle ${cycleCount}/${this.maxCycles}: Running Quorum review...`
-      );
+      // Handle secondary regressions
+      if (cycleResult.status === 'SECONDARY_REGRESSION') {
+        secondaryRegressionDetected = true;
+        unresolvedFindings = cycleResult.findings;
 
-      // Execute review
-      const reviewOutput = await this.reviewerFn(cycleCount, zbContext);
-      const reviewArray = Array.isArray(reviewOutput) ? reviewOutput : [reviewOutput];
-
-      // Extract all findings from review results
-      const currentCycleFindings: Finding[] = [];
-      let anyNeedsFixes = false;
-
-      for (const res of reviewArray) {
-        if (res.status === 'NEEDS_FIXES') {
-          anyNeedsFixes = true;
-        }
-        if (res.findings && res.findings.length > 0) {
-          for (const f of res.findings) {
-            currentCycleFindings.push(f);
+        if (this.secondaryRegressionPolicy === 'abort') {
+          state = this.fsm.transition(state, 'SECONDARY_REGRESSION').newState;
+          await this.persistState(state, cycleCount, diffHash, unresolvedFindings);
+          if (this.onCycleComplete) {
+            this.onCycleComplete(cycleCount, state, unresolvedFindings);
           }
+          break;
+        } else {
+          // Block policy: transition to NEEDS_FIXES, skip re-review, and dispatch fix for secondary regression
+          state = this.fsm.transition(state, 'FINDINGS_RETURNED').newState;
+          await this.persistState(state, cycleCount, diffHash, unresolvedFindings);
+          if (this.onCycleComplete) {
+            this.onCycleComplete(cycleCount, state, unresolvedFindings);
+          }
+          this.logger.log(
+            `[QuorumRemediationLoop] Re-dispatching remediators for secondary regressions...`
+          );
+          await this.dispatcher.dispatch(unresolvedFindings, { trackId: this.trackId });
+          state = this.fsm.transition(state, 'FIXES_APPLIED').newState;
+          state = this.fsm.transition(state, 'FIXES_APPLIED').newState;
+          continue;
         }
       }
 
-      // Check if review is clean (all green)
-      if (!anyNeedsFixes && currentCycleFindings.length === 0) {
+      // Handle all passed
+      if (cycleResult.status === 'ALL_PASSED') {
         state = this.fsm.transition(state, 'ALL_PASSED').newState;
         this.logger.log(`[QuorumRemediationLoop] Quorum PASSED on cycle ${cycleCount}. All green.`);
         if (unresolvedFindings.length > 0) {
@@ -247,7 +382,7 @@ export class AutonomousQuorumRemediationLoop {
       }
 
       // Findings present
-      unresolvedFindings = currentCycleFindings;
+      unresolvedFindings = cycleResult.findings;
       state = this.fsm.transition(state, 'FINDINGS_RETURNED').newState;
       await this.persistState(state, cycleCount, diffHash, unresolvedFindings);
 
@@ -304,6 +439,7 @@ export class AutonomousQuorumRemediationLoop {
       resolvedFindings,
       deepResearchEscalated,
       stagnantDiffDetected,
+      secondaryRegressionDetected,
     };
   }
 
@@ -336,3 +472,6 @@ export class AutonomousQuorumRemediationLoop {
     await this.store.save(record);
   }
 }
+
+export const QuorumRemediationLoop = AutonomousQuorumRemediationLoop;
+export type QuorumRemediationLoop = AutonomousQuorumRemediationLoop;

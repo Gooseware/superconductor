@@ -16,6 +16,8 @@ export interface ReviewFinding {
   is_security_critical: boolean;
   reviewer_ids?: string[];
   agreement_count?: number;
+  repro_script?: string;
+  execution_proof?: string;
 }
 
 const VALID_SEVERITIES = new Set(['critical', 'high', 'medium', 'low', 'advisory']);
@@ -134,6 +136,12 @@ export function deduplicateFindings(findings: ReviewFinding[]): ReviewFinding[] 
       if (!existing.categories) existing.categories = [existing.category];
       if (f.category && !existing.categories.includes(f.category)) {
         existing.categories.push(f.category);
+      }
+      if (f.repro_script && !existing.repro_script) {
+        existing.repro_script = f.repro_script;
+      }
+      if (f.execution_proof && !existing.execution_proof) {
+        existing.execution_proof = f.execution_proof;
       }
     } else {
       const copy = { ...f };
