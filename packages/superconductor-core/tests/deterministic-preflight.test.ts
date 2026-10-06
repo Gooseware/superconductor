@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { detectProjectLanguage, getDiagnosticCommand } from '../src/review/deterministic-preflight.js';
+import { detectProjectLanguage, getDiagnosticCommand, runDeterministicPreflight } from '../src/review/deterministic-preflight.js';
+import { execSync } from 'node:child_process';
 
 describe('detectProjectLanguage', () => {
   let tmpDir: string;
@@ -120,3 +121,137 @@ describe('getDiagnosticCommand', () => {
     expect(cmd).toBeUndefined();
   });
 });
+
+describe('runDeterministicPreflight with Invariant Rules', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sc-det-preflight-'));
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails fast when options.files has invariant rule violation (TestFixtureTamperRule)', () => {
+    const result = runDeterministicPreflight(tmpDir, {
+      files: [
+        {
+          path: 'tests/fixture.test.ts',
+          content: `import fs from 'fs';\nfs.writeFileSync('fixture.json', '{}');`,
+        },
+      ],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.short_circuit).toBe(true);
+    expect(result.tool_used).toBe('invariant-rules-engine');
+    expect(result.diagnostics).toContain('INVARIANT-FIXTURE-TAMPER');
+    expect(result.diagnostics).toContain('Test fixture tampering detected');
+  });
+
+  it('fails fast when options.files has defensive nulling diff violation', () => {
+    const result = runDeterministicPreflight(tmpDir, {
+      files: [
+        {
+          path: 'src/config.ts',
+          content: '',
+          diff: '@@ -1,3 +1,3 @@\n-const val = raw;\n+const val = raw ?? 0;',
+        },
+      ],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.short_circuit).toBe(true);
+    expect(result.tool_used).toBe('invariant-rules-engine');
+    expect(result.diagnostics).toContain('INVARIANT-DEFENSIVE-NULLING');
+  });
+
+  it('fails fast when options.files has silent degradation violation', () => {
+    const result = runDeterministicPreflight(tmpDir, {
+      files: [
+        {
+          path: 'src/handler.ts',
+          content: 'try { doSomething(); } catch (e) {}',
+        },
+      ],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.short_circuit).toBe(true);
+    expect(result.tool_used).toBe('invariant-rules-engine');
+    expect(result.diagnostics).toContain('INVARIANT-SILENT-DEGRADATION');
+  });
+
+  it('fails fast when options.files has Cloudflare lifecycle violation', () => {
+    const result = runDeterministicPreflight(tmpDir, {
+      files: [
+        {
+          path: 'src/worker.ts',
+          content: 'export default { async fetch(req, env) { return new Response("ok"); } };',
+        },
+      ],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.short_circuit).toBe(true);
+    expect(result.tool_used).toBe('invariant-rules-engine');
+    expect(result.diagnostics).toContain('INVARIANT-CLOUDFLARE-LIFECYCLE');
+  });
+
+  it('continues to language diagnostics when options.files is clean', () => {
+    const result = runDeterministicPreflight(tmpDir, {
+      files: [
+        {
+          path: 'src/clean.ts',
+          content: 'export function add(a: number, b: number) { return a + b; }',
+        },
+      ],
+    });
+
+    expect(result.status).toBe('skipped');
+    expect(result.short_circuit).toBe(false);
+    expect(result.diagnostics).toContain('No diagnostic tool configured');
+  });
+
+  it('scans git changes when options is not provided', () => {
+    execSync('git init', { cwd: tmpDir });
+    execSync('git config user.email "test@example.com"', { cwd: tmpDir });
+    execSync('git config user.name "Test"', { cwd: tmpDir });
+
+    const filePath = path.join(tmpDir, 'service.ts');
+    execSync(`node -e 'fs.writeFileSync(process.argv[1], "try { run(); } catch (err) {}")' "${filePath}"`);
+
+    const result = runDeterministicPreflight(tmpDir);
+    expect(result.status).toBe('failed');
+    expect(result.short_circuit).toBe(true);
+    expect(result.tool_used).toBe('invariant-rules-engine');
+    expect(result.diagnostics).toContain('INVARIANT-SILENT-DEGRADATION');
+  });
+
+  it('filters staged changes when options.staged is true', () => {
+    execSync('git init', { cwd: tmpDir });
+    execSync('git config user.email "test@example.com"', { cwd: tmpDir });
+    execSync('git config user.name "Test"', { cwd: tmpDir });
+
+    // Untracked/unstaged violation file
+    const filePath = path.join(tmpDir, 'service.ts');
+    execSync(`node -e 'fs.writeFileSync(process.argv[1], "try { run(); } catch (err) {}")' "${filePath}"`);
+
+    // With staged: true, unstaged/untracked files are ignored
+    const cleanResult = runDeterministicPreflight(tmpDir, { staged: true });
+    expect(cleanResult.status).toBe('skipped');
+
+    // Stage the file
+    execSync('git add service.ts', { cwd: tmpDir });
+
+    // Now staged violation is caught
+    const stagedResult = runDeterministicPreflight(tmpDir, { staged: true });
+    expect(stagedResult.status).toBe('failed');
+    expect(stagedResult.short_circuit).toBe(true);
+    expect(stagedResult.diagnostics).toContain('INVARIANT-SILENT-DEGRADATION');
+  });
+});
+

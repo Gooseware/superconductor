@@ -1,0 +1,12 @@
+{
+  "track_id": "invariant_first_remediation_and_execution_quorum_20261005",
+  "goal": "Invariant-First Remediation & Adversarial Execution Quorum Protocols",
+  "type": "feature",
+  "description": "Establish invariant-first remediation mandates, worktree-backed adversarial execution repros, AST preflight gates, knock-on upgrade planning intelligence, and headless watchdog guardrails.",
+  "created_at": "2026-10-05T13:00:00Z",
+  "target_branch": "main",
+  "track_branch": "track/invariant_first_remediation_and_execution_quorum_20261005",
+  "status": "completed",
+  "phase_id": "core-foundation",
+  "phases": 8
+}

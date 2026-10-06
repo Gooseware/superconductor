@@ -1,4 +1,11 @@
 import * as fs from 'node:fs';
+import { computeDiffOnDiff } from './pipeline.js';
+
+export interface ResolveReviewInputOptions {
+  cycle?: number;
+  projectDir?: string;
+  baseCommit?: string;
+}
 
 export interface ResolvedInput {
   targetType: 'staged' | 'branch' | 'pr' | 'file' | 'dir' | 'default' | 'stdin';
@@ -7,13 +14,16 @@ export interface ResolvedInput {
   stats: boolean;
   skipSelfCheck?: boolean;
   resolvedDiffCommand?: string;
+  diffOnDiff?: string | null;
+  cycle?: number;
   error?: string;
 }
 
 export function resolveReviewInput(
   args: string[],
   isGitRepo: boolean,
-  stdinText?: string
+  stdinText?: string,
+  options?: ResolveReviewInputOptions
 ): ResolvedInput {
   // Check conflicting depth flags
   if (args.includes('--fast') && args.includes('--deep')) {
@@ -31,6 +41,8 @@ export function resolveReviewInput(
   let depthMode: ResolvedInput['depthMode'] = 'full';
   let stats = false;
   let skipSelfCheck = false;
+  let cycle: number | undefined;
+  let baseCommit: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -44,6 +56,32 @@ export function resolveReviewInput(
       skipSelfCheck = true;
     } else if (arg === '--staged') {
       targetType = 'staged';
+    } else if (arg === '--cycle') {
+      const nextArg = args[i + 1];
+      if (!nextArg || nextArg.startsWith('--')) {
+        return {
+          targetType,
+          depthMode,
+          stats,
+          skipSelfCheck,
+          error: '--cycle requires a value argument'
+        };
+      }
+      cycle = parseInt(nextArg, 10);
+      i++;
+    } else if (arg === '--base-commit') {
+      const nextArg = args[i + 1];
+      if (!nextArg || nextArg.startsWith('--')) {
+        return {
+          targetType,
+          depthMode,
+          stats,
+          skipSelfCheck,
+          error: '--base-commit requires a value argument'
+        };
+      }
+      baseCommit = nextArg;
+      i++;
     } else if (['--branch', '--pr', '--file', '--dir'].includes(arg)) {
       const nextArg = args[i + 1];
       if (!nextArg || nextArg.startsWith('--')) {
@@ -61,6 +99,27 @@ export function resolveReviewInput(
     }
   }
 
+  if (cycle === undefined && typeof options?.cycle === 'number') {
+    cycle = options.cycle;
+  }
+  if (baseCommit === undefined && typeof options?.baseCommit === 'string') {
+    baseCommit = options.baseCommit;
+  }
+
+  const withDiffOnDiff = (res: ResolvedInput): ResolvedInput => {
+    if (res.error) return res;
+    if (cycle !== undefined) {
+      res.cycle = cycle;
+      if (cycle >= 2 && isGitRepo) {
+        const projectDir = options?.projectDir || process.cwd();
+        res.diffOnDiff = computeDiffOnDiff(projectDir, cycle, baseCommit);
+      } else {
+        res.diffOnDiff = null;
+      }
+    }
+    return res;
+  };
+
   // Validate --file path existence if specified
   if (targetType === 'file') {
     if (!targetValue || !fs.existsSync(targetValue)) {
@@ -73,66 +132,66 @@ export function resolveReviewInput(
         error: `File not found: ${targetValue || 'unspecified'}`
       };
     }
-    return {
+    return withDiffOnDiff({
       targetType,
       targetValue,
       depthMode,
       stats,
       skipSelfCheck
-    };
+    });
   }
 
   if (targetType === 'staged') {
-    return {
+    return withDiffOnDiff({
       targetType,
       depthMode,
       stats,
       skipSelfCheck,
       resolvedDiffCommand: 'git diff --staged'
-    };
+    });
   }
 
   if (targetType === 'branch') {
-    return {
+    return withDiffOnDiff({
       targetType,
       targetValue,
       depthMode,
       stats,
       skipSelfCheck,
       resolvedDiffCommand: `git diff main..${targetValue}`
-    };
+    });
   }
 
   if (targetType === 'dir' || targetType === 'pr') {
-    return {
+    return withDiffOnDiff({
       targetType,
       targetValue,
       depthMode,
       stats,
       skipSelfCheck
-    };
+    });
   }
 
   // Stdin check
   if (targetType === 'default' && stdinText && stdinText.trim().length > 0) {
-    return {
+    return withDiffOnDiff({
       targetType: 'stdin',
       targetValue: stdinText,
       depthMode,
       stats,
       skipSelfCheck
-    };
+    });
   }
 
   // Default git diff HEAD
   if (isGitRepo) {
-    return {
+    return withDiffOnDiff({
       targetType: 'default',
       depthMode,
       stats,
       skipSelfCheck,
       resolvedDiffCommand: 'git diff HEAD'
-    };
+    });
   }
 
   return {

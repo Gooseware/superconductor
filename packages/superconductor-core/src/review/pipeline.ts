@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { execSync } from 'node:child_process';
 import { sanitizeId } from '../utils/input-sanitizer.js';
 import { extractFencedBlock } from './extract-fenced-block.js';
 import {
@@ -13,6 +14,193 @@ import {
 
 export type { ReviewFinding };
 export { extractFencedBlock, aggregateFindings };
+
+export interface InjectDiffOnDiffOptions {
+  cycle: number;
+  projectDir?: string;
+  diff?: string | null;
+  baseCommit?: string;
+  reviewerRole?: string;
+  targetRoles?: string[];
+}
+
+export const DIFF_ON_DIFF_DEFAULT_ROLES = [
+  'adversarial-reviewer',
+  'correctness-reviewer',
+  'adversarial',
+  'correctness',
+] as const;
+
+/**
+ * Normalizes a reviewer role string by trimming, lowercasing, and replacing underscores with dashes.
+ */
+function normalizeRole(role: string): string {
+  return role.toLowerCase().trim().replace(/_/g, '-');
+}
+
+/**
+ * Validates whether a git revision or range contains only safe revision syntax.
+ * Rejects command injection characters such as semicolons, pipes, backticks, newlines, etc.
+ */
+function isValidGitRevision(rev: string): boolean {
+  return /^[a-zA-Z0-9_.~^/@{}:-]+$/.test(rev);
+}
+
+/**
+ * Computes git diff introduced in previous remediation attempts.
+ * Returns null if cycle < 2, if projectDir is invalid, or if git diff fails.
+ * On cycle >= 2, executes git diff HEAD~1..HEAD (or against baseCommit).
+ */
+export function computeDiffOnDiff(
+  projectDir: string,
+  cycle: number,
+  baseCommit?: string
+): string | null {
+  if (typeof cycle !== 'number' || isNaN(cycle) || cycle < 2) {
+    return null;
+  }
+
+  if (!projectDir || typeof projectDir !== 'string') {
+    return null;
+  }
+
+  try {
+    if (!fs.existsSync(projectDir)) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  let range = 'HEAD~1..HEAD';
+  if (typeof baseCommit === 'string' && baseCommit.trim().length > 0) {
+    const trimmedBase = baseCommit.trim();
+    if (!isValidGitRevision(trimmedBase)) {
+      return null;
+    }
+    range = trimmedBase.includes('..') ? trimmedBase : `${trimmedBase}..HEAD`;
+  }
+
+  try {
+    const output = execSync(`git diff ${range}`, {
+      cwd: projectDir,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 15000,
+    });
+    const trimmed = output.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Formats the diff-on-diff context block for reviewer prompts according to
+ * Adversarial Execution Dogma §Core Mandate 3.
+ */
+export function formatDiffOnDiffContext(
+  diff: string,
+  cycle: number,
+  baseCommit?: string
+): string {
+  const range =
+    typeof baseCommit === 'string' && baseCommit.trim().length > 0
+      ? baseCommit.includes('..')
+        ? baseCommit.trim()
+        : `${baseCommit.trim()}..HEAD`
+      : 'HEAD~1..HEAD';
+
+  return [
+    `## Diff-on-Diff Remediation Audit (${range})`,
+    `Remediation Cycle: ${cycle}. Audit previous remediator's changes for secondary flaws, unintended file modifications, or swallowed errors.`,
+    '',
+    '```diff',
+    diff.trim(),
+    '```',
+  ].join('\n');
+}
+
+/**
+ * Determines whether the given reviewer role is eligible to receive diff-on-diff scrutiny.
+ */
+export function isRoleEligibleForDiffOnDiff(
+  role?: string,
+  targetRoles?: readonly string[] | string[]
+): boolean {
+  if (!role) {
+    return true;
+  }
+  const allowed = (targetRoles ?? DIFF_ON_DIFF_DEFAULT_ROLES).map(normalizeRole);
+  const normalized = normalizeRole(role);
+  return allowed.includes(normalized);
+}
+
+/**
+ * Injects the diff-on-diff audit section into a reviewer prompt or context payload on remediation cycles >= 2.
+ */
+export function injectDiffOnDiff(
+  basePrompt: string,
+  diffOrOptions: string | null | InjectDiffOnDiffOptions,
+  cycle?: number,
+  reviewerRole?: string,
+  options?: Partial<InjectDiffOnDiffOptions>
+): string {
+  let resolvedCycle = 0;
+  let resolvedDiff: string | null = null;
+  let resolvedProjectDir: string | undefined;
+  let resolvedBaseCommit: string | undefined;
+  let resolvedReviewerRole: string | undefined;
+  let resolvedTargetRoles: string[] | undefined;
+
+  if (typeof diffOrOptions === 'object' && diffOrOptions !== null) {
+    resolvedCycle = diffOrOptions.cycle;
+    resolvedDiff = diffOrOptions.diff ?? null;
+    resolvedProjectDir = diffOrOptions.projectDir;
+    resolvedBaseCommit = diffOrOptions.baseCommit;
+    resolvedReviewerRole = diffOrOptions.reviewerRole;
+    resolvedTargetRoles = diffOrOptions.targetRoles;
+  } else {
+    resolvedDiff = diffOrOptions;
+    resolvedCycle = typeof cycle === 'number' ? cycle : 0;
+    resolvedReviewerRole = reviewerRole;
+    if (options) {
+      if (options.projectDir) resolvedProjectDir = options.projectDir;
+      if (options.baseCommit) resolvedBaseCommit = options.baseCommit;
+      if (options.targetRoles) resolvedTargetRoles = options.targetRoles;
+      if (options.reviewerRole && !resolvedReviewerRole) resolvedReviewerRole = options.reviewerRole;
+    }
+  }
+
+  if (resolvedCycle < 2) {
+    return basePrompt;
+  }
+
+  if (resolvedDiff === null && resolvedProjectDir) {
+    resolvedDiff = computeDiffOnDiff(resolvedProjectDir, resolvedCycle, resolvedBaseCommit);
+  }
+
+  if (!resolvedDiff || typeof resolvedDiff !== 'string' || !resolvedDiff.trim()) {
+    return basePrompt;
+  }
+
+  // If targetRoles is provided, enforce it
+  if (resolvedTargetRoles && resolvedReviewerRole) {
+    const normalizedRole = normalizeRole(resolvedReviewerRole);
+    const normalizedTargets = resolvedTargetRoles.map(normalizeRole);
+    if (!normalizedTargets.includes(normalizedRole)) {
+      return basePrompt;
+    }
+  }
+
+  const contextBlock = formatDiffOnDiffContext(resolvedDiff, resolvedCycle, resolvedBaseCommit);
+
+  if (!basePrompt || !basePrompt.trim()) {
+    return contextBlock;
+  }
+
+  return `${basePrompt}\n\n${contextBlock}`;
+}
 
 export interface SeverityBreakdown {
   critical: number;
@@ -96,6 +284,33 @@ export class ReviewFindingsPipeline {
     options?: { fallbackToUnstructured?: boolean }
   ): ReviewFinding[] {
     return ReviewFindingsPipeline.parseReviewText(rawText, reviewerId, options);
+  }
+
+  /**
+   * Computes git diff introduced in previous remediation attempts (HEAD~1..HEAD).
+   */
+  public computeDiffOnDiff(projectDir: string, cycle: number, baseCommit?: string): string | null {
+    return ReviewFindingsPipeline.computeDiffOnDiff(projectDir, cycle, baseCommit);
+  }
+
+  /**
+   * Formats diff-on-diff context block for reviewer prompts.
+   */
+  public formatDiffOnDiffContext(diff: string, cycle: number, baseCommit?: string): string {
+    return ReviewFindingsPipeline.formatDiffOnDiffContext(diff, cycle, baseCommit);
+  }
+
+  /**
+   * Injects diff-on-diff audit section into reviewer prompt on remediation cycles >= 2.
+   */
+  public injectDiffOnDiff(
+    basePrompt: string,
+    diffOrOptions: string | null | InjectDiffOnDiffOptions,
+    cycle?: number,
+    reviewerRole?: string,
+    options?: Partial<InjectDiffOnDiffOptions>
+  ): string {
+    return ReviewFindingsPipeline.injectDiffOnDiff(basePrompt, diffOrOptions, cycle, reviewerRole, options);
   }
 
   // --- Static Helper Methods ---
@@ -256,6 +471,24 @@ export class ReviewFindingsPipeline {
     manifestsDir?: string
   ): AggregatedFindingsResult {
     return ReviewFindingsPipeline.aggregate(items, manifestsDir);
+  }
+
+  public static computeDiffOnDiff(projectDir: string, cycle: number, baseCommit?: string): string | null {
+    return computeDiffOnDiff(projectDir, cycle, baseCommit);
+  }
+
+  public static formatDiffOnDiffContext(diff: string, cycle: number, baseCommit?: string): string {
+    return formatDiffOnDiffContext(diff, cycle, baseCommit);
+  }
+
+  public static injectDiffOnDiff(
+    basePrompt: string,
+    diffOrOptions: string | null | InjectDiffOnDiffOptions,
+    cycle?: number,
+    reviewerRole?: string,
+    options?: Partial<InjectDiffOnDiffOptions>
+  ): string {
+    return injectDiffOnDiff(basePrompt, diffOrOptions, cycle, reviewerRole, options);
   }
 }
 

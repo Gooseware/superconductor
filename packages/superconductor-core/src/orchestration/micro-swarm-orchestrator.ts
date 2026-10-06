@@ -24,8 +24,14 @@ import {
   type ModelTier,
 } from './model-routing-enforcer.js';
 import type { WorktreeManagerLike } from '../remediation/domain-split-remediation-dispatcher.js';
+import {
+  HeadlessWatchdog,
+  type HeadlessWatchdogOptions,
+  type QuorumPersistedState,
+} from './headless-watchdog.js';
 
-export type { WorktreeManagerLike };
+export type { WorktreeManagerLike, HeadlessWatchdogOptions, QuorumPersistedState };
+export { HeadlessWatchdog };
 
 export type MicroSwarmDomain = 'security' | 'frontend' | 'logic' | 'tests' | 'copy';
 
@@ -69,6 +75,7 @@ export type MicroSwarmQuorumRunner = (
 
 export interface MicroSwarmOptions {
   trackId?: string;
+  phaseId?: string;
   maxParallel?: number;
   worktreeManager?: WorktreeManagerLike;
   spawner?: MicroSwarmProcessorSpawner;
@@ -77,6 +84,11 @@ export interface MicroSwarmOptions {
   modelRouter?: ModelRoutingEnforcer;
   files?: string[];
   autoReleaseWorktrees?: boolean;
+  headless?: boolean;
+  watchdog?: HeadlessWatchdog;
+  watchdogOptions?: HeadlessWatchdogOptions;
+  cycle?: number;
+  diff?: string;
 }
 
 export interface MicroSwarmResult {
@@ -88,7 +100,10 @@ export interface MicroSwarmResult {
   processorResults: MicroSwarmProcessorResult[];
   quorumPanel: string[];
   quorumResult?: any;
-  status: 'COMPLETED' | 'NEEDS_FIXES' | 'FAILED' | 'DISPATCHED';
+  status: 'COMPLETED' | 'NEEDS_FIXES' | 'FAILED' | 'DISPATCHED' | 'CIRCUIT_BROKEN';
+  diffHash?: string;
+  circuitBreakerReason?: 'STAGNANT_DIFF' | 'WAVE_TIMEOUT' | 'MAX_CYCLES_EXCEEDED';
+  persistedState?: QuorumPersistedState;
 }
 
 export class MicroSwarmOrchestrator {
@@ -96,12 +111,22 @@ export class MicroSwarmOrchestrator {
   private quorumResolver: QuorumCompositionResolver;
   private modelRouter: ModelRoutingEnforcer;
   private defaultTrackId: string;
+  private watchdog?: HeadlessWatchdog;
 
   constructor(options?: MicroSwarmOptions) {
     this.worktreeManager = options?.worktreeManager;
     this.quorumResolver = options?.quorumResolver || new QuorumCompositionResolver();
     this.modelRouter = options?.modelRouter || new ModelRoutingEnforcer();
     this.defaultTrackId = options?.trackId || 'micro-swarm-adhoc';
+    this.watchdog =
+      options?.watchdog ??
+      (options?.headless || options?.watchdogOptions
+        ? new HeadlessWatchdog(options.watchdogOptions)
+        : undefined);
+  }
+
+  public getWatchdog(): HeadlessWatchdog | undefined {
+    return this.watchdog;
   }
 
   /**
@@ -339,16 +364,96 @@ export class MicroSwarmOrchestrator {
     options?: MicroSwarmOptions
   ): Promise<MicroSwarmResult> {
     const trackId = options?.trackId || this.defaultTrackId;
+    const phaseId = options?.phaseId;
+    const cycle = options?.cycle ?? 1;
     const worktreeManager = options?.worktreeManager ?? this.worktreeManager;
     const quorumResolver = options?.quorumResolver ?? this.quorumResolver;
     const modelRouter = options?.modelRouter ?? this.modelRouter;
     const maxParallel = options?.maxParallel ?? 4;
+    const watchdog =
+      options?.watchdog ??
+      this.watchdog ??
+      (options?.headless || options?.watchdogOptions
+        ? new HeadlessWatchdog(options.watchdogOptions)
+        : undefined);
+
+    // Circuit Breaker: Max cycle limit
+    if (watchdog && watchdog.isCycleLimitReached(cycle)) {
+      const persistedState: QuorumPersistedState = {
+        trackId,
+        phaseId,
+        cycle,
+        status: 'circuit_broken',
+        timestamp: Date.now(),
+        metadata: { reason: 'MAX_CYCLES_EXCEEDED' },
+      };
+      await watchdog.persistState(persistedState);
+      return {
+        trackId,
+        workUnits: [],
+        domains: [],
+        allocatedBranches: [],
+        tasks: [],
+        processorResults: [],
+        quorumPanel: [],
+        status: 'CIRCUIT_BROKEN',
+        circuitBreakerReason: 'MAX_CYCLES_EXCEEDED',
+        persistedState,
+      };
+    }
+
+    const isDiff = intentOrDiff.includes('diff --git') || intentOrDiff.includes('--- a/');
+    const rawDiff = options?.diff ?? (isDiff ? intentOrDiff : undefined);
+    let currentDiffHash: string | undefined;
+
+    // Circuit Breaker: Diff-Hash Stability (STAGNANT_DIFF)
+    if (watchdog && rawDiff) {
+      const { isStagnant, diffHash } = watchdog.recordDiff(rawDiff);
+      currentDiffHash = diffHash;
+      if (isStagnant) {
+        const persistedState: QuorumPersistedState = {
+          trackId,
+          phaseId,
+          cycle,
+          status: 'circuit_broken',
+          lastDiffHash: diffHash,
+          timestamp: Date.now(),
+          metadata: { reason: 'STAGNANT_DIFF' },
+        };
+        await watchdog.persistState(persistedState);
+        return {
+          trackId,
+          workUnits: [],
+          domains: [],
+          allocatedBranches: [],
+          tasks: [],
+          processorResults: [],
+          quorumPanel: [],
+          status: 'CIRCUIT_BROKEN',
+          diffHash,
+          circuitBreakerReason: 'STAGNANT_DIFF',
+          persistedState,
+        };
+      }
+    }
 
     // 1. Classify domains
     const domains = this.classifyDomains(intentOrDiff, options?.files);
 
     // 2. Parse into WorkUnits
     const workUnits = this.parseToWorkUnits(intentOrDiff, domains);
+
+    // Initial checkpoint persistence
+    if (watchdog) {
+      await watchdog.persistState({
+        trackId,
+        phaseId,
+        cycle,
+        status: 'in_progress',
+        lastDiffHash: currentDiffHash,
+        timestamp: Date.now(),
+      });
+    }
 
     // 3. Allocate isolated worktree branches and configure tasks
     const allocatedBranches: string[] = [];
@@ -399,8 +504,36 @@ export class MicroSwarmOrchestrator {
         batches.push(tasks.slice(i, i + maxParallel));
       }
 
+      const waveStartTime = Date.now();
+
       for (const batch of batches) {
-        const batchResults = await Promise.all(
+        if (watchdog && watchdog.isWaveTimedOut(waveStartTime)) {
+          const persistedState: QuorumPersistedState = {
+            trackId,
+            phaseId,
+            cycle,
+            status: 'circuit_broken',
+            lastDiffHash: currentDiffHash,
+            timestamp: Date.now(),
+            metadata: { reason: 'WAVE_TIMEOUT' },
+          };
+          await watchdog.persistState(persistedState);
+          return {
+            trackId,
+            workUnits,
+            domains,
+            allocatedBranches,
+            tasks,
+            processorResults,
+            quorumPanel: [],
+            status: 'CIRCUIT_BROKEN',
+            diffHash: currentDiffHash,
+            circuitBreakerReason: 'WAVE_TIMEOUT',
+            persistedState,
+          };
+        }
+
+        const batchPromise = Promise.all(
           batch.map(async (taskInfo) => {
             if (spawner) {
               try {
@@ -430,7 +563,67 @@ export class MicroSwarmOrchestrator {
             };
           })
         );
+
+        let batchResults: MicroSwarmProcessorResult[];
+
+        if (watchdog) {
+          const remainingTimeoutMs = Math.max(0, watchdog.waveTimeoutMs - (Date.now() - waveStartTime));
+          let timer: NodeJS.Timeout | undefined;
+          const timeoutPromise = new Promise<'TIMEOUT'>((resolve) => {
+            timer = setTimeout(() => resolve('TIMEOUT'), remainingTimeoutMs);
+          });
+
+          const winner = await Promise.race([batchPromise, timeoutPromise]);
+          if (timer) clearTimeout(timer);
+
+          if (winner === 'TIMEOUT' || watchdog.isWaveTimedOut(waveStartTime)) {
+            const persistedState: QuorumPersistedState = {
+              trackId,
+              phaseId,
+              cycle,
+              status: 'circuit_broken',
+              lastDiffHash: currentDiffHash,
+              timestamp: Date.now(),
+              metadata: { reason: 'WAVE_TIMEOUT' },
+            };
+            await watchdog.persistState(persistedState);
+            return {
+              trackId,
+              workUnits,
+              domains,
+              allocatedBranches,
+              tasks,
+              processorResults,
+              quorumPanel: [],
+              status: 'CIRCUIT_BROKEN',
+              diffHash: currentDiffHash,
+              circuitBreakerReason: 'WAVE_TIMEOUT',
+              persistedState,
+            };
+          }
+          batchResults = winner as MicroSwarmProcessorResult[];
+        } else {
+          batchResults = await batchPromise;
+        }
+
         processorResults.push(...batchResults);
+      }
+
+      // Checkpoint persistence after subagent execution
+      if (watchdog) {
+        const hasFailures = processorResults.some((r) => !r.success);
+        await watchdog.persistState({
+          trackId,
+          phaseId,
+          cycle,
+          status: hasFailures ? 'failed' : 'in_progress',
+          lastDiffHash: currentDiffHash,
+          timestamp: Date.now(),
+          metadata: {
+            completedTasks: processorResults.length,
+            failures: processorResults.filter((r) => !r.success).length,
+          },
+        });
       }
 
       // 5. Assemble Quorum Review
@@ -446,7 +639,6 @@ export class MicroSwarmOrchestrator {
         }
       }
 
-      const isDiff = intentOrDiff.includes('diff --git') || intentOrDiff.includes('--- a/');
       const quorumPanel = quorumResolver.resolve({
         files: Array.from(allModifiedFiles),
         domains,
@@ -478,6 +670,21 @@ export class MicroSwarmOrchestrator {
         }
       }
 
+      // Checkpoint persistence after review pass
+      let persistedState: QuorumPersistedState | undefined;
+      if (watchdog) {
+        persistedState = {
+          trackId,
+          phaseId,
+          cycle,
+          status: status === 'COMPLETED' ? 'passed' : 'failed',
+          lastDiffHash: currentDiffHash,
+          timestamp: Date.now(),
+          metadata: { quorumResult, status },
+        };
+        await watchdog.persistState(persistedState);
+      }
+
       return {
         trackId,
         workUnits,
@@ -488,6 +695,8 @@ export class MicroSwarmOrchestrator {
         quorumPanel,
         quorumResult,
         status,
+        diffHash: currentDiffHash,
+        persistedState,
       };
     } finally {
       // Auto cleanup worktrees if requested, guaranteed to run even on error
